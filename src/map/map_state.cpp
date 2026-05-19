@@ -1060,7 +1060,7 @@ void draw_small_square(sys::state& state, display_data& map_data, square::point 
 	map_data.arbitrary_map_triangles.push_back(bottom_right);
 
 	map_data.arbitrary_map_triangles_counts.push_back(
-		GLsizei(map_data.arbitrary_map_triangles.size() - current_size)
+		int(map_data.arbitrary_map_triangles.size() - current_size)
 	);
 
 	map_data.new_arbitrary_map_triangle = true;
@@ -1613,15 +1613,32 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 		float best_y_length_real = 0.f;
 		float best_y_left_x = 0.f;
 
-		auto check_point = [&](float x, float y) {
-			if(x < 0.f) return 0.f;
-			if(y < 0.f) return 0.f;
-			if((uint32_t)x >= map_data.size_x) return 0.f;
-			if((uint32_t)y >= map_data.size_y) return 0.f;
+		auto sample_province = [&](float x, float y) {
+			while (x < 0.f) {
+				x += (float)map_data.size_x;
+			}
+			while (x >= map_data.size_x) {
+				x -= (float)map_data.size_x;
+			}
+			if(y < 0.f) return dcon::province_id{};
+			if((uint32_t)y >= map_data.size_y) return dcon::province_id{};
 			glm::vec2 candidate = { x, y };
 			auto idx = int32_t(y) * int32_t(map_data.size_x) + int32_t(x);
-			if(!(0 <= idx && size_t(idx) < map_data.province_id_map.size())) return 0.f;
+			if(!(0 <= idx && size_t(idx) < map_data.province_id_map.size())) return dcon::province_id{};
 			auto pid = province::from_map_id(map_data.province_id_map[idx]);
+			return pid;
+		};
+
+		auto sample_nation = [&](float x, float y) {
+			auto pid = sample_province(x, y);
+			if(!pid) {
+				return dcon::nation_id {};
+			}
+			return state.world.province_get_nation_from_province_ownership(pid);
+		};
+
+		auto check_point = [&](float x, float y) {
+			auto pid = sample_province(x, y);
 			if(!pid) {
 				return 0.f;
 			}
@@ -1641,14 +1658,7 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 		};
 
 		auto weight_decay = [&](float x, float y) {
-			if(x < 0.f) return 0.f;
-			if(y < 0.f) return 0.f;
-			if((uint32_t)x >= map_data.size_x) return 0.f;
-			if((uint32_t)y >= map_data.size_y) return 0.f;
-			glm::vec2 candidate = { x, y };
-			auto idx = int32_t(y) * int32_t(map_data.size_x) + int32_t(x);
-			if(!(0 <= idx && size_t(idx) < map_data.province_id_map.size())) return 0.f;
-			auto pid = province::from_map_id(map_data.province_id_map[idx]);
+			auto pid = sample_province(x, y);
 			if(!pid) {
 				return 0.7f;
 			}
@@ -1932,6 +1942,7 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 			auto coord = glm::vec2{ point.x, point.y };
 			average_weight += point.z;
 			sum_points += coord;
+			//draw_small_square(state, state.map_state.map_data, { { point.x / (float)map_data.size_x, point.y / (float)map_data.size_y } }, 0.0001f);
 		}
 
 		average_weight /= (float)(points.size());
@@ -2004,10 +2015,26 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 					bottom = current.y;
 				}
 			}
-			key_points.push_back(center + glm::vec2(left, 0));
-			key_points.push_back(center + glm::vec2(0, bottom - local_step.y));
-			key_points.push_back(center + glm::vec2(right, 0));
-			key_points.push_back(center + glm::vec2(0, top + local_step.y));
+
+			{
+				auto result = center + glm::vec2(left, 0);
+				key_points.push_back(result);
+			}
+
+			{
+				auto result = center + glm::vec2(0, bottom - local_step.y);
+				key_points.push_back(result);
+			}
+
+			{
+				auto result = center + glm::vec2(right, 0);
+				key_points.push_back(result);
+			}
+
+			{
+				auto result = center + glm::vec2(0, top + local_step.y);
+				key_points.push_back(result);
+			}
 		}
 
 		std::array<glm::vec2, 5> key_provs{
@@ -2070,7 +2097,7 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 		for (auto point : centroids) {
 			auto e = point;
 
-			//draw_small_square(state, state.map_state.map_data, { { point.x / (float)map_data.size_x, point.y / (float)map_data.size_y } }, 0.002f);
+			//draw_small_square(state, state.map_state.map_data, { { point.x / (float)map_data.size_x, point.y / (float)map_data.size_y } }, 0.0005f);
 
 			if(e.x < basis.x) {
 				continue;
@@ -2149,6 +2176,8 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 			};
 
 			float xstep = (1.f / float(name_extent * 2.f));
+
+
 			for(float x = 0.f; x <= 1.f; x += xstep) {
 				float y = poly_fn(x);
 				if(y < 0.f || y > 1.f) {
@@ -2163,8 +2192,39 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 				}
 			}
 
-			if(!use_quadratic)
-				text_data.emplace_back(std::move(prepared_name), mo, basis, ratio);
+			if(!use_quadratic) {
+				xstep = 1 / 32.f;
+
+				float offset_left = 0.f;
+				for(float x = 0.f; x <= 1.f; x += xstep) {
+					float y = poly_fn(x);
+					auto map_point = glm::vec2{x, y} * ratio + basis;
+					auto nation = sample_nation(map_point.x, map_point.y);
+					if(nation && nation != n) {
+						offset_left = x;
+					}
+					if(nation == n) {
+						break;
+					}
+				}
+				float offset_right = 1.f;
+				for(float x = 1.f; x >= 0.f; x -= xstep) {
+					float y = poly_fn(x);
+					auto map_point = glm::vec2{x, y} * ratio + basis;
+					auto nation = sample_nation(map_point.x, map_point.y);
+					if(nation && nation != n) {
+						offset_right = x;
+					}
+					if(nation == n) {
+						break;
+					}
+				}
+				if(offset_left > offset_right) {
+					use_quadratic = true;
+				} else {
+					text_data.emplace_back(std::move(prepared_name), mo, basis, ratio, offset_left, offset_right);
+				}
+			}
 		}
 
 		bool use_linear = false;
@@ -2208,16 +2268,46 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 					break;
 				}
 			}
-			if(!use_linear)
-				text_data.emplace_back(std::move(prepared_name), glm::vec4(mo, 0.f), basis, ratio);
+			if(!use_linear) {
+				xstep = 1 / 32.f;
+				float offset_left = 0.f;
+				for(float x = 0.f; x <= 1.f; x += xstep) {
+					float y = poly_fn(x);
+					auto map_point = glm::vec2{x, y} * ratio + basis;
+					auto nation = sample_nation(map_point.x, map_point.y);
+					if(nation && nation != n) {
+						offset_left = x;
+					}
+					if(nation == n) {
+						break;
+					}
+				}
+				float offset_right = 1.f;
+				for(float x = 1.f; x >= 0.f; x -= xstep) {
+					float y = poly_fn(x);
+					auto map_point = glm::vec2{x, y} * ratio + basis;
+					auto nation = sample_nation(map_point.x, map_point.y);
+					if(nation && nation != n) {
+						offset_right = x;
+					}
+					if(nation == n) {
+						break;
+					}
+				}
+				if(offset_left > offset_right) {
+					use_linear = true;
+				} else {
+					text_data.emplace_back(std::move(prepared_name), glm::vec4{mo.x, mo.y, mo.z, 0.f}, basis, ratio, offset_left, offset_right);
+				}
+			}
 		}
 
 
 		if(state.user_settings.map_label == sys::map_label_mode::spherical) {
 			if(in_x[0][1] < in_x[1][1]) {
-				text_data.emplace_back(std::move(prepared_name), glm::vec4(in_x[0][1], in_y[0][1], in_x[1][1], in_y[1][1]), basis, ratio);
+				text_data.emplace_back(std::move(prepared_name), glm::vec4(in_x[0][1], in_y[0][1], in_x[1][1], in_y[1][1]), basis, ratio, 0.f, 1.f);
 			} else {
-				text_data.emplace_back(std::move(prepared_name), glm::vec4(in_x[1][1], in_y[1][1], in_x[0][1], in_y[0][1]), basis, ratio);
+				text_data.emplace_back(std::move(prepared_name), glm::vec4(in_x[1][1], in_y[1][1], in_x[0][1], in_y[0][1]), basis, ratio, 0.f, 1.f);
 			}
 		}
 
@@ -2249,8 +2339,38 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 			if(abs(mo[1]) <= 0.05) 
 				mo[1] = 0.f;
 
-			if(ratio.x <= map_size.x * 0.75f && ratio.y <= map_size.y * 0.75f)
-				text_data.emplace_back(std::move(prepared_name), glm::vec4(mo, 0.f, 0.f), basis, ratio);
+			if(ratio.x <= map_size.x * 1.f && ratio.y <= map_size.y * 1.f) {
+				float xstep = 1.f / 32.f;
+
+				float offset_left = 0.f;
+				for(float x = 0.f; x <= 1.f; x += xstep) {
+					float y = poly_fn(x);
+					auto map_point = glm::vec2{x, y} * ratio + basis;
+					auto nation = sample_nation(map_point.x, map_point.y);
+					if(nation && nation != n) {
+						offset_left = x;
+					}
+					if(nation == n) {
+						break;
+					}
+				}
+				float offset_right = 1.f;
+				for(float x = 1.f; x >= 0.f; x -= xstep) {
+					float y = poly_fn(x);
+					auto map_point = glm::vec2{x, y} * ratio + basis;
+					auto nation = sample_nation(map_point.x, map_point.y);
+					if(nation && nation != n) {
+						offset_right = x;
+					}
+					if(nation == n) {
+						break;
+					}
+				}
+				if(offset_left < offset_right) {
+					glm::vec4 coeffs = { mo.x, mo.y, 0.f, 0.f };
+					text_data.emplace_back(std::move(prepared_name), coeffs, basis, ratio, offset_left, offset_right);
+				}
+			}
 		}
 	}
 
@@ -2261,7 +2381,7 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 				std::string name = text::produce_simple_string(state, p.get_name());
 				text::stored_glyphs temp;
 				state.font_collection.mfont.remake_map_cache(state, temp, name);
-				p_text_data.emplace_back(std::move(temp), glm::vec4(0.f, 0.f, 0.f, 0.f), p.get_mid_point() - glm::vec2(5.f, 0.f), glm::vec2(10.f, 10.f));
+				p_text_data.emplace_back(std::move(temp), glm::vec4(0.f, 0.f, 0.f, 0.f), p.get_mid_point() - glm::vec2(5.f, 0.f), glm::vec2(10.f, 10.f), 0.f, 1.f);
 			}
 		}
 		map_data.set_province_text_lines(state, p_text_data);

@@ -117,11 +117,13 @@ struct text_line_vertex {
 
 struct text_line_generator_data {
 	text_line_generator_data() { };
-	text_line_generator_data(text::stored_glyphs&& text_, glm::vec4 coeff_, glm::vec2 basis_, glm::vec2 ratio_) : text(std::move(text_)), coeff{ coeff_ }, basis{ basis_ }, ratio{ ratio_ } { };
+	text_line_generator_data(text::stored_glyphs&& text_, glm::vec4 coeff_, glm::vec2 basis_, glm::vec2 ratio_, float l_, float r_) : text(std::move(text_)), coeff{ coeff_ }, basis{ basis_ }, ratio{ ratio_ }, offset_left (l_), offset_right (r_) { };
 	text::stored_glyphs text;
 	glm::vec4 coeff{0.f};
 	glm::vec2 basis{0.f};
 	glm::vec2 ratio{0.f};
+	float offset_left = 0.f;
+	float offset_right = 0.f;
 };
 
 struct border {
