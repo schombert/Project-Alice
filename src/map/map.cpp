@@ -3849,7 +3849,7 @@ void display_data::load_map(sys::state& state) {
 
 			glUseProgram(shader_program);
 			glUniform1f(blur_uniform, 0);
-			glUniform2f(screen_uniform, dds_size_x, dds_size_y);
+			glUniform2f(screen_uniform, (float)dds_size_x, (float)dds_size_y);
 
 			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, dds_texture);
@@ -3919,15 +3919,15 @@ void display_data::load_map(sys::state& state) {
 
 					glBlitFramebuffer(
 						// SOURCE
-						x * p_dx,
-						y * p_dy,
-						(x + 1) * p_dx,
-						(y + 1) * p_dy,
+						x * (GLint)p_dx,
+						y * (GLint)p_dy,
+						(x + 1) * (GLint)p_dx,
+						(y + 1) * (GLint)p_dy,
 						// TARGET
-						0,
-						0,
-						p_dx,
-						p_dy,
+						(GLint)0,
+						(GLint)0,
+						(GLint)p_dx,
+						(GLint)p_dy,
 						// WHAT TO COPY
 						GL_COLOR_BUFFER_BIT,
 						// HOW TO COPY
