@@ -777,8 +777,8 @@ void display_data::render(
 
 	if(state.map_state.light_rotate) {
 		state.map_state.light_direction.x = 0.f ;
-		state.map_state.light_direction.y = sin(-time_counter);
-		state.map_state.light_direction.z = cos(-time_counter);
+		state.map_state.light_direction.y = sin(time_counter);
+		state.map_state.light_direction.z = cos(time_counter);
 		state.map_state.light_direction = state.map_state.light_direction * axial_rotation;
 	}
 
@@ -2714,7 +2714,7 @@ void display_data::update_sprawl(sys::state& state) {
 	connectors.resize(state.world.province_size());
 
 	//auto minimal_population_per_visible_settlement = 2500.f;
-	auto population_per_km2 = 20000.f;
+	auto population_per_km2 = 5000.f;
 	auto minimal_size_per_visible_settlement_km2 = 20.f;
 
 	// Populate paths with railroads - only account provinces that have been visited
@@ -2759,7 +2759,7 @@ void display_data::update_sprawl(sys::state& state) {
 
 		std::vector<std::pair<glm::vec2, float>> weighted_settlements;
 
-		auto km2_per_potential_settlement = 20000.f;
+		auto km2_per_potential_settlement = 5000.f;
 
 		int potential_settlement_slots = std::min(
 			(int)7, std::min(

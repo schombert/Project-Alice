@@ -11,6 +11,11 @@ Functions in this file are shader versions of functions from projections.cpp
 #define M_PI 3.1415926535897932384626433832795
 #define PI 3.1415926535897932384626433832795
 
+float smootherstep(float x) {
+	x = clamp(x, 0.f, 1.f);
+	return x * x * x * (x * (6.0f * x - 15.0f) + 10.0f);
+}
+
 struct square_tangent {vec2 base; vec2 tangent;};
 struct rectangle_tangent {vec2 base; vec2 tangent;};
 struct sphere_tangent { vec3 base; vec3 tangent; };

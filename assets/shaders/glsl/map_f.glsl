@@ -191,14 +191,11 @@ vec4 get_land_terrain() {
 
 // if we display data, ignore pretty effects
 vec4 get_land_data_modern() {
+	vec4 terrain = get_terrain_mix();
+	float is_land = terrain.a;
 	vec4 province_sample = texture(provinces_texture_sampler, gl_FragCoord.xy / screen_size);
 	vec2 prov_id = province_sample.xy;
-	return vec4(texture(province_color, vec3(prov_id, 0.)).rgb * 0.9f, 1.f);
-}
-
-float smootherstep(float x) {
-	x = clamp(x, 0.f, 1.f);
-	return x * x * x * (x * (6.0f * x - 15.0f) + 10.0f);
+	return vec4(texture(province_color, vec3(prov_id, 0.)).rgb * 0.8f, is_land);
 }
 
 vec4 get_land_political_modern() {
@@ -385,6 +382,9 @@ vec4 get_land_political_far() {
 }
 
 vec4 get_land() {
+	if(subroutines_index_2 == 0) {
+		return get_land_terrain();
+	}
 
 	if (int(graphics_mode) == 2) {
 		if (map_mode_is_data == 0) {
