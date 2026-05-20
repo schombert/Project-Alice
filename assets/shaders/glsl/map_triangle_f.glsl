@@ -11,20 +11,33 @@ vec4 gamma_correct(vec4 colour) {
 }
 
 void main() {
+	if (length(tex_coord) > 1.f) {
+		discard;
+	}
 
 	vec4 out_color = texture(texture_sampler, tex_coord / 10.f);
 	
 	vec3 inner_color = vec3(0.6f, 0.2, 0.2f);
+
+	float darkness = max(0.f, -dot(light_direction, space_coords) + 0.2f);
+
+	float light = 0.f;
+
 	if (ignore_light == 0.f) {
-		float darkness = max(0.f, -dot(light_direction, space_coords) + 0.2f);
-		inner_color *= 5.f * out_color.a * out_color.rgb * darkness;
+		light = smootherstep(1.f - length(tex_coord)) * darkness;
+		//inner_color *= 5.f * out_color.a * out_color.rgb * darkness * ;
 	}
 
-	if (length(tex_coord) > 0.75f) {
-		frag_color = vec4(0.f, 0.f, 0.f, texture(texture_sampler, tex_coord));
+	if (length(tex_coord) > 0.5f) {
+		if (ignore_light != 0.f) {
+			discard;
+		}
+		frag_color = vec4(light, light, light, 0.f);
+	} else if (length(tex_coord) > 0.25f) {
+		frag_color = vec4(light, light, light, texture(texture_sampler, tex_coord));
 	} else {
 		frag_color = vec4(inner_color, texture(texture_sampler, tex_coord));
 	}
 
-	frag_color = gamma_correct(frag_color);
+	frag_color = gamma_correct(frag_color) + vec4(inner_color, 0.f) * light;
 }

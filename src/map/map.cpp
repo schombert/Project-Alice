@@ -777,8 +777,8 @@ void display_data::render(
 
 	if(state.map_state.light_rotate) {
 		state.map_state.light_direction.x = 0.f ;
-		state.map_state.light_direction.y = sin(-time_counter);
-		state.map_state.light_direction.z = cos(-time_counter);
+		state.map_state.light_direction.y = sin(time_counter);
+		state.map_state.light_direction.z = cos(time_counter);
 		state.map_state.light_direction = state.map_state.light_direction * axial_rotation;
 	}
 
@@ -803,6 +803,9 @@ void display_data::render(
 	glDisable(GL_PRIMITIVE_RESTART);
 
 	float pixel_size = (screen_size.y) / float(size_y) * zoom;
+
+	auto scale_borders = std::clamp(2.f / pixel_size, 1.f, 4.f);
+
 
 	// BORDERS TO FIX HUGE PIXELS
 	if(state.user_settings.graphics_mode != sys::graphics_mode::ugly && pixel_size > 2.f) {
@@ -1079,7 +1082,7 @@ void display_data::render(
 			}
 			// impassible borders
 			{
-				glUniform1f(shader_uniforms[shader_borders][uniform_width], 0.0002f); // width
+				glUniform1f(shader_uniforms[shader_borders][uniform_width], 0.0006f); // width
 				glActiveTexture(GL_TEXTURE2);
 				glBindTexture(GL_TEXTURE_2D, textures[texture_imp_border]);
 				for(auto b : borders) {
@@ -1093,7 +1096,7 @@ void display_data::render(
 			}
 			// national borders
 			{
-				glUniform1f(shader_uniforms[shader_borders][uniform_width], 0.0001f); // width
+				glUniform1f(shader_uniforms[shader_borders][uniform_width], 0.00015f * scale_borders); // width
 				glActiveTexture(GL_TEXTURE2);
 				glBindTexture(GL_TEXTURE_2D, textures[texture_national_border]);
 				for(auto b : borders) {
@@ -1134,7 +1137,7 @@ void display_data::render(
 			}
 			// national borders
 			{
-				glUniform1f(shader_uniforms[shader_borders][uniform_width], 0.0003f); // width
+				glUniform1f(shader_uniforms[shader_borders][uniform_width], 0.00015f * scale_borders); // width
 				glActiveTexture(GL_TEXTURE2);
 				glBindTexture(GL_TEXTURE_2D, textures[texture_state_border]);
 				for(auto b : borders) {
@@ -2711,7 +2714,7 @@ void display_data::update_sprawl(sys::state& state) {
 	connectors.resize(state.world.province_size());
 
 	//auto minimal_population_per_visible_settlement = 2500.f;
-	auto population_per_km2 = 20000.f;
+	auto population_per_km2 = 5000.f;
 	auto minimal_size_per_visible_settlement_km2 = 20.f;
 
 	// Populate paths with railroads - only account provinces that have been visited
@@ -2756,7 +2759,7 @@ void display_data::update_sprawl(sys::state& state) {
 
 		std::vector<std::pair<glm::vec2, float>> weighted_settlements;
 
-		auto km2_per_potential_settlement = 20000.f;
+		auto km2_per_potential_settlement = 5000.f;
 
 		int potential_settlement_slots = std::min(
 			(int)7, std::min(
@@ -3082,8 +3085,13 @@ void display_data::set_text_lines(sys::state& state) {
 			}
 		}
 
-		left = std::clamp(left, 0.f, 1.f);
-		right = std::clamp(right, 0.f, 1.f);
+		if(!is_spherical) {
+			left = std::clamp(left, e.offset_left, 1.f);
+			right = std::clamp(right, 0.f, e.offset_right);
+		} else {			
+			left = std::clamp(left, 0.f, 1.f);
+			right = std::clamp(right, 0.f, 1.f);
+		}
 
 		if(right <= left) continue;
 
@@ -3156,6 +3164,7 @@ void display_data::set_text_lines(sys::state& state) {
 		assert(std::isfinite(text_length) && text_length != 0.f);
 
 		float size = (curve_length / text_length) * 0.8f;
+		if(!is_spherical) size /= 2.f;
 
 		float font_size_index = std::round(5.f * log(size) / log(1.618034f));
 		if(font_size_index > 45.f) font_size_index = 45.f;
@@ -3163,11 +3172,10 @@ void display_data::set_text_lines(sys::state& state) {
 		size = std::pow(1.618034f, font_size_index / 5.f);
 
 		auto real_text_half_size = size / size_x / 2.f;
-		if(!is_spherical) real_text_half_size /= 2.f;
 
 		float letter_spacing_map = 0.f;
 		if(!state.world.locale_get_prevent_letterspace(state.font_collection.get_current_locale()) && e.text.glyph_info.size() > 1) {
-			letter_spacing_map = std::clamp((0.8f * curve_length - text_length * size) / (e.text.glyph_info.size() - 1) / 2.f, 0.f, size * 2.f);
+			//letter_spacing_map = std::clamp((0.8f * curve_length - text_length * size) / (e.text.glyph_info.size() - 1) / 2.f, 0.f, size * 2.f);
 		}
 
 		float margin = (curve_length - text_length * size - (e.text.glyph_info.size() - 1) * letter_spacing_map) / 2.0f;
@@ -3272,10 +3280,27 @@ void display_data::set_text_lines(sys::state& state) {
 					auto new_tangent_square = sphere_R3::to_square(new_tangent);
 					final_direction = new_tangent_square.data * (float)size_x;
 				} else {
-					glm::vec2 forward_raw = glm::vec2(ratio.x / (float)size_x, ratio.y / (float)size_y * dpoly_fn(cur_x));
-					float norm = sqrt(equirectangular::dot({ {{0.f,0.f}}, forward_raw }, { {{0.f,0.f}}, forward_raw }, (float)size_x, (float)size_y));
+					// rectangle
+					equirectangular::tangent forward_rect { { { 0.f, 0.f } } , { ratio.x, ratio.y * dpoly_fn(cur_x) } };
+					square::tangent forward = equirectangular::to_square(forward_rect, (float)size_x, (float)size_y);
+					float norm = sqrt(equirectangular::dot(forward, forward, (float)size_x, (float)size_y));
 					if(norm <= 0.f) norm = 1.f;
-					auto forward = forward_raw / norm * (float)size_x;
+					forward.data /= norm;					
+					square::tangent up = equirectangular::rotate_left(forward, (float)size_x, (float)size_y);
+
+					equirectangular::point center_rect { glm::vec2(cur_x, poly_fn(cur_x)) * ratio + basis };
+					square::point center = equirectangular::to_square(center_rect, (float)size_x, (float)size_y);
+
+					actual_center = center.data;
+					actual_center -= up.data / 2.f * size / 64.f * glyph_height;
+					actual_center -= up.data / 2.f * size / 64.f * max_glyph_height;
+					actual_center += up.data / 1.f * size / 64.f * y_bearing;
+					actual_center += up.data / 1.f * size / 64.f * y_offset;
+					actual_center += forward.data * size / 64.f * glyph_width / 2.f;
+
+					final_direction = forward.data * (float)size_x;
+
+					/*
 					glm::vec2 up = equirectangular::rotate_left({ {{0.f,0.f}}, forward }, (float)size_x, (float)size_y).data;
 					auto raw_center = glm::vec2(cur_x, poly_fn(cur_x)) * ratio + basis;
 					auto center = raw_center / glm::vec2(size_x, size_y);
@@ -3283,6 +3308,7 @@ void display_data::set_text_lines(sys::state& state) {
 						+ (-0.5f * max_glyph_height + 0.5f * glyph_height + y_offset - (glyph_height - y_bearing)) * up * real_text_half_size / 64.f
 						+ (glyph_width + x_offset) * forward * real_text_half_size / 64.f;
 					final_direction = forward;
+					*/
 				}
 
 				float u0 = float(gi.ft_x_bearing) / (64.0f * text::dr_size);

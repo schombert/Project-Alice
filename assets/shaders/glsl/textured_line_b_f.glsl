@@ -3,6 +3,7 @@ in float o_dist;
 in vec2 map_coord;
 in vec2 space_coord;
 out vec4 frag_color;
+in float border_width_coord;
 
 uniform float gamma;
 uniform vec2 screen_size;
@@ -22,8 +23,8 @@ void main() {
 	// return;
 
 
-	vec4 out_color = texture(line_texture, vec2(o_dist, tex_coord));
-	out_color.a *= texture(printbrush, map_coord * 300.f).r;
+	vec4 out_color = texture(line_texture, vec2(o_dist, border_width_coord));
+	out_color.a *= texture(printbrush, vec2(o_dist * 10.f, tex_coord) / 10.f).r;
 
 	//vec2 prov_id = texture(provinces_texture_sampler, gl_FragCoord.xy / screen_size).xy;
 	//out_color.rgb *= texture(province_fow, prov_id).rgb;
