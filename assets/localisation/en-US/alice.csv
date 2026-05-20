@@ -1895,6 +1895,12 @@ private_education_owners;Private educators ?Y$val$?!
 port_owners;Local port ?Y$val$?!
 housing_owners;Landlords ?Y$val$?!
 private_education_price;Education price ?Y$val$?!
+private_education_supply_1;Education private supply ?Y$val$?!
+private_education_supply_2;Education public supply ?Y$val$?!
+private_education_demand_1;Education public demand ?Y$val$?!
+private_education_demand_2;Education private demand ?Y$val$?!
+private_education_size_public;Education public size ?Y$val$?!
+private_education_size_private;Education private size ?Y$val$?!
 port_price;Local port price ?Y$val$?!
 housing_price;Housing price ?Y$val$?!
 housing_supply;Housing supply ?Y$val$?!

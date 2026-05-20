@@ -162,10 +162,16 @@ auto prepare_pop_budget_templated(
 
 	// we want to focus on life needs first if we are poor AND our satisfaction is low
 
+	VALUE total_cost_needs = 0.00001f + (life_costs + everyday_costs + luxury_costs) * pop_size / state.defines.alice_needs_scaling_factor;
+	VALUE is_rich = adaptive_ve::min<VALUE>(
+		3.f,
+		adaptive_ve::max<VALUE>(0.f, savings - total_cost_needs) / total_cost_needs
+	);
+
 	VALUE base_life_costs = (0.00001f + life_costs * pop_size / state.defines.alice_needs_scaling_factor);
 	VALUE is_poor = adaptive_ve::max<VALUE>(0.01f, 1.f - 4.f * savings / base_life_costs);
-	VALUE current_life = pop_demographics::get_life_needs(state, ids);
-	is_poor = adaptive_ve::min<VALUE>(1.f, adaptive_ve::max<VALUE>(0.f, is_poor + (1.f - current_life) * 2.f));
+	//VALUE current_life = pop_demographics::get_life_needs(state, ids);
+	is_poor = adaptive_ve::min<VALUE>(1.f, adaptive_ve::max<VALUE>(0.f, is_poor));
 
 	// prepare desired spending rate for every category
 
@@ -215,6 +221,8 @@ auto prepare_pop_budget_templated(
 	// upload data to structure
 	// here we do logic which can't be made uniform
 
+	VALUE satisfaction = state.world.pop_get_satisfaction(ids);
+
 
 	// ##########
 	// life needs
@@ -227,24 +235,26 @@ auto prepare_pop_budget_templated(
 	VALUE available_subsistence = adaptive_ve::min<VALUE>(subsistence_score_life, subsistence);
 	subsistence = subsistence - available_subsistence;
 	VALUE qol_from_subsistence = available_subsistence / subsistence_score_life;
-	VALUE demand_scale_life = old_life / base_qol;
-	result.life_needs.demand_scale = demand_scale_life * demand_scale_life + 0.01f;
+	VALUE demand_scale_life = satisfaction;//old_life / base_qol;
+	result.life_needs.demand_scale = demand_scale_life;// * demand_scale_life + 0.01f;
 	result.life_needs.required =
 		result.life_needs.demand_scale
 		* life_costs
 		* pop_size
 		/ state.defines.alice_needs_scaling_factor;
 	auto zero_life_costs = result.life_needs.required == 0;
+	/*
 	auto rich_but_life_needs_are_not_satisfied = adaptive_ve::select<BOOL_VALUE, VALUE>(
 		zero_life_costs,
 		1.f,
 		adaptive_ve::min<VALUE>
 			(
 				2.f,
-				(1.05f - old_life) * adaptive_ve::max<VALUE>(0.f, spend_on_life_needs - result.life_needs.required * 5.f) / result.life_needs.required
+				adaptive_ve::max<VALUE>(0.f, spend_on_life_needs - result.life_needs.required * 5.f) / result.life_needs.required
 			)
 	);
-	result.life_needs.spent = adaptive_ve::min<VALUE>(spend_on_life_needs, result.life_needs.required * (1.f + rich_but_life_needs_are_not_satisfied));
+	*/
+	result.life_needs.spent = adaptive_ve::min<VALUE>(spend_on_life_needs, result.life_needs.required * (1.f + is_rich));
 	result.life_needs.satisfied_with_money_ratio = adaptive_ve::select<BOOL_VALUE, VALUE>(
 		zero_life_costs,
 		10.f,
@@ -281,24 +291,27 @@ auto prepare_pop_budget_templated(
 	// ##############
 
 	auto old_everyday = pop_demographics::get_everyday_needs(state, ids);
-	auto demand_scale_everyday = old_everyday / base_qol;
-	result.everyday_needs.demand_scale = demand_scale_everyday * demand_scale_everyday + 0.01f;
+	auto demand_scale_everyday = 1.f;//old_everyday / base_qol;
+	result.everyday_needs.demand_scale = demand_scale_everyday;// * demand_scale_everyday + 0.01f;
 	result.everyday_needs.required =
 		result.everyday_needs.demand_scale
 		* everyday_costs
 		* pop_size
 		/ state.defines.alice_needs_scaling_factor;
 	auto zero_everyday_costs = result.everyday_needs.required == 0;
-	auto rich_but_everyday_needs_are_not_satisfied = adaptive_ve::select<BOOL_VALUE, VALUE>(
+	auto rich_but_everyday_needs_are_not_satisfied = 0.f;
+	/*
+	adaptive_ve::select<BOOL_VALUE, VALUE>(
 		zero_everyday_costs,
 		1.f,
 		adaptive_ve::min<VALUE>
 		(
 			5.f,
-			(1.05f - old_everyday) * adaptive_ve::max<VALUE>(0.f, spend_on_everyday_needs - result.everyday_needs.required * 5.f) / result.everyday_needs.required
+			adaptive_ve::max<VALUE>(0.f, spend_on_everyday_needs - result.everyday_needs.required * 5.f) / result.everyday_needs.required
 		)
 	);
-	result.everyday_needs.spent = adaptive_ve::min<VALUE>(savings, adaptive_ve::min<VALUE>(spend_on_everyday_needs, result.everyday_needs.required * (1.f + rich_but_everyday_needs_are_not_satisfied)));
+	*/
+	result.everyday_needs.spent = adaptive_ve::min<VALUE>(savings, adaptive_ve::min<VALUE>(spend_on_everyday_needs, result.everyday_needs.required * (1.f + is_rich)));
 	result.everyday_needs.satisfied_with_money_ratio = adaptive_ve::select<BOOL_VALUE, VALUE>(
 		zero_everyday_costs,
 		10.f,
@@ -316,24 +329,27 @@ auto prepare_pop_budget_templated(
 	// ############
 
 	auto old_luxury = pop_demographics::get_luxury_needs(state, ids);
-	auto demand_scale_luxury = old_luxury / base_qol;
-	result.luxury_needs.demand_scale = demand_scale_luxury * demand_scale_luxury + 0.01f;
+	auto demand_scale_luxury = 1.f;//old_luxury / base_qol;
+	result.luxury_needs.demand_scale = demand_scale_luxury;// * demand_scale_luxury + 0.01f;
 	result.luxury_needs.required =
 		result.luxury_needs.demand_scale
 		* luxury_costs
 		* pop_size
 		/ state.defines.alice_needs_scaling_factor;
 	auto zero_luxury_costs = result.luxury_needs.required == 0;
-	auto rich_but_luxury_needs_are_not_satisfied = adaptive_ve::select<BOOL_VALUE, VALUE>(
+	auto rich_but_luxury_needs_are_not_satisfied = 0.f;
+	/*
+	adaptive_ve::select<BOOL_VALUE, VALUE>(
 		zero_luxury_costs,
 		1.f,
 		adaptive_ve::min<VALUE>
 		(
 			5.f,
-			(1.05f - old_luxury) * adaptive_ve::max<VALUE>(0.f, spend_on_luxury_needs - result.luxury_needs.required * 5.f) / result.luxury_needs.required
+			adaptive_ve::max<VALUE>(0.f, spend_on_luxury_needs - result.luxury_needs.required * 5.f) / result.luxury_needs.required
 		)
 	);
-	result.luxury_needs.spent = adaptive_ve::min<VALUE>(savings, adaptive_ve::min<VALUE>(spend_on_luxury_needs, result.luxury_needs.required * (1.f + rich_but_luxury_needs_are_not_satisfied)));
+	*/
+	result.luxury_needs.spent = adaptive_ve::min<VALUE>(savings, adaptive_ve::min<VALUE>(spend_on_luxury_needs, result.luxury_needs.required * (1.f + is_rich)));
 	result.luxury_needs.satisfied_for_free_ratio = 0.f;
 	result.luxury_needs.satisfied_with_money_ratio = adaptive_ve::select<BOOL_VALUE, VALUE>(
 		zero_luxury_costs,
@@ -359,8 +375,7 @@ auto prepare_pop_budget_templated(
 
 	// if education is crazy expensive and impossible to access, we want to spend 0 because it's hopeless
 
-
-	auto rich_but_uneducated = adaptive_ve::select<BOOL_VALUE, VALUE>(
+	auto scale_from_being_rich = adaptive_ve::select<BOOL_VALUE, VALUE>(
 		required_education == 0.f,
 		1.f,
 		adaptive_ve::max<VALUE>
@@ -369,24 +384,33 @@ auto prepare_pop_budget_templated(
 			adaptive_ve::min<VALUE>
 			(
 				10.f,
-				(1.05f - literacy)
-				* adaptive_ve::max<VALUE>(0.f, spend_on_education - result.education.required * 5.f)
+				adaptive_ve::max<VALUE>(0.f, spend_on_education - result.education.required * 5.f)
 				/ result.education.required
 			) - 0.1f
 		)
 	);
-	auto supposed_to_spend = adaptive_ve::min<VALUE>(savings, adaptive_ve::min<VALUE>(spend_on_education, result.education.required * rich_but_uneducated));
-	auto potentially_free_ratio = state.world.province_get_service_satisfaction_for_free(provs, services::list::education) / adaptive_ve::max<VALUE>(1.f, rich_but_uneducated);
-	auto ratio_of_free_education = decltype(potentially_free_ratio)(0.f);
-	ratio_of_free_education = adaptive_ve::select<BOOL_VALUE, VALUE>(result.can_use_free_services > 0.f, potentially_free_ratio, ratio_of_free_education);
-	result.education.satisfied_for_free_ratio = ratio_of_free_education;
-	result.education.spent = supposed_to_spend * (1.f - ratio_of_free_education);
-	result.education.satisfied_with_money_ratio = adaptive_ve::select<BOOL_VALUE, VALUE>(
-		required_education == 0.f,
-		1.f,
-		result.education.spent
-		/ result.education.required
-	);
+
+	auto education_scale_nation = adaptive_ve::select<BOOL_VALUE, VALUE>(result.can_use_free_services > 0.f, 1.f, 0.f);
+
+	auto personal_desired_spending = result.education.required * scale_from_being_rich;
+	auto can_actually_spend = adaptive_ve::min<VALUE>(savings, spend_on_education);
+	auto total_personal_spending = adaptive_ve::min<VALUE>(can_actually_spend, personal_desired_spending);
+	auto education_scale_private = scale_from_being_rich * adaptive_ve::select<BOOL_VALUE, VALUE>(personal_desired_spending > 0.f, total_personal_spending / personal_desired_spending, 0.f);
+
+	//auto probability_to_get_education_for_free = state.world.province_get_service_satisfaction_for_free(provs, services::list::education);
+	auto expected_help_from_nation = adaptive_ve::select<BOOL_VALUE, VALUE>(result.can_use_free_services > 0.f, result.education.required, 0.f);
+	auto total_expected_spending = expected_help_from_nation + total_personal_spending;
+
+	auto potentially_free_ratio = adaptive_ve::select<BOOL_VALUE, VALUE>(total_expected_spending > 0.f, expected_help_from_nation / total_expected_spending, 0.f);
+
+	//auto supposed_to_spend = adaptive_ve::min<VALUE>(savings, adaptive_ve::min<VALUE>(spend_on_education, result.education.required * rich_but_uneducated));
+	//auto potentially_free_ratio = expected_help_from_nation / adaptive_ve::max<VALUE>(1.f, rich_but_uneducated);
+	//auto ratio_of_free_education = decltype(potentially_free_ratio)(0.f);
+	//ratio_of_free_education = adaptive_ve::select<BOOL_VALUE, VALUE>(result.can_use_free_services > 0.f, potentially_free_ratio, ratio_of_free_education);
+
+	result.education.satisfied_for_free_ratio = education_scale_nation;
+	result.education.spent = total_personal_spending;
+	result.education.satisfied_with_money_ratio = education_scale_private;
 	result.spent_total = result.spent_total + result.education.spent;
 	savings = savings - result.education.spent;
 
@@ -486,9 +510,9 @@ void update_consumption(
 		demand_luxury.set(ids, multiplier * data.luxury_needs.demand_scale * data.luxury_needs.satisfied_with_money_ratio);
 		demand_education_public_allowed.set(
 			ids,
-			pop_size
+			pop_size * data.education.demand_scale
+			* data.education.satisfied_for_free_ratio
 			* data.can_use_free_services
-			* data.education.demand_scale * data.education.satisfied_for_free_ratio
 		);
 		demand_paid_education.set(ids, pop_size * data.education.demand_scale * data.education.satisfied_with_money_ratio);
 

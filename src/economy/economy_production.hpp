@@ -29,6 +29,25 @@ uint32_t size(sys::state const& state);
 
 namespace economy {
 
+template<typename VALUE>
+VALUE gradient_employment_i(
+	VALUE expected_profit_per_perfect_worker,
+	VALUE expected_input_cost_per_perfect_worker,
+	VALUE power,
+	VALUE wage,
+	VALUE secondary_employment,
+	VALUE secondary_power
+);
+template<typename VALUE>
+VALUE gradient_employment_i(
+	VALUE expected_profit_per_perfect_worker,
+	VALUE expected_input_cost_per_perfect_worker,
+	VALUE power,
+	VALUE wage
+);
+template<typename VALUE>
+VALUE gradient_to_employment_change(VALUE gradient, VALUE wage, VALUE current_employment, VALUE sat);
+
 // 100'000 hired clerks increase output by 1%
 inline constexpr float secondary_employment_output_bonus = 1.f / 100000.f;
 inline constexpr float unqualified_throughput_multiplier = 0.2f;

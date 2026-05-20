@@ -2,7 +2,7 @@
 
 namespace economy {
 
-constexpr inline float factories_per_state_required_city_size = 100'000.f;
+constexpr inline float factories_per_state_required_city_size = 60'000.f;
 
 namespace numerical {
 namespace commodity_unit {

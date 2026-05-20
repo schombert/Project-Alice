@@ -5,6 +5,7 @@
 #include "constants_dcon.hpp"
 #include "province_templates.hpp"
 #include "money.hpp"
+#include "economy_production.hpp"
 
 namespace services {
 
@@ -96,7 +97,7 @@ namespace advanced_province_buildings {
 
 // could be expanded by 1000 per 1 years
 constexpr float max_port_expansion_speed = 1000.f / 365.f;
-constexpr float max_city_expansion_rate= 0.1f / 365.f;
+constexpr float max_city_expansion_rate= 1.f / 365.f;
 constexpr float max_city_expansion_speed = 1000.f / 365.f;
 constexpr float ports_decay_speed = 0.99999f;
 
@@ -508,14 +509,13 @@ void update_private_size(sys::state& state) {
 				/ (state.world.province_get_demographics(pids, demographics::total) + 1.f)
 			);
 
-			auto cost_of_input = state.world.province_get_labor_price(pids, def.throughput_labour_type);
+			auto wage = state.world.province_get_labor_price(pids, def.throughput_labour_type);
 			auto cost_of_output = state.world.province_get_service_price(pids, def.output) * local_education_efficiency * tmod * nmod * def.output_amount;
-
 			auto current_private_size = state.world.province_get_advanced_province_building_private_size(pids, bid);
-			auto margin = (cost_of_output - cost_of_input) / cost_of_input;
-			auto new_private_size = current_private_size + ve::min(margin, 100.f) + ve::min(ve::max(margin, -0.01f), 0.01f) * current_private_size;
-			auto max_size = state.world.province_get_demographics(pids, demographics::total) * state.world.province_get_labor_price(pids, economy::labor::no_education) / cost_of_input;
-			new_private_size = ve::min(max_size, new_private_size);
+			auto sat = state.world.province_get_labor_demand_satisfaction(pids, def.throughput_labour_type);
+			auto gradient = economy::gradient_employment_i<ve::fp_vector>(cost_of_output, ve::fp_vector{0.f}, ve::fp_vector{1.f}, wage);
+			auto employment_change = economy::gradient_to_employment_change<ve::fp_vector>(gradient, wage, current_private_size, sat);
+			auto new_private_size = current_private_size + employment_change;
 			state.world.province_set_advanced_province_building_private_size(pids, bid, ve::max(0.f, new_private_size));
 		});
 	}
@@ -527,15 +527,15 @@ void update_private_size(sys::state& state) {
 
 		province::for_each_market_province_parallel_over_market(state, [&](dcon::market_id mid, dcon::state_instance_id sid, dcon::province_id pid) {
 			auto owner = state.world.province_get_nation_from_province_ownership(pid);
-			auto cost_of_input = state.world.province_get_labor_price(pid, def.throughput_labour_type);
+			auto wage = state.world.province_get_labor_price(pid, def.throughput_labour_type);
 			auto max_size = state.world.province_get_advanced_province_building_max_private_size(pid, bid);
 			auto efficiency = ports_efficiency(state, owner, max_size);
 			auto cost_of_output = state.world.province_get_service_price(pid, def.output) * efficiency * def.output_amount;
 			auto current_private_size = state.world.province_get_advanced_province_building_private_size(pid, bid);
-			auto margin = (cost_of_output - cost_of_input) / cost_of_input;
-			auto probability_to_hire = state.world.province_get_labor_demand_satisfaction(pid, def.throughput_labour_type);
-			margin = margin > 0.f ? std::max(0.f, (probability_to_hire - 0.4f)) * margin : margin;
-			auto new_private_size = current_private_size + ve::min(margin, 100.f) + ve::min(ve::max(margin, -0.01f), 0.01f) * current_private_size;
+			auto sat = state.world.province_get_labor_demand_satisfaction(pid, def.throughput_labour_type);
+			auto gradient = economy::gradient_employment_i<ve::fp_vector>(cost_of_output, ve::fp_vector{ 0.f }, ve::fp_vector{ 1.f }, wage);
+			auto employment_change = economy::gradient_to_employment_change<ve::fp_vector>(gradient, wage, current_private_size, sat);
+			auto new_private_size = current_private_size + employment_change;
 			new_private_size = ve::min(max_size, new_private_size);
 			state.world.province_set_advanced_province_building_private_size(pid, bid, ve::max(0.f, new_private_size));
 		});
@@ -613,7 +613,15 @@ void update_national_size(sys::state& state) {
 			auto weight = ve::select(total_population == 0.f, 0.f, local_population / total_population);
 			auto local_education_budget = weight * education_budget;
 
-			state.world.province_set_advanced_province_building_national_size(pids, bid, ve::select(invalid, 0.f, ve::max(0.f, local_education_budget / cost_of_input)));
+			auto limitation = ve::max(0.f, local_education_budget / cost_of_input);
+
+			auto current_size = state.world.province_get_advanced_province_building_national_size(pids, bid);
+			auto sat = state.world.province_get_labor_demand_satisfaction(pids, def.throughput_labour_type);
+			auto demand_education_satisfaction = state.world.province_get_service_satisfaction_for_free(pids, def.output);
+			auto expansion_rate = (sat - 0.5f) * (current_size * 0.01f + 1.f) * (1.f - demand_education_satisfaction);
+			auto next_size = ve::min(ve::max(current_size + expansion_rate, 0.f), limitation);
+
+			state.world.province_set_advanced_province_building_national_size(pids, bid, ve::select(invalid, 0.f, next_size));
 		});
 	}
 }

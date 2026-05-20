@@ -1614,11 +1614,9 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 		float best_y_left_x = 0.f;
 
 		auto sample_province = [&](float x, float y) {
-			while (x < 0.f) {
+			x = fmod(x, (float)map_data.size_x);
+			if (x < 0.f) {
 				x += (float)map_data.size_x;
-			}
-			while (x >= map_data.size_x) {
-				x -= (float)map_data.size_x;
 			}
 			if(y < 0.f) return dcon::province_id{};
 			if((uint32_t)y >= map_data.size_y) return dcon::province_id{};

@@ -1483,9 +1483,59 @@ void make_trade_center_tooltip(sys::state& state, text::columnar_layout& content
 		contents,
 		"private_education_price",
 		text::variable_type::val,
-		text::fp_currency{
-			state.world.province_get_service_price(province, services::list::education)
-		},
+		text::fp_currency{ state.world.province_get_service_price(province, services::list::education)},
+		15
+	);
+	text::add_line(
+		state,
+		contents,
+		"private_education_size_private",
+		text::variable_type::val,
+		text::prettify((int64_t)state.world.province_get_advanced_province_building_private_size(province, advanced_province_buildings::list::schools_and_universities)),
+		15
+	);
+	text::add_line(
+		state,
+		contents,
+		"private_education_size_public",
+		text::variable_type::val,
+		text::prettify((int64_t)state.world.province_get_advanced_province_building_national_size(province, advanced_province_buildings::list::schools_and_universities)),
+		15
+	);
+	text::add_line(
+		state,
+		contents,
+		"private_education_supply_1",
+		text::variable_type::val,
+		text::prettify((int64_t)state.world.province_get_service_supply_private(province, services::list::education)),
+		15
+	);	
+	text::add_line(
+		state,
+		contents,
+		"private_education_supply_2",
+		text::variable_type::val,
+		text::prettify((int64_t)state.world.province_get_service_supply_public(province, services::list::education)),
+		15
+	);
+	text::add_line(
+		state,
+		contents,
+		"private_education_demand_1",
+		text::variable_type::val,
+		text::prettify((int64_t)
+			state.world.province_get_service_demand_allowed_public_supply(province, services::list::education)
+		),
+		15
+	);
+	text::add_line(
+		state,
+		contents,
+		"private_education_demand_2",
+		text::variable_type::val,
+		text::prettify((int64_t)
+			state.world.province_get_service_demand_forbidden_public_supply(province, services::list::education)
+		),
 		15
 	);
 

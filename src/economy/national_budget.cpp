@@ -20,11 +20,10 @@ float estimate_education_spending(sys::state& state, dcon::nation_id n, float bu
 	auto total = 0.f;
 	state.world.nation_for_each_province_ownership(n, [&](auto ownership) {
 		auto p = state.world.province_ownership_get_province(ownership);
-		auto total_population = state.world.nation_get_demographics(n, demographics::primary_or_accepted);
-		auto local_population = state.world.province_get_demographics(p, demographics::primary_or_accepted);
-		auto weight = total_population == 0.f ? 0.f : local_population / total_population;
-		auto local_education_budget = weight * budget;
-		total = total + std::max(0.f, local_education_budget * state.world.province_get_labor_demand_satisfaction(p, def.throughput_labour_type));
+		auto local_hire = state.world.province_get_advanced_province_building_national_size(p, advanced_province_buildings::list::schools_and_universities);
+		auto local_wage = state.world.province_get_labor_price(p, def.throughput_labour_type);
+		auto sat = state.world.province_get_labor_demand_satisfaction(p, def.throughput_labour_type);
+		total = total + std::max(0.f, local_hire * sat * local_wage);
 	});
 	return total;
 }
