@@ -1,162 +1,163 @@
-
-mapmode_1;Terrain
-mapmode_2;Political
-mapmode_3;Revoltrisk
-mapmode_4;Diplomatic
-mapmode_5;Region
-mapmode_6;Infrastructure
-mapmode_7;Colonial
-mapmode_8;Administration
-mapmode_9;Recruitment
-mapmode_10;National focus
-mapmode_11;RGO
-mapmode_12;Population
-mapmode_13;Cultures
-mapmode_14;Sphere of influence
-mapmode_15;Supply
-mapmode_16;Loyalty
-mapmode_17;Ranking
-mapmode_18;Migration
-mapmode_19;Civilization level
-mapmode_20;Relations
-mapmode_21;Crisis
-mapmode_22;Naval
-mapmode_23;Religion
-mapmode_24;Forts
-mapmode_25;Ideology
-mapmode_26;Income
-mapmode_27;Conciousness
-mapmode_28;Militancy
-mapmode_29;Literacy
-mapmode_30;Employment
-mapmode_31;Factories
-mapmode_32;Issues
-mapmode_33;Growth
-mapmode_34;Players
-mapmode_35;Life Needs
-mapmode_36;Everyday Needs
-mapmode_37;Luxury Needs
-mapmode_38;Officers
-mapmode_39;Clerk-to-Craftsmen Ratio
-mapmode_40;Life Rating
-mapmode_41;Crime
-mapmode_42;Rally
-mapmode_43;Workforce
-mapmode_44;Mobilization
-legend_min_mapmode_8;Low admin
-legend_min_mapmode_19;Uncivilized
-legend_min_mapmode_7;Uncolonized
-legend_min_mapmode_21;Low tension
-legend_min_mapmode_18;Emigration
-legend_min_mapmode_12;Low density
-legend_min_mapmode_17;Low rank
-legend_min_mapmode_20;Low relations
-legend_min_mapmode_3;Low revolt risk
-legend_min_mapmode_11;Low RGO output
-legend_min_mapmode_15;Low supply
-legend_min_mapmode_26;Low income
-legend_min_mapmode_27;Low conciousness
-legend_min_mapmode_28;Low militancy
-legend_min_mapmode_29;Low literacy
-legend_min_mapmode_30;Low employment
-legend_min_mapmode_33;Low growth
-legend_min_mapmode_35;Low satisfaction
-legend_min_mapmode_36;Low satisfaction
-legend_min_mapmode_37;Low satisfaction
-legend_min_mapmode_38;Low amount
-legend_min_mapmode_39;Poor CTC ratio
-legend_min_mapmode_40;Low life rating
-legend_min_mapmode_44;Low regiment count
-legend_max_mapmode_8;High admin
-legend_max_mapmode_19;Civilized
-legend_max_mapmode_7;Colonizable
-legend_max_mapmode_21;High tension
-legend_max_mapmode_18;Immigration
-legend_max_mapmode_12;High density
-legend_max_mapmode_17;High rank
-legend_max_mapmode_20;High relations
-legend_max_mapmode_3;High revolt risk
-legend_max_mapmode_11;High RGO output
-legend_max_mapmode_15;High supply
-legend_max_mapmode_26;High income
-legend_max_mapmode_27;High conciousness
-legend_max_mapmode_28;High militancy
-legend_max_mapmode_29;High literacy
-legend_max_mapmode_30;High employment
-legend_max_mapmode_33;High growth
-legend_max_mapmode_35;High satisfaction
-legend_max_mapmode_36;High satisfaction
-legend_max_mapmode_37;High satisfaction
-legend_max_mapmode_38;High amount
-legend_max_mapmode_39;Rich CTC ratio
-legend_max_mapmode_40;High life rating
-legend_max_mapmode_44;High regiment count
-mapmode_tooltip_34;Player: $x$ 
-mapmode_tooltip_34_you_sp;This is you! 
-mapmode_tooltip_34_you;Player: $x$ (This is you!) 
-mapmode_tooltip_34_ai;AI controlled
-mapmode_tooltip_35;Life needs satisfied: $x$
-mapmode_tooltip_36;Everyday needs satisfied: $x$
-mapmode_tooltip_37;Luxury needs satisfied: $x$
-mapmode_tooltip_38;Total officers: $x$ ($y$ of population, $value$ is optimal)
-mapmode_tooltip_39;Clerks-to-craftsmen-ratio: $fraction$ ($x$/$y$), $value$ is optimal
-mapmode_tooltip_40;Life rating: $x$
-mapmode_tooltip_41;Crime: $x$
-mapmode_tooltip_42_1;Land rally point
-mapmode_tooltip_42_2;Naval rally point
-mapmode_tooltip_43;Workforce distrobution:
-mapmode_tooltip_44;Mobilized regiments from this province: $x$ (out of $y$ possible)
-mapmode_tooltip_44_2;No possible regiments
+#Powered_by_ParaTranz;
+mapmode_1;지형 지도
+mapmode_2;정치 지도
+mapmode_3;반란 지도
+mapmode_4;외교 지도
+mapmode_5;지역 지도
+mapmode_6;기반시설
+mapmode_7;식민 지도
+mapmode_8;행정 지도
+mapmode_9;징병 지도
+mapmode_10;국가 중점
+mapmode_11;RGO 지도
+mapmode_12;인구 밀도 지도
+mapmode_13;민족 지도
+mapmode_14;세력권 지도
+mapmode_15;보급 한계 지도
+mapmode_16;정당 지지 지도
+mapmode_17;국가 순위 지도
+mapmode_18;이민 지도
+mapmode_19;문명화 정도 지도
+mapmode_20;외교 관계 지도
+mapmode_21;위기 지도
+mapmode_22;해군 지도
+mapmode_23;종교 지도
+mapmode_24;요새 지도
+mapmode_25;이념 지도
+mapmode_26;수입 지도
+mapmode_27;각성도 지도
+mapmode_28;투쟁성 지도
+mapmode_29;식자율 지도
+mapmode_30;고용률 지도
+mapmode_31;공장 지도
+mapmode_32;정치 성향 지도
+mapmode_33;발전 지도
+mapmode_34;플레이어 지도
+mapmode_35;생필품 충족 지도
+mapmode_36;일상용품 충족 지도
+mapmode_37;사치품 충족 지도
+mapmode_38;장교 지도
+mapmode_39;사무직-기능공 비율 지도
+mapmode_40;생활 조건 지도
+mapmode_41;범죄 지도
+mapmode_42;집결지 지도
+mapmode_43;노동력 지도
+mapmode_44;동원 지도
+legend_min_mapmode_8;낮은 행정력
+legend_min_mapmode_19;미문명
+legend_min_mapmode_7;미식민
+legend_min_mapmode_21;낮은 긴장도
+legend_min_mapmode_18;유출
+legend_min_mapmode_12;낮은 밀도
+legend_min_mapmode_17;낮은 순위
+legend_min_mapmode_20;낮은 관계
+legend_min_mapmode_3;낮은 반란 위험
+legend_min_mapmode_11;낮은 원료 산출
+legend_min_mapmode_15;낮은 보급
+legend_min_mapmode_26;낮은 수입
+legend_min_mapmode_27;낮은 각성도
+legend_min_mapmode_28;낮은 투쟁성
+legend_min_mapmode_29;낮은 식자율
+legend_min_mapmode_30;낮은 고용률
+legend_min_mapmode_33;낮은 인구 증가
+legend_min_mapmode_35;낮은 수요 충족
+legend_min_mapmode_36;낮은 수요 충족
+legend_min_mapmode_37;낮은 수요 충족
+legend_min_mapmode_38;낮은 장교 수
+legend_min_mapmode_39;낮은 사무직-기능공 비율
+legend_min_mapmode_40;낮은 생활 조건
+legend_min_mapmode_44;낮은 부대 수
+legend_max_mapmode_8;높은 행정력
+legend_max_mapmode_19;문명화
+legend_max_mapmode_7;식민
+legend_max_mapmode_21;높은 긴장도
+legend_max_mapmode_18;유입
+legend_max_mapmode_12;높은 밀도
+legend_max_mapmode_17;높은 순위
+legend_max_mapmode_20;높은 관계
+legend_max_mapmode_3;높은 반란 위험
+legend_max_mapmode_11;높은 원료 산출
+legend_max_mapmode_15;높은 보급
+legend_max_mapmode_26;높은 수입
+legend_max_mapmode_27;높은 각성도
+legend_max_mapmode_28;높은 투쟁성
+legend_max_mapmode_29;높은 식자율
+legend_max_mapmode_30;높은 고용률
+legend_max_mapmode_33;높은 인구 증가
+legend_max_mapmode_35;높은 충족도
+legend_max_mapmode_36;높은 충족도
+legend_max_mapmode_37;높은 충족도
+legend_max_mapmode_38;높은 장교 수
+legend_max_mapmode_39;높은 사무직-기능공 비율
+legend_max_mapmode_40;높은 생활 조건
+legend_max_mapmode_44;높은 부대 수
+mapmode_tooltip_34;플레이어: $x$
+mapmode_tooltip_34_you_sp;당신입니다!
+mapmode_tooltip_34_you;플레이어: $x$ (당신입니다!)
+mapmode_tooltip_34_ai;AI 제어
+mapmode_tooltip_34_no_ai;비AI 제어
+mapmode_tooltip_35;생필품 충족: $x$
+mapmode_tooltip_36;일상용품 충족: $x$
+mapmode_tooltip_37;사치품 충족: $x$
+mapmode_tooltip_38;장교 총수: $x$(전체 인구의 $y$, $value$가 최적)
+mapmode_tooltip_39;사무원과 기술공의 비율: $fraction$($x$/$y$), $value$가 최적
+mapmode_tooltip_40;생활 욕구 충족: $x$
+mapmode_tooltip_41;범죄율: $x$
+mapmode_tooltip_42_1;육군 집결지
+mapmode_tooltip_42_2;해군 집결지
+mapmode_tooltip_43;노동력 분포:
+mapmode_tooltip_44;동원된 연대 수: $x$(최대 $y$)
+mapmode_tooltip_44_2;동원 가능한 연대 없음
 mapmode_tooltip_name;$state$ ($name$ - )
 mapmode_tooltip_core_entry;$$faction$ - $name$
 mapmode_tooltip_state_entry; - $state$ \n $continentname$
-mapmode_tooltip_culture_majorities;The cultures in ?Y$PROV$?W are:
-mapmode_tooltip_religion_majorities;The religions in ?Y$PROV$?W are:
-mapmode_tooltip_dominant_issues;The issues in ?Y$PROV$?W are:
-mapmode_tooltip_total_income;Total daily income: 
-mapmode_tooltip_dominant_ideology;The ideologies in ?Y$PROV$?W are:
-mapmode_tooltip_con_average;Average consciousness: ?Y$val$?W
-mapmode_tooltip_total_employment;Employment: 
-mapmode_tooltip_literacy_rate;Literacy: 
-mapmode_tooltip_factory_count;Factories in ?Y$state$?W: 
-mapmode_tooltip_fort_level;Fort level 
-mapmode_tooltip_fort_being_built;A fort level is under construction here.
-mapmode_tooltip_can_build_fort;A new fort level can be built here.
-mapmode_tooltip_population_change;Monthly population change: 
-mapmode_tooltip_rebels_amount;Rebels active in province: 
-mapmode_tooltip_rebels_none;There are no rebels in this province.
-aml_civ_s1;Civilized
-aml_civ_s2;Uncolonized
-aml_civ_s3;100% Westernized
-aml_civ_s4;0% Westernized
-aml_civ_s5;Colony
-aml_col_s1;Potential
-aml_col_s2;NA
-aml_col_s3;Can Invest
-aml_col_s4;Colonizing
-aml_dip_s1;Viewpoint
-aml_dip_s2;Ally
-aml_dip_s3;Enemy
-aml_dip_s4;Puppet
-aml_dip_s5;Sphere
-aml_dip_s6;Other
-aml_dip_s7;Core
-aml_dip_s8;Non Core
-aml_dip_s9;Union Core
-aml_rr_s1;Level 0
-aml_rr_s2;Level 6
-aml_rr_s3;Upgrading
-aml_rr_s4;Max level
-aml_rr_s5;Blocked
-aml_nav_s1;No base
-aml_nav_s2;Max level
-aml_nav_s3;Upgrading
-aml_nav_s4;Upgradeable
-aml_nav_s5;Constructible
-aml_rank_s1;Great
-aml_rank_s2;Secondary
-aml_rank_s3;Civ
-aml_rank_s4;Unciv
-aml_rec_s1;Available
-aml_rec_s2;All used
-aml_rec_s3;None
+mapmode_tooltip_culture_majorities;?Y$PROV$?W의 주요 문화는:
+mapmode_tooltip_religion_majorities;?Y$PROV$?W의 종교는:
+mapmode_tooltip_dominant_issues;?Y$PROV$?W의 주요 정책 성향은:
+mapmode_tooltip_total_income;일일 총수입:
+mapmode_tooltip_dominant_ideology;?Y$PROV$?W의 이념은:
+mapmode_tooltip_con_average;평균 각성도: ?Y$val$?W
+mapmode_tooltip_total_employment;고용률:
+mapmode_tooltip_literacy_rate;식자율:
+mapmode_tooltip_factory_count;?Y$state$?W의 공장:
+mapmode_tooltip_fort_level;요새 등급
+mapmode_tooltip_fort_being_built;요새를 건설 중입니다.
+mapmode_tooltip_can_build_fort;새 요새를 건설할 수 있습니다.
+mapmode_tooltip_population_change;월간 인구 변화:
+mapmode_tooltip_rebels_amount;주 반란:
+mapmode_tooltip_rebels_none;태평성대
+aml_civ_s1;문명화
+aml_civ_s2;미식민지
+aml_civ_s3;100% 문명화
+aml_civ_s4;0% 문명화
+aml_civ_s5;식민지
+aml_col_s1;잠재적
+aml_col_s2;해당 없음
+aml_col_s3;식민 가능
+aml_col_s4;식민지화 중
+aml_dip_s1;플레이어
+aml_dip_s2;동맹국
+aml_dip_s3;적국
+aml_dip_s4;괴뢰국
+aml_dip_s5;세력권
+aml_dip_s6;기타
+aml_dip_s7;핵심
+aml_dip_s8;비핵심
+aml_dip_s9;문화적 모국의 핵심
+aml_rr_s1;0단계
+aml_rr_s2;6단계
+aml_rr_s3;업그레이드 중
+aml_rr_s4;최고 단계
+aml_rr_s5;봉쇄
+aml_nav_s1;해군 기지 없음
+aml_nav_s2;최고 단계
+aml_nav_s3;업그레이드 중
+aml_nav_s4;업그레이드 가능
+aml_nav_s5;건설 가능
+aml_rank_s1;열강
+aml_rank_s2;준열강
+aml_rank_s3;문명국
+aml_rank_s4;비문명국
+aml_rec_s1;사용 가능
+aml_rec_s2;가득 참
+aml_rec_s3;없음

@@ -1,0 +1,684 @@
+MULTI_SEL_DESC;현재 선택 영역에서 여러 부대를 선택하려면 §GSHIFT+좌클릭§!을 하십시오.
+SM_DETAILS;세부 정보
+DISBAND_ALL;선택된 모든 부대 해산
+DISBAND_ALL_TITLE;모든 부대 해산
+DISBAND_ALL_DESC;정말로 §Y$NUM$§!개의 부대를 §R해산§!하시겠습니까?
+DATE_DIFF_A;$Y$년 $M$개월 $D$일
+DATE_DIFF_B;$M$개월 $D$일
+DATE_DIFF_C;$D$일
+torpedo_attacks;어뢰 공격
+TORPEDO_ATTACK;어뢰 공격
+TORPEDO_ATTACK_DESC;어뢰 공격은 거대한 함선들에게 추가 피해를 줍니다.
+NAVAL_COMBAT_STACK_PENALTY_DESC;함대 내의 열악한 통신으로 인한 §Y협동 불이익 §R$PEN$%§Y가 우리의 함선들이 목표를 찾는 것을 더 어렵게 만듭니다. 아군 함선과 잠재적인 표적의 수에 영향을 받습니다.§!
+BP_TAB_CURRENT;현재 계획
+BP_TAB_HISTORICAL;역사적 계획
+BP_TOOL_COLOR_RED;빨간색
+BP_TOOL_COLOR_GREEN;초록색
+BP_TOOL_COLOR_BLUE;파란색
+BP_TOOL_COLOR_YELLOW;노란색
+BP_TOOL_ARROW_SLIM;얇은 화살표
+BP_TOOL_ARROW_MEDIUM_1;중간 화살표 1
+BP_TOOL_ARROW_MEDIUM_2;중간 화살표 2
+BP_TOOL_ARROW_MEDIUM_3;중간 화살표 3
+BP_TOOL_ARROW_THICK;굵은 화살표
+BP_TOOL_BORDER_1;경계선 유형 1
+BP_TOOL_BORDER_2;경계선 유형 2
+BP_TOOL_BORDER_3;경계선 유형 3
+BP_TOOL_BORDER_4;경계선 유형 4
+BP_TOOL_BORDER_5;경계선 유형 5
+BP_TOOL_ICON_AIRPLANE;항공기 아이콘
+BP_TOOL_ICON_TANK;전차 아이콘
+BP_TOOL_ICON_BOMB_1;작은 폭탄 아이콘
+BP_TOOL_ICON_BOMB_2;큰 폭탄 아이콘
+BP_SAVE_PLAN_CONFIRM;계획 저장
+BP_SAVE_PLAN_CANCEL;취소
+BP_SAVE_PLAN_PROMPT;작전 계획이 이미 존재합니다!\n덮어쓰시겠습니까?
+BP_DELETE_SAVED_PLAN_PROMPT;저장된 작전 계획을 정말로 삭제하시겠습니까?
+BP_DELETE_CURRENT_PLAN_PROMPT;현재 작전 계획을 정말로 삭제하시겠습니까?
+BP_SHARED_WITH;공유 대상:
+BP_NEW_PLAN;새 계획
+BP_TOOLTIP_TAB_CURRENT;현재 작전 계획의 목록입니다.
+BP_TOOLTIP_TAB_HISTORICAL;역사적 작전 계획의 목록입니다.\n선택한 계획을 현재 계획에 추가하려면 §Y가져오기§!를 클릭하십시오.
+BP_TOOLTIP_TAB_SAVED;저장된 작전 계획의 목록입니다.\n선택한 계획을 현재 계획에 추가하려면 §Y가져오기§!를 클릭하십시오.
+BP_TOOLTIP_NEW_PLAN;새 계획을 생성합니다.
+BP_TOOLTIP_REMOVE_PLAN;현재 선택된 계획을 삭제합니다.
+BP_TOOLTIP_SHARE_PLAN;현재 선택한 계획을 §G동맹국§!과 §Y공유§!할지 설정합니다.
+BP_TOOLTIP_SAVE_PLAN;현재 선택된 계획을 파일로 저장합니다.
+BP_TOOLTIP_RENAME_PLAN;현재 선택된 계획의 이름을 변경합니다.
+BP_TOOLTIP_IMPORT_PLAN;선택한 계획을 현재 계획에 추가합니다.
+BP_TOOLTIP_TOOL_SELECT;선택할 객체를 클릭하십시오.
+BP_TOOLTIP_TOOL_ARROW;화살표 유형을 선택하고, §Y좌클릭§!으로 지도에 그리십시오.\n§YShift§! + §Y좌클릭§!을 유지하면 화살표를 다른 곳에 연결할 수 있습니다.
+BP_TOOLTIP_TOOL_BORDER;경계선 유형을 선택하고, §Y좌클릭§!으로 지도에 그리십시오.
+BP_TOOLTIP_TOOL_ICON;아이콘 유형을 선택하고, §Y좌클릭§!으로 지도에 그리십시오.\n§YShift§! + §Y마우스 휠§!을 사용하여 아이콘을 회전시킵니다.
+BP_TOOLTIP_TOOL_COLOR;화살표와 아이콘을 그릴 현재 색상을 선택합니다.\n현재 선택된 화살표나 아이콘에도 색상이 적용됩니다.
+BP_TOOLTIP_TOOL_TEXT;지도에 텍스트 기호를 배치합니다.\n아무것도 선택하지 않은 경우 - 새 텍스트를 만듭니다.\n화살표를 선택한 경우 - 화살표 위에 텍스트를 그립니다.\n텍스트 기호를 선택한 경우 - 텍스트를 편집합니다.\n§YShift§! + §Y마우스 휠§!을 사용하여 텍스트를 회전시킵니다.\n§YCtrl§! + §Y마우스 휠§!을 사용하여 텍스트 크기를 조절합니다.
+BP_TOOLTIP_TOOL_ERASE;선택된 객체를 삭제합니다.
+BP_TOOLTIP_VISIBILITY;지도에 계획을 표시할지 설정합니다.
+MILITARY_SPENDINGS_LAND;§Y육군§! 부대 지출:
+MILITARY_SPENDINGS_NAVAL;§Y해군§! 부대 지출:
+MILITARY_SPENDINGS_PROJECTS;§Y건설§! 지출:
+STOCKPILE_COST_ESTIMATED;내일 비축량 구매 비용은 다음과 같이 §Y예상§!됩니다:
+STOCKPILE_COST_ACTUAL;오늘 비축량에 §Y실제로§! 지출된 비용은 다음과 같습니다:
+NAVAL_COMBAT_DETAILS_APPROACH;§Y$WHO$§!에 접근 중입니다. 현재 거리: §Y$DIST$§!.
+NAVAL_COMBAT_DETAILS_DESTROYED;§Y$WHO$§!에게 §R파괴됨§!
+NAVAL_COMBAT_DETAILS_DISENGAGED;이 부대는 교전을 피하는 데 성공하여 더 이상 전투에 참여하지 않습니다.
+NAVAL_COMBAT_DETAILS_RETREAT;이 부대는 후퇴 중입니다.
+NAVAL_COMBAT_DETAILS_SEEKING;최적의 표적 탐색 중.
+NAVAL_COMBAT_DETAILS_SHOOTING;§Y$WHO$§!에게 포격 중입니다.\n- 조직력 피해 §G$ORG$§!\n- 병력 피해 §Y$STR$§!
+NAVAL_COMBAT_DETAILS_FILTERING;이 함선을 겨냥하고 있는 모든 함선을 보려면 §G좌클릭§!하십시오.
+MAPMODE_NAVAL_TOOLTIP_LEVEL;해군 기지 레벨 §G$LVL$§!
+MAPMODE_NAVAL_TOOLTIP_NO_BASE;이 주에는 해군 기지가 없습니다.
+MAPMODE_NAVAL_TOOLTIP_CAP;이 프로빈스의 §Y해군 보급 처리량§!은 총 §G$TOT$§! 중 §G$CAP$§!입니다.
+MAPMODE_NAVAL_TOOLTIP_IN_OTHER;이 주에는 이미 §Y$PROV$§!에 해군 기지가 존재합니다.
+MAPMODE_NAVAL_TOOLTIP_UNDER_CON;이곳에서는 이미 해군 기지가 건설 중입니다.
+NAVAL_SUPPLY_PENALTY_DESC;§R$PEN$%§!의 §Y해군 보급 처리량§! 불이익을 받습니다.
+COMBAT_LEADER_MOD_ATTACK;지휘관 공격
+COMBAT_LEADER_MOD_DEFENSE;지휘관 방어
+OCCUPATION_SCORE_ATTACKER;공격자 점령:
+OCCUPATION_SCORE_DEFENDER;방어자 점령:
+BLOCKADE_SCORE_ATTACKER;공격자 봉쇄:
+BLOCKADE_SCORE_DEFENDER;방어자 봉쇄:
+TICKING_WARSCORE_HEAD;§Y시간에 따른 점수§! 보너 §Y$VAL$§!:
+TICKING_WARSCORE_DESC_SCORE;현재 $VAL$ (일일 변화 $CHANGE$).
+TICKING_WARSCORE_DESC_SCORE_MAX;현재 $VAL$ (최대).
+TICKING_WARSCORE_DESC_SCORE_SHORT;$VAL$ (일일 $CHANGE$).
+TICKING_WARSCORE_DESC_SCORE_MAX_SHORT;$VAL$ (최대).
+CB_DESTROY_FORTS;요새 파괴
+CB_DESTROY_NAVAL_BASES;해군 기지 파괴
+po_destroy_forts;$STATE$의 모든 요새 파괴.
+po_destroy_naval_bases;$STATE$의 해군 기지 파괴.
+ALL_CORE_PROVINCES;핵심주가 있는 모든 주
+ALL_SATES;모든 주
+dismantle_forts_desc;요새 및 해군 기지를 철거합니다.
+dismantle_forts;요새 철거
+dismantle_forts_short;$STATE$의 기반 시설 철거
+dismantle_forts_setup;$STATE$의 요새 및 해군 기지를 철거합니다.
+liberate_country_desc;억압자들로부터 §Y국가 전체§W를 해방합니다
+liberate_country;국가 해방
+liberate_country_short;$THIRD$이(가) $STATE$을(를) 획득합니다
+liberate_country_setup;$RECIPIENT$에게서 $STATE$을(를) $THIRD$에게 반환합니다
+FIRE_RANGE;사거리
+EVASION;회피
+SORT_BY;정렬 기준:
+STANCE;행동
+STR_ORG;병력/조직력
+SORT_BY_TYPE_DESC;§Y유형§!별로 함선을 정렬합니다.
+SORT_BY_STANCE_DESC;함선을 그들의 §Y현재 행동§!을 기준으로 정렬합니다.
+SORT_BY_STR_ORG_DESC;함선을 그들의 §Y병력 및 조직력의 평균§!을 기준으로 정렬합니다.
+TARGETED_BY;겨냥한 대상:
+MAY_NOT_RETREAT_NAVAL;우리의 가망성을 완전히 알기도 전에 전투에서 후퇴하는 것은 불가능하며 명예로운 일도 아닙니다.
+REMAINING_NAVAL_RETREAT;자발적인 후퇴를 수행하기 전에 우군의 가망성이 어느 정도인지 파악하려면 §Y$OPT$§!만큼 더 가까이 다가가야 합니다.
+NAVAL_COMBAT_STATUS_APPROACH;접근 중
+NAVAL_COMBAT_STATUS_SEEKING;표적 탐색 중
+NAVAL_COMBAT_STATUS_FIRING;피해량 §G$ORG$§!/§R$STR$§!
+NAVAL_COMBAT_STATUS_RETREAT;후퇴 중
+NAVAL_COMBAT_STATUS_DISENGAGED;교전 이탈
+SUPPLY_LOAD;보급품 무게
+SUPPLY_LOAD_STATUS_DESC_BASIC;우리의 모든 §Y해군 항구§!의 총 §Y보급 처리량§!은 $TOT$입니다.\n우리의 모든 함선은 총 $REQ$을 필요로 합니다.
+SUPPLY_LOAD_STATUS_DESC_PENALTY;함선에서 보급을 받을 때 $PEN$의 불이익을 겪습니다.
+SUPPLY_LOAD_STATUS_DESC_HINT;해군 기지를 건설하거나 함선을 일부 해산하는 것을 고려하십시오.
+SUPPLY_LOAD_STATUS_DESC_UPCOMING_PENALTY;새 함선이 건설 중이며, 완료 시 보급 한계를 $EXC$만큼 초과하게 됩니다.
+SUPPLY_LOAD_STATUS_DESC_DETAILED_LIST;다음 보고서는 보급 처리량의 필요량을 보여줍니다:
+SHIP_BUILD_MIN_BASE_LEVEL;레벨 §Y$LVL$§! 이상의 해군 기지가 필요합니다.
+SHIP_BUILD_LIMIT_PER_BASE;이 함선을 지원하는 각 기지당 §Y$LIM$§!대로 제한됩니다.
+SHIP_BUILD_LIMIT_PER_BASE_HINT;§R레벨 §G$LVL$§R 이상의 해군 기지를 더 건설하는 것을 고려하십시오.§!
+SHIP_BUILD_LIMIT_MAX;§Y(한계: $LIM$)§!
+BUILDING_ONE_PER_STATE;주당 하나만 건설 가능
+DIPLOMACY_CRISIS_INFO;위기
+CRISIS_CANT_DECLARE_WAR;당신이 위기에 연루되어 있다면 전쟁을 선포하거나 선포받을 수 없습니다.
+HAS_FLASHPOINT;분쟁 지역 있음
+HAS_NO_FLASHPOINT;분쟁 지역 없음
+TENSION_LESS_THAN;다음보다 낮은 분쟁 지역 긴장도
+TENSION_MORE_THAN;다음보다 높은 분쟁 지역 긴장도
+CRISIS_TEMPERATURE_LESS_THAN;다음보다 낮은 위기 온도
+CRISIS_TEMPERATURE_MORE_THAN;다음보다 높은 위기 온도
+FLASHPOINT_TENSION_EFFECT;분쟁 지역 긴장도가 $VALUE$만큼 $DIRECTION$합니다.\n
+diplomatic_focus;외교
+increase_tension;긴장도 증가
+increase_tension_focus_desc;매월 분쟁 지역 긴장도를 약 §Y$VAL$§W% 증가시킵니다.
+NOT_A_FLASHPOINT;§R분쟁 지역이 아님§!
+MAPMODE_21;위기
+MAPMODE_22;해군
+FLASHPOINT_TENSION;분쟁 지역 긴장도: §Y$VALUE$§!%
+EXECUTING_HISTORY;기록 실행 중
+CRISIS_TEMPERATURE;위기 온도: §R$VALUE$%§!
+HAS_CRISIS;현재 위기가 존재함
+HAS_NO_CRISIS;현재 위기가 존재하지 않음
+CRISIS_TEMPERATURE_EFFECT;위기 온도가 $VALUE$만큼 $DIRECTION$합니다.\n
+TRIGGER_STATE;위기 주
+BACKERS_LABEL;배후국:
+SUPPORT_SIDE;진영 지원
+ON_THE_FENCE_LABEL;관망 중:
+vacuum_tube;진공관
+vacuum_tube_desc;진공관(열전자관이라고도 함)은 진공 속에서 전류의 흐름을 이용하는 장치입니다. 진공관에서 전자는 뜨거운 필라멘트(음극)에서 진공을 거쳐 양전극(양극)으로 가는 열전자 방출(에디슨 효과)을 통해 이동합니다. 이후 음극과 양극 사이에 추가적인 전극들이 삽입되었고, 신호의 증폭과 교환이 가능해졌습니다. 진공관은 라디오, 전화기, TV, 레이더 및 초기 컴퓨터의 생산과 상용화에 필수적이었습니다.
+tulls_seed_drill;툴 파종기
+tulls_seed_drill_desc;이 시대가 오기 전까지 농부들은 씨앗을 가방에 담고 들판을 돌아다니며 씨앗을 던지거나 흩뿌리는 식으로 곡물 씨앗을 심었습니다. 그들은 갈고 정지된 땅에 손으로 씨앗을 흩뿌렸습니다. 이 방식의 문제점은 분포가 매우 고르지 않다는 것이었습니다. 따라서 씨앗을 효율적으로 사용할 수 없었고, 많은 양이 낭비되었습니다. 제스로 툴(Jethro Tull)은 말의 뒤에 연결하여 끌 수 있는 파종기를 발명했습니다. 이것은 곡물이 가득 찬 상자를 포함한 바퀴가 달린 기계였습니다. 파종기가 들판을 가로질러 끌려갈 때, 바퀴 구동식 래칫이 작동하며 씨앗을 고르게 뿌렸습니다.
+rotherham_plough;로더럼 쟁기
+rotherham_plough_desc;디즈니 스태니포스(Disney Stanyforth)와 조셉 폴잠브(Joseph Foljambe)가 발명한 로더럼 쟁기(또는 요크셔 쟁기)는 전통적인 쟁기를 개량한 것입니다. 기본 쟁기처럼 나무로 만들어졌지만 부속품과 콜터(절단 날)는 철로 만들어졌고, 볏과 보습은 철판으로 덮여 있었습니다. 전통적인 쟁기보다 더 가벼워 말 두 마리만으로도 쉽게 작업할 수 있었습니다.
+telephone_switchboard;전화 교환기
+telephone_switchboard_desc;전화 교환기는 통화를 연결하는 데 사용되는 전자 부품 시스템입니다. 최초의 전화 교환기는 1877년 토머스 에디슨 밑에서 일하던 헝가리인 티바다르 푸스카스(Tivadar Puskás)에 의해 발명되었습니다. 원시적인 형태의 전화 교환소는 1881년경까지 미국 동부와 서유럽의 상업용 시설에 설치되었습니다. 전화 교환소는 교환원이 전화를 연결하기 위해 수동으로 '플러그를 꽂는' 수백 개의 '플러그 보드'로 구성되었습니다. 알먼 브라운 스트로우저(Almon Brown Strowger)는 1891년 최초의 스테핑 스위치에 대한 특허를 획득하여 자동화된 전화 교환기로 발전시켰습니다.
+BRZ_2446;미나스제라이스
+CLM_2259;카우카
+ANN_1371;통킹
+ANN_1374;안남
+ANN_1383;코친차이나
+LUA_1356;라오스
+SIA_1392;방콕
+SIA_1355;치앙마이
+SIA_1358;나콘랏차시마
+ENG_1384;말라야
+ENG_1343;테나세림
+BUR_1339;카친
+BUR_1334;샨 주
+BUR_1330;페구
+NEP_1327;히말라야
+TIB_1591;티베트
+ENG_1247;비하르
+ENG_1261;오리사
+ENG_1236;연합주
+PAN_1227;펀자브
+PAN_1224;카슈미르
+KAL_1221;발루치스탄
+SIN_1288;신드
+ENG_1291;구자라트
+ENG_1264;라지푸타나
+ENG_1275;중앙인도
+NAG_1277;나그푸르
+ENG_1305;시르카르
+HYD_1283;하이데라바드
+ENG_1297;봄베이
+ENG_1304;마드라스
+MYS_1314;마이소르
+ENG_1317;트라방코르
+ATJ_1405;아체
+NET_1398;수마트라
+NET_1423;보르네오
+NET_1449;말루쿠
+NET_1451;서뉴기니
+BAL_1438;순다 열도
+BRU_1394;북보르네오
+PER_1141;라리스탄-시스탄
+PER_1148;호라산
+PER_1138;후제스탄
+PER_1135;파르스-케르만
+PER_1127;이스파한
+PER_1116;길란-마잔다란
+PER_1121;이라크아제미
+PER_1112;타브리즈
+PER_1122;루리스탄
+AFG_1214;서아프가니스탄
+AFG_1217;동아프가니스탄
+RUS_1196;투르크메니아
+KHI_1191;우즈베키아
+BUK_1207;타지키스탄
+KOK_1190;키르기지아
+RUS_1182;우랄스크
+RUS_1184;아크몰린스크
+RUS_1185;세미레치예
+CHI_1532;내몽골
+CHI_1578;쓰촨
+CHI_1581;충칭
+CHI_1494;샤오저우
+CHI_1550;장시
+CHI_1487;푸젠
+CHI_1611;저장
+CHI_1473;남안후이
+CHI_1516;동후베이
+CHI_1523;서후베이
+CHI_1513;허난
+CHI_1472;북안후이
+CHI_1476;장쑤
+CHI_1539;쑤저우
+CHI_1563;산둥
+CHI_1614;남직례
+CHI_1618;북직례
+CHI_1553;만주
+CHI_1082;외만주
+CHI_1086;사할린
+KOR_1624;서울
+KOR_1635;부산
+KOR_1627;사리원
+KOR_1619;평양
+JAP_1660;규슈
+JAP_1640;주고쿠-시코쿠
+JAP_1655;간사이
+JAP_1675;주부
+JAP_1649;간토
+JAP_1654;오가사와라 제도
+JAP_1672;도호쿠
+JAP_1088;홋카이도
+RUS_2685;우랄
+RUS_1065;오브
+RUS_1064;토볼스크
+RUS_1469;톰스크
+RUS_2615;하예니세이스크
+RUS_1070;상예니세이스크
+RUS_1075;이르쿠츠크
+RUS_1079;자바이칼
+RUS_2694;중부 시베리아
+RUS_1069;서야쿠츠크
+RUS_2653;북시베리아
+RUS_1071;야쿠츠크
+RUS_1072;오호츠크
+RUS_2668;북야쿠츠크
+RUS_2618;상부 오호츠크
+RUS_2621;내추콧카
+RUS_1074;캄차카
+RUS_2590;연안 추콧카
+TUR_885;카르스
+TUR_884;트라브존
+TUR_889;디야르바키르-반
+TUR_876;앙카라 및 아다나
+TUR_873;콘야
+TUR_881;카스타모누
+TUR_869;아이딘
+TUR_863;후다벤디가르
+TUR_923;모술
+TUR_931;바그다드
+TUR_935;바스라
+EGY_897;알레포
+EGY_910;트랜스요르단
+EGY_903;시리아
+NEJ_1156;하일
+NEJ_1157;네지드
+EGY_1746;시나이
+EGY_1750;하이집트
+EGY_1762;중이집트
+EGY_1771;상이집트
+EGY_1753;마트루
+EGY_1758;이집트 사막
+EGY_1834;동골라
+EGY_1827;수단
+ENG_1843;에콰토리아
+ENG_1848;에리트레아
+ETH_1854;곤다르-티그라이
+ETH_1864;암하라
+ETH_1867;오로미아
+ALD_1708;콘스탄틴
+FRA_1700;알제
+ALD_1704;틀렘센
+MOR_1688;알리프
+MOR_1686;페스
+MOR_1693;모로코
+FRA_1803;팀북투
+FRA_1798;동말리
+FRA_1801;서말리
+FRA_1901;볼타
+FRA_1808;외곽 하우사랜드
+FRA_1923;요루바
+FRA_1927;하우사랜드
+FRA_1939;동하우사랜드
+FRA_1930;베냉
+FRA_1931;니제르 삼각주
+FRA_1937;나이지리아
+FRA_1816;보르누
+ENG_1825;차드
+ENG_1818;와다이
+FRA_1965;우방기-샤리
+ENG_2029;잔지바르
+ENG_2034;탕가니카
+ENG_2039;린디
+ENG_2016;카젬베
+POR_2053;잠베지아
+POR_2049;로렌수마르케스
+ZUL_2113;나탈-줄루랜드
+ENG_2078;헤레로랜드
+ENG_2132;남대서양 제도
+ENG_2125;인도양 영토
+MAD_2117;남마다가스카르
+MAD_2121;북마다가스카르
+sioux_nation_title;수 국가
+sioux_nation_name;수 국가
+sioux_nation_desc;수족은 미국 정착민과 군대의 침입으로부터 조상 대대로 이어져 온 땅을 지키기 위해 일어섰습니다. 이들은 워싱턴의 깨진 약속에 분노하고 있으며, 서부 식민지화를 멈추기 위해 맹렬히 싸울 것입니다.
+sioux_nation_army;수 전쟁 부대
+apache_title;아파치
+apache_name;아파치
+apache_desc;아파치족은 미국 정착민과 군대의 침입으로부터 조상 대대로 이어져 온 땅을 지키기 위해 일어섰습니다. 이들은 워싱턴의 깨진 약속에 분노하고 있으며, 서부 식민지화를 멈추기 위해 맹렬히 싸울 것입니다.
+apache_army;아파치 전쟁 부대
+EVTNAME160001;태평천국의 난
+EVTDESC160001;거대한 반란이 천하를 뒤흔들었습니다!
+EVTOPTA160001;그들을 진압하라!
+EVTOPTB160001;만주족을 몰아내라!
+EVTNAME160502;반만주 감정
+EVTDESC160502;황제 폐하, 우리 관리들이 우리 왕조에 대한 커져가는 불만과 적대감을 감지했습니다. 이러한 감정은 우리 도시와 항구에 이양귀자들이 자리 잡고 있는 굴욕적인 현실로 인해 더욱 부채질되고 있습니다. 어떻게 대응할까요?
+EVTOPTA160502;무력 시위를 통해 이를 해결해야 한다.
+EVTOPTB160502;이런 헛소리로 내 시간을 낭비하지 마라!
+EVTNAME90902;중국의 분열
+EVTDESC90902;중국이 분열되었습니다.
+EVTOPTA90902;자유!
+EVTNAME90040;세포이 항쟁
+EVTDESC90040;인도가 반란을 일으켰습니다!
+EVTOPTA90040;성가신 일이 될 수도 있겠군.
+CRISIS_DESCRIPTION_LIBERATION;$COUNTRY$ 해방을 둘러싼 위기.
+CRISIS_DESCRIPTION_RECLAIM;$COUNTRY$의 정당한 영토 반환을 둘러싼 위기.
+CRISIS_ALREADY_TAKEN_SIDE;이미 진영을 선택함
+CRISIS_WAITING_ON_BACKER;열강 후원국을 기다리는 중
+MUST_BE_CRISIS_SIDE_LEADER;위기에서 한 진영의 지도국이어야 함
+CRISIS_ALREADY_TAKEN_SIDE;이미 진영을 선택함
+CRISIS_OFFERTITLE;제안하기
+CRISIS_OFFER_OFFER;$ACTOR$ 국가가 현재 위기에서 해당 진영에 합류하는 조건으로 §Y$WARGOAL$§!을(를) 제안했습니다.
+CRISIS_OFFER_WE_ACCEPT_SETUP;위기의 한 진영에 합류하기로 수락할 때
+CRISIS_OFFER_WE_ACCEPT_HEADER;외무 장관 보고
+CRISIS_OFFER_WE_ACCEPT_1;$MONARCHTITLE$
+CRISIS_OFFER_WE_ACCEPT_2;우리는 다음 제안을 조건으로 현재 위기에서 $ACTOR$ 국가에 합류했습니다:
+CRISIS_OFFER_WE_ACCEPT_3;$WARGOAL$
+CRISIS_OFFER_WE_ACCEPT_4;*
+CRISIS_OFFER_WE_ACCEPT_5;*
+CRISIS_OFFER_WE_ACCEPT_6;*
+CRISIS_OFFER_WE_ACCEPT_BTN1;확인
+CRISIS_OFFER_WE_ACCEPT_BTN2;확인
+CRISIS_OFFER_WE_ACCEPT_BTN3;이동
+CRISIS_OFFER_WE_ACCEPT_LOG;우리가 현재 위기에 합류했습니다
+CRISIS_OFFER_THEY_ACCEPT_SETUP;누군가 위기에서 아군 진영에 합류하기로 수락할 때
+CRISIS_OFFER_THEY_ACCEPT_HEADER;외무 장관 보고
+CRISIS_OFFER_THEY_ACCEPT_1;$MONARCHTITLE$
+CRISIS_OFFER_THEY_ACCEPT_2;우리는 다음 제안을 조건으로 현재 위기에서 $RECIPIENT$ 국가에 합류했습니다:
+CRISIS_OFFER_THEY_ACCEPT_3;$WARGOAL$
+CRISIS_OFFER_THEY_ACCEPT_4;*
+CRISIS_OFFER_THEY_ACCEPT_5;*
+CRISIS_OFFER_THEY_ACCEPT_6;*
+CRISIS_OFFER_THEY_ACCEPT_BTN1;확인
+CRISIS_OFFER_THEY_ACCEPT_BTN2;확인
+CRISIS_OFFER_THEY_ACCEPT_BTN3;이동
+CRISIS_OFFER_THEY_ACCEPT_LOG;$RECIPIENT$ 국가가 현재 위기에서 우리에게 합류했습니다.
+CRISIS_OFFER_OTHER_ACCEPT_SETUP;누군가 위기의 진영에 합류할 때
+CRISIS_OFFER_OTHER_ACCEPT_HEADER;외무 장관 보고
+CRISIS_OFFER_OTHER_ACCEPT_1;$MONARCHTITLE$
+CRISIS_OFFER_OTHER_ACCEPT_2;문제가 생기고 있습니다
+CRISIS_OFFER_OTHER_ACCEPT_3;$RECIPIENT$ 국가가
+CRISIS_OFFER_OTHER_ACCEPT_4;현재 위기에 합류하여
+CRISIS_OFFER_OTHER_ACCEPT_5;$ACTOR$ 진영에 서기로 결정한 것 같습니다
+CRISIS_OFFER_OTHER_ACCEPT_6;*
+CRISIS_OFFER_OTHER_ACCEPT_BTN1;확인
+CRISIS_OFFER_OTHER_ACCEPT_BTN2;확인
+CRISIS_OFFER_OTHER_ACCEPT_BTN3;이동
+CRISIS_OFFER_OTHER_ACCEPT_LOG;$RECIPIENT$ 국가가 현재 위기에 합류했습니다.
+CRISIS_OFFER_WE_DECLINE_SETUP;우리가 위기 진영 합류를 거절할 때
+CRISIS_OFFER_WE_DECLINE_HEADER;외무 장관 보고
+CRISIS_OFFER_WE_DECLINE_1;$MONARCHTITLE$
+CRISIS_OFFER_WE_DECLINE_2;우리는 현재 위기에서 $ACTOR$ 국가 진영으로의 합류를 거절했습니다
+CRISIS_OFFER_WE_DECLINE_3;*
+CRISIS_OFFER_WE_DECLINE_4;*
+CRISIS_OFFER_WE_DECLINE_5;*
+CRISIS_OFFER_WE_DECLINE_6;*
+CRISIS_OFFER_WE_DECLINE_BTN1;확인
+CRISIS_OFFER_WE_DECLINE_BTN2;확인
+CRISIS_OFFER_WE_DECLINE_BTN3;이동
+CRISIS_OFFER_WE_DECLINE_LOG;우리가 현재의 위기에 참여하는 것을 거절했습니다
+CRISIS_OFFER_THEY_DECLINE_SETUP;누군가 위기에서 우리 편에 서기를 거절할 때
+CRISIS_OFFER_THEY_DECLINE_HEADER;외무 장관 보고
+CRISIS_OFFER_THEY_DECLINE_1;$MONARCHTITLE$
+CRISIS_OFFER_THEY_DECLINE_2;$RECIPIENT$ 국가가 현재의 위기에 대한 논의에 참여하는 것을 거절했습니다.
+CRISIS_OFFER_THEY_DECLINE_3;*
+CRISIS_OFFER_THEY_DECLINE_4;*
+CRISIS_OFFER_THEY_DECLINE_5;*
+CRISIS_OFFER_THEY_DECLINE_6;*
+CRISIS_OFFER_THEY_DECLINE_BTN1;확인
+CRISIS_OFFER_THEY_DECLINE_BTN2;확인
+CRISIS_OFFER_THEY_DECLINE_BTN3;이동
+CRISIS_OFFER_THEY_DECLINE_LOG;$RECIPIENT$ 국가가 현재의 위기에 참여하는 것을 거절했습니다.
+CRISIS_OFFER_OTHER_DECLINE_SETUP;누군가 위기에서 한 진영에 서기를 거절할 때
+CRISIS_OFFER_OTHER_DECLINE_HEADER;외무 장관 보고
+CRISIS_OFFER_OTHER_DECLINE_1;$MONARCHTITLE$
+CRISIS_OFFER_OTHER_DECLINE_2;아직 사태가 악화되고 있지는 않은 것 같습니다.
+CRISIS_OFFER_OTHER_DECLINE_3;$RECIPIENT$ 국가가
+CRISIS_OFFER_OTHER_DECLINE_4;현재의 위기에서
+CRISIS_OFFER_OTHER_DECLINE_5;$ACTOR$의 편으로 참여하는 것을 거절한 것 같습니다.
+CRISIS_OFFER_OTHER_DECLINE_6;*
+CRISIS_OFFER_OTHER_DECLINE_BTN1;확인
+CRISIS_OFFER_OTHER_DECLINE_BTN2;확인
+CRISIS_OFFER_OTHER_DECLINE_BTN3;이동
+CRISIS_OFFER_OTHER_DECLINE_LOG;$RECIPIENT$ 국가가 현재의 위기에 참여하는 것을 거절했습니다.
+BACK_CRISISTITLE;위기에 처한 국가 지원
+BACK_CRISIS_OFFER;$ACTOR$ 국가가 현재의 위기에서 자신들의 편을 지원해 줄 것을 요청했습니다.
+BACK_CRISIS_WE_ACCEPT_SETUP;우리가 위기에서 한 진영을 지원하기로 수락할 때
+BACK_CRISIS_WE_ACCEPT_HEADER;외무 장관 보고
+BACK_CRISIS_WE_ACCEPT_1;$MONARCHTITLE$
+BACK_CRISIS_WE_ACCEPT_2;우리는 현재의 위기에서 $ACTOR$을(를) 지원하기로 결정했습니다.
+BACK_CRISIS_WE_ACCEPT_3;*
+BACK_CRISIS_WE_ACCEPT_4;*
+BACK_CRISIS_WE_ACCEPT_5;*
+BACK_CRISIS_WE_ACCEPT_6;*
+BACK_CRISIS_WE_ACCEPT_BTN1;확인
+BACK_CRISIS_WE_ACCEPT_BTN2;확인
+BACK_CRISIS_WE_ACCEPT_BTN3;이동
+BACK_CRISIS_WE_ACCEPT_LOG;우리가 현재의 위기에서 한 진영을 지원했습니다
+BACK_CRISIS_THEY_ACCEPT_SETUP;누군가 위기에서 우리 편을 지원하기로 수락할 때
+BACK_CRISIS_THEY_ACCEPT_HEADER;외무 장관 보고
+BACK_CRISIS_THEY_ACCEPT_1;$MONARCHTITLE$
+BACK_CRISIS_THEY_ACCEPT_2;$RECIPIENT$ 국가가 현재의 위기에서 우리를 지원하기로 결정했습니다.
+BACK_CRISIS_THEY_ACCEPT_3;*
+BACK_CRISIS_THEY_ACCEPT_4;*
+BACK_CRISIS_THEY_ACCEPT_5;*
+BACK_CRISIS_THEY_ACCEPT_6;*
+BACK_CRISIS_THEY_ACCEPT_BTN1;확인
+BACK_CRISIS_THEY_ACCEPT_BTN2;확인
+BACK_CRISIS_THEY_ACCEPT_BTN3;이동
+BACK_CRISIS_THEY_ACCEPT_LOG;$RECIPIENT$ 국가가 현재의 위기에서 우리를 지원했습니다.
+BACK_CRISIS_OTHER_ACCEPT_SETUP;누군가 위기에서 다른 진영을 지원할 때
+BACK_CRISIS_OTHER_ACCEPT_HEADER;외무 장관 보고
+BACK_CRISIS_OTHER_ACCEPT_1;$MONARCHTITLE$
+BACK_CRISIS_OTHER_ACCEPT_2;문제가 커지고 있습니다
+BACK_CRISIS_OTHER_ACCEPT_3;$RECIPIENT$ 국가가
+BACK_CRISIS_OTHER_ACCEPT_4;현재의 위기에서 $ACTOR$을(를) 지원하기로 결정한 것 같습니다
+BACK_CRISIS_OTHER_ACCEPT_5;*
+BACK_CRISIS_OTHER_ACCEPT_6;*
+BACK_CRISIS_OTHER_ACCEPT_BTN1;확인
+BACK_CRISIS_OTHER_ACCEPT_BTN2;확인
+BACK_CRISIS_OTHER_ACCEPT_BTN3;이동
+BACK_CRISIS_OTHER_ACCEPT_LOG;$RECIPIENT$ 국가가 현재의 위기에 동참했습니다.
+BACK_CRISIS_WE_DECLINE_SETUP;우리가 위기에서 한 진영의 지원을 거절할 때
+BACK_CRISIS_WE_DECLINE_HEADER;외무 장관 보고
+BACK_CRISIS_WE_DECLINE_1;$MONARCHTITLE$
+BACK_CRISIS_WE_DECLINE_2;우리는 현재의 위기에서 $ACTOR$을(를) 지원하는 것을 거절했습니다
+BACK_CRISIS_WE_DECLINE_3;*
+BACK_CRISIS_WE_DECLINE_4;*
+BACK_CRISIS_WE_DECLINE_5;*
+BACK_CRISIS_WE_DECLINE_6;*
+BACK_CRISIS_WE_DECLINE_BTN1;확인
+BACK_CRISIS_WE_DECLINE_BTN2;확인
+BACK_CRISIS_WE_DECLINE_BTN3;이동
+BACK_CRISIS_WE_DECLINE_LOG;우리가 현재의 위기에 참여하는 것을 거절했습니다
+BACK_CRISIS_THEY_DECLINE_SETUP;누군가 위기에서 우리 편을 지원하기를 거절할 때
+BACK_CRISIS_THEY_DECLINE_HEADER;외무 장관 보고
+BACK_CRISIS_THEY_DECLINE_1;$MONARCHTITLE$
+BACK_CRISIS_THEY_DECLINE_2;$RECIPIENT$ 국가가 현재의 위기에서 우리를 지원하는 것을 거절했습니다.
+BACK_CRISIS_THEY_DECLINE_3;*
+BACK_CRISIS_THEY_DECLINE_4;*
+BACK_CRISIS_THEY_DECLINE_5;*
+BACK_CRISIS_THEY_DECLINE_6;*
+BACK_CRISIS_THEY_DECLINE_BTN1;확인
+BACK_CRISIS_THEY_DECLINE_BTN2;확인
+BACK_CRISIS_THEY_DECLINE_BTN3;이동
+BACK_CRISIS_THEY_DECLINE_LOG;$RECIPIENT$ 국가가 현재의 위기에서 $ACTOR$을(를) 지원하는 것을 거절했습니다.
+BACK_CRISIS_OTHER_DECLINE_SETUP;누군가 위기에서 한 진영을 지원하기를 거절할 때
+BACK_CRISIS_OTHER_DECLINE_HEADER;외무 장관 보고
+BACK_CRISIS_OTHER_DECLINE_1;$MONARCHTITLE$
+BACK_CRISIS_OTHER_DECLINE_2;아직 사태가 악화되고 있지는 않은 것 같습니다.
+BACK_CRISIS_OTHER_DECLINE_3;$RECIPIENT$ 국가가
+BACK_CRISIS_OTHER_DECLINE_4;현재의 위기에서 $ACTOR$을(를) 지원하는 것을 거절한 것 같습니다
+BACK_CRISIS_OTHER_DECLINE_5;*
+BACK_CRISIS_OTHER_DECLINE_6;*
+BACK_CRISIS_OTHER_DECLINE_BTN1;확인
+BACK_CRISIS_OTHER_DECLINE_BTN2;확인
+BACK_CRISIS_OTHER_DECLINE_BTN3;이동
+BACK_CRISIS_OTHER_DECLINE_LOG;$RECIPIENT$ 국가가 현재의 위기에서 $ACTOR$을(를) 지원하는 것을 거절했습니다.
+CRISIS_PROGRESS_DESC;이 게이지가 최대치에 도달하면 외교의 시간은 끝나며 위기는 전쟁으로 비화됩니다.
+CRISIS_WAITING_DESC;위기의 최소 한 진영이 열강의 지원을 기다리는 중입니다.
+EFFECT_CRISIS_INTEREST;$COUNTRY$ 국가가 현재의 위기에 개입을 선언했습니다
+EVTNAME20000;국제적인 위기가 커지고 있습니다!
+EVTDESC20000;열강으로서 우리의 입장을 분명히 할 것이 요구됩니다.
+EVTOPTA20000;네, 우리는 이 위기에 개입할 것입니다
+EVTOPTB20000;이것은 우리와 관계없는 일입니다
+CRISIS_BACK_DOWN;해결책 제안
+CRISISOFFERDESC;$COUNTRY$ 국가가 현재의 위기를 우리에게 유리하게 해결할 것을 제안하고 있습니다:
+CRISISDEMANDDESC;$COUNTRY$ 국가가 현재의 위기를 자신들에게 유리하게 해결할 것을 요구하고 있습니다:
+crisis_free_peoples;민족 해방
+crisis_free_peoples_short;$THIRD$ 국가가 $STATE$ 주 획득
+crisis_free_peoples_setup;$RECIPIENT$에서 $THIRD$(으)로 $STATE$ 반환
+CRISIS_BACK_DOWN_WE_ACCEPT_SETUP;우리가 위기에서 상대 진영의 제안을 수락할 때
+CRISIS_BACK_DOWN_WE_ACCEPT_HEADER;$MESSENGER$
+CRISIS_BACK_DOWN_WE_ACCEPT_1;$ACTOR$
+CRISIS_BACK_DOWN_WE_ACCEPT_2;우리는 다음 국가의 현재 위기 해결 제안을 수락했습니다:
+CRISIS_BACK_DOWN_WE_ACCEPT_3;$ACTOR$
+CRISIS_BACK_DOWN_WE_ACCEPT_4;조건은 다음과 같습니다:
+CRISIS_BACK_DOWN_WE_ACCEPT_5;$TERMS$
+CRISIS_BACK_DOWN_WE_ACCEPT_6;*
+CRISIS_BACK_DOWN_WE_ACCEPT_LOG;우리는 $ACTOR$의 위기 해결 제안을 수락했습니다.
+CRISIS_BACK_DOWN_WE_ACCEPT_BTN1;좋다!
+CRISIS_BACK_DOWN_WE_ACCEPT_BTN2;좋다!
+CRISIS_BACK_DOWN_WE_ACCEPT_BTN3;이동
+CRISIS_BACK_DOWN_WE_ACCEPT_MAP;평화!
+CRISIS_BACK_DOWN_THEY_ACCEPT_SETUP;어떤 국가가 당신의 위기 해결 제안을 수락할 때
+CRISIS_BACK_DOWN_THEY_ACCEPT_HEADER;$MESSENGER$
+CRISIS_BACK_DOWN_THEY_ACCEPT_1;$RECIPIENT$
+CRISIS_BACK_DOWN_THEY_ACCEPT_2;$RECIPIENT$ 국가가
+CRISIS_BACK_DOWN_THEY_ACCEPT_3;현재 위기에 대한 우리의 해결 제안을 수락했습니다
+CRISIS_BACK_DOWN_THEY_ACCEPT_4;*
+CRISIS_BACK_DOWN_THEY_ACCEPT_5;*
+CRISIS_BACK_DOWN_THEY_ACCEPT_6;조건: $TERMS$
+CRISIS_BACK_DOWN_THEY_ACCEPT_LOG;$RECIPIENT$ 국가가 우리의 평화 제안을 수락했습니다.
+CRISIS_BACK_DOWN_THEY_ACCEPT_BTN1;좋다!
+CRISIS_BACK_DOWN_THEY_ACCEPT_BTN2;좋다!
+CRISIS_BACK_DOWN_THEY_ACCEPT_BTN3;이동
+CRISIS_BACK_DOWN_THEY_ACCEPT_MAP;*
+CRISIS_BACK_DOWN_OTHER_ACCEPT_SETUP;어떤 국가가 위기 해결 제안을 수락할 때
+CRISIS_BACK_DOWN_OTHER_ACCEPT_HEADER;$MESSENGER$
+CRISIS_BACK_DOWN_OTHER_ACCEPT_1;$RECIPIENT$
+CRISIS_BACK_DOWN_OTHER_ACCEPT_2;$RECIPIENT$ 국가가
+CRISIS_BACK_DOWN_OTHER_ACCEPT_3;다음 국가의 위기 해결 제안을 수락했습니다:
+CRISIS_BACK_DOWN_OTHER_ACCEPT_4;$ACTOR$
+CRISIS_BACK_DOWN_OTHER_ACCEPT_5;*
+CRISIS_BACK_DOWN_OTHER_ACCEPT_6;조건: $TERMS$
+CRISIS_BACK_DOWN_OTHER_ACCEPT_LOG;$RECIPIENT$ 국가가 $ACTOR$의 위기 제안을 수락했습니다.
+CRISIS_BACK_DOWN_OTHER_ACCEPT_BTN1;좋다!
+CRISIS_BACK_DOWN_OTHER_ACCEPT_BTN2;좋다!
+CRISIS_BACK_DOWN_OTHER_ACCEPT_BTN3;이동
+CRISIS_BACK_DOWN_OTHER_ACCEPT_MAP;*
+CRISIS_BACK_DOWN_WE_DECLINE_SETUP;우리가 위기 해결 제안을 거절할 때
+CRISIS_BACK_DOWN_WE_DECLINE_HEADER;$MESSENGER$
+CRISIS_BACK_DOWN_WE_DECLINE_1;$ACTOR$
+CRISIS_BACK_DOWN_WE_DECLINE_2;우리는 다음 국가의 평화 제안을 거절했습니다:
+CRISIS_BACK_DOWN_WE_DECLINE_3;$ACTOR$
+CRISIS_BACK_DOWN_WE_DECLINE_4;조건은 다음과 같습니다:
+CRISIS_BACK_DOWN_WE_DECLINE_5;*
+CRISIS_BACK_DOWN_WE_DECLINE_6;*
+CRISIS_BACK_DOWN_WE_DECLINE_LOG;우리는 $ACTOR$의 위기 해결 제안을 거절했습니다.
+CRISIS_BACK_DOWN_WE_DECLINE_BTN1;좋다!
+CRISIS_BACK_DOWN_WE_DECLINE_BTN2;좋다!
+CRISIS_BACK_DOWN_WE_DECLINE_BTN3;이동
+CRISIS_BACK_DOWN_WE_DECLINE_MAP;*
+CRISIS_BACK_DOWN_THEY_DECLINE_SETUP;어떤 국가가 당신의 위기 해결 제안을 거절할 때
+CRISIS_BACK_DOWN_THEY_DECLINE_HEADER;$MESSENGER$
+CRISIS_BACK_DOWN_THEY_DECLINE_1;$RECIPIENT$
+CRISIS_BACK_DOWN_THEY_DECLINE_2;$RECIPIENT$ 국가가
+CRISIS_BACK_DOWN_THEY_DECLINE_3;위기를 해결하려는 우리의 관대한 제안을 거부했습니다.
+CRISIS_BACK_DOWN_THEY_DECLINE_4;*
+CRISIS_BACK_DOWN_THEY_DECLINE_5;*
+CRISIS_BACK_DOWN_THEY_DECLINE_6;*
+CRISIS_BACK_DOWN_THEY_DECLINE_LOG;$RECIPIENT$ 국가가 우리의 위기 해결 제안을 거부했습니다.
+CRISIS_BACK_DOWN_THEY_DECLINE_BTN1;좋다!
+CRISIS_BACK_DOWN_THEY_DECLINE_BTN2;좋다!
+CRISIS_BACK_DOWN_THEY_DECLINE_BTN3;이동
+CRISIS_BACK_DOWN_THEY_DECLINE_MAP;*
+CRISIS_BACK_DOWN_OTHER_DECLINE_SETUP;다른 국가가 위기 해결 제안을 거부할 때
+CRISIS_BACK_DOWN_OTHER_DECLINE_HEADER;$MESSENGER$
+CRISIS_BACK_DOWN_OTHER_DECLINE_1;$RECIPIENT$
+CRISIS_BACK_DOWN_OTHER_DECLINE_2;$RECIPIENT$ 국가가
+CRISIS_BACK_DOWN_OTHER_DECLINE_3;다음 국가의 위기 해결 제안을 거부했습니다:
+CRISIS_BACK_DOWN_OTHER_DECLINE_4;$ACTOR$
+CRISIS_BACK_DOWN_OTHER_DECLINE_5;*
+CRISIS_BACK_DOWN_OTHER_DECLINE_6;*
+CRISIS_BACK_DOWN_OTHER_DECLINE_LOG;$RECIPIENT$ 국가가 $ACTOR$의 위기 해결 제안을 거부했습니다.
+CRISIS_BACK_DOWN_OTHER_DECLINE_BTN1;좋다!
+CRISIS_BACK_DOWN_OTHER_DECLINE_BTN2;좋다!
+CRISIS_BACK_DOWN_OTHER_DECLINE_BTN3;이동
+CRISIS_BACK_DOWN_OTHER_DECLINE_MAP;
+CRISIS_BACK_DOWN_DI;위기 해결 제안
+CRISIS_OFFER_DI;위기 진영 참여 제안
+CRISIS_BACK_DOWNTITLE;위기
+OFFER_CRISIS_PEACE;양보 제안
+DEMAND_CRISIS_PEACE;양보 요구
+COLONIAL_POINTS;식민력
+COLONIAL_POINTS_TECH;식민력 점수
+CRISIS_TITLE_COUNTRY;$COUNTRY_ADJ$ 위기
+CRISIS_DESCRIPTION_INFLUENCE;$COUNTRY$ 통치권 투쟁
+NAVAL_SORT_LABEL;정렬 기준:
+NAVAL_SORT_TYPE;유형
+NAVAL_SORT_STANCE;태세
+NAVAL_SORT_STR_ORG;병력/조직력
+battleship;전함
+UNCOLONIZED_WITHDRAW;철수
+UNCOLONIZED_INVEST_LVL1;탐험대
+UNCOLONIZED_INVEST_LVL2;개척민
+UNCOLONIZED_INVEST_LVL3;전초기지
+UNCOLONIZED_INVEST_LVL4;정착지
+UNCOLONIZED_INVEST_LVL5;경비초소
+UNCOLONIZED_DO_INVEST_LVL1;탐험대 파견
+UNCOLONIZED_DO_INVEST_LVL2;개척민 파견
+UNCOLONIZED_DO_INVEST_LVL3;전초기지 건설
+UNCOLONIZED_DO_INVEST_LVL4;정착지 건설
+UNCOLONIZED_DO_INVEST_LVL5;경비초소 강화
+#TENSION_DECAY;감소: §Y$VAL$§!
+CB_TENSION;전쟁 정당화: §Y$VAL$§!
+TENSION_FROM_ACTIVE_CRISIS;진행 중인 위기: §Y$VAL$§!
+AT_WAR_TENSION_DECAY;$COUNTRY$ 전쟁 중: §Y$VAL$§
+TRIGGER_FLASHPOINT_TAG;분쟁 지역 공격국
+CRISIS_NO_SIDE_PICKED_SETUP;우리가 위기에서 어느 한 쪽의 지지를 회피했을 때
+CRISIS_NO_SIDE_PICKED_HEADER;*
+CRISIS_NO_SIDE_PICKED_1;외교적 우유부단
+CRISIS_NO_SIDE_PICKED_2;우리가 행동하지 않았기 때문에
+CRISIS_NO_SIDE_PICKED_3;우리의 위신이 §R$PENALTY$§!만큼 감소했습니다.
+CRISIS_NO_SIDE_PICKED_4;앞으로 국제 정치에서 입장을 명확히 하지 않으면 무시당할 위험이 있습니다.
+CRISIS_NO_SIDE_PICKED_5;*
+CRISIS_NO_SIDE_PICKED_6;*
+CRISIS_NO_SIDE_PICKED_LOG;우리는 현재의 위기가 끝나기 전에 행동하지 않았습니다
+CRISIS_NO_SIDE_PICKED_BTN1;확인
+CRISIS_STARTED_SETUP;국제 위기가 시작되었습니다
+CRISIS_STARTED_HEADER;$MESSENGER$
+CRISIS_STARTED_1;국제 위기
+CRISIS_STARTED_2;외교적 긴장으로 인해 다음 지역에서 국제 위기가 발생했습니다:
+CRISIS_STARTED_3;$CRISISTARGET$
+CRISIS_STARTED_4;걱정할 것 없습니다, 이는 문명적인 방식으로 해결될 것입니다.
+CRISIS_STARTED_5;*
+CRISIS_STARTED_6;*
+CRISIS_STARTED_LOG;새로운 위기가 시작되었습니다
+CRISIS_STARTED_BTN1;확인
+CRISIS_BECAME_WAR_SETUP;위기가 전쟁으로 확대되었습니다
+CRISIS_BECAME_WAR_HEADER;$MESSENGER$
+CRISIS_BECAME_WAR_1;국제 위기
+CRISIS_BECAME_WAR_2;현재 위기에서의 외교적 협상이 실패했습니다.
+CRISIS_BECAME_WAR_3;전장이 누가 옳은지를 결정할 것으로 보입니다.
+CRISIS_BECAME_WAR_4;*
+CRISIS_BECAME_WAR_5;*
+CRISIS_BECAME_WAR_6;*
+CRISIS_BECAME_WAR_LOG;위기가 전쟁으로 확대되었습니다.
+CRISIS_BECAME_WAR_BTN1;확인
+IS_IN_CRISIS;위기에 개입되어 있습니다.
+IS_NOT_IN_CRISIS;위기에 개입되어 있지 않습니다.
+BACK_CRISIS_DI;위기 국가 지지 제안
+CRISIS_NOBODY_BACKED_SETUP;아무도 위기를 지지하지 않을 때
+CRISIS_NOBODY_BACKED_HEADER;$MESSENGER$
+CRISIS_NOBODY_BACKED_1;위기가 일단 모면됨
+CRISIS_NOBODY_BACKED_2;다음 지역의 위기:
+CRISIS_NOBODY_BACKED_3;§Y$CRISISTARGET$§!
+CRISIS_NOBODY_BACKED_4;이번에는 국제적인 관심을 끌어내는 데 실패했습니다.
+CRISIS_NOBODY_BACKED_5;*
+CRISIS_NOBODY_BACKED_6;*
+CRISIS_NOBODY_BACKED_LOG;아무도 현재의 위기를 지지하지 않았습니다
+CRISIS_NOBODY_BACKED_BTN1;확인
+BP_TOOL_ICON_INFANTRY;보병 아이콘
+BP_TOOL_ICON_COMBAT;전투 아이콘
+BP_TOOL_ICON_CAVALRY;기병 아이콘
+BP_TOOL_ICON_ARTILLERY;포병 아이콘
+BP_TOOL_ICON_NAVAL;해군 기지 아이콘
+BP_TOOL_ICON_INVASION;침공 아이콘
+BP_TOOL_ICON_WOODEN_SHIP;함선 아이콘
+BP_TOOL_ICON_IRONCLAD;철갑함 아이콘
+BP_TOOL_ICON_INDUSTRY;산업 아이콘
+BP_TOOL_ICON_COLONY;식민지 아이콘
+BP_TOOL_ICON_WARGOAL_1;전쟁 목표 아이콘
+BP_TOOL_ICON_WARGOAL_2;전쟁 목표 아이콘
+TAKE_SIDE_PENALTY;편을 들지 않아 생기는 위신 불이익: §R$VAL$§!
+NO_CALL_ALLY_CRISIS;대전쟁이 활성화되기 전에는 위기 전쟁에 동맹국을 호출할 수 없습니다
+PRODUCTION_BONUS;다음으로부터 얻은 $BON$ 보너스:

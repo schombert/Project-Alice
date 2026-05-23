@@ -1,0 +1,20 @@
+unit_experience;부대 경험
+modifier_farm_rgo_size;농업 규모
+modifier_mine_rgo_size;광업 규모
+method_research;전문화 점수
+Profit;이윤
+Good;상품
+Employed;고용 인구
+Subsistence;자급농
+province_percentage;현지 비율
+mapmode_tooltip_factory_size;공장 규모：
+stockpile_market;시장 비축량
+price_market;시장 가격
+market_name;시장 이름
+price_nation;전국 평균가
+trade_in;무역 수입
+trade_out;무역 수출
+trade_balance;무역 수지
+consumption;상품 소비
+stockpiles;상품 비축
+Max;최대

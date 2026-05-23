@@ -1,0 +1,90 @@
+disarming;강제 무장 해제
+HAS_NOT_RECENTLY_LOST_WAR;최근 5년 이내에 전쟁에서 패배하지 않음.
+HAS_RECENTLY_LOST_WAR;최근 5년 이내에 전쟁에서 패배함.
+IN_SAME_SPHERE;이 국가는 우리와 같은 세력권에 있습니다.
+NOR_reactionary;국왕당
+ATJ_reactionary;국민파
+ATJ_liberal;자유파
+ATJ_anarcho_liberal;급진파
+ATJ_socialist;사회파
+ATJ_communist;공산파
+ATJ_fascist;파시스트파
+CAL_conservative;민주당
+KHI_conservative;왕당파
+KHI_liberal;자유파
+KHI_reactionary;국민파
+KHI_anarcho_liberal;급진파
+KHI_socialist;사회파
+KHI_communist;공산파
+KHI_fascist;파시스트파
+MAD_conservative;왕당파
+MAD_liberal;자유파
+MAD_reactionary;국민파
+MAD_anarcho_liberal;급진파
+MAD_socialist;사회파
+MAD_communist;공산파
+MAD_fascist;파시스트파
+TRI_conservative;왕당파
+TRI_liberal;자유파
+TRI_reactionary;국민파
+TRI_anarcho_liberal;급진파
+TRI_socialist;사회파
+TRI_communist;공산파
+TRI_fascist;파시스트파
+TEX_communist;공산당
+BAD_fascist;NSDP
+BAV_fascist;NSDP
+WEI_fascist;NSDP
+WLL_fascist;렉스당
+NEW_fascist;파시스트당
+DIPLOMACY_CHANCE_JOIN_WAR;전쟁 참여 가능성: §Y$VAL$§W
+PO_ISBETTER;이 제안을 거절할 경우 다음의 불이익을 받게 됩니다:\n 투쟁성 §R+$MIL$§W, 전쟁 피로도 §R+$WE$§W
+leave_soi_title;세력권 이탈
+leave_soi_desc;우리는 이 세력권에서 이탈할 수 있습니다. 하지만 우리의 구 종주국은 이를 저지하기 위해 전쟁을 선포할지도 모릅니다.
+NEW_PARTY_AVAIL_SETUP;신규 정당
+NEW_PARTY_AVAIL_HEADER;신규 정당 창당
+NEW_PARTY_AVAIL_1;$PARTY$이(가) 창당되었습니다
+NEW_PARTY_AVAIL_2;*
+NEW_PARTY_AVAIL_3;*
+NEW_PARTY_AVAIL_4;*
+NEW_PARTY_AVAIL_5;*
+NEW_PARTY_AVAIL_6;*
+NEW_PARTY_AVAIL_BTN1;확인
+NEW_PARTY_AVAIL_BTN2;확인
+NEW_PARTY_AVAIL_BTN3;이동
+NEW_PARTY_AVAIL_LOG;신규 정당
+PARTY_UNAVAIL_SETUP;정당 해산
+PARTY_UNAVAIL_HEADER;정당 해산
+PARTY_UNAVAIL_1;$PARTY$이(가) 해산되었습니다
+PARTY_UNAVAIL_2;*
+PARTY_UNAVAIL_3;*
+PARTY_UNAVAIL_4;*
+PARTY_UNAVAIL_5;*
+PARTY_UNAVAIL_6;*
+PARTY_UNAVAIL_BTN1;확인
+PARTY_UNAVAIL_BTN2;확인
+PARTY_UNAVAIL_BTN3;이동
+PARTY_UNAVAIL_LOG;현재 이용할 수 없는 정당
+PRODUCTION_FACTORY_DAYSRED_TOOLTIP;파산 일수: §R$DAYS$§W
+EXPENSE_NO_AFFORD;우리는 지출 중 §R$VAL$§W¤만을 감당할 수 있습니다!
+PRODUCTION_FACTORY_DAYSRED_TOOLTIP;파산 일수: §R$DAYS$§W
+ENG_presidential_dictatorship;대브리튼
+EVTNAME16451;수비대 습격
+EVTDESC16451;텍사스 혁명 초기, 텍사스 군대는 여러 멕시코 수비대를 유린할 수 있었습니다. 이는 텍사스 군대에 절실히 필요했던 자금과 물자를 제공해 주었습니다.
+CB_ALLOWED_GUNBOAT;부채 상환 강제
+po_gunboat;부채 상환.
+IS_IN_DEFAULT_TO;다음에 채무 불이행 중:
+IS_NOT_IN_DEFAULT_TO;다음에 채무 불이행 중이 아님:
+gunboat;부채 상환
+gunboat_desc;우리에 대한 부채 상환을 재개하도록 강제합니다.
+gunboat_setup;우리에 대한 부채 상환 의무를 이행하도록 강제할 것입니다.
+gunboat_short;부채 상환
+EVTNAME70002;$FROMCOUNTRY$ 파산!
+EVTDESC70002;$FROMCOUNTRY$이(가) 파산하여 우리에게 빚진 것이 없다고 주장하고 있습니다! 우리는 군사력을 동원해서라도 투자자들을 보호해야 합니다.
+EVTOPTA70002;확인
+USE_LEADER;지휘관 사용
+SHORTCUT;§W단축키: §Y
+SM_SHORTCUT;단축키 툴팁
+TUR_proletarian_dictatorship_ADJ;터키
+move_capital_to_moscow_title;제3의 로마로의 귀환
+move_capital_to_moscow_desc;위대한 표트르 대제의 도시인 영광스러운 상트페테르부르크는 국경과 지나치게 가깝습니다. 어쩌면 침략군이 도달하기 더 힘들 "페르보프레스톨나야(제1의 수도)" 모스크바로 수도를 되돌리는 것이 현명할지도 모릅니다...

@@ -1,0 +1,835 @@
+MIL_FROM_TROOPS;병사와 육군
+MIL_FROM_CAP_SHIPS;주력함
+MIL_FROM_LEADERS;지휘관
+OCCUPATION_SCORE;점령:
+BLOCKADE_SCORE;봉쇄:
+OUTLINER_TOOLTIP_EMPLOYED;§Y$COUNT$§!명이 공장에 고용됨 (§Y$PERC$§!%)
+TRADE_SUPPLY_NEED_A;매일 육군 보급에 $VAL$가 필요합니다.\n
+TRADE_SUPPLY_NEED_N;매일 해군 보급에 $VAL$가 필요합니다.\n
+DIPLOMACY_CANNOT_SET_PRIO_WAR;이 국가와 전쟁 중일 때는 영향력을 행사할 수 없습니다.
+DIPLOMACY_INFLUENCE_NOT_WORTH;우리는 이미 이 국가에 최대치로 영향력을 행사하고 있으며, 이 국가에 영향력을 행사하는 다른 국가가 없습니다. 당분간 점수가 소비되지 않습니다.
+COLONY_ABORT_HEADER;우리의 식민지화가 중단되었을 때.
+COLONY_ABORT_1;식민지화 중단!
+COLONY_ABORT_2;$MONARCHTITLE$이시여, 다음 지역의 우리 식민지가
+COLONY_ABORT_3;§Y$TARGET$§b
+COLONY_ABORT_4;중단되었습니다!
+COLONY_ABORT_5;우리는 더 이상 이 지역을 식민지화할 수 없습니다.
+COLONY_ABORT_6;*
+COLONY_ABORT_BTN1;확인
+COLONY_ABORT_BTN2;확인
+COLONY_ABORT_BTN3;이동
+COLONY_ABORT_MAP;식민지화 중단!
+COLONY_ABORT_SETUP;식민지화가 중단되었을 때.
+COLONY_ABORT_LOG;$TARGET$의 식민지화가 중단되었습니다.
+DIPRELCH_VALID_CB;유효한 전쟁 명분
+BRIGADES_COMPARE_GREATER;두 국가 간의 여단 비교 비율이 최소 §Y$VAL$§!입니다.
+BRIGADES_COMPARE_SMALLER;두 국가 간의 여단 비교 비율이 §Y$VAL$§! 미만입니다.
+CONFIRM_CREATE_STATE_DESC2;(모든 지역 효과가 제거될 것입니다.)
+UNIT_ENABLE_REBEL_HUNT;반란군 토벌
+UNIT_DISABLE_REBEL_HUNT;(반란군 토벌 중)
+UNIT_REBEL_HUNT_WILL_HUNT;§G육군이 반란군을 토벌할 준비가 되었습니다.§!
+UNIT_REBEL_HUNT_IS_BUSY;§R육군이 현재 바쁘기 때문에, 당장 반란군을 토벌하지 않을 것입니다.§!
+UNIT_REBEL_HUNT_LOW_MORALE;§R육군의 사기가 너무 낮아, 당장 반란군을 토벌하지 않을 것입니다.§!
+UNIT_REBEL_HUNT_NO_VALID;§R적 반란군이 감지되었지만, 그들이 너무 강력하거나 접근할 수 있는 안전한 경로를 찾지 못하여 우리 육군이 공격하지 않을 것입니다.§!
+NOT_RELEASE_AT_WAR;§R(전쟁 중에는 국가를 해방할 수 없습니다.)§W
+COLONY_SUCCESS_5;위신을 §Y$PRESTIGE$§! 획득했습니다.
+COLONY_SUCCESS_6;(기본값 §Y$BASE$§! x §Y$PROV$§!개 프로빈스.)
+COUNTRY_PUPPETS_LIST;괴뢰국:
+POLL_ESTIMATED_ELECTION;선거 시 다음과 같은 결과가 예상됩니다.
+MODIFIER_MOVEMENT_COST;부대 이동 비용
+SPEED_IMPACT_ON_CB;생성 속도가 §Y$VAL$§W만큼 변경됩니다.
+TERR_COMB_WIDTH_DEC;이 지형에서는 전투 너비가 §Y$VAL$§W%만큼 감소합니다.
+MODIFIER_BOOST_STRONGEST_PARTY;가장 강력한 정당의 지지율
+PEACEDEMANDDESC;$COUNTRY$(이)가 다음 조건으로 평화를 요구하고 있습니다:
+CB_JUSTIFY_NO_LONGER_VALID_SETUP;우리의 전쟁 명분 정당화 과정이 더 이상 유효하지 않을 때.
+CB_JUSTIFY_NO_LONGER_VALID_HEADER;$MONARCHTITLE$
+CB_JUSTIFY_NO_LONGER_VALID_1;전쟁 명분 정당화
+CB_JUSTIFY_NO_LONGER_VALID_2;다음을 사용한 우리의 전쟁 정당화 시도:
+CB_JUSTIFY_NO_LONGER_VALID_3;§Y$CASUS$§! 전쟁 명분
+CB_JUSTIFY_NO_LONGER_VALID_4;대상 국가:
+CB_JUSTIFY_NO_LONGER_VALID_5;$TARGET$
+CB_JUSTIFY_NO_LONGER_VALID_6;더 이상 유효하지 않습니다!
+CB_JUSTIFY_NO_LONGER_VALID_LOG;$TARGET$에 대한 우리의 전쟁 명분 정당화 과정이 더 이상 유효하지 않습니다.
+CB_JUSTIFY_NO_LONGER_VALID_BTN1;확인
+CB_JUSTIFY_NO_LONGER_VALID_BTN2;확인
+CB_JUSTIFY_NO_LONGER_VALID_BTN3;이동
+CB_JUSTIFY_NO_LONGER_VALID_MAP;*
+NO_ALLOWED_COUNTRIES;(해당하는 국가가 없습니다).
+NO_ALLOWED_STATES;(해당하는 주가 없습니다).
+HAS_LESS_STATE_THAN;주 개수가 다음 미만:
+HAS_STATES_GREATER_EQ;주 개수가 다음 이상:
+HAVE_MORE_SUBSTATES_THEN;하위 주 개수가 다음 초과:
+HAVE_LESS_SUBSTATES_THEN;하위 주 개수가 다음 미만:
+HAVE_MORE_VASSALS_THAN;괴뢰국 개수가 다음 초과:
+HAS_UNION_TAG;문화 연합 형성 가능
+HAS_NO_UNION_TAG;문화 연합 형성 불가
+HAS_CULTURE_UNION;문화 연합 있음
+HAS_NOT_CULTURE_UNION;문화 연합 없음
+IS_STATE_CAPITAL;주도입니다
+IS_NOT_STATE_CAPITAL;주도가 아닙니다
+SUBSIDIZE_ALL_TOOLTIP;목록에 있는 모든 공장에 보조금을 지급합니다.
+UNSUBSIDIZE_ALL_TOOLTIP;목록에 있는 모든 공장에 대한 보조금 지급을 취소합니다.
+OPEN_ALL_TOOLTIP;목록에 있는 모든 공장을 재가동합니다.
+CLOSE_ALL_TOOLTIP;목록에 있는 모든 공장을 폐쇄합니다.
+ON_ENACT_UNCIV_REFORM;제정 시:
+EFFECT_BUILD_IN_CAPITAL_DESC;§Y$BLD$§! 건설이 다음 지역에서 진행됩니다: §Y$PROVS$§!
+TRIGGER_BUILD_IN_CAPITAL_DESC;§R현재 건설이 허용되지 않습니다.§!
+DIPLOMACY_CB_INFO;전쟁 명분 정당화
+COLONIZE_MAX_SLOTS;§Y$NUM$§!개를 초과하는 국가가 프로빈스 식민지화에 경쟁할 수 없습니다.
+RIGHT_CLICK_TO_REMOVE_NF;현재 중점을 제거하려면 §Y우클릭§!하세요.
+CONFIRM_REMOVE_COLONY_NF_TITLE;식민지화 국가 중점 제거
+CONFIRM_REMOVE_COLONY_NF_DESC;식민지화 진행도가 초기화됩니다. 이 국가 중점을 제거하시겠습니까?
+CB_ALLOWED_INSTALL_COMMUNIST_GOV_TYPE;공산주의 정부 수립
+po_install_communist_gov_type;공산주의 정부 수립
+install_communist_gov_cb;공산주의 수립
+install_communist_gov_cb_desc;공산주의 정부를 수립합니다.
+install_communist_gov_cb_setup;공산주의 정부를 수립합니다. 달성할 경우 해당 국가는 자동으로 우리의 세력권에 편입됩니다.
+install_communist_gov_cb_short;공산주의 수립
+CB_ALLOWED_UNINSTALL_COMMUNIST_GOV_TYPE;공산주의 정부 전복
+po_uninstall_communist_gov_type;공산주의 정부 전복
+uninstall_communist_gov_cb;공산주의 전복
+uninstall_communist_gov_cb_desc;공산주의 정부를 전복시킵니다.
+uninstall_communist_gov_cb_setup;공산주의 정부를 전복시킵니다.
+uninstall_communist_gov_cb_short;공산주의 전복.
+NF_OVERWRITE_HEADER;새로운 국가 중점 §Y$NF$§!을(를) 설정하려면 다른 중점을 제거해야 합니다.
+NF_OVERWRITE_ENTRY;§G$STATE$§!의\n§Y$NF$§!
+PRESTIGE_MORALE_BONUS;사기 보너스: §Y$VAL$§!
+PRESTIGE_MAX_ORG_BONUS;조직력 보너스: §Y$VAL$§!
+PRESTIGE_PENALTY_ON_LEADER_TRANSFER_TITLE;위신 불이익.
+PRESTIGE_PENALTY_ON_LEADER_TRANSFER_DESC;전쟁 중에 해당 부대에서 현재 지휘관인 §Y$NAME$§!을(를) 해임할 경우 우리 국가는 위신을 §R$VAL$§! 잃게 됩니다.\n그래도 진행하시겠습니까?
+REORG_PANEL_BALANCE_UNITS;균형 맞추기
+INVEST_PROJECT_NOT_ENOUGH_MONEY;§R이를 수행하기 위한 자금이 부족합니다.§!
+INVEST_PROJECT_SHORTCUT_MAX;이 프로젝트에 최대 금액(§Y$AMOUNT$§!¤)을 투자하려면 §RCtrl + 좌클릭§!하세요.
+INVEST_PROJECT_SHORTCUT_MAX_ALL;모든 프로젝트에 최대 금액(§Y$AMOUNT$§!¤)을 투자하려면 §RShift + 좌클릭§!하세요.
+INVEST_PROJECT_CONFIRM;투자
+INVEST_PROJECT_MAX;최대
+INVEST_PROJECT_TITLE;§Y$LOC$§!의 프로젝트 "§Y$PROJ$§!"에 투자
+INVEST_PROJECT_TOOLTIP_YOUR_BUDGET;귀하의 현재 예산입니다.
+INVEST_PROJECT_TOOLTIP_PROJECT_BUDGET;필요 예산 §Y$TOT$§! 중 프로젝트 예산은 §Y$BUD$§!입니다.\n귀하는 이 프로젝트에 §Y$INV$§!을(를) 투자하기로 결정했습니다.
+INVEST_PROJECT_TOOLTIP_APPLY;투자를 적용합니다.
+MIL_MULTI_CONSTRUCTION_TOOLTIP;모두 건설하려면 §SHIFT + 좌클릭§!하세요.
+MIL_CONSTRUCTION_CANCEL_ALL_SHORT;모두 취소
+MIL_CONSTRUCTION_CANCEL_ALL;모든 건설 취소
+MIL_CONSTRUCTION_CANCEL_ALL_WARNING_TITLE;모든 건설 취소.
+MIL_CONSTRUCTION_CANCEL_ALL_WARNING_DESC;모든 군사 건설을 취소하시겠습니까?
+SORT_BY_PRESTIGE;위신 순으로 정렬
+SORT_BY_NAME;이름 순으로 정렬
+SORT_BY_SELECTED;선택된 순으로 정렬
+ATTACKUSREBEL_SETUP;아군 지상 부대 중 하나가 반란군의 공격을 받았을 때
+ATTACKUSREBEL_HEADER;참모총장이 보고하기를,
+ATTACKUSREBEL_1;아군이 공격받고 있습니다!
+ATTACKUSREBEL_2;$MONARCHTITLE$이시여, 다음 지역에서 우리가 공격을 받았습니다:
+ATTACKUSREBEL_3;$PROV$.
+ATTACKUSREBEL_4;$ATTACKER$의 적대적인 병력이 다음 부대로 우리와 교전했습니다:
+ATTACKUSREBEL_5;*
+ATTACKUSREBEL_6;*
+ATTACKUSREBEL_LOG;$PROV$에서 공격을 받았습니다.
+ATTACKUSREBEL_BTN1;확인
+ATTACKUSREBEL_BTN2;확인
+ATTACKUSREBEL_BTN3;이동
+ATTACKUSREBEL_MAP;공격받음!
+ATTACKTHEMREBEL_SETUP;아군 지상 부대 중 하나가 반란군을 공격했을 때.
+ATTACKTHEMREBEL_HEADER;참모총장이 보고하기를,
+ATTACKTHEMREBEL_1;우리가 적과 교전했습니다!
+ATTACKTHEMREBEL_2;$MONARCHTITLE$이시여, 다음 지역에서 전투가 시작되었다는 보고가 있습니다:
+ATTACKTHEMREBEL_3;$PROV$.
+ATTACKTHEMREBEL_4;우리는 $DEFENDER$의 병력을 공격하여 그들의 방어를 무너뜨리려 하고 있습니다. 우리는 다음 부대로 교전 중입니다:
+ATTACKTHEMREBEL_5;*
+ATTACKTHEMREBEL_6;*
+ATTACKTHEMREBEL_LOG;$PROV$에서 적을 공격했습니다.
+ATTACKTHEMREBEL_BTN1;확인
+ATTACKTHEMREBEL_BTN2;확인
+ATTACKTHEMREBEL_BTN3;이동
+ATTACKTHEMREBEL_MAP;공격 시작됨
+SIEGEUSREBEL_SETUP;반란군이 우리 프로빈스를 점령하기 시작했을 때
+SIEGEUSREBEL_HEADER;$MESSENGER$
+SIEGEUSREBEL_1;우리 프로빈스가 점령되기 시작했습니다
+SIEGEUSREBEL_2;$MONARCHTITLE$이시여,
+SIEGEUSREBEL_3;$PROV$ 프로빈스가
+SIEGEUSREBEL_4;점령되기 시작했습니다. 두려워하지 마십시오!
+SIEGEUSREBEL_5;$ATTACKER$의 병력은
+SIEGEUSREBEL_6;우리 위대한 육군에 의해 곧 쫓겨날 것입니다.
+SIEGEUSREBEL_LOG;$PROV$(이)가 점령되기 시작했습니다.
+SIEGEUSREBEL_BTN1;확인
+SIEGEUSREBEL_BTN2;확인
+SIEGEUSREBEL_BTN3;이동
+SIEGEUSREBEL_MAP;*
+SIEGETHEMREBEL_SETUP;우리가 반란군이 통제하는 프로빈스를 점령하기 시작했을 때.
+SIEGETHEMREBEL_HEADER;$MESSENGER$
+SIEGETHEMREBEL_1;적의 프로빈스가 점령되기 시작했습니다
+SIEGETHEMREBEL_2;$MONARCHTITLE$이시여, 우리가 다음 지역을 점령하기 시작했습니다:
+SIEGETHEMREBEL_3;$PROV$.
+SIEGETHEMREBEL_4;우리 병력이 그들을 다음의 마수에서 빼앗아 내기까지 오래 걸리지 않을 것입니다:
+SIEGETHEMREBEL_5;$DEFENDER$.
+SIEGETHEMREBEL_6;그들은 우리의 계몽된 정부를 고대할 것입니다.
+SIEGETHEMREBEL_LOG;$PROV$ 점령을 시작했습니다.
+SIEGETHEMREBEL_BTN1;확인
+SIEGETHEMREBEL_BTN2;확인
+SIEGETHEMREBEL_BTN3;이동
+SIEGETHEMREBEL_MAP;*
+REMOVE_RANDOM_ECO_REFORMS_EFFECT;§R$VAL$§!개의 경제 개혁을 폐지합니다.\n
+REMOVE_RANDOM_MIL_REFORMS_EFFECT;§R$VAL$§!개의 군사 개혁을 폐지합니다.\n
+PRODUCTION_FACTORY_PURE_INCOME;전일 순수익: $VALUE$
+PRODUCTION_FACTORY_MARKET_SPENDINGS;시장 지출: $VALUE$
+PRODUCTION_FACTORY_POP_PAYCHECKS;노동자 및 자본가 급여: $VALUE$
+PRODUCTION_FACTORY_TOTAL_BALANCE;전일 수지: $VALUE$
+PRODUCTION_FACTORY_TODAY_PROFIT;전일 수익성: $VALUE$
+PRODUCTION_FACTORY_PROFITABILITY;평균 수익성 (지난 $DAYS$일): $VALUE$
+PRODUCTION_FACTORY_CURRENT_BUDGET;현재 공장 예산: $VALUE$
+PRODUCTION_FACTORY_INVESTMENT;투자금: $VALUE$
+PRODUCTION_FACTORY_SUBSIDIES;보조금: $VALUE$
+INFLUENCE_OVERFLOW_TOOLTIP;우리는 다른 국가의 영향력을 줄이기 위해 매일 §Y$VALUE$§!의 영향력 점수를 사용하고 있습니다.
+TRADE_FLOW_PRODUCED;§Y생산 주체:§W
+TRADE_FLOW_USED;§Y사용 주체:§W
+TRADE_FLOW_MAY_BE_USED;§Y사용 가능한 용도:§W
+TRADE_FLOW_TOTAL_PRODUCED;§Y총 생산량:§W
+TRADE_FLOW_TOTAL_USED;§Y총 사용량:§W
+TRADE_FLOW_RGO_NAME;RGO
+TRADE_FLOW_DESC_RGO;우리의 $POP$이(가) 매일 $AMOUNT$의 $RESOURCE$을(를) $ACTION$하고 있습니다.
+TRADE_FLOW_DESC_RGO_ACTION_MINING;채굴
+TRADE_FLOW_DESC_RGO_ACTION_FARMING;재배
+TRADE_FLOW_DESC_ARTISAN;우리의 장인이 매일 $AMOUNT$의 $RESOURCE$을(를) 생산하고 있습니다.
+TRADE_FLOW_DESC_FACTORY;$STATE$의 $FACTORY$에서 매일 $AMOUNT$의 $RESOURCE$을(를) 생산하고 있습니다.
+TRADE_FLOW_CONSUME_DESC_ARTISAN;장인이 $OUTPUT$을(를) 생산하기 위해 $AMOUNT$의 $RESOURCE$을(를) 사용하고 있습니다.
+TRADE_FLOW_CONSUME_DESC_RGO;$POP$이(가) $OUTPUT$을(를) 생산하기 위해 $AMOUNT$의 $RESOURCE$을(를) 사용하고 있습니다.
+TRADE_FLOW_CONSUME_DESC_FACTORY;$STATE$의 $FACTORY$에서 투입재 및/또는 유지 보수용으로 $AMOUNT$의 $RESOURCE$을(를) 사용하고 있습니다.
+TRADE_FLOW_CONSUME_DESC_POPS;우리의 $POP$이(가) 일일 욕구의 일부로 $AMOUNT$의 $RESOURCE$을(를) 사용하고 있습니다.
+TRADE_FLOW_CONSUME_DESC_MILITARY;우리의 부대가 일일 보급품으로 $AMOUNT$의 $RESOURCE$을(를) 소비하고 있습니다.
+TRADE_FLOW_MAY_USE_MILITARY_DESC;$INPUT$은(는) 우리의 부대가 일일 보급품으로 사용할 수 있습니다.
+TRADE_FLOW_MAY_USE_DESC;$INPUT$은(는) $PRODUCER$이(가) $OUTPUT$을(를) 생산하는 데 사용할 수 있습니다.
+TRADE_FLOW_MILITARY_SUPPLY;군사 소비량
+TRADE_FLOW_CURRENT_PRICE;현재 가격:
+TRADE_FLOW_DETAILS;세부 정보
+TRADE_FLOW_PART_OF_WORLD_PROD;세계 생산량의 §Y$PERC$%§W.
+EMIGRATION_AT_PROVINCE_TOOLTIP;(§R$TOTALEMI$§!) §Y이민 유출지:§!\n$EMILIST$\n(§G$TOTALIMM$§!) §Y이민 유입지:§!\n$IMMLIST$
+NO_MIGRATIONS_FOUND1_TOOLTIP;프로빈스 소유국: §Y$COUNTRY$§!
+NO_MIGRATIONS_FOUND2_TOOLTIP;국가 간 이주가 관측되지 않았습니다.
+NO_MIGRATIONS_FOUND3_TOOLTIP;(자세한 정보를 보려면 프로빈스를 선택하십시오)
+PROVINCE_VIEW_BUILD_ALL_TOOLTIP;(주의 모든 프로빈스에 건설하려면 Ctrl + 클릭)
+EMIGRATION_ENTRY_TOOLTIP;§Y$PROV$§!(으)로 §R$NUM$§!
+IMMIGRATION_ENTRY_TOOLTIP;§Y$PROV$§!(으)로부터 §G$NUM$§!
+CB_GENERATION_SPEED_BONUS_ON_COLONY_COMPETITION;§Y$REGION$§! 식민지화 과정에서 §Y$COUNTRY$§!와(과) 경쟁 중, 속도 보너스 §Y$BONUS$§!.
+CB_GENERATION_BONUS_TOOLTIP;경쟁국 사이의 전쟁 명분 생성 속도 보너스 §Y$BONUS$§!: §Y$COUNTRIES$§!
+CB_GENERATION_BONUS_TROOPS_PRESENCE_TOOLTIP;(적군 존재로 인한 §Y$BONUS$§!)
+CB_GENERATION_BONUS_OPPONENT_TROOPS_PRESENCE;(군대 존재로 인한 §Y$AGAINST$§!에 대한 §Y$FOR$§!의 §Y$BONUS$§!)
+MODIFIER_CB_GENERATION_SPEED_MODIFIER;전쟁 명분 획득 속도
+NOT_CONSTRUCTING_CASUS_BELLI_AGAINST;다음에 대한 전쟁 정당성 획득 안 함:
+MODIFIER_MOBILIZATION_IMPACT;동원 여파
+MOBILIZATION_IMPACT_LIMIT_DESC;§Y$POLICY$§! 전쟁 정책으로 인한 동원 여파 §Y$IMPACT$§!(으)로, 동원되는 부대의 수를 §Y$UNITS$§!(으)로 제한합니다.
+MOBILIZATION_IMPACT_LIMIT_DESC2;(현재 모집된 연대 수: §Y$CURR$§!, §Y$IMPACT$§! 곱함)
+CONSTRUCTING_CASUS_BELLI_AGAINST;다음에 대한 전쟁 정당성 획득 중:
+TRIGGER_CB_CREATION_NOT_DISCOVERED;전쟁 정당성을 날조하지 않음
+TRIGGER_CB_CREATION_DISCOVERED;전쟁 정당성을 날조하려 시도함
+TRIGGER_CB_PROGRESS_LESS;전쟁 정당성 진행도: §Y$PERCENTAGE$§W
+TRIGGER_CB_PROGRESS_ATLEAST;전쟁 정당성 진행도 미만: §Y$PERCENTAGE$§W
+TRIGGER_IS_CONSTRUCTING_CB;다음을 위한 전쟁 정당성 획득 중: §Y$TYPE$§W
+TRIGGER_IS_NOT_CONSTRUCTING_CB;다음을 위한 전쟁 정당성 획득 안 함: §Y$TYPE$§W
+NEED_RELATION_LESS;관계도가 너무 높습니다. §Y$LIMIT$§W 미만이어야 하나 현재 §Y$VAL$§W입니다.
+ALREADY_MAKING_CB;우리는 이미 §Y$TARGET$§W에 대한 전쟁 명분을 준비하고 있습니다.
+MAKE_CB_BUTTON;전쟁 정당화
+MAKE_CB_DESC;이들에 대한 전쟁 정당성을 날조합니다.
+MAKE_CBTITLE;전쟁 정당화
+MAPMODE_11;RGO 산출량
+MAPMODE_12;인구 밀도
+MAPMODE_13;민족
+MAPMODE_14;세력권
+MAPMODE_15;보급 한계
+MAPMODE_16;정당 충성도
+MAPMODE_17;순위
+MAPMODE_18;이주
+MAPMODE_20;관계도
+WORLD_RANKING;세계 순위:
+WORLD_RANKING_SECONDARY_POWER;§Y$COUNTRY$§W(은)는 준열강입니다.
+POPULATION_DENSITY_AT_PROVINCE;§Y$PROV$§W의 총 인구:
+NATIONALITY_MAJORITY_AT_PROVINCE;§Y$PROV$§W의 다수 민족:
+SPHERE_OF_INFL_GREAT_POWER;§Y$COUNTRY$§W(은)는 열강입니다.
+SPHERE_OF_INFL_IS_IN_SPHERE;§Y$COUNTRY1$§W(은)는 §Y$COUNTRY2$§W의 세력권입니다.
+SPHERE_OF_INFL_IS_INFL_BY;§Y$COUNTRY$§W에 영향을 미치는 국가:
+PARTY_LOYALTY_EFFECT_DESC;§Y$PROV$§W의 §Y$PARTY$§W에 대한 충성도 $OPERATOR$ §Y$VALUE$§W.
+PARTY_LOYALTY_EFFECT_OPERATOR_ADD;증가량
+PARTY_LOYALTY_EFFECT_OPERATOR_REM;감소량
+PARTY_LOYALTY_EFFECT_OPERATOR_MUL;곱연산
+PARTY_LOYALTY_EFFECT_OPERATOR_SET;설정값
+PARTY_LOYALTY_DESC_HEADER;§Y$PROV$§W의 정당 충성도:
+PARTY_LOYALTY_DESC_NEUTRAL;중립
+PARTY_POPULARITY;정당 인기도
+PRICE_HISTORY_TIME_RANGE;최근 $MONTHS$개월
+party_loyalty_focus;정당 충성도
+fascist_focus;§Y파시즘§! 정당 충성도
+reactionary_focus;§Y반동주의§! 정당 충성도
+conservative_focus;§Y보수주의§! 정당 충성도
+socialist_focus;§Y사회주의§! 정당 충성도
+communist_focus;§Y공산주의§! 정당 충성도
+liberal_focus;§Y자유주의§! 정당 충성도
+anarcho_liberal_focus;§Y무정부적 자유주의§! 정당 충성도
+NATIONAL_FOCUS_PARTY_LOYALTY_DESC;일일 충성도 변화량: §Y$VAL$§W.
+PARTY_WITH_IDEOLOGY_NOT_EXIST;§Y$IDEOLOGY$§W 이념을 가진 활성화된 정당이 없습니다.
+NATIONAL_FOCUS_PARTY_LOYALTY_EFFECT;국가 중점으로 인해 $PARTY$에 대한 충성도가 매일 $VAL$만큼 변화합니다.
+SUBSTATE_OF_NOCOLOR;다음에 대한 하위국:
+SUBSTATE;하위국
+SUBSTATE_JOIN_WAR_DESC;(은)는 §Y$COUNTRY$§W의 하위국이므로 항상 종주국의 전쟁에 참전할 것입니다.
+IS_NOT_SUBSTATE_OF;다음에 대한 하위국이 아님:
+IS_SUBSTATE_OF;다음에 대한 하위국임:
+IS_NOT_SUBSTATE;하위국이 아님
+IS_SUBSTATE;하위국임
+ANY_SUBSTATE;다음에 대한 모든 하위국:
+acquire_substate_region;하위국 지역 획득
+acquire_substate_region_desc;적 §Y하위국§W으로부터 지역을 획득
+acquire_substate_region_short;$STATE$ 획득
+acquire_substate_region_setup;$RECIPIENT$ 위치에서 $STATE$ 획득
+become_independent;독립
+become_independent_short;$ACTOR$(이)가 $RECIPIENT$(으)로부터 해방됨
+become_independent_setup;$ACTOR$(이)가 $RECIPIENT$(으)로부터 해방되어 독립국이 됨.
+#become_independent_desc;독립국이 됩니다.
+make_puppet;괴뢰국화
+make_puppet_short;$RECIPIENT$(이)가 $ACTOR$의 괴뢰국이 됨
+make_puppet_setup;$RECIPIENT$(이)가 $ACTOR$의 괴뢰국이 됨
+make_puppet_desc;괴뢰국이 됩니다
+RALLY_POINT_INFO;이 프로빈스의 §Y집결지§!를 활성화하면 모집이 완료된 인접 부대들이 모두 이 방향으로 향합니다.\n(자세한 내용은 모집 지도 모드를 참조하십시오.)
+RALLY_POINT_ENABLE_INFO;이 프로빈스에 집결지를 활성화 또는 비활성화합니다.
+RALLY_POINT_MERGE_INFO;목적지에서의 부대 병합을 활성화 또는 비활성화합니다.\n(군대는 지역 보급 한계까지 병합됩니다.)
+RALLY_POINT_PROVINCE_INFO;$PROV$(은)는 §Y집결지§!입니다
+RALLY_POINT_PROVINCE_MERGE_INFO;모든 모집된 부대는 이곳에 도착할 때 §Y$LIMIT$§!까지 병합됩니다.
+CB_ALLOWED_MAKE_PUPPET;괴뢰국화
+DIPLOMACY_NEGOTIATE_SUBSTATE;우리는 §Y하위국§W과 협상할 수 없습니다
+DIPLOMACY_NEGOTIATE_WE_SUBSTATE;우리가 §Y하위국§W일 경우 다른 국가와 협상할 수 없습니다
+DECL_WAR_NO_SUBSTATE;우리는 §Y하위국§W에 선전포고할 수 없습니다
+DIPLO_WE_SUBSTATE;우리는 그들의 하위국입니다
+DIPLO_THEY_SUBSTATE;그들은 우리 국가의 하위국입니다
+SELECT_CB_CREATION_TYPE;날조할 명분의 유형을 선택하십시오
+CB_CREATION_DETAIL;§Y$TYPE$§! 전쟁 목표에 대한 선전포고 정당성을 날조합니다. 대략 §Y$DAYS$§!일이 소요됩니다.\n초기에 발각될 경우 얻을 수 있는 최대 악명은 §R$BADBOY$§!입니다.
+CB_MANUFACTURE_TECH;전쟁 정당성 효율
+CB_CREATE_TECH;전쟁 정당성 효율: $VAL$
+SUPPRESSION_TECH_DESC;탄압 효율: $VAL$
+CB_CREATION_TIME_DAYS;이 전쟁을 정당화하는 데 약 §Y$DAYS$§!일이 소요됩니다
+CB_NOT_ON_PUPPETS;우리는 §Y괴뢰국§W과 §Y하위국§W에 대한 전쟁을 정당화할 수 없습니다.
+CB_NOT_ON_SPHERES;우리 세력권에 속한 국가에 대해서는 전쟁을 정당화할 수 없습니다.
+NO_WAR_JUSTIFICATION;그들에게 선전포고할 유효한 명분이 없습니다.
+NOT_HOSTILE_BUILD;적대적이지 않음
+ACW_NAME;분열된 집
+ACW_DESC;남부 연합이 미 연방에서 탈퇴하려 시도함에 따라 북아메리카에 내전이 발발했습니다. 결과는 불확실하지만, 양측 모두 철도, 전신, 연발총을 이용할 수 있으므로 이전과는 다른 새로운 형태의 전쟁이 될 것이라는 점은 이미 예견되고 있습니다. 한편, 유럽에서 대영제국은 최초의 철갑 증기 군함 실험을 진행 중이며, 이는 해전을 혁명적으로 변화시킬 결합입니다. 전 세계적으로는 점점 더 많은 국가가 산업화를 시작하면서 산업 혁명이 속도를 내고 있습니다. 그야말로 변혁의 시대입니다.
+EVTNAME90000;$CB_TARGET_NAME_ADJ$의 위협
+EVTDESC90000;모두가 알다시피, $CB_TARGET_NAME$(은)는 우리를 노리고 있습니다. 그들이 이유 없이 공격을 가해오는 것은 시간문제일 뿐이기에, 우리가 선제적으로 방어 조치를 취하는 것은 극히 합리적입니다. 다행스럽게도, 최근 그들의 사악한 계획을 자세히 서술한 보고서가 언론에 "유출"되었으며, 대중은 우리의 대의에 결집했습니다.
+EVTOPTA90000;그들이 바로 우리를 노리고 있다!
+EVTNAME90001;$CB_TARGET_NAME$ 파견 임무
+EVTDESC90001;매우 당혹스러운 실수로 인해, 국경을 몰래 넘으려던 $CB_TARGET_NAME$ 군복 차림의 우리 병사 몇 명이 붙잡혔습니다. 이들의 임무가 침공을 정당화하기 위한 국경 분쟁의 조작이라는 소문은 전혀 근거 없는 것이지만, 지금 시점에서는 불난 집에 기름을 끼얹는 짓을 피하는 것이 현명할 것입니다.
+EVTOPTA90001;도대체 무슨 소리를 하는 건가?
+EVTNAME90002;$CB_TARGET_NAME$의 폭정
+EVTDESC90002;너무나 오랫동안 사람들은 $CB_TARGET_NAME$의 악의적인 영향력 아래에서 고통받아 왔습니다. 모두의 이익을 위해 우리는 $CB_TARGET_NAME$의 실정 증거를 전 세계에 폭로하고, 그들의 세력권 구성국들을 진정 그들 자신을 위해 우리의 품으로 거두어야 합니다.
+EVTOPTA90002;우리가 그들을 구원할 것이다!
+EVTNAME90003;$CB_TARGET_NAME$의 폭정
+EVTDESC90003;$CB_TARGET_NAME$의 불순한 의도에 대한 전혀 날조되지 않은 명백한 증거가 있음에도 불구하고, 가엾은 소국들을 그들의 세력권에서 구출하는 것에 대한 대중이나 국제 사회의 지지가 전혀 없는 것 같습니다.
+EVTOPTA90003;멍청이들!
+EVTNAME90004;$CB_TARGET_NAME_ADJ$ 보호
+EVTDESC90004;우리와 같은 열강의 보호가 없다면 $CB_TARGET_NAME$에게 어떤 일이든 벌어질 수 있습니다. 그들을 보호하기 위해서는 저들이 일시적으로 반대할지라도 우리의 세력권에 편입시켜야 합니다. 어쨌거나, 만약 저들에게 일말의 판단력이 있었다면 저들 스스로 열강이 되었을 테니까요.
+EVTOPTA90004;우리는 당신을 돕기 위해 여기에 왔소.
+EVTNAME90005;$CB_TARGET_NAME_ADJ$ 대실패
+EVTDESC90005;우리는 단지 $CB_TARGET_NAME$을(를) 우리의 세력권에 편입시켜 돕고자 한 것일 뿐이나, 저들은 이에 대해 매우 흥분하고 있습니다. 관련된 모두에게 볼썽사나운 일이지만, 저들의 행동은 오히려 저들이 우리의 번영에 동참하도록 강권하는 것에 대한 국제 여론을 부정적으로 돌아버리게 만들었습니다. 우리는 단지 $CB_TARGET_NAME$을(를) 우리의 세력권에 편입시켜 돕고자 한 것일 뿐이나, 저들은 이에 대해 매우 흥분하고 있습니다. 관련된 모두에게 볼썽사나운 일이지만, 저들의 행동은 오히려 저들이 우리의 번영에 동참하도록 강권하는 것에 대한 국제 여론을 부정적으로 돌아버리게 만들었습니다.
+EVTOPTA90005;좋은 선택이군.
+EVTNAME90006;$CB_TARGET_NAME_ADJ$ 제국주의의 종식
+EVTDESC90006;어째서 $CB_TARGET_NAME$(이)가 최고의 식민지들을 모두 차지해야 합니까? 그것은 명백히 불공평합니다! 저들은 원주민들을 제대로 착치- 아니, 교육하지도 않고 있을 것입니다! 무슨 조치라도 취해야 합니다, 우리도 태양 아래의 자리를 차지할 자격이 있습니다!
+EVTOPTA90006;좋은 선택이군.
+EVTNAME90007;식민지 차질
+EVTDESC90007;우리의 정당한 요구가 지극히 온건한 것임에도 불구하고, 우리와 $CB_TARGET_NAME$ 사이의 식민지 균형 재조정에 대한 국제적 지지는 없는 것 같습니다. 비록 이것이 차질을 빚기는 했지만, 언젠가 해가 지지 않는 제국을 우리가 차지하게 될 것임에는 의심의 여지가 없습니다.
+EVTOPTA90007;좋은 선택이군.
+EVTNAME90008;이제 행동할 때다!
+EVTDESC90008;모두가 동의하듯이 $CB_TARGET_NAME$(은)는 너무 기고만장해졌습니다. 너무 오랜 세월 동안 그들은 하고자 하는 대로 할 수 있다고 생각하며 세계 무대를 활보해 왔습니다. 다행스럽게도 마침내 세계 각국이 동의했고 우리 국민도 전폭적으로 우리의 뒤를 지지하고 있습니다. $CB_TARGET_NAME$의 콧대를 꺾어놓아야 할 때입니다.
+EVTOPTA90008;좋은 선택이군.
+EVTNAME90009;어리석은 바보들!
+EVTDESC90009;$CB_TARGET_NAME$의 오만함은 우리에게 명백하지만, 어찌된 일인지 다른 이들은 이를 보지 못하는 것 같습니다. 소위 그들의 "주권"이라는 명목이 그들이 자체적인 군대를 보유하고 우리의 뜻에 굽히지 않고 제멋대로 행동하게 허용해 주고 있습니다. 심지어 오만한 자들은 다름 아닌 우리라는 암시까지 나왔습니다!
+EVTOPTA90009;좋은 선택이군.
+VOTER_ISSUES;유권자 쟁점
+OL_VIEW_NATFOCUS;§Y국가 중점§W 보기를 켜거나 끕니다
+OL_VIEW_NATFOCUS_HEADER;국가 중점
+OL_VIEW_NATFOCUS_TOOLTIP;§Y$STATE$§!의 국가 중점 (§Y$FOCUS$§!)
+OL_VIEW_RALLYPOINTS;§Y집결지§W 보기를 켜거나 끕니다
+OL_VIEW_RALLYPOINTS_HEADER;집결지
+OL_VIEW_RALLYPOINTS_TOOLTIP;모집이 완료된 근처의 모든 부대가 §Y$PROV$§!(으)로 이동합니다
+OL_VIEW_RALLYPOINTS_MERGE_TOOLTIP;또한 이곳에 도착하면 §Y$LIMIT$§!까지 병합을 시도합니다.
+OL_VIEW_MERGE_ON;§G(병합 켜짐)§!
+OL_VIEW_MERGE_OFF;§Y(병합 꺼짐)§!
+OUR_CB_DETECTED_SETUP;우리의 전쟁 정당화 시도가 발각되었을 때
+OUR_CB_DETECTED_HEADER;$MONARCHTITLE$
+OUR_CB_DETECTED_1;전쟁 정당화
+OUR_CB_DETECTED_2;우리가 다음을 명분으로 시도한 전쟁 정당화:
+OUR_CB_DETECTED_3;§Y$CASUS$§! 전쟁 명분
+OUR_CB_DETECTED_4;대상:
+OUR_CB_DETECTED_5;$TARGET$
+OUR_CB_DETECTED_6;(이)가 발각되었습니다! 이로 인해 우리는 §R$BADBOY$§!의 악명을 얻었습니다
+OUR_CB_DETECTED_LOG;$TARGET$에 대한 우리의 전쟁 정당화 시도가 발각되었습니다.
+OUR_CB_DETECTED_BTN1;확인
+OUR_CB_DETECTED_BTN2;확인
+OUR_CB_DETECTED_BTN3;이동
+OUR_CB_DETECTED_MAP;*
+CB_TOWARDS_US_DETECTED_SETUP;우리에 대한 전쟁 정당화 시도가 발각되었을 때
+CB_TOWARDS_US_DETECTED_HEADER;$MONARCHTITLE$
+CB_TOWARDS_US_DETECTED_1;전쟁 정당화
+CB_TOWARDS_US_DETECTED_2;우리를 상대로 다음을 명분으로 시도된 전쟁 정당화:
+CB_TOWARDS_US_DETECTED_3;§Y$CASUS$§! 전쟁 명분
+CB_TOWARDS_US_DETECTED_4;시도한 국가:
+CB_TOWARDS_US_DETECTED_5;$COUNTRY$
+CB_TOWARDS_US_DETECTED_6;(이)가 발각되었습니다!
+CB_TOWARDS_US_DETECTED_LOG;$COUNTRY$(이)가 우리를 상대로 시도한 전쟁 정당화 과정이 발각되었습니다.
+CB_TOWARDS_US_DETECTED_BTN1;확인
+CB_TOWARDS_US_DETECTED_BTN2;확인
+CB_TOWARDS_US_DETECTED_BTN3;이동
+CB_TOWARDS_US_DETECTED_MAP;*
+OTHERS_CB_DETECTED_SETUP;다른 국가에 대한 전쟁 정당화 시도가 발각되었을 때
+OTHERS_CB_DETECTED_HEADER;$MONARCHTITLE$
+OTHERS_CB_DETECTED_1;전쟁 정당화
+OTHERS_CB_DETECTED_2;다음을 명분으로 시도된 전쟁 정당화:
+OTHERS_CB_DETECTED_3;§Y$CASUS$§! 전쟁 명분
+OTHERS_CB_DETECTED_4;$TARGET$을(를) 상대로 시도한 국가:
+OTHERS_CB_DETECTED_5;$COUNTRY$
+OTHERS_CB_DETECTED_6;(이)가 발각되었습니다!
+OTHERS_CB_DETECTED_LOG;$COUNTRY$(이)가 $TARGET$을(를) 상대로 시도한 전쟁 정당화 과정이 발각되었습니다.
+OTHERS_CB_DETECTED_BTN1;확인
+OTHERS_CB_DETECTED_BTN2;확인
+OTHERS_CB_DETECTED_BTN3;이동
+OTHERS_CB_DETECTED_MAP;*
+CB_gen_plus;전쟁 명분 생성 속도 증가
+CB_gen_minus;전쟁 명분 생성 속도 감소
+CB_gen_plus_desc;전쟁 정당화를 더 빠르게 수행할 수 있습니다
+CB_gen_minus_desc;이제 전쟁 정당화에 더 오랜 시간이 걸립니다
+BUILDING_AT_MAX_TERRAIN;레벨 $CURR$/$MAX$ (§R$TERRAINMOD$§! $TERRAIN$)
+PRODUCTION_INVEST;해외 투자
+PRODUCTION_TAB_INVEST;타국에 대한 해외 투자 개요를 표시합니다
+FLAG_SUBMENU_INTERESTING;관심 국가로 설정합니다.
+FLAG_SUBMENU_NOTINTERESTING;관심 국가 설정에서 §Y제외§!합니다.
+MESSAGE_TYPE_INTERESTING;관심
+MESSAGE_TYPE_NOT_INTERESTING;기타
+MESSAGE_SEARCH;검색:
+MESSAGE_BUTTON_SEARCH;검색
+MESSAGE_BUTTON_CLEAR;지우기
+MESSAGE_SEARCH_TOOLTIP;목록을 필터링하려면 §Y스페이스바§!로 구분하여 핵심어를 입력하십시오.
+SIDEMENU_menubar_msg_settings;클릭하여 메시지 필터 설정을 엽니다.
+RULE_BUILD_FACTORY_INVEST;해외 공장 건설
+RULE_EXPAND_FACTORY_INVEST;해외 공장 확장
+RULE_OPEN_FACTORY_INVEST;해외 공장 개장
+RULE_BUILD_RAILWAY_INVEST;투자자의 해외 철도 건설
+RULE_CAN_INVEST_IN_POP_PROJECTS;POP 프로젝트 투자
+RULE_POP_BUILD_FACTORY_INVEST;투자자의 해외 공장 건설
+RULE_POP_EXPAND_FACTORY_INVEST;투자자의 해외 공장 확장
+RULE_POP_OPEN_FACTORY_INVEST;투자자의 해외 공장 개장
+PRODUCTION_OUR_INVEST;우리 투자액: $AMOUNT$¤ ($PERCENTAGE$%)
+MSG_FILTER_HEADER;메시지 필터 설정
+MSG_FILTER_TITLE;우리의 관심국:
+MSG_FILTER_DESELECT;모두 선택 해제
+MSG_FILTER_BEST_GUESS;자동 선택
+MSG_FILTER_ENEMIES;적국
+MSG_FILTER_ALLIES;동맹국
+MSG_FILTER_NEIGHBOURS;인접국
+MSG_FILTER_SPHERE;세력권
+PRODUCTION_BROWSE_INVEST;기타
+DIPLOMACY_OPINION_INVESTMENT;§Y$GP_ADJ$§W 투자액: §Y$VALUE$§!¤
+MSG_FILTER_TOOLTIP_HEADER;메시지 필터 설정 창에서 관심 있는 국가를 선택할 수 있습니다. 모든 메시지와 알림은 해당 중요 국가들에 대해서만 표시됩니다.
+MSG_FILTER_TOOLTIP_DELAYED;§Y좌클릭§!시 현재 선택 항목을 대체합니다.\n§Y우클릭§!시 현재 선택 항목에 추가합니다.\n§YShift + 좌클릭§!시 필터를 토글합니다.
+MSG_FILTER_TOOLTIP_DESELECT;목록에서 모든 국가를 선택 해제합니다.
+MSG_FILTER_TOOLTIP_BESTGUESS;자동으로 관심국을 추천하여 선택합니다.
+MSG_FILTER_TOOLTIP_ENEMIES;적국을 선택합니다.
+MSG_FILTER_TOOLTIP_ALLIES;동맹국을 선택합니다.
+MSG_FILTER_TOOLTIP_NEIGHBOURS;인접국을 선택합니다.
+MSG_FILTER_TOOLTIP_SPHERE;세력권 내의 국가를 선택합니다. (열강인 경우)
+MSG_FILTER_TOOLTIP_CONTINENT;해당 대륙에 프로빈스를 소유한 국가를 선택합니다.
+PRODUCTION_NOT_DESTROY_FACTORY_BECAUSE_FOREIGN_TOOLTIP;타국의 공장을 철거할 권한이 없습니다.
+INVESTMENT_PENALTY_FACTOR;타국 투자자
+SPHERE_SHARE_NOT_IN_SPHERE;세력권에 속해 있지 않아 세계 시장에 자유롭게 판매합니다.
+SPHERE_SHARE_UNCIV;비문명국으로, 모든 자원의 §Y$PERCENTAGE$%§!를 종주국 시장에 제공합니다.
+SPHERE_SHARE_2NDRANK;준열강으로, 모든 자원의 §Y$PERCENTAGE$%§!를 종주국 시장에 제공합니다 (기본값: §Y$BASE_PERCENTAGE$%§!)
+SPHERE_SHARE_CIV;문명국으로, 모든 자원의 §Y$PERCENTAGE$%§!를 종주국 시장에 제공합니다 (기본값: §Y$BASE_PERCENTAGE$%§!)
+RULE_ALLOW_FOREIGN_INVESTMENT;외국 자본 투자 허용
+POLITICS_DECISIONS_TAB;디시전
+POLITICS_MOVEMENTS_TAB;운동
+EVTNAME90100;언론의 자유에 대한 열망
+EVTNAME90102;공개 집회에 대한 열망
+EVTNAME90104;노동조합에 대한 열망
+EVTDESC90100;시민들이 자유로운 언론을 갈구하고 있으며, 인접국이 이 개혁을 채택함에 따라 그 열망이 더욱 강해지고 있습니다.
+EVTOPTA90100;어떻게든 해결할 수 있을 것이다
+EVTOPTB90100;절대 안 된다!
+EVTDESC90102;시민들이 공개 집회의 권리를 갈구하고 있으며, 인접국이 이 개혁을 채택함에 따라 그 열망이 더욱 강해지고 있습니다.
+EVTDESC90104;시민들이 노동조합을 갈구하고 있으며, 인접국이 이 개혁을 채택함에 따라 그 열망이 더욱 강해지고 있습니다.
+EVTNAME90101;깨진 약속
+EVTDESC90101;언론 개혁을 약속했음에도 불구하고 아무것도 변하지 않아 시민들이 다소 화가 났습니다.
+EVTOPTA90101;얼마나 우울한가
+EVTDESC90103;공개 집회를 허용하겠다고 약속했음에도 불구하고, 아무것도 변하지 않아 시민들이 다소 화가 났습니다.
+EVTOPTA90103;나는 군중이 싫다
+EVTDESC90105;노동조합을 허용하겠다고 약속했음에도 불구하고, 아무것도 변하지 않아 시민들이 다소 화가 났습니다.
+EVTOPTA90105;빨갱이가 되느니 죽는 게 낫다!
+MOVEMENT_RADICALISM_BASE;기본값: §R$VAL$§%§!
+MOVEMENT_RADICALISM_ACCUMULATED;탄압: §R$VAL$§%§!
+MOVEMENT_RADICALISM_GRANTED_REFORMS;부여된 개혁: §G$VAL$§%§!
+MOVEMENT_RADICALISM_CULTURE;$CULTURE$: $VAL$
+ALREADY_SUPPRESSED;운동이 급진적이지 않아 탄압할 수 없습니다.
+EVTNAME90900;중화
+EVTDESC90900;우리는 유럽 오랑캐들이 우리를 "문명국"으로 간주할 만큼 충분히 진보했으며, 그들은 우리의 중앙집권화 권리를 존중하고 중국 전역에 대한 외세의 영향력을 거부해야만 합니다.
+EVTOPTA90900;우리는 다시 하나가 되었다
+EVTDESC90901;청나라의 새로운 지위로 인해 그들은 우리가 자신들의 권위에 굴복할 것을 요구하고 있습니다. 이를 받아들이면 우리의 독립국 지위는 끝날 것입니다.
+EVTOPTA90901;우리는 다시 하나가 되었다
+EVTOPTA90910;서부로 가는 마차!
+SUPPRESSION_POINTS;탄압 점수
+school_reforms;학교 체계
+no_schools;학교 체계 없음
+low_schools;기초 학교 체계
+acceptable_schools;수용 가능한 학교 체계
+good_schools;훌륭한 학교 체계
+no_schools_l;학교 체계 없음
+low_schools_l;기초 학교 체계
+acceptable_schools_l;수용 가능한 학교 체계
+good_schools_l;훌륭한 학교 체계
+no_schools_desc;공립 학교가 없습니다.
+low_schools_desc;공립 학교가 드뭅니다.
+acceptable_schools_desc;공립 학교가 흔합니다.
+good_schools_desc;공립 학교가 정말 많습니다.
+NATIONALIST_UNION_MOVEMENT;$COUNTRY_ADJ$ 통일 운동
+NATIONALIST_LIBERATION_MOVEMENT;$COUNTRY$ 해방 운동
+SUPRESSION_MONTHLY_GAIN;월간 획득: §G$VAL$§!
+MODIFIER_EDUCATION_EFFICIENCY;교육 효율
+MODIFIER_SUPPRESSION_POINT_GAIN;탄압 점수 획득
+NOT_SOCIAL_MOVEMENT_STRENGTH_TR;사회 운동의 크기가 §Y$VAL$§W보다 작습니다.\n
+SOCIAL_MOVEMENT_STRENGTH_TR;사회 운동의 크기가 §Y$VAL$§W보다 큽니다.\n
+NOT_POLITICAL_MOVEMENT_STRENGTH_TR;정치 운동의 크기가 §Y$VAL$§W보다 작습니다.\n
+POLITICAL_MOVEMENT_STRENGTH_TR;정치 운동의 크기가 §Y$VAL$§W보다 큽니다.\n
+SUPPRESS;탄압
+SUPPRESSION_DESC;이 운동을 탄압합니다. $VAL$ 점수가 소모되며 미래에 운동이 급진적이 될 확률이 증가합니다(§R+$HIT$§!).
+CANT_SUPPRESS_DESC;이 운동을 탄압하려면 더 많은 점수가 필요합니다. 현재 §R$VAL$§!의 탄압 점수가 있으며, §Y$NEED$§!가 필요합니다.
+REFORM_MOVEMENT_DESC;§Y$REFORM$§! 제정을 요구하는 운동
+NATIONALIST_UNION_MOVEMENT_DESC;§Y$COUNTRY$§!의 형성을 요구하는 운동
+NATIONALIST_LIBERATION_MOVEMENT_DESC;§Y$COUNTRY$§!의 해방을 요구하는 운동
+SUPPRESSION_LABEL_DESC;탄압 점수는 대중 운동을 진압할 수 있는 정부 권력의 정도를 나타냅니다.
+MOVEMENT_REFORM_SUPPORT;이 개혁의 입법을 추진하기 위해 크기가 $VAL$인 대중 운동이 존재합니다.
+movement_no_slavery;노예제 폐지 운동
+movement_yes_slavery;노예제 찬성 연맹
+movement_landed_voting;참정권 운동
+movement_wealth_weighted_voting;참정권 운동
+movement_wealth_voting;참정권 운동
+movement_universal_weighted_voting;참정권 운동
+movement_universal_voting;참정권 운동
+movement_party_appointed;정치적 대표성 운동
+movement_appointed;정치적 대표성 운동
+movement_state_equal_weight;정치적 대표성 운동
+movement_population_equal_weight;정치적 대표성 운동
+movement_first_past_the_post;정치적 대표성 운동
+movement_jefferson_method;정치적 대표성 운동
+movement_proportional_representation;정치적 대표성 운동
+movement_no_meeting;공개 집회 폐지 운동
+movement_yes_meeting;공개 집회 운동
+movement_censored_press;검열 언론 운동
+movement_free_press;자유 언론 운동
+movement_state_controlled;국가 통제 노조 운동
+movement_non_socialist;비사회주의 노조 운동
+movement_all_trade_unions;자유 노동조합 운동
+movement_harassment;유권자 권리 운동
+movement_gerrymandering;유권자 권리 운동
+movement_non_secret_ballots;유권자 권리 운동
+movement_secret_ballots;유권자 권리 운동
+movement_trinket_wage;최저 임금 운동
+movement_low_minimum_wage;최저 임금 운동
+movement_acceptable_minimum_wage;최저 임금 운동
+movement_good_minimum_wage;최저 임금 운동
+movement_fourteen_hours;최대 노동 시간 운동
+movement_twelve_hours;최대 노동 시간 운동
+movement_ten_hours;최대 노동 시간 운동
+movement_eight_hours;최대 노동 시간 운동
+movement_trinket_safety;안전한 노동 환경 운동
+movement_low_safety;안전한 노동 환경 운동
+movement_acceptable_safety;안전한 노동 환경 운동
+movement_good_safety;안전한 노동 환경 운동
+movement_trinket_subsidies;실업 보조금 운동
+movement_low_subsidies;실업 보조금 운동
+movement_acceptable_subsidies;실업 보조금 운동
+movement_good_subsidies;실업 보조금 운동
+movement_trinket_pensions;노령 보장 운동
+movement_low_pensions;노령 보장 운동
+movement_acceptable_pensions;노령 보장 운동
+movement_good_pensions;노령 보장 운동
+movement_trinket_health_care;보편적 의료 보장 운동
+movement_low_health_care;보편적 의료 보장 운동
+movement_acceptable_health_care;보편적 의료 보장 운동
+movement_good_health_care;보편적 의료 보장 운동
+movement_low_schools;보통 학교 운동
+movement_acceptable_schools;보통 학교 운동
+movement_good_schools;보통 학교 운동
+POLITICS_MOVEMENTS;운동
+POLITICS_ECONOMIC_REFORMS;경제 개혁
+POLITICS_MILITARY_REFORMS;군사 개혁
+NORMAL_CIVIL_WAR_NAME_USA_CSA_CSA;$ORDER$북부의 침략 전쟁
+NORMAL_CIVIL_WAR_NAME_USA_CSA_USA;$ORDER$반란 전쟁
+NORMAL_WAR_GUNBOAT_NAME;$ORDER$$SECOND_COUNTRY$에 대한 $FIRST$ 개입
+NORMAL_WAR_GUNBOAT_NAME_FRA_MEX;$ORDER$제과점 전쟁
+NORMAL_WAR_TAKE_NAME_USA_MEX_USA;$ORDER$미국-멕시코 전쟁
+NORMAL_WAR_TAKE_NAME_USA_MEX_MEX;$ORDER$미국의 멕시코 침공
+NORMAL_WAR_TAKE_CORE_NAME_USA_MEX_USA;$ORDER$미국-멕시코 전쟁
+NORMAL_WAR_TAKE_CORE_NAME_USA_MEX_MEX;$ORDER$미국의 멕시코 침공
+NORMAL_WAR_GUNBOAT_NAME_ENG_CHI;$ORDER$아편 전쟁
+NORMAL_WAR_ADD_SPHERE_NAME_ENG_CHI;$ORDER$아편 전쟁
+NORMAL_WAR_INDEPENDENCE_NAME;$ORDER$$FIRST$ 독립 전쟁
+NORMAL_WAR_TAKE_NAME_CHL_PEU;$ORDER$태평양 전쟁
+NORMAL_WAR_TAKE_CORE_NAME_CHL_PEU;$ORDER$태평양 전쟁
+NORMAL_WAR_TAKE_NAME_CHL_BOL;$ORDER$태평양 전쟁
+NORMAL_WAR_TAKE_CORE_NAME_CHL_BOL;$ORDER$태평양 전쟁
+NORMAL_WAR_CONQUEST_NAME_ENG_TRN;$ORDER$보어 전쟁
+NORMAL_WAR_CONQUEST_NAME_ENG_ORA;$ORDER$보어 전쟁
+NORMAL_WAR_TAKE_NAME_ENG_TRN;$ORDER$보어 전쟁
+NORMAL_WAR_TAKE_NAME_ENG_ORA;$ORDER$보어 전쟁
+NORMAL_WAR_TAKE_NAME_ORA_ENG;$ORDER$보어 전쟁
+NORMAL_WAR_TAKE_NAME_TRN_ENG;$ORDER$보어 전쟁
+NORMAL_WAR_PUPPET_NAME_ENG_TRN;$ORDER$보어 전쟁
+NORMAL_WAR_PUPPET_NAME_ENG_ORA;$ORDER$보어 전쟁
+NORMAL_WAR_PUPPET_NAME;$ORDER$$SECOND_COUNTRY$에 대한 $FIRST$ 통제권 전쟁
+NORMAL_WAR_BOXER_NAME;$ORDER$의화단 운동
+NORMAL_WAR_PUPPET_NAME_ENG_USA;$ORDER$$SECOND$ 독립 전쟁
+NORMAL_WAR_NAME_ENG_USA;$ORDER$$SECOND$ 독립 전쟁
+NORMAL_WAR_TAKE_NAME_ENG_USA;$ORDER$$SECOND$ 독립 전쟁
+NORMAL_WAR_TAKE_CORE_NAME_ENG_USA;$ORDER$$SECOND$ 독립 전쟁
+NORMAL_WAR_CONQUEST_NAME_ENG_USA;$ORDER$$SECOND$ 독립 전쟁
+NORMAL_WAR_HUMILIATE_NAME;$ORDER$$FIRST$-$SECOND$ 명예 전쟁
+NORMAL_WAR_UNIFICATION_NAME_PRU_FRA;$ORDER$프로이센-프랑스 전쟁
+NORMAL_WAR_UNIFICATION_NAME_NGF_FRA;$ORDER$프로이센-프랑스 전쟁
+CAN_INVEST_IN_RAILROADS;철도 투자 허용
+land_reform;토지 개혁
+land_reform_l;토지 개혁
+no_land_reform;토지 개혁 없음
+yes_land_reform;토지 개혁
+no_land_reform_desc;토지 개혁 없음
+yes_land_reform_desc;더욱 효과적인 농업 및 광업을 가져오는 토지 권리의 재분배
+admin_reform;행정 개혁
+admin_reform_l;행정 개혁
+no_admin_reform;행정 개혁 없음
+yes_admin_reform;행정 개혁
+no_admin_reform_desc;행정 개혁 없음
+yes_admin_reform_desc;이제 우리 행정부는 현대적이고 효율적입니다.
+finance_reform;금융 개혁
+finance_reform_l;금융 개혁
+no_finance_reform;금융 개혁 없음
+yes_finance_reform;금융 개혁 제정
+finance_reform_two;국제 부채
+no_finance_reform_desc;금융 개혁 없음
+yes_finance_reform_desc;금융 개혁
+finance_reform_two_desc;이제 다른 국가에서 자금을 대출받을 수 있습니다
+education_reform;교육 개혁
+education_reform_l;교육 개혁
+no_education_reform;교육 개혁 없음
+yes_education_reform;개혁된 체제
+no_education_reform_desc;교육 개혁 없음
+yes_education_reform_desc;우리 국가의 기본적인 조직화된 교육
+transport_improv;교통 체제
+transport_improv_l;교통 체제
+no_transport_improv;개선되지 않음
+yes_transport_improv;개선됨
+no_transport_improv_desc;원시적인 교통 체제입니다
+yes_transport_improv_desc;현대적인 교통 체제입니다
+pre_indust;초기 산업화
+pre_indust_l;초기 산업화
+no_pre_indust;옛 방식을 고수하다
+yes_pre_indust;산업적 진보
+no_pre_indust_desc;우리에게 산업은 필요하지 않습니다
+yes_pre_indust_desc;외국 고문의 도움으로 기본적인 공장을 건설합니다. 이것이 산업 혁명의 시작일 수 있을까요?
+industrial_construction;산업 시설 건설
+industrial_construction_l;산업 시설 건설
+no_industrial_construction;산업 시설 건설 없음
+yes_industrial_construction;산업 시설 건설
+no_industrial_construction_desc;발전된 공장이 없습니다
+yes_industrial_construction_desc;외국 고문이 더 진보된 공장 건설을 돕습니다
+foreign_training;훈련 방식
+foreign_training_l;훈련 방식
+no_foreign_training;현지 훈련 방식
+yes_foreign_training;외국 훈련 방식
+no_foreign_training_desc;병력이 전통적인 방식으로 훈련받습니다
+yes_foreign_training_desc;병력이 외국 군사 고문이나 기술을 통해 훈련받습니다
+foreign_weapons;외국제 무기
+foreign_weapons_l;외국제 무기
+no_foreign_weapons;현지 무기
+yes_foreign_weapons;수입 무기
+no_foreign_weapons_desc;전통 무기
+yes_foreign_weapons_desc;이것이 내 붐스틱이다!
+military_constructions;군사 시설
+military_constructions_l;군사 시설
+no_military_constructions;단순한 시설
+yes_military_constructions;발전된 시설
+no_military_constructions_desc;요새 없음
+yes_military_constructions_desc;효과적인 요새
+foreign_officers;장교 훈련
+foreign_officers_l;장교 훈련
+no_foreign_officers;현지 장교 훈련
+yes_foreign_officers;외국 장교 훈련
+no_foreign_officers_desc;현지 장교들이 병력을 이끕니다
+yes_foreign_officers_desc;이제 우리 병력은 세계 최고입니다
+army_schools;육군 훈련
+army_schools_l;육군 훈련
+no_army_schools;임시방편
+yes_army_schools;육군 사관학교
+no_army_schools_desc;우리는 전장에서 배울 것입니다
+yes_army_schools_desc;장교들은 병사들을 전투로 이끌기 전에 훌륭한 훈련을 받습니다
+foreign_naval_officers;해군 장교
+foreign_naval_officers_l;해군 장교
+no_foreign_naval_officers;현지 해군 장교
+yes_foreign_naval_officers;외국 해군 장교
+no_foreign_naval_officers_desc;현지 장교들이 함선을 지휘합니다
+yes_foreign_naval_officers_desc;외국 장교들이 선장들에게 조언을 제공합니다
+naval_schools;해군 훈련
+naval_schools_l;해군 훈련
+no_naval_schools;임시방편
+yes_naval_schools;해군 사관학교
+no_naval_schools_desc;실전 지향
+yes_naval_schools_desc;이론 선행
+foreign_navies;외국제 해군 부대
+foreign_navies_l;외국제 해군 부대
+no_foreign_navies;국내 건조 함선
+yes_foreign_navies;수입 함선
+no_foreign_navies_desc;국내에서 건조된 함선입니다
+yes_foreign_navies_desc;서구에서 튼튼한 함선 설계도를 수입했습니다
+cut_down_to_size_boxer;의화단 운동 진압
+cut_down_to_size_boxer_desc;다른 §Y국가§W에게 군비 제한 및 배상금 지불을 강요합니다
+NUMBER_OF_REBELS_READY;§Y봉기에 참여할 준비가 된 반란군 여단§!
+NUMBER_OF_REBELS_ACTIVE;§Y반란을 일으켜 활동 중인 반란군 여단§!
+TECH_YEAR_MODIFIER;알려진 연도에 따른 비용 보정치: $VAL$
+ECONOMICREFORM_SETUP;경제 개혁을 제정할 때
+ECONOMICREFORM_HEADER;$COUNTRY$ 정치 뉴스
+ECONOMICREFORM_1;$COUNTRY$의 경제 개혁
+ECONOMICREFORM_2;$MONARCHTITLE$이시여, 다음 법안이 제정되었습니다:
+ECONOMICREFORM_3;$ISSUE$
+ECONOMICREFORM_4;분야:
+ECONOMICREFORM_5;$CATEGORY$
+ECONOMICREFORM_6;*
+ECONOMICREFORM_LOG;$CATEGORY$ 분야의 정책을 $ISSUE$(으)로 제정했습니다.
+ECONOMICREFORM_BTN1;확인
+ECONOMICREFORM_BTN2;확인
+ECONOMICREFORM_BTN3;이동
+ECONOMICREFORM_MAP;*
+ECONOMICREFORM_BAD_SETUP;경제 개혁을 철회할 때
+ECONOMICREFORM_BAD_HEADER;$COUNTRY$ 정치 뉴스
+ECONOMICREFORM_BAD_1;$COUNTRY$의 경제 개혁 철회
+ECONOMICREFORM_BAD_2;$MONARCHTITLE$이시여, 다음 분야의 혜택이 철회되었습니다:
+ECONOMICREFORM_BAD_3;$CATEGORY$
+ECONOMICREFORM_BAD_4;$OLD$에서 $ISSUE$(으)로.
+ECONOMICREFORM_BAD_5;*
+ECONOMICREFORM_BAD_6;*
+ECONOMICREFORM_BAD_LOG;$CATEGORY$ 분야의 정책을 $OLD$에서 $ISSUE$(으)로 철회했습니다.
+ECONOMICREFORM_BAD_BTN1;확인
+ECONOMICREFORM_BAD_BTN2;확인
+ECONOMICREFORM_BAD_BTN3;이동
+ECONOMICREFORM_BAD_MAP;*
+MILITARYREFORM_SETUP;군사 개혁을 제정할 때
+MILITARYREFORM_HEADER;$COUNTRY$ 정치 뉴스
+MILITARYREFORM_1;$COUNTRY$의 군사 개혁
+MILITARYREFORM_2;$MONARCHTITLE$이시여, 다음 법안이 제정되었습니다:
+MILITARYREFORM_3;$ISSUE$
+MILITARYREFORM_4;분야:
+MILITARYREFORM_5;$CATEGORY$
+MILITARYREFORM_6;*
+MILITARYREFORM_LOG;$CATEGORY$ 분야의 정책을 $ISSUE$(으)로 제정했습니다.
+MILITARYREFORM_BTN1;확인
+MILITARYREFORM_BTN2;확인
+MILITARYREFORM_BTN3;이동
+MILITARYREFORM_MAP;*
+MILITARYREFORM_BAD_SETUP;군사 개혁을 철회할 때
+MILITARYREFORM_BAD_HEADER;$COUNTRY$ 정치 뉴스
+MILITARYREFORM_BAD_1;$COUNTRY$의 군사 개혁 철회
+MILITARYREFORM_BAD_2;$MONARCHTITLE$이시여, 다음 분야의 혜택이 철회되었습니다:
+MILITARYREFORM_BAD_3;$CATEGORY$
+MILITARYREFORM_BAD_4;$OLD$에서 $ISSUE$(으)로.
+MILITARYREFORM_BAD_5;*
+MILITARYREFORM_BAD_6;*
+MILITARYREFORM_BAD_LOG;$CATEGORY$ 분야의 정책을 $OLD$에서 $ISSUE$(으)로 철회했습니다.
+MILITARYREFORM_BAD_BTN1;확인
+MILITARYREFORM_BAD_BTN2;확인
+MILITARYREFORM_BAD_BTN3;이동
+MILITARYREFORM_BAD_MAP;*
+MODIFIER_CIVILIZATION_PROGRESS;문명화 진행도
+SUPPRESSION_TECH;탄압 효율
+REFORM_RESEARCH_COST;연구 비용: §Y$COST$§!
+POLITICS_CIVILIZE;서구화
+CIVILIZE_DESC;서구의 사상을 전적으로 수용합니다. 이를 통해 우리의 세력권 종주국의 기술적 진보에 접근할 수 있게 될 것입니다.
+CIVILIZE_NO_MASTER_DESC;서구의 사상을 전적으로 수용합니다. 이를 통해 전 세계의 기술적 진보에 접근할 수 있게 될 것입니다.
+INFLUENCE_RELATION;관계도
+NO_CIV_PROGRESS;서구화를 향한 아무런 진전도 이루지 못했습니다. 군사 또는 경제 개혁을 제정해야 합니다.
+RESEARCH_POINTS_LABEL;연구 점수:
+MODIFIER_UNCIV_ECONOMIC;경제 개혁 비용
+MODIFIER_UNCIV_MILITARY;군사 개혁 비용
+MODIFIER_SELF_UNCIV_ECONOMIC;경제 개혁 비용
+MODIFIER_SELF_UNCIV_MILITARY;군사 개혁 비용
+MODIFIER_LAND_UNIT_START_EXPERIENCE;육군 시작 경험치
+MODIFIER_NAVAL_UNIT_START_EXPERIENCE;해군 시작 경험치
+MODIFIER_ADMINISTRATIVE_EFFICIENCY;행정 효율
+ARMY_TECHNOLOGY_LEVELS;육군 기술: $VAL$/$MAX$
+NAVY_TECHNOLOGY_LEVELS;해군 기술: $VAL$/$MAX$
+MODIFIER_TARIFF_EFFICIENCY;관세 효율
+MODIFIER_MAX_LOAN_AMOUNT;최대 대출액
+PROD_YOUR_CURRENT_BUDGET;현재 예산:
+PROD_YOUR_INVESTMENT;귀하의 투자액:
+MODIFIER_LAND_ATTACK;육군 부대 공격력
+MODIFIER_NAVAL_ATTACK;해군 부대 공격력
+MODIFIER_LAND_DEFENSE;육군 부대 방어력
+MODIFIER_NAVAL_DEFENSE;해군 부대 방어력
+free_press_promised;언론의 자유 약속됨
+yes_meeting_promised;공개 집회권 약속됨
+trade_unions_promised;노동조합 약속됨
+free_press_promised_desc;우리는 국민들에게 언론의 자유를 보장하겠다고 약속했으며, 그들은 곧 우리가 이 약속을 이행하기를 기대할 것입니다.
+yes_meeting_promised_desc;우리는 국민들에게 공개 집회의 권리를 보장하겠다고 약속했으며, 그들은 곧 우리가 이 약속을 이행하기를 기대할 것입니다.
+trade_unions_promised_desc;우리는 국민들에게 노동조합을 보장하겠다고 약속했으며, 그들은 곧 우리가 이 약속을 이행하기를 기대할 것입니다.
+recent_safari;최근의 사파리
+recent_safari2;너무 많은 사파리
+recent_safari_desc;우리는 최근 사파리를 다녀왔습니다.
+recent_safari2_desc;최근 너무 많은 사파리가 진행되었습니다.
+unciv_reactionary_rebels_title;반동주의
+unciv_reactionary_rebels_name;$COUNTRY$ 반동주의자
+unciv_reactionary_rebels_desc;반동주의 반란군은 조상들의 전통적인 방식대로 살아가기를 열망하며, 유럽인들의 방식을 모방하는 모든 행위를 거부합니다.
+unciv_reactionary_rebels_army;$COUNTRY_ADJ$ 육군
+SET_ECONOMIC_REFORM_EFFECT;선택된 경제 개혁: §Y$NAME$§W.\n
+SET_MILITARY_REFORM_EFFECT;선택된 군사 개혁: §Y$NAME$§W.\n
+NATIONALIZE_INDUSTRY_EFFECT;국유화 실행
+DIPLOMACY_ALMOST_WESTERN_NATION_STATUS;부분 서구화 국가
+DIPLOMACY_PRIMITIVENATION_STATUS;원시 국가
+UNCIV_CANT_RESEARCH;연구를 하려면 서구화해야 합니다.
+TB_NATIONALFOCUS_CULTURE;주/수용 문화 인구 §Y$NUM$§W명이 §Y$FOCUS$§W개의 국가 중점 포인트를 제공합니다.
+meiji_restoration_boost;메이지 유신.
+meiji_restoration_boost_desc;황제의 이름으로 진보를!
+OTHER_PORT;우리가 접근할 수 없는 해군 기지입니다.
+MODIFIER_UNCIV_ECONOMIC_UH;상원 지지율
+MODIFIER_UNCIV_MILITARY_UH;상원 지지율
+MOVEMENT_RADICALISM_ADJUST;§Y$MOVEMENT$§! 급진성: $AMOUNT$
+MILITARY_REFORM_COST_DESC;군사 개혁 비용 보정치:
+ECONOMIC_REFORM_COST_DESC;경제 개혁 비용 보정치:
+MAPMODE_19;문명화 수준
+CHI_absolute_monarchy;중화제국
+EVTOPTB23212;계속 하늘을 쳐다보라!
+LOSE_CIVILIZED_EFFECT;우리는 이제 §Y비문명국§W으로 알려질 것입니다\n
+french_growth_nerf;프랑스 인구 감소:
+french_growth_nerf_desc;우리 국가의 인구 증가율이 둔화되었습니다:
+EVTNAME37226;인구 감소
+EVTDESC37226;오랫동안 유럽에서 인구가 가장 많은 국가였던 프랑스는 19세기와 20세기 대부분 동안 그 이유를 여전히 알 수 없을 정도로 매우 낮은 출산율을 기록했습니다. 빅토리아 시대가 끝날 무렵, 프랑스는 총인구 측면에서 러시아, 독일, 영국, 이탈리아에 뒤처지게 됩니다.
+EVTOPTA37226;이건 꽤 큰 타격이군!
+nationalize_title;생산 수단을 장악하라!
+nationalize_desc;더 이상 외국의 개들이 우리 인민의 땀으로 배를 불리게 두지 않을 것이다! 외부인이 소유한 모든 자산을 압류하여 국가가 관리해야 할 때가 왔다.
+EVTNAME90950;자산 압류!
+EVTDESC90950;배은망덕한 $FROMCOUNTRY$ 정부가 우리의 투자 자산을 압류하고 자신들의 소유라고 주장했습니다!
+EVTOPTA90950;이를 좌시할 수는 없다!
+EVTOPTB90950;내버려 둔다
+MOVEMENT_RADICALISM;운동 급진주의
+MOVEMENT_RADICALISM_DESC;운동에 참여한 사람들이 자신들의 목적을 달성하기 위해 국가의 정치 과정을 얼마나 신뢰하는지를 나타냅니다. 운동의 수치가 높을 때(§Y100§!) 탄압하지 않으면 반란군 봉기로 전환됩니다.
+NUMBER_MOVEMENT_SUPPORTERS;지지자 수
+NUMBER_MOVEMENT_SUPPORTERS_DESC;운동의 규모가 클수록 탄압하기가 더 어려워집니다. 더 적은 지지를 받는 개혁을 제정한다면, 그보다 더 많은 지지를 받는 모든 운동이 급진적으로 변할 것입니다.
+PRODUCTION_CLOSE_FACTORY_BECAUSE_FOREIGN_TOOLTIP;외국 공장은 폐쇄할 수 없습니다\n
+CAN_NATIONALIZE;외국인 투자자가 있음
+IS_NOT_IN_A_SPHERE;세력권에 속해 있지 않음
+ACTIVATE_TECH_EFFECT;기술 활성화: §Y$NAME$§!
+TECHNOLOGYVIEW_NO_RESEARCH_UNCIV_TOOLTIP;높은 수준의 기술은 문명국에서만 사용할 수 있습니다. §Y정치 탭§!에서 서구화를 진행하여 기본 기술을 획득하고 독자적인 연구를 시작할 수 있습니다.
+RELATION_BETWEEN;$COUNTRY1$(과)와 $COUNTRY2$ 간의 현재 관계도: $RELATION$
+ADD_RELATIVE_INCOME_EFFECT;국고: $VALUE$¤
+CORRUPTION_LESS_THAN;부패가 다음보다 낮음
+CORRUPTION_MORE_THAN;부패가 다음보다 높음
+MOVEMENT_RADICALISM_FROM_SIZE;인구 지지: $VAL$
+dar_al_funun;다룰 푸눈
+dar_al_funun_desc;페르시아 최초의 근대식 대학입니다.
+BOL_2305;아타카마
+BOL_2314;포토시
+serfdom_not_abolished;농노제가 폐지되지 않음:
+XIN;신장
+YNN;윈난
+GXI;광시
+MCK;만주
+LEADERSHIP;지휘력
+XBI;칭하이
+EVTNAME23213;광기의 산맥
+EVTDESC23213;남극 탐험대가 끔찍한 무언가를 깨웠습니다. 거대한 외계 도시의 폐허에서 그들은 식물이나 동물로 식별할 수 없는 존재들을 발견했습니다. 아주 먼 옛날 지구를 지배했던 존재들입니다. 형언할 수 없는 굶주림으로 가득 찬 그것들이 돌아오고 있습니다.
+EVTOPTA23213;이거 정지 않군...

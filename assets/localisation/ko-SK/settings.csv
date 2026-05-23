@@ -1,56 +1,61 @@
-save_and_exit;저장 및 종료
-save;구하다
-exit;출구
+save_and_exit;저장 후 종료
+save;저장
+exit;종료
 graphics_options;그래픽 옵션
 sound_options;사운드 옵션
 controls_options;기타 옵션
 message_settings_options;메시지 설정
-window_mode_label;전체 화면
-map_projection;투사
-map_projection_globe;직교
-map_projection_flat;등장방형
-map_projection_globe_perspective;수직의
-dm_popup_label;외교 메시지를 팝업으로 표시
-ui_scale;UI 규모
-zoom_mode_label;줌 스타일
+window_mode_label;전체 화면 모드
+map_projection;지도 투영
+map_projection_globe;정투영
+map_projection_flat;등각
+map_projection_globe_perspective;수직
+dm_popup_label;외교 정보 팝업
+ui_scale;UI 크기 조정
+zoom_mode_label;줌 방식
 zoom_mode_panning;패닝
-zoom_mode_inverted;거꾸로
-zoom_mode_centered;가운데 맞춤
-zoom_mode_to_cursor;커서로
-zoom_mode_away_from_cursor;커서에서 멀어짐
-zoom_speed_label;줌 가속
-river_label;강하
-mute_on_focus_lost_label;초점 상실 시 음소거
-wasd_for_map_movement_label;이동용 WASD
-vassal_color_label;가신 색칠
-vassal_color_inherit;상속
-vassal_color_same;같은
-vassal_color_none;없음
-black_map_font_label;검은 지도 글꼴
+zoom_mode_inverted;반전
+zoom_mode_centered;중앙
+zoom_mode_to_cursor;커서 따라가기
+zoom_mode_away_from_cursor;커서에서 멀어지기
+zoom_speed_label;줌 가속도
+river_label;강
+mute_on_focus_lost_label;게임이 활성 창이 아닐 때 음소거
+wasd_for_map_movement_label;WASD로 지도 이동
+vassal_color_label;속국 지도 색상
+vassal_color_inherit;유사
+vassal_color_same;동일
+vassal_color_none;원본
+black_map_font_label;검은색 지도 글꼴
 edge_scrolling_label;가장자리 스크롤
-color_blind_mode_label;색맹
+color_blind_mode_label;색맹 모드
 color_blind_mode_none;없음
-color_blind_mode_deutan;듀탄
-color_blind_mode_protan;프로탄
-color_blind_mode_tritan;트라이탄
-color_blind_mode_achroma;아크로마
+color_blind_mode_deutan;녹색맹
+color_blind_mode_protan;적색맹
+color_blind_mode_tritan;청황색맹
+color_blind_mode_achroma;적록색맹
 render_models_label;모델 렌더링
 language_label;언어
-fow_label;전쟁의 안개
+fow_label;전장의 안개
 railroad_label;철도망
-master_volume_label;마스터 볼륨
-music_volume_label;음악 볼륨
-interface_volume_label;인터페이스 볼륨
-effect_volume_label;음향 효과 볼륨
-fonts_label;클래식 글꼴
-tooltip_mode_label;부동 툴팁
-music_player_label;뮤직 플레이어
-gaussianblur_label;가우스 흐림
-gamma_label;감마
+master_volume_label;주 음량
+music_volume_label;음악 음량
+interface_volume_label;인터페이스 음량
+effect_volume_label;효과음 음량
+fonts_label;고전 글꼴
+tooltip_mode_label;플로팅 툴팁
+music_player_label;음악 플레이어
+gaussianblur_label;가우시안 블러
+gamma_label;밝기
 map_label;지도 텍스트
 map_label_0;없음
-map_label_1;선의
-map_label_2;이차
-map_label_3;큐빅
-antialiasing_label;안티 앨리어싱
-spoilers_label;스포일러
+map_label_1;선형
+map_label_2;이차 선형
+map_label_3;입체
+antialiasing_label;안티앨리어싱
+spoilers_label;작업 표시줄 가리기
+graphics_details_label;그래픽
+graphics_details_0;픽셀
+graphics_details_1;고전
+graphics_details_2;현대
+disband_confirmation_label;부대 해산 확인
