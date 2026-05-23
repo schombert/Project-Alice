@@ -59,8 +59,8 @@ inline constexpr float investment_pool_investment_per_day = 0.25f;
 // greed drives incomes of corresponding pops up
 // while making life worse on average
 // profit cuts change distribution of incomes
-inline constexpr float aristocrats_greed = 0.2f;
-inline constexpr float artisans_greed = 0.3f;
+inline constexpr float aristocrats_greed = 0.1f;
+inline constexpr float artisans_greed = 0.1f;
 inline constexpr float labor_greed_life = 0.1f;
-inline constexpr float capitalists_greed = 0.4f;
+inline constexpr float capitalists_greed = 0.1f;
 }

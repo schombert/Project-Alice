@@ -4,7 +4,7 @@
 namespace economy {
 namespace price_properties {
 
-inline constexpr float additive_smoothing = 0.001f;
+inline constexpr float additive_smoothing = 0.005f;
 namespace common {
 template<typename VALUE, float min_price, float speed_multiplier>
 VALUE change(VALUE current_price, VALUE supply, VALUE demand) {
