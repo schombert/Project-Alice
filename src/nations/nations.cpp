@@ -196,6 +196,10 @@ void recalculate_markets_distance(sys::state& state) {
 		state.world.market_set_max_throughput(markets, throughput);
 	});
 
+	static tagged_vector<fixed_bool_t, dcon::trade_route_id> to_delete;
+	to_delete.resize(state.world.trade_route_size());
+	std::fill(to_delete.begin(), to_delete.end(), false);
+
 	state.world.execute_parallel_over_trade_route([&](auto routes) {
 		// recalculate effective distance
 		auto markets_0 = ve::apply([&](auto route) { return state.world.trade_route_get_connected_markets(route, 0); }, routes);
@@ -211,6 +215,11 @@ void recalculate_markets_distance(sys::state& state) {
 
 				auto coast_0 = province::state_get_coastal_capital(state, sid_0);
 				auto coast_1 = province::state_get_coastal_capital(state, sid_1);
+				// if no coastal caapital on either one of them, then delete the sea trade route as it dosent make sense to keep
+				if(!coast_1 || !coast_0) {
+					to_delete[route] = true;
+					return;
+				}
 				auto owner_0 = state.world.province_get_nation_from_province_ownership(coast_0);
 				auto owner_1 = state.world.province_get_nation_from_province_ownership( coast_1);
 				auto transport_0 = military::get_best_transport(state, owner_0, false, false);
@@ -318,6 +327,13 @@ void recalculate_markets_distance(sys::state& state) {
 			}
 		}, sids_0, sids_1, routes);
 	});
+	// delete marked trade routes
+	for(auto i = state.world.trade_route_size(); i-- > 0;) {
+		dcon::trade_route_id trade_route{ dcon::trade_route_id::value_base_t(i) };
+		if(to_delete[trade_route]) {
+			state.world.delete_trade_route(trade_route);
+		}
+	}
 }
 
 struct parent_link {
@@ -1241,8 +1257,12 @@ void update_research_points(sys::state& state) {
 				ve::select(total_priority_private > 0.f, private_p / total_priority_private, 0.f);
 
 			auto exp = state.world.nation_get_factory_type_experience(ids, factory_type_id);
-
-			state.world.nation_set_factory_type_experience(ids, factory_type_id, (exp * 0.999f) + (priority * amount));
+			auto next_value = (exp * 0.999f) + (priority * amount);
+#ifndef NDEBUG
+			ve::apply([](float value){ assert(std::isfinite(value)); }, next_value);
+#endif // !NDEBUG
+			// account for negative research points with max
+			state.world.nation_set_factory_type_experience(ids, factory_type_id, ve::max(0.f, next_value));
 		});
 	});
 }
@@ -1948,10 +1968,10 @@ void update_monthly_points(sys::state& state) {
 	for(auto an : state.world.in_nation_adjacency) {
 		if(an.get_connected_nations(0).get_is_at_war() == false && an.get_connected_nations(1).get_is_at_war() == false)
 			monthly_adjust_relationship(state, an.get_connected_nations(0), an.get_connected_nations(1), 0.05f);
-		if(military::can_use_cb_against(state, an.get_connected_nations(0), an.get_connected_nations(1))) {
+		if(military::can_use_cb_against<false>(state, an.get_connected_nations(0), an.get_connected_nations(1))) {
 			monthly_adjust_relationship(state, an.get_connected_nations(0), an.get_connected_nations(1), -0.15f);
 		}
-		if(military::can_use_cb_against(state, an.get_connected_nations(1), an.get_connected_nations(0))) {
+		if(military::can_use_cb_against<false>(state, an.get_connected_nations(1), an.get_connected_nations(0))) {
 			monthly_adjust_relationship(state, an.get_connected_nations(0), an.get_connected_nations(1), -0.15f);
 		}
 	}
@@ -3017,7 +3037,7 @@ void monthly_flashpoint_update(sys::state& state) {
 			for(auto actor : state.world.in_nation) {
 				auto owned = actor.get_province_ownership();
 				if(actor != target && owned.begin() != owned.end()) {
-					if(military::can_use_cb_against(state, actor, target)) {
+					if(military::can_use_cb_against<false>(state, actor, target)) {
 						target.set_is_target_of_some_cb(true);
 						break;
 					}

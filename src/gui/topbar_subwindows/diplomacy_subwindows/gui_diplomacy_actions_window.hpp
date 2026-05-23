@@ -833,7 +833,7 @@ public:
 				return false;  // cannot declare war on own sphereling
 			}
 			return !(state.local_player_nation == target ||
-				!military::can_use_cb_against(state, state.local_player_nation, target) ||
+				!military::can_use_cb_against<false>(state, state.local_player_nation, target) ||
 				state.world.nation_get_diplomatic_points(state.local_player_nation) < state.defines.declarewar_diplomatic_cost ||
 				military::are_in_common_war(state, state.local_player_nation, target) ||
 				nations::are_allied(state, state.local_player_nation, target) ||
@@ -902,7 +902,7 @@ public:
 			if(state.defines.declarewar_diplomatic_cost > 0) {
 				text::add_line_with_condition(state, contents, "war_explain_3", state.world.nation_get_diplomatic_points(state.local_player_nation) >= state.defines.declarewar_diplomatic_cost, text::variable_type::x, int64_t(state.defines.declarewar_diplomatic_cost));
 			}
-			text::add_line_with_condition(state, contents, "war_explain_2", military::can_use_cb_against(state, state.local_player_nation, target));
+			text::add_line_with_condition(state, contents, "war_explain_2", military::can_use_cb_against<false>(state, state.local_player_nation, target));
 			text::add_line_with_condition(state, contents, "war_explain_4", !military::are_in_common_war(state, state.local_player_nation, target));
 			auto target_ol_rel = state.world.nation_get_overlord_as_subject(target);
 			auto overlord = state.world.overlord_get_ruler(target_ol_rel);

@@ -234,6 +234,7 @@ trigger_body
 	controlled_by_rebels  value      bool               member_fn
 	has_country_modifier  value      text               member_fn
 	is_liberation_crisis  value      bool               member_fn
+	is_colonial_crisis  value      bool               member_fn
 	is_releasable_vassal  value      text               member_fn
 	pop_majority_culture  value      text               member_fn
 	rebel_power_fraction  value      float              member_fn

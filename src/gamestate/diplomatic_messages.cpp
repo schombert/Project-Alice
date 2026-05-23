@@ -182,7 +182,7 @@ bool can_accept_crisis_offer(sys::state& state, dcon::nation_id from, dcon::nati
 	if((cb_type & military::cb_flag::always) == 0 && (cb_type & military::cb_flag::is_not_constructing_cb) != 0)
 		return false;
 
-	if(!military::cb_instance_conditions_satisfied(state, to, offer.target_nation, offer.cb, offer.state,
+	if(!military::cb_instance_conditions_satisfied<false>(state, to, offer.target_nation, offer.cb, offer.state,
 				 offer.wg_tag, offer.secondary_nation)) {
 
 		return false;

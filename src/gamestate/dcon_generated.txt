@@ -394,6 +394,11 @@ object {
 		tag{ scenario }
 	}
 	property{
+		name{ rgo_efficiency_inputs_are_defined_in_content }
+		type{ bitfield }
+		tag{ scenario }
+	}
+	property{
 		name{ artisan_inputs }
 		type{ economy::commodity_set }
 		tag{ scenario }
@@ -536,33 +541,8 @@ object {
 		tag{ scenario }
 	}
 	property{
-		name{ bonus_1_trigger }
-		type{ trigger_key }
-		tag{ scenario }
-	}
-	property{
-		name{ bonus_1_amount }
-		type{ float }
-		tag{ scenario }
-	}
-	property{
-		name{ bonus_2_trigger }
-		type{ trigger_key }
-		tag{ scenario }
-	}
-	property{
-		name{ bonus_2_amount }
-		type{ float }
-		tag{ scenario }
-	}
-	property{
-		name{ bonus_3_trigger }
-		type{ trigger_key }
-		tag{ scenario }
-	}
-	property{
-		name{ bonus_3_amount }
-		type{ float }
+		name{ factory_bonuses }
+		type{ std::array<economy::production_type_bonus,economy::max_production_type_bonuses> }
 		tag{ scenario }
 	}
 	property{
@@ -1640,7 +1620,7 @@ object {
 		tag{ save }
 	}
 	property{
-		name{ rgo_demand }
+		name{ rgo_base_efficiency }
 		type{ array{commodity_id}{float} }
 		tag{ save }
 	}
@@ -1998,12 +1978,6 @@ object {
 		tag{ save }
 	}
 	property{
-		name{ pending_split }
-		type{ bitfield }
-		
-		
-	}
-	property{
 		name{ experience }
 		type{ float }
 		tag{ save }
@@ -2181,12 +2155,6 @@ object {
 		name{ org }
 		type{ float }
 		tag{ save }
-	}
-	property{
-		name{ pending_split }
-		type{ bitfield }
-		
-		
 	}
 	property{
 		name{ experience }
@@ -2770,22 +2738,22 @@ object {
 
 	property{
 		name{ attacker_back_line }
-		type{ std::array<military::battle_regiment,military::MAX_COMBAT_WIDTH> }
+		type{ std::array<military::battle_regiment,military::max_combat_width> }
 		tag{ save }
 	}
 	property{
 		name{ attacker_front_line }
-		type{ std::array<military::battle_regiment,military::MAX_COMBAT_WIDTH> }
+		type{ std::array<military::battle_regiment,military::max_combat_width> }
 		tag{ save }
 	}
 	property{
 		name{ defender_back_line }
-		type{ std::array<military::battle_regiment,military::MAX_COMBAT_WIDTH> }
+		type{ std::array<military::battle_regiment,military::max_combat_width> }
 		tag{ save }
 	}
 	property{
 		name{ defender_front_line }
-		type{ std::array<military::battle_regiment,military::MAX_COMBAT_WIDTH> }
+		type{ std::array<military::battle_regiment,military::max_combat_width> }
 		tag{ save }
 	}
 
@@ -4766,6 +4734,11 @@ relationship{
 		type{ array{commodity_id}{float} }
 		tag{ save }
 	}
+	property {
+		name{ stabilization_volume }
+		type{ array{commodity_id}{float} }
+		tag{ save }
+	}
 }
 
 relationship{
@@ -4916,7 +4889,7 @@ relationship{
 object {
 	name { factory }
 	storage_type{ erasable }
-	size{ 20000 }
+	size{ 100000 }
 	tag{ save }
 	
 
@@ -4966,10 +4939,23 @@ object {
 		type{ float }
 		tag{ save }
 	}
+	property{
+		name{efficiency_level}
+		type{array{uint8_t}{float}}
+		tag{ save }
+	}
+	property{
+		name{technology_scale}
+		type{float}
+		tag{ save }
+	}
+	property{
+		name{profit}
+		type{float}
+	}
 	property {
 		name{ triggered_modifiers }
-		type{ float }
-		
+		type{ float }		
 	}	
 	property {
 		name{ output }

@@ -113,6 +113,8 @@ enum class text_background : uint8_t { // 2 bits
 	small_tiles_dialog = (0x03 << text_background_bit_offset)
 };
 
+constexpr size_t const_max_selected_units = 128;
+
 }
 
 

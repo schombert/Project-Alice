@@ -29,7 +29,8 @@ uint32_t size(sys::state const& state);
 
 namespace economy {
 
-inline constexpr float secondary_employment_output_bonus = 3.f;
+// 100'000 hired clerks increase output by 1%
+inline constexpr float secondary_employment_output_bonus = 1.f / 100000.f;
 inline constexpr float unqualified_throughput_multiplier = 0.2f;
 inline constexpr float artisans_per_employment_unit = 10'000.f;
 inline constexpr float construction_units_to_maintenance_units = 0.0001f;
@@ -59,17 +60,27 @@ inputs_data get_inputs_data(sys::state const& state, dcon::market_id markets, SE
 void update_factories_production(sys::state& state);
 void update_rgo_production(sys::state& state);
 
-float base_artisan_profit(
+float base_artisan_output_cost(
 	const sys::state& state,
 	dcon::market_id market,
 	dcon::commodity_id c
+);
+float base_artisan_input_cost(
+	const sys::state& state,
+	dcon::market_id market,
+	dcon::commodity_id c
+);
+
+float total_nation_investments_tokens(
+	sys::state& state,
+	dcon::nation_id nation
 );
 
 float priority_multiplier(sys::state const& state, dcon::factory_type_id fac_type, dcon::nation_id n);
 float nation_factory_input_multiplier(sys::state const& state, dcon::factory_type_id fac_type, dcon::nation_id n);
 float nation_factory_output_multiplier(sys::state const& state, dcon::factory_type_id fac_type, dcon::nation_id n);
 
-void update_employment(sys::state& state, float presim_employment_mult = 1.0f);
+void update_employment(sys::state& state, bool ignore_reality, float presim_employment_mult = 1.0f);
 void update_rgo_profit(sys::state& state);
 
 void update_artisan_production(sys::state& state);
@@ -83,10 +94,8 @@ float factory_throughput_additional_multiplier(sys::state const& state, dcon::fa
 struct profit_explanation {
 	float inputs;
 	float wages;
-	float maintenance;
-	float expansion;
 	float output;
-
+	float subsidy;
 	float profit;
 };
 
@@ -132,7 +141,8 @@ float estimate_factory_profit_margin(
 float estimate_factory_payback_time(
 	sys::state& state,
 	dcon::province_id pid,
-	dcon::factory_type_id factory_type
+	dcon::factory_type_id factory_type,
+	bool pop_project
 );
 
 float factory_output(sys::state& state, dcon::commodity_id c, dcon::province_id id);
@@ -180,7 +190,6 @@ struct output_multipliers_explanation {
 	float total = 1.f;
 	float total_ignore_inputs = 1.f;
 	float from_modifiers = 1.f;
-	float from_efficiency_goods = 1.f;
 	float from_secondary_workers = 1.f;
 	float from_inputs_lack = 1.f;
 };
@@ -190,13 +199,16 @@ struct throughput_multipliers_explanation {
 	float base = 1.f;
 	float from_modifiers = 1.f;
 	float from_scale = 1.f;
+	float from_forced_subsistence = 1.f;
 };
+
 
 struct detailed_explanation {
 	dcon::factory_type_id base_type = dcon::factory_type_id{ };
 
 	float profit = 0.f;
 	float income_from_sales = 0.f;
+	float revenue_from_subsidies = 0.f;
 	float spending_from_primary_inputs = 0.f;
 	float spending_from_efficiency_inputs = 0.f;
 	float spending_from_wages = 0.f;
@@ -212,6 +224,9 @@ struct detailed_explanation {
 	float output_base_amount = 0.f;
 	float output_actual_amount = 0.f;
 	float output_actually_sold_ratio = 0.f;
+
+	float investments_tokens = 0.f;
+	float investments_expansion_priority = 0.f;
 
 	detailed_commodity_set efficiency_inputs{};
 	float required_efficiency_inputs_multiplier = 1.f;
@@ -271,7 +286,6 @@ float rgo_employment(sys::state& state, dcon::commodity_id c, dcon::province_id 
 float rgo_employment(sys::state& state, dcon::province_id p);
 
 float rgo_wage(sys::state& state, dcon::commodity_id c, dcon::province_id p);
-float rgo_efficiency_spending(sys::state& state, dcon::commodity_id c, dcon::province_id p);
 
 commodity_set rgo_calculate_actual_efficiency_inputs(sys::state& state, dcon::nation_id n, dcon::market_id m, dcon::province_id p, dcon::commodity_id c, float mobilization_impact);
 

@@ -579,8 +579,15 @@ float trade_supply(sys::state const& state,
 	auto stockpiles = state.world.market_get_stockpile(m, c);
 	auto sid = state.world.market_get_zone_from_local_market(m);
 	auto capital = state.world.state_instance_get_capital(sid);
-	auto result = std::max(0.f, stockpiles) * stockpile_to_supply;
-	return result;
+	auto merchants_supply = std::min(
+		std::max(0.f, stockpiles * stockpile_to_supply),
+		std::max(0.f,
+			stockpiles * stockpile_spoilage
+			+ state.world.market_get_aggregated_demand_history(m, c) * (1.f + state.world.market_get_price(m, c) / state.world.commodity_get_median_price(c))
+			- state.world.market_get_aggregated_supply_history(m, c)
+		)
+	);
+	return merchants_supply;
 }
 
 float trade_supply(sys::state& state,
@@ -1150,8 +1157,10 @@ int32_t province_factory_count(sys::state& state, dcon::province_id pid) {
 		if(p.get_is_upgrade() == false)
 			++num_factories;
 
-	// For new factories: no more than defines:FACTORIES_PER_STATE existing + under construction new factories must be
-	assert(num_factories <= int32_t(state.defines.factories_per_state));
+	/*
+	There is no such limit in the brave new world
+	*/
+	//assert(num_factories <= int32_t(state.defines.factories_per_state));
 	return num_factories;
 }
 // Returns sum of all factory levels in a province
@@ -1399,6 +1408,28 @@ void make_trade_center_tooltip(sys::state& state, text::columnar_layout& content
 		text::variable_type::val,
 		text::fp_currency{
 			std::max(0.f, state.world.province_get_factory_bank(province) * economy::pops::trade_dividents_rate)
+		},
+		15
+	);
+
+	text::add_line_break_to_layout(state, contents);
+	text::add_line(
+		state,
+		contents,
+		"artisan_bank",
+		text::variable_type::val,
+		text::fp_currency{
+			state.world.province_get_artisan_bank(province)
+		},
+		0
+	);
+	text::add_line(
+		state,
+		contents,
+		"artisan_profit",
+		text::variable_type::val,
+		text::fp_currency{
+			state.world.province_get_artisan_profit(province)
 		},
 		15
 	);

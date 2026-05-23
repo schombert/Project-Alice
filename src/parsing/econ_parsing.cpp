@@ -10,6 +10,7 @@ void make_good(std::string_view name, token_generator& gen, error_handler& err, 
 	context.outer_context.state.world.commodity_set_commodity_group(new_id, uint8_t(context.group));
 	context.outer_context.state.world.commodity_set_is_available_from_start(new_id, true);
 	context.outer_context.state.world.commodity_set_is_local(new_id, false);
+	context.outer_context.state.world.commodity_set_median_price(new_id, 1.f);
 
 
 	context.outer_context.map_of_commodity_names.insert_or_assign(std::string(name), new_id);
@@ -179,6 +180,22 @@ void make_production_type(std::string_view name, token_generator& gen, error_han
 		context.outer_context.state.world.commodity_set_is_mine(pt.output_goods_, pt.mine);
 		context.outer_context.state.world.commodity_set_rgo_amount(pt.output_goods_, pt.value);
 		context.outer_context.state.world.commodity_set_rgo_workforce(pt.output_goods_, pt.workforce);
+		economy::commodity_set sm_cset;
+		uint32_t sm_added = 0;
+		context.outer_context.state.world.for_each_commodity([&](dcon::commodity_id id) {
+			auto amount = pt.efficiency.data.safe_get(id);
+			if(amount > 0) {
+				if(sm_added >= economy::commodity_set::set_size) {
+					err.accumulated_errors += "Too many RGO efficiency goods in " + std::string(name) + " (" + err.file_name + ")\n";
+				} else {
+					sm_cset.commodity_type[sm_added] = id;
+					sm_cset.commodity_amounts[sm_added] = amount;
+					++sm_added;
+				}
+			}
+		});
+		context.outer_context.state.world.commodity_set_rgo_efficiency_inputs(pt.output_goods_, sm_cset);
+		context.outer_context.state.world.commodity_set_rgo_efficiency_inputs_are_defined_in_content(pt.output_goods_, pt.efficiency.defined);
 	} else if(pt.type_ == production_type_enum::artisan) {
 		economy::commodity_set cset;
 		uint32_t added = 0;
@@ -239,20 +256,13 @@ void make_production_type(std::string_view name, token_generator& gen, error_han
 			factory_handle.set_is_coastal(pt.is_coastal);
 			factory_handle.set_base_workforce(pt.workforce);
 
-			if(pt.bonuses.size() >= 1) {
-				factory_handle.set_bonus_1_amount(pt.bonuses[0].value);
-				factory_handle.set_bonus_1_trigger(pt.bonuses[0].trigger);
-			}
-			if(pt.bonuses.size() >= 2) {
-				factory_handle.set_bonus_2_amount(pt.bonuses[1].value);
-				factory_handle.set_bonus_2_trigger(pt.bonuses[1].trigger);
-			}
-			if(pt.bonuses.size() >= 3) {
-				factory_handle.set_bonus_3_amount(pt.bonuses[2].value);
-				factory_handle.set_bonus_3_trigger(pt.bonuses[2].trigger);
-			}
-			if(pt.bonuses.size() >= 4) {
-				err.accumulated_errors += "Too many factory bonuses (" + std::to_string(pt.bonuses.size()) + ") for " + std::string(name) + " (" + err.file_name + ")\n";
+			auto& bonuses = factory_handle.get_factory_bonuses();
+			for(uint32_t i = 0;i < pt.bonuses.size();i++) {
+				if(i >= economy::max_production_type_bonuses) {
+					err.accumulated_errors += "Too many factory bonuses (" + std::to_string(pt.bonuses.size()) + ") for " + std::string(name) + " (" + err.file_name + ")\n";
+					break; // no more space for production bonuses
+				}
+				bonuses[i] = economy::production_type_bonus{ pt.bonuses[i].value, pt.bonuses[i].trigger };
 			}
 		} else {
 			err.accumulated_warnings += "Unused factory production type: " + std::string(name) + "\n";
@@ -261,7 +271,9 @@ void make_production_type(std::string_view name, token_generator& gen, error_han
 }
 
 commodity_array make_prod_commodity_array(token_generator& gen, error_handler& err, production_context& context) {
-	return parse_commodity_array(gen, err, context.outer_context);
+	auto result = parse_commodity_array(gen, err, context.outer_context);
+	result.defined = true;
+	return result;
 }
 
 } // namespace parsers

@@ -27,6 +27,7 @@ private:
 	province_view_buildings* local_buildings_window = nullptr;
 	province_window_colony* colony_window = nullptr;
 	element_base* economy_window = nullptr;
+	element_base* factories_window = nullptr;
 	element_base* nf_win = nullptr;
 	element_base* tiles_window = nullptr;
 	element_base* market_window = nullptr;

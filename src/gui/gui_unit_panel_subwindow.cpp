@@ -601,57 +601,20 @@ public:
 			auto content = any_cast<element_selection_wrapper<reorg_win_action>>(payload).data;
 			switch(content) {
 				case reorg_win_action::close:
-					if(selectedsubunits.size() <= command::num_packed_units && !selectedsubunits.empty()) {
+					if(!selectedsubunits.empty()) {
 						if constexpr(std::is_same_v<T2, dcon::regiment_id>) {
-							std::array<dcon::regiment_id, command::num_packed_units> tosplit{};
-							for(size_t i = 0; i < selectedsubunits.size(); i++) {
-								tosplit[i] = selectedsubunits[i];
-							}
-							command::mark_regiments_to_split(state, state.local_player_nation, tosplit);
-							command::split_army(state, state.local_player_nation, unitToReorg);
+							command::split_army(state, state.local_player_nation, unitToReorg, selectedsubunits, true);
+							selectedsubunits.clear();
 						} else {
-							std::array<dcon::ship_id, command::num_packed_units> tosplit{};
-							for(size_t i = 0; i < selectedsubunits.size(); i++) {
-								tosplit[i] = selectedsubunits[i];
-							}
-							command::mark_ships_to_split( state, state.local_player_nation, tosplit);
-							command::split_navy(state, state.local_player_nation, unitToReorg);
-						}
-					} else if(selectedsubunits.size() > command::num_packed_units){
-						if constexpr(std::is_same_v<T2, dcon::regiment_id>) {
-							std::array<dcon::regiment_id, command::num_packed_units> tosplit{};
-							//while(selectedsubunits.size() > command::num_packed_units) {
-							while(selectedsubunits.size() > 0) {
-								tosplit.fill(dcon::regiment_id{});
-								for(size_t i = 0; i < command::num_packed_units && i < selectedsubunits.size(); i++) {
-									tosplit[i] = selectedsubunits[i];
-								}
-								command::mark_regiments_to_split(state, state.local_player_nation, tosplit);
-								(selectedsubunits.size() > command::num_packed_units) ? selectedsubunits.erase(selectedsubunits.begin(), selectedsubunits.begin() + command::num_packed_units)
-																						: selectedsubunits.erase(selectedsubunits.begin(), selectedsubunits.end());
-							}
-							command::split_army(state, state.local_player_nation, unitToReorg);
-						} else {
-							std::array<dcon::ship_id, command::num_packed_units> tosplit{};
-							//while(selectedsubunits.size() > command::num_packed_units) {
-							while(selectedsubunits.size() > 0) {
-								tosplit.fill(dcon::ship_id{});
-								for(size_t i = 0; i < command::num_packed_units && i < selectedsubunits.size(); i++) {
-									tosplit[i] = selectedsubunits[i];
-								}
-								command::mark_ships_to_split(state, state.local_player_nation, tosplit);
-								(selectedsubunits.size() > command::num_packed_units) ? selectedsubunits.erase(selectedsubunits.begin(), selectedsubunits.begin() + command::num_packed_units)
-																						: selectedsubunits.erase(selectedsubunits.begin(), selectedsubunits.end());
-							}
-							command::split_navy(state, state.local_player_nation, unitToReorg);
+							command::split_navy(state, state.local_player_nation, unitToReorg, selectedsubunits, true);
+							selectedsubunits.clear();
 						}
 					}
-					if(selectedsubunits.empty()) { selectedsubunits.erase(selectedsubunits.begin(), selectedsubunits.end()); }
 					set_visible(state, false);
 					break;
 				case reorg_win_action::balance:
 					// Disregard any of the units the player already selected, because its our way or the hi(fi)-way
-					selectedsubunits.erase(selectedsubunits.begin(), selectedsubunits.end());
+					selectedsubunits.clear();
 					if constexpr(std::is_same_v<T, dcon::army_id>) {
 						for(auto reg : dcon::fatten(state.world, unitToReorg).get_army_membership()) {
 							selectedsubunits.push_back(reg.get_regiment().id);
@@ -720,7 +683,12 @@ public:
 
 				if(mods == sys::key_modifiers::modifiers_shift) {
 					sys::selected_ships_clear(state);
-					sys::selected_regiments_add(state, reg);
+					if(auto it = std::find(state.selected_regiments.begin(), state.selected_regiments.end(), reg); it != state.selected_regiments.end()) {
+						sys::selected_regiments_remove(state, reg);
+					}
+					else {
+						sys::selected_regiments_add(state, reg);
+					}
 					parent->impl_on_update(state);
 				} else {
 					sys::selected_regiments_clear(state);
@@ -733,16 +701,20 @@ public:
 			if(parent) {
 				Cyto::Any payload = dcon::ship_id{};
 				parent->impl_get(state, payload);
-				dcon::ship_id reg = any_cast<dcon::ship_id>(payload);
+				dcon::ship_id ship = any_cast<dcon::ship_id>(payload);
 
 				if(mods == sys::key_modifiers::modifiers_shift) {
 					sys::selected_regiments_clear(state);
-					sys::selected_ships_add(state, reg);
+					if(auto it = std::find(state.selected_ships.begin(), state.selected_ships.end(), ship); it != state.selected_ships.end()) {
+						sys::selected_ships_remove(state, ship);
+					} else {
+						sys::selected_ships_add(state, ship);
+					}
 					parent->impl_on_update(state);
 				} else {
 					sys::selected_ships_clear(state);
 					sys::selected_regiments_clear(state);
-					sys::selected_ships_add(state, reg);
+					sys::selected_ships_add(state, ship);
 					parent->impl_on_update(state);
 				}
 			}

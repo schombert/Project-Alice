@@ -548,7 +548,8 @@ void province_history_file::state_building(pv_state_building const& value, error
 
 		context.outer_context.state.world.factory_set_building_type(new_fac, value.id);
 		context.outer_context.state.world.factory_set_size(new_fac, (float)value.level * base_size);
-		context.outer_context.state.world.factory_set_unqualified_employment(new_fac, base_size * 0.1f);
+		context.outer_context.state.world.factory_set_unqualified_employment(new_fac, base_size);
+		context.outer_context.state.world.factory_set_technology_scale(new_fac, 1.f);
 		context.outer_context.state.world.force_create_factory_location(new_fac, context.id);
 	}
 }

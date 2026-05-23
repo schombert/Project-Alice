@@ -23,9 +23,8 @@ VALUE investment_rate(const sys::state& state, POPS ids) {
 	auto nations = state.world.state_instance_get_nation_from_state_ownership(states);
 	auto pop_type = state.world.pop_get_poptype(ids);
 	auto nation_rules = state.world.nation_get_combined_issue_rules(nations);
-	auto is_civilised = state.world.nation_get_is_civilized(nations);
 	auto allows_investment_mask = (nation_rules & can_invest) != 0;
-	auto nation_allows_investment = is_civilised && allows_investment_mask;
+	auto nation_allows_investment = allows_investment_mask;
 
 	auto capitalists_mask = pop_type == state.culture_definitions.capitalists;
 	auto middle_class_investors_mask = pop_type == state.culture_definitions.artisans || pop_type == state.culture_definitions.secondary_factory_worker;
@@ -164,7 +163,7 @@ auto prepare_pop_budget_templated(
 	// we want to focus on life needs first if we are poor AND our satisfaction is low
 
 	VALUE base_life_costs = (0.00001f + life_costs * pop_size / state.defines.alice_needs_scaling_factor);
-	VALUE is_poor = adaptive_ve::max<VALUE>(0.f, 1.f - 4.f * savings / base_life_costs);
+	VALUE is_poor = adaptive_ve::max<VALUE>(0.01f, 1.f - 4.f * savings / base_life_costs);
 	VALUE current_life = pop_demographics::get_life_needs(state, ids);
 	is_poor = adaptive_ve::min<VALUE>(1.f, adaptive_ve::max<VALUE>(0.f, is_poor + (1.f - current_life) * 2.f));
 
@@ -241,8 +240,8 @@ auto prepare_pop_budget_templated(
 		1.f,
 		adaptive_ve::min<VALUE>
 			(
-				1000.f,
-				(1.f - old_life) * adaptive_ve::max<VALUE>(0.f, spend_on_life_needs - result.life_needs.required * 5.f) / result.life_needs.required
+				2.f,
+				(1.05f - old_life) * adaptive_ve::max<VALUE>(0.f, spend_on_life_needs - result.life_needs.required * 5.f) / result.life_needs.required
 			)
 	);
 	result.life_needs.spent = adaptive_ve::min<VALUE>(spend_on_life_needs, result.life_needs.required * (1.f + rich_but_life_needs_are_not_satisfied));
@@ -295,8 +294,8 @@ auto prepare_pop_budget_templated(
 		1.f,
 		adaptive_ve::min<VALUE>
 		(
-			1000.f,
-			(1.f - old_everyday) * adaptive_ve::max<VALUE>(0.f, spend_on_everyday_needs - result.everyday_needs.required * 5.f) / result.everyday_needs.required
+			5.f,
+			(1.05f - old_everyday) * adaptive_ve::max<VALUE>(0.f, spend_on_everyday_needs - result.everyday_needs.required * 5.f) / result.everyday_needs.required
 		)
 	);
 	result.everyday_needs.spent = adaptive_ve::min<VALUE>(savings, adaptive_ve::min<VALUE>(spend_on_everyday_needs, result.everyday_needs.required * (1.f + rich_but_everyday_needs_are_not_satisfied)));
@@ -330,8 +329,8 @@ auto prepare_pop_budget_templated(
 		1.f,
 		adaptive_ve::min<VALUE>
 		(
-			1000.f,
-			(1.f - old_luxury) * adaptive_ve::max<VALUE>(0.f, spend_on_luxury_needs - result.luxury_needs.required * 5.f) / result.luxury_needs.required
+			5.f,
+			(1.05f - old_luxury) * adaptive_ve::max<VALUE>(0.f, spend_on_luxury_needs - result.luxury_needs.required * 5.f) / result.luxury_needs.required
 		)
 	);
 	result.luxury_needs.spent = adaptive_ve::min<VALUE>(savings, adaptive_ve::min<VALUE>(spend_on_luxury_needs, result.luxury_needs.required * (1.f + rich_but_luxury_needs_are_not_satisfied)));
@@ -369,8 +368,8 @@ auto prepare_pop_budget_templated(
 			0.f,
 			adaptive_ve::min<VALUE>
 			(
-				1000.f,
-				(1.f - literacy)
+				10.f,
+				(1.05f - literacy)
 				* adaptive_ve::max<VALUE>(0.f, spend_on_education - result.education.required * 5.f)
 				/ result.education.required
 			) - 0.1f
@@ -704,8 +703,8 @@ void update_income_artisans(sys::state& state) {
 				if(artisan_type == pl.get_pop().get_poptype()) {
 					pl.get_pop().set_savings(
 						pl.get_pop().get_savings()
-						+ state.inflation
-						* pl.get_pop().get_size()
+						+
+						pl.get_pop().get_size()
 						* payment
 					);
 #ifndef NDEBUG
@@ -721,59 +720,39 @@ void update_income_artisans(sys::state& state) {
 }
 
 
-float estimate_trade_income(sys::state const& state, dcon::market_id mid, dcon::pop_type_id ptid, float size) {
-	auto const artisan_def = state.culture_definitions.artisans;
-	auto artisan_key = demographics::to_key(state, artisan_def);
-	auto const clerks_def = state.culture_definitions.secondary_factory_worker;
-	auto clerks_key = demographics::to_key(state, clerks_def);
+constexpr inline float national_elite_trade_weight_multiplier = 1000.f;
+
+float estimate_local_trade_income(sys::state const& state, dcon::province_id pid, dcon::market_id mid, dcon::pop_type_id ptid, float size) {
+	auto sids = state.world.market_get_zone_from_local_market(mid);
+	auto nation = state.world.province_get_nation_from_province_control(pid);
 	auto const capis_def = state.culture_definitions.capitalists;
 	auto capis_key = demographics::to_key(state, capis_def);
-	auto sids = state.world.market_get_zone_from_local_market(mid);
-	auto artisans = state.world.state_instance_get_demographics(sids, artisan_key);
-	auto clerks = state.world.state_instance_get_demographics(sids, clerks_key);
-	auto capis = state.world.state_instance_get_demographics(sids, capis_key);
-	auto total = state.world.state_instance_get_demographics(sids, demographics::total);
-	auto artisans_weight = state.world.state_instance_get_demographics(sids, artisan_key);
-	auto clerks_weight = state.world.state_instance_get_demographics(sids, clerks_key) * 100.f;
-	auto capis_weight = state.world.state_instance_get_demographics(sids, capis_key) * 100'000.f;
-	auto base_weight = total;
-	auto total_weight = artisans_weight + clerks_weight + capis_weight + base_weight;
+	auto elites = state.world.nation_get_demographics(nation, capis_key);
+	auto local_population_province = state.world.province_get_demographics(pid, demographics::total);
+	auto local_population_market = state.world.state_instance_get_demographics(sids, demographics::total);
+	auto total = local_population_market + elites * national_elite_trade_weight_multiplier * local_population_province / (local_population_market + 1.f);
 
-	if(total_weight == 0.f) {
+	if(total == 0.f) {
 		return 0.f;
 	}
 
 	auto balance = state.world.market_get_stockpile(mid, economy::money);
 	auto trade_dividents = balance > 0.f ? balance * trade_dividents_rate : 0.f;
 
-	auto artisans_share = artisans_weight / total_weight * trade_dividents;
-	auto clerks_share = clerks_weight / total_weight * trade_dividents;
-	auto capis_share = capis_weight / total_weight * trade_dividents;
-	auto other_share = base_weight / total_weight * trade_dividents;
-
-	auto per_artisan = artisans > 0.f ? artisans_share / artisans : 0.f;
-	auto per_clerk = clerks > 0.f ? clerks_share / clerks : 0.f;
-	auto per_capi = capis > 0.f ? capis_share / capis : 0.f;
-	auto per_person = total > 0.f ? other_share / total : 0.f;
-
-	if(artisan_def == ptid) {
-		return state.inflation * size * (per_artisan + per_person);
-	} else if(clerks_def == ptid) {
-		return state.inflation * size * (per_clerk + per_person);
-	} else if(capis_def == ptid) {
-		return state.inflation * size * (per_capi + per_person);
-	}
-
-	return state.inflation * size * per_person;
+	return size / total * trade_dividents;
 }
 
+/*
+Currently ignores income from national trade.
+*/
 float estimate_trade_income(sys::state const& state, dcon::pop_id pop) {
 	auto provs = state.world.pop_get_province_from_pop_location(pop);
 	auto states = state.world.province_get_state_membership(provs);
 	auto markets = state.world.state_instance_get_market_from_local_market(states);
 
-	return estimate_trade_income(
+	return estimate_local_trade_income(
 		state,
+		provs,
 		markets,
 		state.world.pop_get_poptype(pop),
 		state.world.pop_get_size(pop)
@@ -801,12 +780,21 @@ void update_income_non_labor(sys::state& state) {
 			Local
 
 	2) Trade income:
-		Eligible pops:
-			For now EVERYONE (because otherwise cash would be accumulated in a random island without eligible pops)
-			Later it would be nice to include "important" pops in the national capital
-		Eligible scopes:
-			(TODO) Nation
-			Local
+		Group 1
+			Note:
+				Represents local people who benefit from trade
+			Eligible pops:
+				For now EVERYONE (because otherwise cash would be accumulated in a random island without eligible pops)
+				Later it would be nice to include "important" pops in the national capital
+			Eligible scopes:
+				Local
+		Group 2 (weight: x100)
+			Note:
+				Represents national elites which conduct trade
+			Eligible pops:
+				Capitalists
+			Eligible scopes:
+				Nation
 
 	3) RGO income:
 		Eligible pops:
@@ -834,9 +822,10 @@ void update_income_non_labor(sys::state& state) {
 	static ve::vectorizable_buffer<float, dcon::market_id> market_rgo_money(uint32_t(1));
 	static ve::vectorizable_buffer<float, dcon::market_id> market_factory_money(uint32_t(1));
 
-	static ve::vectorizable_buffer<float, dcon::market_id> nation_trade_tokens(uint32_t(1));
-	static ve::vectorizable_buffer<float, dcon::market_id> nation_rgo_tokens(uint32_t(1));
-	static ve::vectorizable_buffer<float, dcon::market_id> nation_factory_tokens(uint32_t(1));
+	static ve::vectorizable_buffer<float, dcon::nation_id> nation_trade_tokens(uint32_t(1));
+	static ve::vectorizable_buffer<float, dcon::nation_id> nation_trade_money(uint32_t(1));
+	static ve::vectorizable_buffer<float, dcon::nation_id> nation_rgo_tokens(uint32_t(1));
+	static ve::vectorizable_buffer<float, dcon::nation_id> nation_factory_tokens(uint32_t(1));
 	{
 		static uint32_t old_count = 1;
 		auto new_count = state.world.market_size();
@@ -850,16 +839,28 @@ void update_income_non_labor(sys::state& state) {
 			market_rgo_money = state.world.market_make_vectorizable_float_buffer();
 			market_factory_money = state.world.market_make_vectorizable_float_buffer();
 
-			nation_trade_tokens = state.world.market_make_vectorizable_float_buffer();
-			nation_rgo_tokens = state.world.market_make_vectorizable_float_buffer();
-			nation_factory_tokens = state.world.market_make_vectorizable_float_buffer();
 			old_count = new_count;
+		}
+
+		static uint32_t old_count_nation = 1;
+		auto new_count_nation = state.world.nation_size();
+
+		if(new_count_nation > old_count_nation) {
+			nation_trade_tokens = state.world.nation_make_vectorizable_float_buffer();
+			nation_trade_money = state.world.nation_make_vectorizable_float_buffer();
+			nation_rgo_tokens = state.world.nation_make_vectorizable_float_buffer();
+			nation_factory_tokens = state.world.nation_make_vectorizable_float_buffer();
+			old_count_nation = new_count_nation;
 		}
 	}
 
 	/*
 	Clear tokens count
 	*/
+
+
+	auto const capis_def = state.culture_definitions.capitalists;
+	auto capis_key = demographics::to_key(state, capis_def);
 
 	state.world.execute_serial_over_market([&](auto mid_vector){
 		market_rent_tokens.set(mid_vector, 0.f);
@@ -870,6 +871,11 @@ void update_income_non_labor(sys::state& state) {
 		market_rent_money.set(mid_vector, 0.f);
 		market_rgo_money.set(mid_vector, 0.f);
 		market_factory_money.set(mid_vector, 0.f);
+	});
+
+	state.world.execute_serial_over_nation([&](auto nation_vector){
+		nation_trade_money.set(nation_vector, 0.f);
+		nation_trade_tokens.set(nation_vector, state.world.nation_get_demographics(nation_vector, capis_key) * national_elite_trade_weight_multiplier);
 	});
 
 	/*
@@ -885,15 +891,10 @@ void update_income_non_labor(sys::state& state) {
 
 	auto const artisan_def = state.culture_definitions.artisans;
 	auto artisan_key = demographics::to_key(state, artisan_def);
-	//float artisan_trade_weight = 1.f / 250.f;
 
 	auto const clerks_def = state.culture_definitions.secondary_factory_worker;
 	auto clerks_key = demographics::to_key(state, clerks_def);
-	//float clerks_trade_weight = 1.f / 25.f;
 
-	auto const capis_def = state.culture_definitions.capitalists;
-	auto capis_key = demographics::to_key(state, capis_def);
-	//float capis_trade_weight = 1.f;
 
 	auto const aristo_def = state.culture_definitions.aristocrat;
 	auto aristo_key = demographics::to_key(state, aristo_def);
@@ -951,9 +952,14 @@ void update_income_non_labor(sys::state& state) {
 		auto artisans = state.world.province_get_demographics(pid, artisan_key);
 		auto clerks = state.world.province_get_demographics(pid, clerks_key);
 		auto capis = state.world.province_get_demographics(pid, capis_key);
+		auto nation = state.world.province_get_nation_from_province_control(pid);
+		auto national_trade_elites = state.world.nation_get_demographics(nation, capis_key);
 		auto aristo = state.world.province_get_demographics(pid, aristo_key);
 		auto bur = state.world.province_get_demographics(pid, bur_key);
 		auto total_pop = state.world.province_get_demographics(pid, demographics::total);
+
+		auto total_state_pops = state.world.state_instance_get_demographics(sid, demographics::total);
+		auto local_province_weight = total_pop / (total_state_pops + 1.f);
 
 		auto rgo_workers = ve::fp_vector{ 0.f };
 		state.world.for_each_pop_type([&](dcon::pop_type_id ptid) {
@@ -971,7 +977,7 @@ void update_income_non_labor(sys::state& state) {
 
 		{
 			auto current = market_trade_tokens.get(mid);
-			market_trade_tokens.set(mid, current + total_pop);
+			market_trade_tokens.set(mid, current + total_pop + local_province_weight * nation_trade_tokens.get(nation));
 		}
 
 		{
@@ -1012,13 +1018,32 @@ void update_income_non_labor(sys::state& state) {
 
 
 	/*
-
-	Calculate tokens for nation
-	province::for_each_nation_province_parallel_over_nation(state, [&](dcon::nation_id nid, dcon::province_id pid) {
-		
-	});
-
+	Calculate money pool for nation
 	*/
+
+	province::for_each_nation_controlled_province_parallel_over_nation(state, [&](dcon::nation_id nation, dcon::province_id province) {
+		auto states = state.world.province_get_state_membership(province);
+		auto market = state.world.state_instance_get_market_from_local_market(states);
+		auto valid_market = market != dcon::market_id{ };
+		if(
+			!valid_market
+			|| state.world.market_get_stockpile(market, economy::money) <= 0.f
+		) {
+			return;
+		}
+		auto local_population_province = state.world.province_get_demographics(province, demographics::total);
+		auto local_population_market = state.world.state_instance_get_demographics(states, demographics::total);
+		auto local_province_weight = local_population_province / (local_population_market + 1.f);
+		auto national_elites_weight = nation_trade_tokens.get(nation);
+		auto local_weight = market_trade_tokens.get(market);
+
+		auto total_money = state.world.market_get_stockpile(market, economy::money);
+		auto validated_money =local_weight > min_registered_token_size ? total_money : 0.f;
+
+		auto current = nation_trade_money.get(nation);
+		auto to_add = validated_money * local_province_weight * national_elites_weight / (local_weight + 1.f);
+		nation_trade_money.set(nation, current + to_add);
+	});
 
 	/*
 
@@ -1033,6 +1058,7 @@ void update_income_non_labor(sys::state& state) {
 		auto size = state.world.pop_get_size(pop_vector);
 
 		auto province = state.world.pop_get_province_from_pop_location(pop_vector);
+		auto nation = state.world.province_get_nation_from_province_ownership(province);
 		auto capis_share = state.world.province_get_capitalists_share(province);
 		auto aristo_share = state.world.province_get_landowners_share(province);
 		auto zone = state.world.province_get_state_membership(province);
@@ -1042,12 +1068,21 @@ void update_income_non_labor(sys::state& state) {
 
 		auto valid_market = market != dcon::market_id{ };
 
+#ifndef NDEBUG
+		ve::fp_vector from_rgo = 0.f;
+		ve::fp_vector from_rent = 0.f;
+		ve::fp_vector from_market = 0.f;
+		ve::fp_vector from_market_national = 0.f;
+		ve::fp_vector from_factories = 0.f;
+#endif // !NDEBUG
+
 		{
 			auto candidates = ve::select(valid_market, market_rent_tokens.get(market), 0.f);
 			auto total_money = ve::select(valid_market, market_rent_money.get(market), 0.f);
 			auto income = ve::select((pop_type == aristo_def || pop_type == capis_def) && candidates > min_registered_token_size, total_money / candidates * size, 0.f);
 #ifndef NDEBUG
 			ve::apply([](float v) { assert(std::isfinite(v) && v >= 0); }, income);
+			from_rent = income * expected_share;
 #endif // !NDEBUG
 			total_income = total_income + income;
 		}
@@ -1058,6 +1093,19 @@ void update_income_non_labor(sys::state& state) {
 			auto income = ve::select(candidates > min_registered_token_size, total_money / candidates * size, 0.f);
 #ifndef NDEBUG
 			ve::apply([](float v) { assert(std::isfinite(v) && v >= 0); }, income);
+			from_market = income * expected_share;
+#endif // !NDEBUG
+
+			total_income = total_income + income;
+		}
+
+		{
+			auto candidates = ve::select(valid_market, nation_trade_tokens.get(nation), 0.f);
+			auto total_money = ve::select(valid_market, nation_trade_money.get(nation), 0.f);
+			auto income = ve::select((pop_type == capis_def) && candidates > min_registered_token_size && size > 0.f, total_money / candidates * size * national_elite_trade_weight_multiplier, 0.f);
+#ifndef NDEBUG
+			ve::apply([](float v) { assert(std::isfinite(v) && v >= 0); }, income);
+			from_market_national = income * expected_share;
 #endif // !NDEBUG
 
 			total_income = total_income + income;
@@ -1073,6 +1121,7 @@ void update_income_non_labor(sys::state& state) {
 			auto income = ve::select(candidates > min_registered_token_size, total_money / candidates * size * weight, 0.f);
 #ifndef NDEBUG
 			ve::apply([](float v) { assert(std::isfinite(v) && v >= 0); }, income);
+			from_rgo = income * expected_share;
 #endif // !NDEBUG
 
 			total_income = total_income + income;
@@ -1084,6 +1133,7 @@ void update_income_non_labor(sys::state& state) {
 			auto income = ve::select((pop_type == capis_def) && candidates > min_registered_token_size && size > 0.f, total_money / candidates * size, 0.f);
 #ifndef NDEBUG
 			ve::apply([](float v) { assert(std::isfinite(v) && v >= 0); }, income);
+			from_factories = income * expected_share;
 #endif // !NDEBUG
 			total_income = total_income + income;
 		}
@@ -1091,6 +1141,7 @@ void update_income_non_labor(sys::state& state) {
 		auto initial_savings = state.world.pop_get_savings(pop_vector);
 #ifndef NDEBUG
 		ve::apply([](float v) { assert(std::isfinite(v) && v >= 0); }, total_income);
+		auto total = from_rgo + from_rent + from_market + from_factories + from_market_national;
 #endif // !NDEBUG
 		state.world.pop_set_savings(pop_vector, initial_savings + total_income * expected_share);
 	});
@@ -1345,7 +1396,7 @@ void update_income_national_subsidy(sys::state& state){
 
 		ve::fp_vector base_income = pop_of_type * price_properties::labor::min * 0.05f;
 
-		state.world.pop_set_savings(ids, state.world.pop_get_savings(ids) + state.inflation * (base_income + (acc_u + acc_m)));
+		state.world.pop_set_savings(ids, state.inflation* state.world.pop_get_savings(ids) + (base_income + (acc_u + acc_m)));
 #ifndef NDEBUG
 		ve::apply([](float v) { assert(std::isfinite(v) && v >= 0); }, acc_m);
 		ve::apply([](float v) { assert(std::isfinite(v) && v >= 0); }, acc_u);
@@ -1477,122 +1528,122 @@ float market_cut(sys::state const& state, dcon::market_id market, float no_educa
 }
 
 void update_income_wages(sys::state& state){
-	// TODO: rewrite in vectorized way
 
-	for(auto n : state.world.in_nation) {
-		for(auto poid : state.world.nation_get_province_ownership(n)) {
-			auto pid = poid.get_province();
-			auto sid = pid.get_state_membership();
-			auto market = sid.get_market_from_local_market();
+	static auto buffer_rgo_workers_wage = state.world.province_make_vectorizable_float_buffer();
+	static auto buffer_primary_workers_wage = state.world.province_make_vectorizable_float_buffer();
+	static auto buffer_high_not_accepted_workers_wage = state.world.province_make_vectorizable_float_buffer();
+	static auto buffer_high_accepted_workers_wage = state.world.province_make_vectorizable_float_buffer();
 
-			float no_education_wage =
-				state.world.province_get_labor_price(pid, labor::no_education)
-				* state.world.province_get_labor_supply_sold(pid, labor::no_education);
-			float basic_education_wage =
-				state.world.province_get_labor_price(pid, labor::basic_education)
-				* state.world.province_get_labor_supply_sold(pid, labor::basic_education); // craftsmen
-			float high_education_wage =
-				state.world.province_get_labor_price(pid, labor::high_education)
-				* state.world.province_get_labor_supply_sold(pid, labor::high_education); // clerks, clergy and bureaucrats
-			float guild_education_wage =
-				state.world.province_get_labor_price(pid, labor::guild_education)
-				* state.world.province_get_labor_supply_sold(pid, labor::guild_education); // artisans
-			float high_education_and_accepted_wage =
-				state.world.province_get_labor_price(pid, labor::high_education_and_accepted)
-				* state.world.province_get_labor_supply_sold(pid, labor::high_education_and_accepted); // clerks, clergy and bureaucrats of accepted culture
+	province::ve_parallel_for_each_land_province(state, [&](auto pid) {
+		auto no_education_wage =
+			state.world.province_get_labor_price(pid, labor::no_education)
+			* state.world.province_get_labor_supply_sold(pid, labor::no_education);
+		auto basic_education_wage =
+			state.world.province_get_labor_price(pid, labor::basic_education)
+			* state.world.province_get_labor_supply_sold(pid, labor::basic_education); // craftsmen
+		auto high_education_wage =
+			state.world.province_get_labor_price(pid, labor::high_education)
+			* state.world.province_get_labor_supply_sold(pid, labor::high_education); // clerks, clergy and bureaucrats
+		auto guild_education_wage =
+			state.world.province_get_labor_price(pid, labor::guild_education)
+			* state.world.province_get_labor_supply_sold(pid, labor::guild_education); // artisans
+		auto high_education_and_accepted_wage =
+			state.world.province_get_labor_price(pid, labor::high_education_and_accepted)
+			* state.world.province_get_labor_supply_sold(pid, labor::high_education_and_accepted); // clerks, clergy and bureaucrats of accepted culture
 
+		auto rgo_workers_wage =
+			state.world.province_get_pop_labor_distribution(pid, pop_labor::rgo_worker_no_education)
+			* no_education_wage;
 
-			float rgo_workers_wage =
-				state.world.province_get_pop_labor_distribution(pid, pop_labor::rgo_worker_no_education)
-				* no_education_wage;
+		buffer_rgo_workers_wage.set(pid, rgo_workers_wage);
 
-			float primary_workers_wage =
-				state.world.province_get_pop_labor_distribution(pid, pop_labor::primary_no_education)
-				* no_education_wage
-				+
-				state.world.province_get_pop_labor_distribution(pid, pop_labor::primary_basic_education)
-				* basic_education_wage;
+		auto primary_workers_wage =
+			state.world.province_get_pop_labor_distribution(pid, pop_labor::primary_no_education)
+			* no_education_wage
+			+
+			state.world.province_get_pop_labor_distribution(pid, pop_labor::primary_basic_education)
+			* basic_education_wage;
 
-			float high_not_accepted_workers_wage =
-				state.world.province_get_pop_labor_distribution(pid, pop_labor::high_education_not_accepted_no_education)
-				* no_education_wage
-				+
-				state.world.province_get_pop_labor_distribution(pid, pop_labor::high_education_not_accepted_basic_education)
-				* basic_education_wage
-				+
-				state.world.province_get_pop_labor_distribution(pid, pop_labor::high_education_not_accepted_high_education)
-				* high_education_wage;
+		buffer_primary_workers_wage.set(pid, primary_workers_wage);
 
-			float high_accepted_workers_wage =
-				state.world.province_get_pop_labor_distribution(pid, pop_labor::high_education_accepted_no_education)
-				* no_education_wage
-				+
-				state.world.province_get_pop_labor_distribution(pid, pop_labor::high_education_accepted_basic_education)
-				* basic_education_wage
-				+
-				state.world.province_get_pop_labor_distribution(pid, pop_labor::high_education_accepted_high_education)
-				* high_education_wage
-				+
-				state.world.province_get_pop_labor_distribution(pid, pop_labor::high_education_accepted_high_education_accepted)
-				* high_education_and_accepted_wage;
+		auto high_not_accepted_workers_wage =
+			state.world.province_get_pop_labor_distribution(pid, pop_labor::high_education_not_accepted_no_education)
+			* no_education_wage
+			+
+			state.world.province_get_pop_labor_distribution(pid, pop_labor::high_education_not_accepted_basic_education)
+			* basic_education_wage
+			+
+			state.world.province_get_pop_labor_distribution(pid, pop_labor::high_education_not_accepted_high_education)
+			* high_education_wage;
 
-			float num_aristocrat = state.world.province_get_demographics(
-				pid,
-				demographics::to_key(state, state.culture_definitions.aristocrat)
-			);
+		buffer_high_not_accepted_workers_wage.set(pid, high_not_accepted_workers_wage);
 
-			// RGOS and slaves cashback
+		auto high_accepted_workers_wage =
+			state.world.province_get_pop_labor_distribution(pid, pop_labor::high_education_accepted_no_education)
+			* no_education_wage
+			+
+			state.world.province_get_pop_labor_distribution(pid, pop_labor::high_education_accepted_basic_education)
+			* basic_education_wage
+			+
+			state.world.province_get_pop_labor_distribution(pid, pop_labor::high_education_accepted_high_education)
+			* high_education_wage
+			+
+			state.world.province_get_pop_labor_distribution(pid, pop_labor::high_education_accepted_high_education_accepted)
+			* high_education_and_accepted_wage;
+
+		buffer_high_accepted_workers_wage.set(pid, high_accepted_workers_wage);
+
+		// RGOS and slaves cashback
+		auto profit_from_slaves = ve::apply([&](dcon::province_id province, float earning_per_slave) {
 			auto slaves_profit = 0.f;
 			float payment_per_aristocrat = 0.f;
-			for(auto pl : state.world.province_get_pop_location(pid)) {
+			for(auto pl : state.world.province_get_pop_location(province)) {
 				if(pl.get_pop().get_poptype() == state.culture_definitions.slaves) {
-					slaves_profit += pl.get_pop().get_size() * rgo_workers_wage;
+					slaves_profit += pl.get_pop().get_size() * earning_per_slave;
 				}
 			}
-			if(slaves_profit >= 0.f && num_aristocrat > 0.f) {
-				payment_per_aristocrat += slaves_profit / num_aristocrat;
-			}
+			return slaves_profit;
+		}, pid, rgo_workers_wage);
+		auto old_rgo_cash = state.world.province_get_rgo_bank(pid);
+		state.world.province_set_rgo_bank(pid, old_rgo_cash + profit_from_slaves);
+	});
 
-			for(auto pl : state.world.province_get_pop_location(pid)) {
-				auto pop = pl.get_pop();
-				auto savings = pop.get_savings();
-				auto poptype = pop.get_poptype();
-				auto size = pop.get_size();
+	state.world.execute_parallel_over_pop([&](auto pops) {
+		auto savings = state.world.pop_get_savings(pops);
+		auto pop_type = state.world.pop_get_poptype(pops);
+		auto size = state.world.pop_get_size(pops);
+		auto culture = state.world.pop_get_culture(pops);
+		auto accepted = state.world.pop_get_is_primary_or_accepted_culture(pops);
+		auto province = state.world.pop_get_province_from_pop_location(pops);
 
-				auto accepted = state.world.nation_get_accepted_cultures(n, pop.get_culture())
-					|| state.world.nation_get_primary_culture(n) == pop.get_culture();
+		auto high_education =
+			(pop_type == state.culture_definitions.secondary_factory_worker)
+			|| (pop_type == state.culture_definitions.bureaucrat)
+			|| (pop_type == state.culture_definitions.clergy);
 
-				if(poptype.get_is_paid_rgo_worker()) {
-					pop.set_savings(pop.get_savings() + size * rgo_workers_wage);
-				} else if(state.culture_definitions.primary_factory_worker == poptype) {
-					pop.set_savings(pop.get_savings() + size * primary_workers_wage);
-				} else if(state.culture_definitions.secondary_factory_worker == pop.get_poptype()) {
-					if(accepted) {
-						pop.set_savings(pop.get_savings() + size * high_accepted_workers_wage);
-					} else {
-						pop.set_savings(pop.get_savings() + size * high_not_accepted_workers_wage);
-					}
-					assert(std::isfinite(pop.get_savings()) && pop.get_savings() >= 0);
-				} else if(pop.get_poptype() == state.culture_definitions.bureaucrat) {
-					if(accepted) {
-						pop.set_savings(pop.get_savings() + size * high_accepted_workers_wage);
-					} else {
-						pop.set_savings(pop.get_savings() + size * high_not_accepted_workers_wage);
-					}
-				} else if(pop.get_poptype() == state.culture_definitions.clergy) {
-					if(accepted) {
-						pop.set_savings(pop.get_savings() + size * high_accepted_workers_wage);
-					} else {
-						pop.set_savings(pop.get_savings() + size * high_not_accepted_workers_wage);
-					}
-				} else if(state.culture_definitions.aristocrat == pop.get_poptype()) {
-					pop.set_savings(pop.get_savings() + size * payment_per_aristocrat);
-				}
-
-				assert(std::isfinite(pop.get_savings()) && pop.get_savings() >= 0);
-			}
-		}
-	}
+		auto wage_per_person = ve::select(
+			state.world.pop_type_get_is_paid_rgo_worker(pop_type),
+			buffer_rgo_workers_wage.get(province),
+			ve::select(
+				pop_type == state.culture_definitions.primary_factory_worker,
+				buffer_primary_workers_wage.get(province),
+				ve::select(
+					accepted && high_education,
+					buffer_high_accepted_workers_wage.get(province),
+					ve::select(
+						high_education,
+						buffer_high_not_accepted_workers_wage.get(province),
+						ve::fp_vector{0.f}
+					)
+				)
+			)
+		);
+		auto wage = size * wage_per_person;
+		state.world.pop_set_savings(pops, wage + savings);
+#ifndef NDEBUG
+		ve::apply([](float v) { assert(std::isfinite(v) && v >= 0); }, wage + savings);
+#endif // !NDEBUG
+	});
 }
 
 float estimate_next_day_raw_income(
@@ -1644,7 +1695,7 @@ float estimate_trade_spending(
 	sys::state const& state,
 	dcon::pop_id pop
 ) {
-	auto next_day = estimate_next_day_budget_before_taxes(state, pop);
+	auto next_day = state.world.pop_get_savings(pop);
 	return market_tax * next_day;
 }
 

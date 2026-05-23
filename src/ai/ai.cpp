@@ -379,7 +379,7 @@ void remove_ai_data(sys::state& state, dcon::nation_id n) {
 	}
 }
 
-bool unit_on_ai_control(sys::state& state, dcon::army_id a) {
+bool unit_on_ai_control(const sys::state& state, dcon::army_id a) {
 	auto fat_id = dcon::fatten(state.world, a);
 	if(fat_id.get_controller_from_army_control().get_overlord_commanding_units()) {
 		return false;
@@ -388,7 +388,7 @@ bool unit_on_ai_control(sys::state& state, dcon::army_id a) {
 		? fat_id.get_is_ai_controlled()
 		: true;
 }
-bool unit_on_ai_control(sys::state& state, dcon::navy_id a) {
+bool unit_on_ai_control(const sys::state& state, dcon::navy_id a) {
 	auto fat_id = dcon::fatten(state.world, a);
 	if(fat_id.get_controller_from_navy_control().get_overlord_commanding_units()) {
 		return false;
@@ -421,7 +421,7 @@ void update_ships(sys::state& state) {
 	to_delete.clear();
 
 	for(auto n : state.world.in_nation) {
-		if(n.get_is_player_controlled())
+		if(n.get_is_player_controlled() || !will_upgrade_ships(state, n))
 			continue;
 		// Landlocked nation shouldn't keep fleet
 		if(n.get_is_at_war() == false && nations::is_landlocked(state, n)) {
@@ -436,29 +436,27 @@ void update_ships(sys::state& state) {
 			dcon::unit_type_id best_big = military::get_best_big_ship(state, n);
 			
 			for(auto v : n.get_navy_control()) {
-				if(!v.get_navy().get_battle_from_navy_battle_participation() && unit_on_ai_control(state, v.get_navy())) {
-					auto trange = v.get_navy().get_army_transport();
-					bool transporting = trange.begin() != trange.end();
 
-					for(auto shp : v.get_navy().get_navy_membership()) {
-						auto type = shp.get_ship().get_type();
 
-						// Upgrade ships, don't delete them
-						if(state.military_definitions.unit_base_definitions[type].type == military::unit_type::transport && !transporting) {
-							if(best_transport && type != best_transport && will_upgrade_ships(state, n)) {
-								military::upgrade_ship(state, shp.get_ship().id, best_transport);
-							}
-						} else if(state.military_definitions.unit_base_definitions[type].type == military::unit_type::light_ship) {
-							if(best_light && type != best_light && will_upgrade_ships(state, n)) {
-								military::upgrade_ship(state, shp.get_ship().id, best_light);
-							}
-						} else if(state.military_definitions.unit_base_definitions[type].type == military::unit_type::big_ship) {
-							if(best_big && type != best_big && will_upgrade_ships(state, n)) {
-								military::upgrade_ship(state, shp.get_ship().id, best_big);
-							}
+				for(auto shp : v.get_navy().get_navy_membership()) {
+					auto type = shp.get_ship().get_type();
+
+					// Upgrade ships, don't delete them
+					if(state.military_definitions.unit_base_definitions[type].type == military::unit_type::transport) {
+						if(military::can_change_naval_unit_type<command::actor::ai>(state, n, shp.get_ship(), best_transport)) {
+							military::upgrade_ship(state, shp.get_ship().id, best_transport);
+						}
+					} else if(state.military_definitions.unit_base_definitions[type].type == military::unit_type::light_ship) {
+						if(military::can_change_naval_unit_type<command::actor::ai>(state, n, shp.get_ship(), best_light)) {
+							military::upgrade_ship(state, shp.get_ship().id, best_light);
+						}
+					} else if(state.military_definitions.unit_base_definitions[type].type == military::unit_type::big_ship) {
+						if(military::can_change_naval_unit_type<command::actor::ai>(state, n, shp.get_ship(), best_big)) {
+							military::upgrade_ship(state, shp.get_ship().id, best_big);
 						}
 					}
 				}
+				
 			}
 		}
 	}
@@ -824,9 +822,10 @@ void pickup_idle_ships(sys::state& state) {
 					send_fleet_home(state, n);
 				} else {
 					auto transported_dest = (*(transporting_range.begin())).get_army().get_ai_province();
+					if(!transported_dest) {
+						send_fleet_home(state, n);
+					} else if(transported_dest.get_is_coast()) { // move to closest port or closest off_shore
 
-					// move to closest port or closest off_shore
-					if(transported_dest.get_is_coast()) {
 						auto target_prov = transported_dest.id;
 						if(!province::has_naval_access_to_province(state, owner, target_prov)) {
 							target_prov = state.world.province_get_port_to(target_prov);
@@ -839,7 +838,6 @@ void pickup_idle_ships(sys::state& state) {
 							military::stop_navy_movement(state, n);
 							send_fleet_home(state, n);
 						}
-
 					} else if(auto path = province::make_path_to_nearest_coast(state, owner, transported_dest); path.empty()) {
 						send_fleet_home(state, n);
 					} else {
@@ -1997,21 +1995,21 @@ void update_land_constructions(sys::state& state) {
 			art_def = state.military_definitions.unit_base_definitions[art_type];
 		bool art_req_pc = art_def.primary_culture;
 		auto cav_type = military::get_best_cavalry(state, n);
+		if(will_upgrade_regiments(state, n)) {
+			for(auto ar : state.world.nation_get_army_control(n)) {
+				for(auto r : ar.get_army().get_army_membership()) {
+					auto type = r.get_regiment().get_type();
+					auto etype = state.military_definitions.unit_base_definitions[type].type;
+					if(etype == military::unit_type::support || etype == military::unit_type::special) {
+						++num_support;
+					} else {
+						++num_frontline;
+					}
 
-		for(auto ar : state.world.nation_get_army_control(n)) {
-			for(auto r : ar.get_army().get_army_membership()) {
-				auto type = r.get_regiment().get_type();
-				auto etype = state.military_definitions.unit_base_definitions[type].type;
-				if(etype == military::unit_type::support || etype == military::unit_type::special) {
-					++num_support;
-				} else {
-					++num_frontline;
-				}
+					/* AI units upgrade
+					* AI upgrades units only if less than 10% of the army is currently under 80% strength (requiring supplies for reinforcement)
+					*/
 
-				/* AI units upgrade
-				* AI upgrades units only if less than 10% of the army is currently under 80% strength (requiring supplies for reinforcement)
-				*/
-				if(will_upgrade_regiments(state, n)) {
 					auto primary_culture = r.get_regiment().get_pop_from_regiment_source().get_culture() == n.get_primary_culture();
 
 					// AI can upgrade into primary-culture-specific units such as guards
@@ -2020,33 +2018,63 @@ void update_land_constructions(sys::state& state) {
 						auto pc_adj_art_type = military::get_best_artillery(state, n, primary_culture);
 						auto pc_adj_cav_type = military::get_best_cavalry(state, n, primary_culture);
 
-						if(etype == military::unit_type::infantry && pc_adj_inf_type && military::is_infantry_better(state, n, type, pc_adj_inf_type)) {
-							r.get_regiment().set_type(pc_adj_inf_type);
-							r.get_regiment().set_strength(0.01f);
-						} else if(etype == military::unit_type::support && pc_adj_art_type && military::is_artillery_better(state, n, type, pc_adj_art_type)) {
-							r.get_regiment().set_type(pc_adj_art_type);
-							r.get_regiment().set_strength(0.01f);
-						} else if(etype == military::unit_type::cavalry && pc_adj_cav_type && military::is_cavalry_better(state, n, type, pc_adj_cav_type)) {
-							r.get_regiment().set_type(pc_adj_cav_type);
-							r.get_regiment().set_strength(0.01f);
+						switch(etype) {
+						case military::unit_type::infantry:
+						{
+							if(military::can_change_land_unit_type<command::actor::ai>(state, n, r.get_regiment(), pc_adj_inf_type) && military::is_infantry_better(state, n, type, pc_adj_inf_type)) {
+								military::upgrade_regiment(state, r.get_regiment(), pc_adj_inf_type);
+							}
+							break;
+						}
+						case military::unit_type::support:
+						{
+							if(military::can_change_land_unit_type<command::actor::ai>(state, n, r.get_regiment(), pc_adj_art_type) && military::is_artillery_better(state, n, type, pc_adj_art_type)) {
+								military::upgrade_regiment(state, r.get_regiment(), pc_adj_art_type);
+							}
+							break;
+						}
+						// cavalry
+						default:
+						{
+							if(military::can_change_land_unit_type<command::actor::ai>(state, n, r.get_regiment(), pc_adj_cav_type) && military::is_cavalry_better(state, n, type, pc_adj_cav_type)) {
+								military::upgrade_regiment(state, r.get_regiment(), pc_adj_cav_type);
+							}
+							break;
+						}
 						}
 					}
 					// Keep non-primary-culture units as nation-wide best units
 					else {
-						if(etype == military::unit_type::infantry && inf_type && military::is_infantry_better(state, n, type, inf_type)) {
-							r.get_regiment().set_type(inf_type);
-							r.get_regiment().set_strength(0.01f);
-						} else if(etype == military::unit_type::support && art_type && military::is_artillery_better(state, n, type, art_type)) {
-							r.get_regiment().set_type(art_type);
-							r.get_regiment().set_strength(0.01f);
-						} else if(etype == military::unit_type::cavalry && cav_type && military::is_cavalry_better(state, n, type, cav_type)) {
-							r.get_regiment().set_type(cav_type);
-							r.get_regiment().set_strength(0.01f);
+						switch(etype) {
+						case military::unit_type::infantry:
+						{
+							if(military::can_change_land_unit_type<command::actor::ai>(state, n, r.get_regiment(), inf_type) && military::is_infantry_better(state, n, type, inf_type)) {
+								military::upgrade_regiment(state, r.get_regiment(), inf_type);
+							}
+							break;
+						}
+						case military::unit_type::support:
+						{
+							if(military::can_change_land_unit_type<command::actor::ai>(state, n, r.get_regiment(), art_type) && military::is_artillery_better(state, n, type, art_type)) {
+								military::upgrade_regiment(state, r.get_regiment(), art_type);
+							}
+							break;
+						}
+						// cavalry
+						default:
+						{
+							if(military::can_change_land_unit_type<command::actor::ai>(state, n, r.get_regiment(), cav_type) && military::is_cavalry_better(state, n, type, cav_type)) {
+								military::upgrade_regiment(state, r.get_regiment(), cav_type);
+							}
+							break;
+						}
 						}
 					}
+
 				}
 			}
 		}
+		
 
 		const auto decide_type = [&](bool pc) {
 			if(art_type && (!art_req_pc || (art_req_pc && pc))) {
@@ -2081,7 +2109,7 @@ void update_land_constructions(sys::state& state) {
 							auto num_to_make_local = amount - ((regs.end() - regs.begin()) + (building.end() - building.begin()));
 							while(num_to_make_local > 0 && num_to_build_nation > 0) {
 								auto t = decide_type(pop.get_pop().get_is_primary_or_accepted_culture());
-								assert(command::can_start_land_unit_construction(state, n, pop.get_province(), pop.get_pop().get_culture(), t));
+								assert(command::can_start_land_unit_construction<true>(state, n, pop.get_province(), pop.get_pop().get_culture(), t));
 								command::execute_start_land_unit_construction(state, n, pop.get_province(), pop.get_pop().get_culture(), t);
 								--num_to_make_local;
 								--num_to_build_nation;
@@ -2103,7 +2131,7 @@ void update_land_constructions(sys::state& state) {
 							auto num_to_make_local = amount - ((regs.end() - regs.begin()) + (building.end() - building.begin()));
 							while(num_to_make_local > 0 && num_to_build_nation > 0) {
 								auto t = decide_type(pop.get_pop().get_is_primary_or_accepted_culture());
-								assert(command::can_start_land_unit_construction(state, n, pop.get_province(), pop.get_pop().get_culture(), t));
+								assert(command::can_start_land_unit_construction<true>(state, n, pop.get_province(), pop.get_pop().get_culture(), t));
 								command::execute_start_land_unit_construction(state, n, pop.get_province(), pop.get_pop().get_culture(), t);
 								--num_to_make_local;
 								--num_to_build_nation;
@@ -2125,7 +2153,7 @@ void update_land_constructions(sys::state& state) {
 							auto num_to_make_local = amount - ((regs.end() - regs.begin()) + (building.end() - building.begin()));
 							while(num_to_make_local > 0 && num_to_build_nation > 0) {
 								auto t = decide_type(pop.get_pop().get_is_primary_or_accepted_culture());
-								assert(command::can_start_land_unit_construction(state, n, pop.get_province(), pop.get_pop().get_culture(), t));
+								assert(command::can_start_land_unit_construction<true>(state, n, pop.get_province(), pop.get_pop().get_culture(), t));
 								command::execute_start_land_unit_construction(state, n, pop.get_province(), pop.get_pop().get_culture(), t);
 								--num_to_make_local;
 								--num_to_build_nation;

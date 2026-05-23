@@ -657,7 +657,7 @@ public:
 			disabled = !command::can_add_war_goal(state, state.local_player_nation, w, n, c, s, ni,
 					state.world.national_identity_get_nation_from_identity_holder(ni));
 		} else {
-			disabled = !command::can_declare_war(state, state.local_player_nation, n, c, s, ni,
+			disabled = !command::can_declare_war<false>(state, state.local_player_nation, n, c, s, ni,
 					state.world.national_identity_get_nation_from_identity_holder(ni));
 		}
 	}
@@ -698,7 +698,7 @@ public:
 		dcon::national_identity_id ni = retrieve<dcon::national_identity_id>(state, parent);
 		dcon::cb_type_id c = retrieve<dcon::cb_type_id>(state, parent);
 
-		if(command::can_declare_war(state, state.local_player_nation, n, c, s, ni,
+		if(command::can_declare_war<false>(state, state.local_player_nation, n, c, s, ni,
 			state.world.national_identity_get_nation_from_identity_holder(ni))) {
 			auto box = text::open_layout_box(contents, 0);
 			text::localised_format_box(state, contents, box, std::string_view("valid_wartarget"));
@@ -754,7 +754,7 @@ public:
 				}
 			}
 		}
-		text::add_line_with_condition(state, contents, "alice_wg_condition_5", military::cb_instance_conditions_satisfied(state, state.local_player_nation, n, c, s, ni, state.world.national_identity_get_nation_from_identity_holder(ni)));
+		text::add_line_with_condition(state, contents, "alice_wg_condition_5", military::cb_instance_conditions_satisfied<false>(state, state.local_player_nation, n, c, s, ni, state.world.national_identity_get_nation_from_identity_holder(ni)));
 
 		if(auto can_use = state.world.cb_type_get_can_use(c); can_use) {
 			text::add_line(state, contents, "alice_wg_usage_trigger");
@@ -763,28 +763,31 @@ public:
 	}
 };
 
+struct partial_warscore_data {
+	int32_t warscore_cost = 0; // the total cost of all wargoals
+	int32_t wargoals_count = 0; // the amount of wargoals which would be added. May be more than 1 due to split states
+};
 
-int32_t calculate_partial_score(sys::state& state, dcon::nation_id target, dcon::cb_type_id id, dcon::state_definition_id state_def, dcon::national_identity_id second_nation) {
-	int32_t cost = -1;
+partial_warscore_data calculate_partial_score(sys::state& state, dcon::nation_id target, dcon::cb_type_id id, dcon::state_definition_id state_def, dcon::national_identity_id second_nation) {
+	partial_warscore_data cost{0, 0 };
 
 	auto war = military::find_war_between(state, state.local_player_nation, target);
 	if(!military::cb_requires_selection_of_a_state(state, id) && !military::cb_requires_selection_of_a_liberatable_tag(state, id) && !military::cb_requires_selection_of_a_valid_nation(state, id)) {
 
-		cost = military::peace_cost(state, military::find_war_between(state, state.local_player_nation, target), id, state.local_player_nation, target, dcon::nation_id{}, dcon::state_definition_id{}, dcon::national_identity_id{});
+		cost.warscore_cost = military::peace_cost(state, military::find_war_between(state, state.local_player_nation, target), id, state.local_player_nation, target, dcon::nation_id{}, dcon::state_definition_id{}, dcon::national_identity_id{});
+		cost.wargoals_count++;
 	} else if(military::cb_requires_selection_of_a_state(state, id)) {
 
 		if(state_def) {
 			if(military::cb_requires_selection_of_a_liberatable_tag(state, id)) {
 				if(!second_nation) {
-					return -1;
+					return partial_warscore_data{ 0, 0 };
 				}
 			} else if(military::cb_requires_selection_of_a_valid_nation(state, id)) {
 				if(!second_nation) {
-					return -1;
+					return partial_warscore_data{ 0, 0 };
 				}
 			}
-
-			cost = 0;
 
 			// for each state ...
 			if(war) {
@@ -794,11 +797,14 @@ int32_t calculate_partial_score(sys::state& state, dcon::nation_id target, dcon:
 						auto wr = military::get_role(state, war, si.get_nation_from_state_ownership());
 						if((is_attacker && wr == military::war_role::defender) || (!is_attacker && wr == military::war_role::attacker)) {
 							if(military::cb_requires_selection_of_a_liberatable_tag(state, id)) {
-								cost += military::peace_cost(state, war, id, state.local_player_nation, si.get_nation_from_state_ownership(), dcon::nation_id{}, state_def, second_nation);
+								cost.warscore_cost += military::peace_cost(state, war, id, state.local_player_nation, si.get_nation_from_state_ownership(), dcon::nation_id{}, state_def, second_nation);
+								cost.wargoals_count++;
 							} else if(military::cb_requires_selection_of_a_valid_nation(state, id)) {
-								cost += military::peace_cost(state, war, id, state.local_player_nation, si.get_nation_from_state_ownership(), state.world.national_identity_get_nation_from_identity_holder(second_nation), state_def, dcon::national_identity_id{});
+								cost.warscore_cost += military::peace_cost(state, war, id, state.local_player_nation, si.get_nation_from_state_ownership(), state.world.national_identity_get_nation_from_identity_holder(second_nation), state_def, dcon::national_identity_id{});
+								cost.wargoals_count++;
 							} else {
-								cost += military::peace_cost(state, war, id, state.local_player_nation, si.get_nation_from_state_ownership(), dcon::nation_id{}, state_def, dcon::national_identity_id{});
+								cost.warscore_cost += military::peace_cost(state, war, id, state.local_player_nation, si.get_nation_from_state_ownership(), dcon::nation_id{}, state_def, dcon::national_identity_id{});
+								cost.wargoals_count++;
 							}
 						}
 					}
@@ -810,11 +816,14 @@ int32_t calculate_partial_score(sys::state& state, dcon::nation_id target, dcon:
 						auto no = n.get_overlord_as_subject().get_ruler();
 						if(n == target || no == target) {
 							if(military::cb_requires_selection_of_a_liberatable_tag(state, id)) {
-								cost += military::peace_cost(state, dcon::war_id{}, id, state.local_player_nation, si.get_nation_from_state_ownership(), dcon::nation_id{}, state_def, second_nation);
+								cost.warscore_cost += military::peace_cost(state, dcon::war_id{}, id, state.local_player_nation, si.get_nation_from_state_ownership(), dcon::nation_id{}, state_def, second_nation);
+								cost.wargoals_count++;
 							} else if(military::cb_requires_selection_of_a_valid_nation(state, id)) {
-								cost += military::peace_cost(state, dcon::war_id{}, id, state.local_player_nation, si.get_nation_from_state_ownership(), state.world.national_identity_get_nation_from_identity_holder(second_nation), state_def, dcon::national_identity_id{});
+								cost.warscore_cost += military::peace_cost(state, dcon::war_id{}, id, state.local_player_nation, si.get_nation_from_state_ownership(), state.world.national_identity_get_nation_from_identity_holder(second_nation), state_def, dcon::national_identity_id{});
+								cost.wargoals_count++;
 							} else {
-								cost += military::peace_cost(state, dcon::war_id{}, id, state.local_player_nation, si.get_nation_from_state_ownership(), dcon::nation_id{}, state_def, dcon::national_identity_id{});
+								cost.warscore_cost += military::peace_cost(state, dcon::war_id{}, id, state.local_player_nation, si.get_nation_from_state_ownership(), dcon::nation_id{}, state_def, dcon::national_identity_id{});
+								cost.wargoals_count++;
 							}
 						}
 					}
@@ -823,11 +832,13 @@ int32_t calculate_partial_score(sys::state& state, dcon::nation_id target, dcon:
 		}
 	} else if(military::cb_requires_selection_of_a_liberatable_tag(state, id)) {
 		if(second_nation) {
-			cost = military::peace_cost(state, military::find_war_between(state, state.local_player_nation, target), id, state.local_player_nation, target, dcon::nation_id{}, dcon::state_definition_id{}, second_nation);
+			cost.warscore_cost = military::peace_cost(state, military::find_war_between(state, state.local_player_nation, target), id, state.local_player_nation, target, dcon::nation_id{}, dcon::state_definition_id{}, second_nation);
+			cost.wargoals_count++;
 		}
 	} else if(military::cb_requires_selection_of_a_valid_nation(state, id)) {
 		if(second_nation) {
-			cost = military::peace_cost(state, military::find_war_between(state, state.local_player_nation, target), id, state.local_player_nation, target, state.world.national_identity_get_nation_from_identity_holder(second_nation), dcon::state_definition_id{}, dcon::national_identity_id{});
+			cost.warscore_cost = military::peace_cost(state, military::find_war_between(state, state.local_player_nation, target), id, state.local_player_nation, target, state.world.national_identity_get_nation_from_identity_holder(second_nation), dcon::state_definition_id{}, dcon::national_identity_id{});
+			cost.wargoals_count++;
 		}
 	}
 	return cost;
@@ -857,8 +868,9 @@ public:
 			auto state_def = retrieve<dcon::state_definition_id>(state, parent);
 			auto second_nation = retrieve<dcon::national_identity_id>(state, parent);
 			auto cost = calculate_partial_score(state, target, id, state_def, second_nation);
-			if(cost != -1) {
-				text::add_line(state, contents, "add_wargoal_peace_cost", text::variable_type::cost, int64_t(cost));
+			if(cost.wargoals_count != 0) {
+				text::add_line(state, contents, "add_wargoal_peace_cost", text::variable_type::cost, int64_t(cost.warscore_cost));
+				text::add_line(state, contents, "add_wargoal_wargoal_count", text::variable_type::count, int64_t(cost.wargoals_count));
 			}
 		}
 
@@ -942,7 +954,7 @@ public:
 					} else {
 						bool will_join = false;
 
-						if(military::can_use_cb_against(state, other, target))
+						if(military::can_use_cb_against<false>(state, other, target))
 							will_join = true;
 						if(state.world.nation_get_ai_rival(other) == target)
 							will_join = true;
@@ -1149,7 +1161,7 @@ private:
 		for(auto n : state.world.in_nation) {
 			auto ni = state.world.nation_get_identity_from_identity_holder(n);
 
-			if(military::cb_instance_conditions_satisfied(state, state.local_player_nation, target, cb, target_state, ni, n)) {
+			if(military::cb_instance_conditions_satisfied<false>(state, state.local_player_nation, target, cb, target_state, ni, n)) {
 				seldata.selectable_identities.push_back(ni);
 			}
 		}
@@ -1312,8 +1324,9 @@ public:
 			auto state_def = retrieve<dcon::state_definition_id>(state, parent);
 			auto second_nation = retrieve<dcon::national_identity_id>(state, parent);
 			auto cost = calculate_partial_score(state, target, id, state_def, second_nation);
-			if(cost != -1) {
-				text::add_line(state, contents, "add_wargoal_peace_cost", text::variable_type::cost, int64_t(cost));
+			if(cost.wargoals_count != 0) {
+				text::add_line(state, contents, "add_wargoal_peace_cost", text::variable_type::cost, int64_t(cost.warscore_cost));
+				text::add_line(state, contents, "add_wargoal_wargoal_count", text::variable_type::count, int64_t(cost.wargoals_count));
 			}
 		}
 
@@ -1658,7 +1671,7 @@ private:
 		for(auto n : state.world.in_nation) {
 			auto ni = state.world.nation_get_identity_from_identity_holder(n);
 
-			if(military::cb_instance_conditions_satisfied(state, state.local_player_nation, target, cb, target_state, ni, n)) {
+			if(military::cb_instance_conditions_satisfied<false>(state, state.local_player_nation, target, cb, target_state, ni, n)) {
 				seldata.selectable_identities.push_back(ni);
 			}
 		}

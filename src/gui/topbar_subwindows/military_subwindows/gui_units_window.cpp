@@ -520,7 +520,7 @@ public:
 				for(auto po : state.world.nation_get_province_ownership_as_nation(state.local_player_nation)) {
 					auto p = po.get_province();
 					state.world.for_each_culture([&](dcon::culture_id c) {
-						if(command::can_start_land_unit_construction(state, state.local_player_nation, p, c, utid)) {
+						if(command::can_start_land_unit_construction<false>(state, state.local_player_nation, p, c, utid)) {
 							count++;
 						}
 					});

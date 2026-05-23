@@ -175,6 +175,19 @@ void create_in_game_windows(sys::state& state) {
 		state.ui_state.console_window = window.get();
 		state.ui_state.root->add_child_to_front(std::move(window));
 	}
+
+
+	state.world.for_each_state_definition([&](dcon::state_definition_id id) {
+		// A max of 10 icons may be displayed at a time
+		for(uint32_t i = 0; i < 10; i++) {
+			auto ptr = ui::make_element_by_type<ui::map_colonization_icon>(state, "colonization_mapicon");
+			static_cast<ui::map_colonization_icon*>(ptr.get())->set_state_def(state, id);
+			static_cast<ui::map_colonization_icon*>(ptr.get())->colonization_index = i;
+			state.ui_state.units_root->add_child_to_front(std::move(ptr));
+		}
+
+	});
+
 	state.world.for_each_province([&](dcon::province_id id) {
 		if(state.world.province_get_port_to(id)) {
 			auto ptr = ui::make_element_by_type<ui::port_window>(state, "alice_port_icon");

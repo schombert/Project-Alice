@@ -7,6 +7,7 @@ layout (location = 4) in float texture_coord;
 layout (location = 5) in float distance;
 
 out float tex_coord;
+out float border_width_coord;
 out float o_dist;
 out vec2 map_coord;
 out vec2 space_coord;
@@ -73,13 +74,14 @@ void main() {
 	}
 
 	// pass data to frag shader
-	tex_coord = abs(texture_coord);
+	tex_coord = texture_coord;
+	border_width_coord = abs(texture_coord);
 	o_dist = distance / (2.0f * width);
 	map_coord = vertex_position + corner_shift;
 	space_coord = gl_Position.xy;
 	frag_province_index = province_index;
 	if (is_national_border > 0.5f) {
-		distance_to_national_border = tex_coord;
+		distance_to_national_border = abs(tex_coord);
 		gl_Position.z -= 0.001f;
 	} else {
 		distance_to_national_border = 1.f;

@@ -61,7 +61,7 @@ struct host_settings_s {
 	uint16_t alice_host_port = 1984;
 	oos_check_interval oos_interval = oos_check_interval::monthly;
 	bool oos_debug_mode = false; // enables sending of gamestate from client to host when an OOS happens, so the host can generate a OOS report. Is NOT safe to enable unless you trust clients
-	uint8_t max_players = MAX_PLAYER_COUNT;
+	uint8_t max_players = max_player_count;
 };
 
 

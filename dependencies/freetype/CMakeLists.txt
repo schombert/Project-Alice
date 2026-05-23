@@ -16,6 +16,8 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(freetype)
 
+set_target_properties(freetype PROPERTIES UNITY_BUILD false)
+
 if(WIN32)
 	set(CMAKE_CXX_FLAGS "")
 	set(CMAKE_CXX_FLAGS_DEBUG "")

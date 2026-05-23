@@ -156,7 +156,7 @@ void update_consumption_administration(sys::state& state, dcon::nation_id n, flo
 
 			auto wage = state.world.province_get_labor_price(capital_of_capital_state, economy::labor::high_education_and_accepted);
 			auto demand = budget_per_administration / wage;
-			assert(std::isfinite(demand));
+			assert(std::isfinite(demand) && demand >= 0.f);
 			state.world.nation_set_administration_employment_target_in_capital(n, demand);
 			auto& cur_labor_demand = state.world.province_get_labor_demand(capital_of_capital_state, economy::labor::high_education_and_accepted);
 			state.world.province_set_labor_demand(capital_of_capital_state, economy::labor::high_education_and_accepted, cur_labor_demand + demand);
@@ -176,7 +176,7 @@ void update_consumption_administration(sys::state& state, dcon::nation_id n, flo
 
 		auto wage = state.world.province_get_labor_price(capital_of_capital_state, economy::labor::high_education_and_accepted);
 		auto demand = budget_per_administration / wage;
-		assert(std::isfinite(demand));
+		assert(std::isfinite(demand) && demand >= 0.f);
 		state.world.province_set_administration_employment_target(capital_of_capital_state, demand);
 		auto& cur_labor_demand = state.world.province_get_labor_demand(capital_of_capital_state, economy::labor::high_education_and_accepted);
 		state.world.province_set_labor_demand(capital_of_capital_state, economy::labor::high_education_and_accepted, cur_labor_demand + demand);

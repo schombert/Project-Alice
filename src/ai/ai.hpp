@@ -33,6 +33,9 @@ void make_attacks(sys::state& state);
 void make_defense(sys::state& state);
 void general_ai_unit_tick(sys::state& state);
 
+bool unit_on_ai_control(const sys::state& state, dcon::navy_id a);
+bool unit_on_ai_control(const sys::state& state, dcon::army_id a);
+
 float estimate_army_offensive_strength(sys::state& state, dcon::army_id a);
 float estimate_army_defensive_strength(sys::state& state, dcon::army_id a);
 float estimate_rebel_strength(sys::state& state, dcon::province_id p);

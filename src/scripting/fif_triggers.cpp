@@ -3086,6 +3086,9 @@ TRIGGER_FUNCTION(tf_crisis_exist) {
 TRIGGER_FUNCTION(tf_is_liberation_crisis) {
 	return "state-ptr @ liberation-crisis? " + truth_inversion(tval[0]);
 }
+TRIGGER_FUNCTION(tf_is_colonial_crisis) {
+	return "state-ptr @ colonial-crisis? " + truth_inversion(tval[0]);
+}
 TRIGGER_FUNCTION(tf_is_claim_crisis) {
 	return " false " + truth_inversion(tval[0]);
 }

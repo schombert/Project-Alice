@@ -21,7 +21,7 @@ void initialize_size_of_dcon_arrays(sys::state& state) {
 
 void update_price(sys::state& state) {
 	for(int32_t i = 0; i < list::total; i++) {
-		state.world.execute_serial_over_province([&](auto pids) {
+		province::ve_for_each_land_province(state, [&](auto pids) {
 			// public demand doesn't matter: it doesn't have any money behind it
 			// we are interested only in balance on the "market"
 			// which could be indirectly influenced by public supply,
@@ -30,7 +30,7 @@ void update_price(sys::state& state) {
 			auto supply = state.world.province_get_service_supply_private(pids, i);
 			auto demand = state.world.province_get_service_demand_forbidden_public_supply(pids, i);
 			auto price = state.world.province_get_service_price(pids, i);
-			auto change = economy::price_properties::change(price, supply, demand);
+			auto change = economy::price_properties::service::change<ve::fp_vector>(price, supply, demand);
 			auto new_price = ve::min(ve::max(price + change, economy::price_properties::service::min), economy::price_properties::service::max);
 			state.world.province_set_service_price(pids, i, new_price);
 		});
@@ -61,9 +61,9 @@ void reset_price(sys::state& state) {
 }
 
 void match_supply_and_demand(sys::state& state) {
-	for(int32_t i = 0; i < list::total; i++) {
-		//state.world.execute_serial_over_province([&](auto pids) {
-		state.world.for_each_province([&](auto pids) {
+	province::ve_parallel_for_each_land_province(state, [&](auto pids) {
+		for(int32_t i = 0; i < list::total; i++) {
+		//state.world.for_each_province([&](auto pids) {
 			auto demand_public = state.world.province_get_service_demand_allowed_public_supply(pids, i);
 			auto demand_private = state.world.province_get_service_demand_forbidden_public_supply(pids, i);
 
@@ -86,8 +86,8 @@ void match_supply_and_demand(sys::state& state) {
 			state.world.province_set_service_satisfaction_for_free(pids, i, free_ratio);
 			state.world.province_set_service_satisfaction(pids, i, satisfaction_paid);
 			state.world.province_set_service_sold(pids, i, supply_sold_paid);
-		});
-	}
+		}
+	});
 }
 
 }
@@ -156,6 +156,11 @@ void update_consumption(sys::state& state) {
 			auto total = private_size + national_size;
 
 			auto current_demand = state.world.province_get_labor_demand(pids, def.throughput_labour_type);
+
+#ifndef NDEBUG
+			ve::apply([&](float value) {assert(std::isfinite(value) && value >= 0.f); }, current_demand + total);
+#endif // !NDEBUG
+
 			state.world.province_set_labor_demand(pids, def.throughput_labour_type, current_demand + total);
 		});
 	}
@@ -208,6 +213,9 @@ void update_consumption(sys::state& state) {
 
 			auto demand_scale = 0.f;
 
+			auto budget = std::max(0.f, state.world.province_get_advanced_province_building_private_savings(pid, id));
+			auto max_demand_scale = budget / material_cost_per_constructed_unit;
+
 			if((expected_profit_per_size - expected_maintenance > 0) && expected_days_to_payoff > 0.f && expected_days_to_payoff < 365.f * 5.f && !lots_of_empty_housing) {
 				/*
 				If new housing could pay off in a few months, we construct it as fast as possible.
@@ -221,7 +229,7 @@ void update_consumption(sys::state& state) {
 			We don't want to expand faster than local labor allows us
 			*/
 			auto sat = state.world.province_get_labor_demand_satisfaction(pid, economy::labor_constants::construction_labor);
-			demand_scale = demand_scale * sat;
+			demand_scale = std::min(max_demand_scale, demand_scale * sat);
 
 			/*
 			Register demand both on construction materials and construction labor
@@ -235,6 +243,7 @@ void update_consumption(sys::state& state) {
 				economy::register_demand(state, mid, cid, amount * demand_scale);
 			}
 			auto labor_demand = state.world.province_get_labor_demand(pid, economy::labor_constants::construction_labor);
+			assert(labor_demand + demand_scale * economy::labor_constants::labor_per_construction_unit >= 0.f);
 			state.world.province_set_labor_demand(
 				pid,
 				economy::labor_constants::construction_labor,
@@ -424,6 +433,9 @@ void update_profit_and_refund(sys::state& state) {
 
 			auto construction_scale = 0.f;
 
+			auto budget = std::max(0.f, state.world.province_get_advanced_province_building_private_savings(pid, id));
+			auto max_demand_scale = budget / material_cost_per_constructed_unit;
+
 			if((expected_profit_per_size - expected_maintenance > 0.f) && expected_days_to_payoff > 0.f && expected_days_to_payoff < 365.f * 5.f && !lots_of_empty_housing) {
 				/*
 				If new housing could pay off in a few months, we construct it as fast as possible.
@@ -437,7 +449,7 @@ void update_profit_and_refund(sys::state& state) {
 			*/
 
 			auto labor_sat = state.world.province_get_labor_demand_satisfaction(pid, economy::labor_constants::construction_labor);
-			auto demand_scale = construction_scale * labor_sat;
+			auto demand_scale = std::min(max_demand_scale, construction_scale * labor_sat);
 
 			/*
 			Find out how much we were able to buy.
@@ -579,6 +591,7 @@ void update_national_size(sys::state& state) {
 
 		state.world.execute_serial_over_province([&](auto pids) {
 			auto owner = state.world.province_get_nation_from_province_ownership(pids);
+			auto invalid = owner == dcon::nation_id { };
 			auto tmod = state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::education_efficiency) + 1.0f;
 			auto nmod = state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::education_efficiency_modifier) + 1.0f;
 
@@ -599,7 +612,8 @@ void update_national_size(sys::state& state) {
 			auto local_population = state.world.province_get_demographics(pids, demographics::primary_or_accepted);
 			auto weight = ve::select(total_population == 0.f, 0.f, local_population / total_population);
 			auto local_education_budget = weight * education_budget;
-			state.world.province_set_advanced_province_building_national_size(pids, bid, ve::max(0.f, local_education_budget / cost_of_input));
+
+			state.world.province_set_advanced_province_building_national_size(pids, bid, ve::select(invalid, 0.f, ve::max(0.f, local_education_budget / cost_of_input)));
 		});
 	}
 }

@@ -2400,7 +2400,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	world.province_resize_rgo_potential(world.commodity_size());
 	world.province_resize_rgo_efficiency(world.commodity_size());
 	world.province_resize_rgo_max_efficiency(world.commodity_size());
-	world.province_resize_rgo_demand(world.commodity_size());
+	world.province_resize_rgo_base_efficiency(world.commodity_size());
 	world.province_resize_rgo_target_employment(world.commodity_size());
 	world.province_resize_rgo_output(world.commodity_size());
 	world.province_resize_rgo_output_per_worker(world.commodity_size());
@@ -3024,9 +3024,13 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	world.state_instance_resize_production_directive(production_directives::size(*this));
 
 	world.trade_route_resize_volume(world.commodity_size());
+	world.trade_route_resize_stabilization_volume(world.commodity_size());
+
 	world.nation_resize_factory_type_experience(world.factory_type_size());
 	world.nation_resize_factory_type_experience_priority_national(world.factory_type_size());
 	world.nation_resize_factory_type_experience_priority_private(world.factory_type_size());
+
+	world.factory_resize_efficiency_level(economy::commodity_set::set_size);
 
 	world.market_resize_price(world.commodity_size());
 	world.market_resize_supply(world.commodity_size());
@@ -3087,8 +3091,6 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	crisis_attacker_wargoals.resize(2000);
 	crisis_defender_wargoals.resize(2000);
 
-	selected_regiments.resize(const_max_selected_units);
-	selected_ships.resize(const_max_selected_units);
 
 
 	for(auto t : world.in_technology) {
@@ -3451,7 +3453,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	military::regenerate_ship_scores(*this);
 	nations::update_industrial_scores(*this);
 	military::update_naval_supply_points(*this);
-	economy::update_employment(*this);
+	economy::update_employment(*this, true, 1.f);
 	nations::update_military_scores(*this); // depends on ship score, land unit average
 	nations::update_rankings(*this);		// depends on industrial score, military scores
 
@@ -3617,12 +3619,6 @@ void state::preload() {
 	for(auto m : world.in_movement) {
 		m.set_pop_support(0.0f);
 		m.set_radicalism(0.0f);
-	}
-	for(auto s : world.in_ship) {
-		s.set_pending_split(false);
-	}
-	for(auto r : world.in_regiment) {
-		r.set_pending_split(false);
 	}
 
 }
@@ -3987,8 +3983,6 @@ void state::fill_unsaved_data() { // reconstructs derived values that are not di
 	nations_by_prestige_score.resize(2000);
 	crisis_participants.resize(2000);
 
-	selected_regiments.resize(const_max_selected_units);
-	selected_ships.resize(const_max_selected_units);
 
 	world.for_each_issue([&](dcon::issue_id id) {
 		for(auto& opt : world.issue_get_options(id)) {
@@ -4414,7 +4408,7 @@ void state::single_game_tick() {
 				military::regenerate_total_regiment_counts(*this);
 				break;
 			case 7:
-				economy::update_employment(*this);
+				economy::update_employment(*this, false, 1.f);
 				break;
 			case 8:
 				nations::update_national_administrative_efficiency(*this);
@@ -4459,8 +4453,6 @@ void state::single_game_tick() {
 		province::update_colonization(*this);
 		military::update_cbs(*this); // may add/remove cbs to a nation
 
-		event::update_events(*this);
-
 		culture::update_research(*this, uint32_t(ymd_date.year));
 
 		nations::update_industrial_scores(*this);
@@ -4483,6 +4475,8 @@ void state::single_game_tick() {
 		}
 
 		ai::take_ai_decisions(*this);
+
+		event::update_events(*this);
 
 		// Once per month updates, spread out over the month
 		switch(ymd_date.day) {
@@ -5048,12 +5042,7 @@ void state::army_group_add_regiment(dcon::automated_army_group_id group, dcon::r
 	fat_automation.set_await_command_execution_flag(false);
 
 	// split it right away
-	std::array<dcon::regiment_id, command::num_packed_units> data;
-	int32_t i = 0;
-	data.fill(dcon::regiment_id{});
-	data[0] = id;
-	command::mark_regiments_to_split(*this, local_player_nation, data);
-	command::split_army(*this, local_player_nation, army);
+	command::split_army(*this, local_player_nation, army, std::span<const dcon::regiment_id>(&id, 1));
 
 	game_state_updated.store(true, std::memory_order_release);
 }
@@ -6036,7 +6025,7 @@ void state::build_up_to_template_land(
 					continue;
 				}
 
-				bool can_build = command::can_start_land_unit_construction(
+				bool can_build = command::can_start_land_unit_construction<false>(
 					*this,
 					local_player_nation,
 					prov,
@@ -6101,57 +6090,45 @@ void sys::state::set_local_player_nation(dcon::nation_id value) {
 	map_state.unhandled_province_selection = true;
 	game_state_updated.store(true, std::memory_order_release);
 }
+void selected_regiments_remove(sys::state& state, dcon::regiment_id reg) {
+	auto iterator = std::find(state.selected_regiments.begin(), state.selected_regiments.end(), reg);
+	if(iterator != state.selected_regiments.end()) {
+		state.selected_regiments.erase(iterator);
+	}
+	state.game_state_updated.store(true, std::memory_order_release);
+}
 
 void selected_regiments_add(sys::state& state, dcon::regiment_id reg) {
-	for(unsigned i = 0; i < state.selected_regiments.size(); i++) {
-		// Toggle selection
-		if(state.selected_regiments[i] == reg) {
-			state.selected_regiments[i] = dcon::regiment_id{};
-			break;
-		}
-		// Add to selection
-		if(!state.selected_regiments[i]) {
-			state.selected_regiments[i] = reg;
-			break;
-		}
+	auto iterator = std::find(state.selected_regiments.begin(), state.selected_regiments.end(), reg);
+	if(iterator == state.selected_regiments.end()) {
+		state.selected_regiments.push_back(reg); // only add if not present already
 	}
 	state.game_state_updated.store(true, std::memory_order_release);
 }
 // Clear state.selected_regiments of data, maintaining fixed vector size
 void selected_regiments_clear(sys::state& state) {
-	for(unsigned i = 0; i < state.selected_regiments.size(); i++) {
-		if(state.selected_regiments[i]) {
-			state.selected_regiments[i] = dcon::regiment_id{};
-		} else {
-			break;
-		}
+	state.selected_regiments.clear();
+	state.game_state_updated.store(true, std::memory_order_release);
+}
+
+void selected_ships_remove(sys::state& state, dcon::ship_id ship) {
+	auto iterator = std::find(state.selected_ships.begin(), state.selected_ships.end(), ship);
+	if(iterator != state.selected_ships.end()) {
+		state.selected_ships.erase(iterator);
 	}
 	state.game_state_updated.store(true, std::memory_order_release);
 }
+
 // Clear state.selected_ships of data, maintaining fixed vector size
 void selected_ships_add(sys::state& state, dcon::ship_id sh) {
-	for(unsigned i = 0; i < state.selected_ships.size(); i++) {
-		// Toggle selection
-		if(state.selected_ships[i] == sh) {
-			state.selected_ships[i] = dcon::ship_id{};
-			break;
-		}
-		// Add to selection
-		if(!state.selected_ships[i]) {
-			state.selected_ships[i] = sh;
-			break;
-		}
+	auto iterator = std::find(state.selected_ships.begin(), state.selected_ships.end(), sh);
+	if(iterator == state.selected_ships.end()) {
+		state.selected_ships.push_back(sh);
 	}
 	state.game_state_updated.store(true, std::memory_order_release);
 }
 void selected_ships_clear(sys::state& state) {
-	for(unsigned i = 0; i < state.selected_ships.size(); i++) {
-		if(state.selected_ships[i]) {
-			state.selected_ships[i] = dcon::ship_id{};
-		} else {
-			break;
-		}
-	}
+	state.selected_ships.clear();
 	state.game_state_updated.store(true, std::memory_order_release);
 }
 

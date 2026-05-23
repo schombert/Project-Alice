@@ -96,7 +96,7 @@ public:
 	bool border_indices_ready = false;
 
 	// lighting
-	glm::vec3 light_direction {1.f, 0.f, -0.3f};
+	glm::vec3 light_direction {0.f, 1.f, -0.3f};
 	bool light_on = false;
 	bool light_rotate = false;
 

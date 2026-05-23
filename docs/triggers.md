@@ -795,6 +795,7 @@ Not an exhaustive list of triggers, be wary the trigger codes **may** have flags
 | 0x02DB | has_building_bank | 0 | |
 | 0x02DC | has_building_university | 0 | |
 | 0x02DD | test | 1 | Forwards `THIS`, `FROM` and primary arguments, for more information see Scripted Triggers on the modding extensions |
+| 0x02E7 | is_colonial_crisis | 0 | 
 
 ### Optimizations
 

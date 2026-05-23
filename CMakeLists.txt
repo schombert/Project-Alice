@@ -2,7 +2,7 @@
 # and include sub-projects here.
 #
 
-cmake_minimum_required (VERSION 3.15)
+cmake_minimum_required (VERSION 3.16)
 
 project (ProjectAlice LANGUAGES CXX C)
 set(CMAKE_CXX_STANDARD 20 CACHE STRING "The C++ standard to use")
@@ -15,6 +15,11 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 include(CTest)
 
 add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/utf-8>")
+
+if(WIN32)
+	string(REPLACE "/RTC1" "" CMAKE_CXX_FLAGS_DEBUG ${CMAKE_CXX_FLAGS_DEBUG})
+	string(REPLACE "/RTC1" "" CMAKE_C_FLAGS_DEBUG ${CMAKE_C_FLAGS_DEBUG})
+endif()
 
 list(APPEND ALICE_SOURCE_BLOB "${PROJECT_SOURCE_DIR}/src/main.cpp")
 
@@ -49,6 +54,8 @@ list(APPEND ALICE_CORE_SOURCES_LIST
 	"${PROJECT_SOURCE_DIR}/src/lunasvg/plutovg-rasterize.c"
 	"${PROJECT_SOURCE_DIR}/src/lunasvg/plutovg-surface.c"
 	"${PROJECT_SOURCE_DIR}/src/gui/production.cpp"
+	"${PROJECT_SOURCE_DIR}/src/gui/province_factories.cpp"
+	"${PROJECT_SOURCE_DIR}/src/gui/factory_details.cpp"
 )
 set_source_files_properties(src/lunasvg/plutovg-blend.c PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
 set_source_files_properties(src/lunasvg/plutovg-canvas.c PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
@@ -62,13 +69,7 @@ set_source_files_properties(src/lunasvg/plutovg-path.c PROPERTIES SKIP_PRECOMPIL
 set_source_files_properties(src/lunasvg/plutovg-rasterize.c PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
 set_source_files_properties(src/lunasvg/plutovg-surface.c PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
 
-list(APPEND ALICE_INCREMENTAL_SOURCES_LIST
-	${ALICE_CORE_SOURCES_LIST}
-	"${PROJECT_SOURCE_DIR}/src/gamestate/user_interactions.cpp"
-	"${PROJECT_SOURCE_DIR}/src/gamestate/create_windows.cpp"
-	"${PROJECT_SOURCE_DIR}/src/gui/ui_state.cpp"
-	"${PROJECT_SOURCE_DIR}/src/gui/gui_element_base.cpp"
-	"${PROJECT_SOURCE_DIR}/src/gui/gui_other.cpp"
+list(APPEND ALICE_INCREMENTAL_SOURCES_LIST_AI
 	"${PROJECT_SOURCE_DIR}/src/ai/ai.cpp"
 	"${PROJECT_SOURCE_DIR}/src/ai/ai_campaign.cpp"
 	"${PROJECT_SOURCE_DIR}/src/ai/ai_campaign_values.cpp"
@@ -77,13 +78,13 @@ list(APPEND ALICE_INCREMENTAL_SOURCES_LIST
 	"${PROJECT_SOURCE_DIR}/src/ai/ai_alliances.cpp"
 	"${PROJECT_SOURCE_DIR}/src/ai/ai_economy.cpp"
 	"${PROJECT_SOURCE_DIR}/src/ai/ai_war.cpp"
-	"${PROJECT_SOURCE_DIR}/src/common_types/blake2.cpp"
-	"${PROJECT_SOURCE_DIR}/src/common_types/date_interface.cpp"
-	"${PROJECT_SOURCE_DIR}/src/common_types/prng.cpp"
-	"${PROJECT_SOURCE_DIR}/src/culture/culture.cpp"
-	"${PROJECT_SOURCE_DIR}/src/culture/politics.cpp"
-	"${PROJECT_SOURCE_DIR}/src/culture/rebels.cpp"
-	"${PROJECT_SOURCE_DIR}/src/economy/demographics.cpp"
+)
+set_source_files_properties(
+	${ALICE_INCREMENTAL_SOURCES_LIST_AI}
+	PROPERTIES UNITY_GROUP "bucket-AI"
+)
+
+list(APPEND ALICE_INCREMENTAL_SOURCES_LIST_ECONOMY
 	"${PROJECT_SOURCE_DIR}/src/economy/economy_stats.cpp"
 	"${PROJECT_SOURCE_DIR}/src/economy/economy.cpp"
 	"${PROJECT_SOURCE_DIR}/src/economy/economy_pops.cpp"
@@ -93,18 +94,13 @@ list(APPEND ALICE_INCREMENTAL_SOURCES_LIST
 	"${PROJECT_SOURCE_DIR}/src/economy/construction.cpp"
 	"${PROJECT_SOURCE_DIR}/src/economy/advanced_province_buildings.cpp"
 	"${PROJECT_SOURCE_DIR}/src/economy/national_budget.cpp"
-	"${PROJECT_SOURCE_DIR}/src/gamestate/commands.cpp"
-	"${PROJECT_SOURCE_DIR}/src/gamestate/diplomatic_messages.cpp"
-	"${PROJECT_SOURCE_DIR}/src/gamestate/modifiers.cpp"
-	"${PROJECT_SOURCE_DIR}/src/gamestate/notifications.cpp"
-	"${PROJECT_SOURCE_DIR}/src/gamestate/serialization.cpp"
-	"${PROJECT_SOURCE_DIR}/src/graphics/opengl_wrapper.cpp"
-	"${PROJECT_SOURCE_DIR}/src/graphics/texture.cpp"
-	"${PROJECT_SOURCE_DIR}/src/gui/gui_common_elements.cpp"
-	"${PROJECT_SOURCE_DIR}/src/gui/gui_effect_tooltips.cpp"
-	"${PROJECT_SOURCE_DIR}/src/gui/widgets/table.cpp"
-	"${PROJECT_SOURCE_DIR}/src/gui/gui_graphics.cpp"
-	"${PROJECT_SOURCE_DIR}/src/gui/gui_leaders.cpp"
+)
+set_source_files_properties(
+	${ALICE_INCREMENTAL_SOURCES_LIST_ECONOMY}
+	PROPERTIES UNITY_GROUP "bucket-ECONOMY"
+)
+
+list(APPEND ALICE_INCREMENTAL_SOURCES_LIST_GUI_TOPBAR
 	"${PROJECT_SOURCE_DIR}/src/gui/topbar_subwindows/military_subwindows/gui_leaders_window.cpp"
 	"${PROJECT_SOURCE_DIR}/src/gui/topbar_subwindows/military_subwindows/gui_stats_window.cpp"
 	"${PROJECT_SOURCE_DIR}/src/gui/topbar_subwindows/military_subwindows/gui_units_window.cpp"
@@ -114,6 +110,17 @@ list(APPEND ALICE_INCREMENTAL_SOURCES_LIST
 	"${PROJECT_SOURCE_DIR}/src/gui/topbar_subwindows/politics_subwindows/gui_reforms_window.cpp"
 	"${PROJECT_SOURCE_DIR}/src/gui/topbar_subwindows/politics_subwindows/gui_release_nation_window.cpp"
 	"${PROJECT_SOURCE_DIR}/src/gui/topbar_subwindows/politics_subwindows/gui_unciv_reforms_window.cpp"
+	"${PROJECT_SOURCE_DIR}/src/gui/topbar_subwindows/production_subwindows/gui_factory_refit_window.cpp"
+	"${PROJECT_SOURCE_DIR}/src/gui/topbar_subwindows/gui_population_window.cpp"
+	"${PROJECT_SOURCE_DIR}/src/gui/topbar_subwindows/gui_production_window.cpp"
+	"${PROJECT_SOURCE_DIR}/src/gui/topbar_subwindows/gui_technology_window.cpp"
+)
+set_source_files_properties(
+	${ALICE_INCREMENTAL_SOURCES_LIST_GUI_TOPBAR}
+	PROPERTIES UNITY_GROUP "bucket-GUI-TOPBAR"
+)
+
+list(APPEND ALICE_INCREMENTAL_SOURCES_LIST_GUI_OTHER
 	"${PROJECT_SOURCE_DIR}/src/gui/gui_message_window.cpp"
 	"${PROJECT_SOURCE_DIR}/src/gui/gui_chat_window.cpp"
 	"${PROJECT_SOURCE_DIR}/src/gui/gui_combat.cpp"
@@ -130,36 +137,26 @@ list(APPEND ALICE_INCREMENTAL_SOURCES_LIST
 	"${PROJECT_SOURCE_DIR}/src/gui/gui_trigger_tooltips.cpp"
 	"${PROJECT_SOURCE_DIR}/src/gui/gui_error_window.cpp"
 	"${PROJECT_SOURCE_DIR}/src/gui/map_tooltip.cpp"
-	"${PROJECT_SOURCE_DIR}/src/gui/topbar_subwindows/gui_population_window.cpp"
-	"${PROJECT_SOURCE_DIR}/src/gui/topbar_subwindows/gui_production_window.cpp"
-	"${PROJECT_SOURCE_DIR}/src/gui/topbar_subwindows/gui_technology_window.cpp"
 	"${PROJECT_SOURCE_DIR}/src/gui/immediate_mode.cpp"
 	"${PROJECT_SOURCE_DIR}/src/gui/economy_viewer.cpp"
 	"${PROJECT_SOURCE_DIR}/src/gui/unit_tooltip.cpp"
 	"${PROJECT_SOURCE_DIR}/src/gui/gui_context_window.cpp"
-	"${PROJECT_SOURCE_DIR}/src/gui/topbar_subwindows/production_subwindows/gui_factory_refit_window.cpp"
 	"${PROJECT_SOURCE_DIR}/src/gui/labour_details.cpp"
-	"${PROJECT_SOURCE_DIR}/src/map/map_modes.cpp"
-	"${PROJECT_SOURCE_DIR}/src/military/military.cpp"
-	"${PROJECT_SOURCE_DIR}/src/common_types/debug_string_convertions.cpp"
-	"${PROJECT_SOURCE_DIR}/src/nations/nations.cpp"
-	"${PROJECT_SOURCE_DIR}/src/network/SHA512.cpp"
-	"${PROJECT_SOURCE_DIR}/src/network/network.cpp"
-	"${PROJECT_SOURCE_DIR}/src/parsing/float_from_chars.cpp"
-	"${PROJECT_SOURCE_DIR}/src/parsing/parsers.cpp"
-	"${PROJECT_SOURCE_DIR}/src/platform_specific.cpp"
-	"${PROJECT_SOURCE_DIR}/src/provinces/province.cpp"
-	"${PROJECT_SOURCE_DIR}/src/scripting/effects.cpp"
-	"${PROJECT_SOURCE_DIR}/src/scripting/events.cpp"
-	"${PROJECT_SOURCE_DIR}/src/scripting/triggers.cpp"
-	"${PROJECT_SOURCE_DIR}/src/scripting/fif_triggers.cpp"
-	"${PROJECT_SOURCE_DIR}/src/text/bmfont.cpp"
-	"${PROJECT_SOURCE_DIR}/src/text/fonts.cpp"
-	"${PROJECT_SOURCE_DIR}/src/text/text.cpp"
-	"${PROJECT_SOURCE_DIR}/src/zstd/zstd.cpp"
-	"${PROJECT_SOURCE_DIR}/src/network/pcp.cpp"
-	"${PROJECT_SOURCE_DIR}/src/gamestate/game_scene.cpp"
-	"${PROJECT_SOURCE_DIR}/src/gamerule/gamerule.cpp"
+	"${PROJECT_SOURCE_DIR}/src/gui/gui_common_elements.cpp"
+	"${PROJECT_SOURCE_DIR}/src/gui/gui_effect_tooltips.cpp"
+	"${PROJECT_SOURCE_DIR}/src/gui/widgets/table.cpp"
+	"${PROJECT_SOURCE_DIR}/src/gui/gui_graphics.cpp"
+	"${PROJECT_SOURCE_DIR}/src/gui/gui_leaders.cpp"
+	"${PROJECT_SOURCE_DIR}/src/gui/ui_state.cpp"
+	"${PROJECT_SOURCE_DIR}/src/gui/gui_element_base.cpp"
+	"${PROJECT_SOURCE_DIR}/src/gui/gui_other.cpp"
+)
+set_source_files_properties(
+	${ALICE_INCREMENTAL_SOURCES_LIST_GUI_OTHER}
+	PROPERTIES UNITY_GROUP "bucket-GUI-OTHER"
+)
+
+list(APPEND ALICE_INCREMENTAL_SOURCES_LIST_SVG	
 	"${PROJECT_SOURCE_DIR}/src/lunasvg/graphics.cpp"
 	"${PROJECT_SOURCE_DIR}/src/lunasvg/lunasvg.cpp"
 	"${PROJECT_SOURCE_DIR}/src/lunasvg/svgelement.cpp"
@@ -171,7 +168,81 @@ list(APPEND ALICE_INCREMENTAL_SOURCES_LIST
 	"${PROJECT_SOURCE_DIR}/src/lunasvg/svgrenderstate.cpp"
 	"${PROJECT_SOURCE_DIR}/src/lunasvg/svgtextelement.cpp"
 	"${PROJECT_SOURCE_DIR}/src/graphics/asvg.cpp"
+)
+set_source_files_properties(
+	${ALICE_INCREMENTAL_SOURCES_LIST_SVG}
+	PROPERTIES UNITY_GROUP "bucket-SVG_TOOLS"
+)
+
+list(APPEND ALICE_INCREMENTAL_SOURCES_LIST_SCRIPTING	
+	"${PROJECT_SOURCE_DIR}/src/scripting/effects.cpp"
+	"${PROJECT_SOURCE_DIR}/src/scripting/events.cpp"
+	"${PROJECT_SOURCE_DIR}/src/scripting/triggers.cpp"
+	"${PROJECT_SOURCE_DIR}/src/scripting/fif_triggers.cpp"
+)
+set_source_files_properties(
+	${ALICE_INCREMENTAL_SOURCES_LIST_SCRIPTING}
+	PROPERTIES UNITY_GROUP "bucket-SCRIPTING"
+)
+
+list(APPEND ALICE_INCREMENTAL_SOURCES_LIST_GAMESTATE	
+	"${PROJECT_SOURCE_DIR}/src/gamestate/commands.cpp"
+	"${PROJECT_SOURCE_DIR}/src/gamestate/diplomatic_messages.cpp"
+	"${PROJECT_SOURCE_DIR}/src/gamestate/modifiers.cpp"
+	"${PROJECT_SOURCE_DIR}/src/gamestate/notifications.cpp"
+	"${PROJECT_SOURCE_DIR}/src/gamestate/serialization.cpp"
+	"${PROJECT_SOURCE_DIR}/src/gamestate/game_scene.cpp"
+	"${PROJECT_SOURCE_DIR}/src/gamerule/gamerule.cpp"
 	"${PROJECT_SOURCE_DIR}/src/gamestate/uitemplate_serialization.cpp"
+	"${PROJECT_SOURCE_DIR}/src/gamestate/user_interactions.cpp"
+	"${PROJECT_SOURCE_DIR}/src/gamestate/create_windows.cpp"
+)
+set_source_files_properties(
+	${ALICE_INCREMENTAL_SOURCES_LIST_GAMESTATE}
+	PROPERTIES UNITY_GROUP "bucket-GAMESTATE"
+)
+
+list(APPEND ALICE_INCREMENTAL_SOURCES_LIST_RARELY_CHANGED	
+	"${PROJECT_SOURCE_DIR}/src/network/SHA512.cpp"
+	"${PROJECT_SOURCE_DIR}/src/network/network.cpp"
+	"${PROJECT_SOURCE_DIR}/src/parsing/float_from_chars.cpp"
+	"${PROJECT_SOURCE_DIR}/src/parsing/parsers.cpp"
+	"${PROJECT_SOURCE_DIR}/src/platform_specific.cpp"
+	"${PROJECT_SOURCE_DIR}/src/text/bmfont.cpp"
+	"${PROJECT_SOURCE_DIR}/src/text/fonts.cpp"
+	"${PROJECT_SOURCE_DIR}/src/text/text.cpp"
+	"${PROJECT_SOURCE_DIR}/src/zstd/zstd.cpp"
+	"${PROJECT_SOURCE_DIR}/src/network/pcp.cpp"
+	"${PROJECT_SOURCE_DIR}/src/common_types/blake2.cpp"
+	"${PROJECT_SOURCE_DIR}/src/common_types/date_interface.cpp"
+	"${PROJECT_SOURCE_DIR}/src/common_types/prng.cpp"
+	"${PROJECT_SOURCE_DIR}/src/common_types/debug_string_convertions.cpp"
+)
+set_source_files_properties(
+	${ALICE_INCREMENTAL_SOURCES_LIST_RARELY_CHANGED}
+	PROPERTIES UNITY_GROUP "bucket-GAMESTATE"
+)
+
+list(APPEND ALICE_INCREMENTAL_SOURCES_LIST
+	${ALICE_CORE_SOURCES_LIST}
+	${ALICE_INCREMENTAL_SOURCES_LIST_AI}
+	"${PROJECT_SOURCE_DIR}/src/culture/culture.cpp"
+	"${PROJECT_SOURCE_DIR}/src/culture/politics.cpp"
+	"${PROJECT_SOURCE_DIR}/src/culture/rebels.cpp"
+	"${PROJECT_SOURCE_DIR}/src/economy/demographics.cpp"
+	${ALICE_INCREMENTAL_SOURCES_LIST_ECONOMY}
+	"${PROJECT_SOURCE_DIR}/src/graphics/opengl_wrapper.cpp"
+	"${PROJECT_SOURCE_DIR}/src/graphics/texture.cpp"
+	${ALICE_INCREMENTAL_SOURCES_LIST_GUI_TOPBAR}
+	${ALICE_INCREMENTAL_SOURCES_LIST_GUI_OTHER}
+	${ALICE_INCREMENTAL_SOURCES_LIST_GAMESTATE}
+	"${PROJECT_SOURCE_DIR}/src/map/map_modes.cpp"
+	"${PROJECT_SOURCE_DIR}/src/military/military.cpp"
+	"${PROJECT_SOURCE_DIR}/src/nations/nations.cpp"
+	"${PROJECT_SOURCE_DIR}/src/provinces/province.cpp"
+	${ALICE_INCREMENTAL_SOURCES_LIST_RARELY_CHANGED}
+	${ALICE_INCREMENTAL_SOURCES_LIST_SCRIPTING}
+	${ALICE_INCREMENTAL_SOURCES_LIST_SVG}
 )
 
 if(WIN32)
@@ -185,6 +256,11 @@ add_executable(AliceIncremental WIN32 EXCLUDE_FROM_ALL
 	${ALICE_INCREMENTAL_SOURCES_LIST}
 	"${PROJECT_SOURCE_DIR}/src/alice.rc"
 	${ASSET_FILES})
+add_executable(AliceProfile WIN32 EXCLUDE_FROM_ALL
+	${ALICE_SOURCE_BLOB}
+	${ALICE_INCREMENTAL_SOURCES_LIST}
+	"${PROJECT_SOURCE_DIR}/src/alice.rc"
+	${ASSET_FILES})
 else()
 add_executable(Alice WIN32
 	${ALICE_SOURCE_BLOB}
@@ -194,6 +270,24 @@ add_executable(AliceIncremental WIN32 EXCLUDE_FROM_ALL
 	${ALICE_SOURCE_BLOB}
 	${ALICE_INCREMENTAL_SOURCES_LIST}
 	${ASSET_FILES})
+endif()
+
+set_target_properties(
+	AliceIncremental
+	PROPERTIES
+	UNITY_BUILD_MODE GROUP
+)
+
+if(WIN32)
+set_target_properties(
+	AliceProfile
+	PROPERTIES
+	UNITY_BUILD_MODE GROUP
+)
+target_compile_definitions(AliceProfile PRIVATE INCREMENTAL=1)
+target_compile_definitions(AliceProfile PRIVATE ALICE_NO_ENTRY_POINT=1)
+target_compile_definitions(AliceProfile PRIVATE ALICE_PROFILE_ENTRY_POINT=1)
+target_compile_definitions(AliceProfile PRIVATE DO_NOT_USE_LLVM=1)
 endif()
 
 target_compile_definitions(AliceIncremental PRIVATE INCREMENTAL=1)
@@ -390,8 +484,10 @@ target_link_libraries(Alice PRIVATE AliceCommon)
 target_link_libraries(AliceIncremental PRIVATE AliceCommon)
 
 if (WIN32)
+	target_link_libraries(AliceProfile PRIVATE AliceCommon)
 	target_link_libraries(Alice PRIVATE ${PROJECT_SOURCE_DIR}/libs/LLVM-C.lib)
 	target_link_libraries(AliceIncremental PRIVATE ${PROJECT_SOURCE_DIR}/libs/LLVM-C.lib)
+	target_link_libraries(AliceProfile PRIVATE ${PROJECT_SOURCE_DIR}/libs/LLVM-C.lib)
 else()
 	target_link_libraries(Alice PRIVATE fmt::fmt)
 	target_link_libraries(AliceIncremental PRIVATE fmt::fmt)
@@ -515,12 +611,14 @@ target_precompile_headers(AliceIncremental
 )
 
 if(WIN32)
+target_precompile_headers(AliceProfile REUSE_FROM AliceIncremental)
 else()
 	target_precompile_headers(Alice
 		PRIVATE [["miniaudio.h"]])
 	target_precompile_headers(AliceIncremental
 		PRIVATE [["miniaudio.h"]])
 endif()
+
 
 # GENERATE CONTAINER
 set(CONTAINER_PATH ${PROJECT_SOURCE_DIR}/src/gamestate/dcon_generated)
@@ -571,6 +669,13 @@ add_dependencies(AliceIncremental GENERATE_CONTAINER_LUA)
 add_custom_target(GENERATE_CONTAINER_OOS DEPENDS ${PROJECT_SOURCE_DIR}/src/gamestate/dcon_oos_reporter_generated.hpp)
 add_dependencies(Alice GENERATE_CONTAINER_OOS)
 add_dependencies(AliceIncremental GENERATE_CONTAINER_OOS)
+
+if(WIN32)
+add_dependencies(AliceProfile GENERATE_CONTAINER ParserGenerator)
+add_dependencies(AliceProfile GENERATE_CONTAINERIFACE)
+add_dependencies(AliceProfile GENERATE_CONTAINER_LUA)
+add_dependencies(AliceProfile GENERATE_CONTAINER_OOS)
+endif()
 
 # The command to build the generated parsers file
 add_custom_command(
@@ -640,6 +745,10 @@ add_custom_target(GENERATE_PARSERS DEPENDS
 	${PROJECT_SOURCE_DIR}/src/text/font_defs_generated.hpp)
 add_dependencies(Alice GENERATE_PARSERS)
 add_dependencies(AliceIncremental GENERATE_PARSERS)
+
+if(WIN32)
+add_dependencies(AliceProfile GENERATE_PARSERS)
+endif()
 
 if (BUILD_TESTING)
     enable_testing()

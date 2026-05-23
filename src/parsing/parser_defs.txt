@@ -211,7 +211,7 @@ modifier_base
 	cb_creation_speed                         value      float            member_fn (cb_generation_speed_modifier)
 	diplomatic_points                         value      float            member_fn (diplomatic_points_modifier)
 	reinforce_rate                            value      float            member_fn
-	tax_eff                                   value      float            member_fn (tax_efficiency)
+	tax_eff                                   value      float            member_fn
 	administrative_efficiency                 value      float            member_fn (administrative_efficiency_modifier)
 	admin_efficiency                 value      float            member_fn (administrative_efficiency_modifier)
 	influence                                 value      float            member_fn
@@ -1247,6 +1247,7 @@ country_history_file
 	capital                         value      int                               member_fn
 	colonial_points                 value      int                               member_fn
 	set_country_flag                value      text                              member_fn
+	clr_country_flag                value      text                              member_fn
 	set_global_flag               value      text                              member_fn
 	decision                        value      text                              member_fn
 

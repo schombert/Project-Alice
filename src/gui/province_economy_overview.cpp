@@ -3779,7 +3779,7 @@ void province_economy_overview_method_payback_days_t::on_update(sys::state& stat
 // BEGIN method_payback::days::update
 	auto pid = state.map_state.selected_province;
 	auto ftid = method_payback.top_factory;
-	set_text(state, text::format_wholenum((int32_t)(economy::estimate_factory_payback_time(state, pid, ftid))));
+	set_text(state, text::format_wholenum((int32_t)(economy::estimate_factory_payback_time(state, pid, ftid, false))));
 // END
 }
 void province_economy_overview_method_payback_days_t::on_create(sys::state& state) noexcept {

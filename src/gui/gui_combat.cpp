@@ -466,7 +466,7 @@ std::vector<digin_info> count_battle_regiments_with_digin(const sys::state& stat
 
 	auto attacker_recon = military::get_effective_battle_attacker_recon(state, battle);
 
-	auto count_slot = [&]<military::battle_role Role>(int32_t position, const std::array<military::battle_regiment, military::MAX_COMBAT_WIDTH>& combat_slots, const std::array<military::battle_regiment, military::MAX_COMBAT_WIDTH>& opposing_combat_slots) {
+	auto count_slot = [&]<military::battle_role Role>(int32_t position, const std::array<military::battle_regiment, military::max_combat_width>& combat_slots, const std::array<military::battle_regiment, military::max_combat_width>& opposing_combat_slots) {
 		auto battle_reg = combat_slots[position];
 		if(battle_reg.regiment) {
 			if constexpr(Role == military::battle_role::defender) {

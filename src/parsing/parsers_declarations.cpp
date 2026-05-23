@@ -218,6 +218,7 @@ void good::color(color_from_3i v, error_handler& err, int32_t line, good_context
 
 void good::cost(association_type, float v, error_handler& err, int32_t line, good_context& context) {
 	context.outer_context.state.world.commodity_set_cost(context.id, v);
+	context.outer_context.state.world.commodity_set_median_price(context.id, v);
 }
 
 void good::available_from_start(association_type, bool b, error_handler& err, int32_t line, good_context& context) {
@@ -2783,6 +2784,17 @@ void country_history_file::set_country_flag(association_type, std::string_view v
 	}
 }
 
+
+void country_history_file::clr_country_flag(association_type, std::string_view value, error_handler& err, int32_t line, country_history_context& context) {
+	if(!context.holder_id)
+		return;
+	if(auto it = context.outer_context.map_of_national_flags.find(std::string(value)); it != context.outer_context.map_of_national_flags.end()) {
+		context.outer_context.state.world.nation_set_flag_variables(context.holder_id, it->second, false);
+	} else {
+		// unused flag variable: ignore
+	}
+}
+
 void country_history_file::set_global_flag(association_type, std::string_view value, error_handler& err, int32_t line, country_history_context& context) {
 	if(!context.holder_id)
 		return;
@@ -3115,6 +3127,7 @@ void country_history_file::decision(association_type, std::string_view value, er
 
 void commodity_array::finish(scenario_building_context& context) {
 	data.resize(context.state.world.commodity_size());
+	defined = true;
 }
 
 void country_file::color(color_from_3i cvalue, error_handler& err, int32_t line, country_file_context& context) {

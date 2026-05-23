@@ -777,8 +777,8 @@ void display_data::render(
 
 	if(state.map_state.light_rotate) {
 		state.map_state.light_direction.x = 0.f ;
-		state.map_state.light_direction.y = sin(-time_counter);
-		state.map_state.light_direction.z = cos(-time_counter);
+		state.map_state.light_direction.y = sin(time_counter);
+		state.map_state.light_direction.z = cos(time_counter);
 		state.map_state.light_direction = state.map_state.light_direction * axial_rotation;
 	}
 
@@ -803,6 +803,9 @@ void display_data::render(
 	glDisable(GL_PRIMITIVE_RESTART);
 
 	float pixel_size = (screen_size.y) / float(size_y) * zoom;
+
+	auto scale_borders = std::clamp(2.f / pixel_size, 1.f, 4.f);
+
 
 	// BORDERS TO FIX HUGE PIXELS
 	if(state.user_settings.graphics_mode != sys::graphics_mode::ugly && pixel_size > 2.f) {
@@ -937,25 +940,7 @@ void display_data::render(
 
 
 	glEnable(GL_BLEND);
-
-
-
-	// Draw the railroads and city
-	if(//zoom > map::zoom_close &&
-		!city_vertices.empty() && state.user_settings.railroads_enabled) {
-		glEnable(GL_BLEND);
-		glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE);
-
-		{
-			load_shader(shader_textured_triangle);
-			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, textures[texture_city]);
-			glUniform1i(shader_uniforms[shader_textured_triangle][uniform_texture_sampler], 0);
-			glBindVertexArray(vao_array[vo_cities]);
-			glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_cities]);
-			glDrawArrays(GL_TRIANGLES, 0, (GLsizei)city_vertices.size());
-		}
-	}
+		
 
 
 	// Draw the rivers
@@ -984,12 +969,14 @@ void display_data::render(
 		glMultiDrawArrays(GL_TRIANGLE_STRIP, river_starts.data(), river_counts.data(), GLsizei(river_starts.size()));
 	}
 
+	// Draw the railroads and city
+
 	if(/*zoom > map::zoom_close && */!railroad_vertices.empty() && state.user_settings.railroads_enabled) {
 		glEnable(GL_BLEND);
 		glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE);
 
 		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, textures[texture_railroad]);
+		glBindTexture(GL_TEXTURE_2D, textures[texture_printbrush]);
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, textures[texture_colormap_water]);
 		glActiveTexture(GL_TEXTURE2);
@@ -1003,12 +990,28 @@ void display_data::render(
 		glUniform1i(shader_uniforms[shader_railroad_line][uniform_provinces_sea_mask], 2);
 		glUniform1i(shader_uniforms[shader_railroad_line][uniform_provinces_texture_sampler], 3);
 
-		glUniform1f(shader_uniforms[shader_railroad_line][uniform_width], 0.0001f);
+		glUniform1f(shader_uniforms[shader_railroad_line][uniform_width], 0.00005f);
 		glUniform1f(shader_uniforms[shader_railroad_line][uniform_time], 0.f);
 
 		glBindVertexArray(vao_array[vo_railroad]);
 		glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_railroad]);
 		glMultiDrawArrays(GL_TRIANGLE_STRIP, railroad_starts.data(), railroad_counts.data(), GLsizei(railroad_starts.size()));
+	}
+
+	if(//zoom > map::zoom_close &&
+		!city_vertices.empty() && state.user_settings.railroads_enabled) {
+		glEnable(GL_BLEND);
+		glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE);
+
+		{
+			load_shader(shader_textured_triangle);
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, textures[texture_printbrush]);
+			glUniform1i(shader_uniforms[shader_textured_triangle][uniform_texture_sampler], 0);
+			glBindVertexArray(vao_array[vo_cities]);
+			glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_cities]);
+			glDrawArrays(GL_TRIANGLES, 0, (GLsizei)city_vertices.size());
+		}
 	}
 
 	glEnable(GL_BLEND);
@@ -1079,7 +1082,7 @@ void display_data::render(
 			}
 			// impassible borders
 			{
-				glUniform1f(shader_uniforms[shader_borders][uniform_width], 0.0002f); // width
+				glUniform1f(shader_uniforms[shader_borders][uniform_width], 0.0006f); // width
 				glActiveTexture(GL_TEXTURE2);
 				glBindTexture(GL_TEXTURE_2D, textures[texture_imp_border]);
 				for(auto b : borders) {
@@ -1093,7 +1096,7 @@ void display_data::render(
 			}
 			// national borders
 			{
-				glUniform1f(shader_uniforms[shader_borders][uniform_width], 0.0001f); // width
+				glUniform1f(shader_uniforms[shader_borders][uniform_width], 0.00015f * scale_borders); // width
 				glActiveTexture(GL_TEXTURE2);
 				glBindTexture(GL_TEXTURE_2D, textures[texture_national_border]);
 				for(auto b : borders) {
@@ -1134,7 +1137,7 @@ void display_data::render(
 			}
 			// national borders
 			{
-				glUniform1f(shader_uniforms[shader_borders][uniform_width], 0.0003f); // width
+				glUniform1f(shader_uniforms[shader_borders][uniform_width], 0.00015f * scale_borders); // width
 				glActiveTexture(GL_TEXTURE2);
 				glBindTexture(GL_TEXTURE_2D, textures[texture_state_border]);
 				for(auto b : borders) {
@@ -2711,23 +2714,29 @@ void display_data::update_sprawl(sys::state& state) {
 	connectors.resize(state.world.province_size());
 
 	//auto minimal_population_per_visible_settlement = 2500.f;
-	auto population_per_km2 = 20000.f;
-	auto minimal_size_per_visible_settlement_km2 = rough_node_size_km2;
+	auto population_per_km2 = 5000.f;
+	auto minimal_size_per_visible_settlement_km2 = 20.f;
 
 	// Populate paths with railroads - only account provinces that have been visited
 	// but not the adjacencies
 	for(const auto p : state.world.in_province) {
+
+		auto nation = state.world.province_get_nation_from_province_ownership(p);
+		auto cap = state.world.nation_get_capital(nation);
+
+		bool is_capital = cap == p;
+
 		auto city_size_people = p.get_advanced_province_building_max_private_size(advanced_province_buildings::list::local_cities_and_towns);
 		auto city_size_km2 = city_size_people / population_per_km2;
 
-		if(city_size_km2 < minimal_size_per_visible_settlement_km2) {
+		if(city_size_people < 25'000.f && !is_capital) {
 			continue;
 		}
 
 		auto province_size = state.map_state.map_data.province_area_km2[province::to_map_id(p)];
 		auto province_size_pixels = state.map_state.map_data.province_area[province::to_map_id(p)];
 		if(province_size_pixels < 1) {
-			continue;
+			//continue;
 		}
 
 		//auto population_level = int(sqrt(urban_pop / 100'000.f) * 5.f) + 1.f;
@@ -2750,7 +2759,7 @@ void display_data::update_sprawl(sys::state& state) {
 
 		std::vector<std::pair<glm::vec2, float>> weighted_settlements;
 
-		auto km2_per_potential_settlement = 2000.f;
+		auto km2_per_potential_settlement = 5000.f;
 
 		int potential_settlement_slots = std::min(
 			(int)7, std::min(
@@ -2758,9 +2767,11 @@ void display_data::update_sprawl(sys::state& state) {
 				(int)(city_size_km2 / minimal_size_per_visible_settlement_km2)
 			)
 		);
-		potential_settlement_slots = std::max(1, potential_settlement_slots);
+		potential_settlement_slots = std::max(0, potential_settlement_slots);
 
 		int settlement_slots = potential_settlement_slots;
+
+		weighted_settlements.push_back({ central_settlement, 1.f });
 
 		if(p.get_port_to()) {
 			auto port_location = duplicates::get_port_location(state, p.id);
@@ -2769,7 +2780,7 @@ void display_data::update_sprawl(sys::state& state) {
 					central_settlement = port_location;
 					midpoint_is_good_enough = true;
 				} else {
-					weighted_settlements.push_back({ port_location, 0.5f / (potential_settlement_slots + 1) });
+					weighted_settlements.push_back({ port_location, 0.2f });
 					settlement_slots -= 2;
 					roads.push_back({ port_location, central_settlement });
 				}
@@ -2799,7 +2810,7 @@ void display_data::update_sprawl(sys::state& state) {
 						midpoint_is_good_enough = true;
 					} else {
 						settlement_slots -= 1;
-						weighted_settlements.push_back({ pos, 0.5f / (potential_settlement_slots + 1) });
+						weighted_settlements.push_back({ pos, 0.1f });
 						roads.push_back({ pos, central_settlement });
 						if(settlement_slots <= 0) {
 							break;
@@ -2807,13 +2818,20 @@ void display_data::update_sprawl(sys::state& state) {
 					}
 				}
 			}
-			weighted_settlements.push_back({ central_settlement, 0.5f });
-		} else {
-			weighted_settlements.push_back({ central_settlement, 1.f });
 		}
 
 
+		auto total = 0.f;
 
+		for(size_t center = 0; center < weighted_settlements.size(); center++) {
+			total += weighted_settlements[center].second;
+		}
+
+		if(total > 0.f) {
+			for(size_t center = 0; center < weighted_settlements.size(); center++) {
+				weighted_settlements[center].second /= total;
+			}
+		}
 
 		for(size_t center = 0; center < weighted_settlements.size(); center++) {
 			//std::vector<glm::vec2> key_points{ };
@@ -2854,113 +2872,45 @@ void display_data::update_sprawl(sys::state& state) {
 				//N = 5;
 			//}
 
-			auto city_pixel_radius = int(sqrt(city_size_km2 / rough_node_size_km2 * settlement.second));
+			square::tangent start { { settlement.first / size }, { 0.f, 1.f } };
 
-			for(int i = -city_pixel_radius; i < city_pixel_radius; i++) {
-				for(int k = -city_pixel_radius; k < city_pixel_radius; k++) {
+			int N = 10;
+			for(int layer = 0; layer >= ((center == 0 && is_capital) ? -1 : 0); layer--) {
+				float city_radius = exp(std::min(2.f, round(log(sqrt(city_size_km2 * settlement.second)))) + layer);
 
-					if(city_pixel_radius > 3) {
-						if(i / (2 * city_pixel_radius / 3) != 0 && k / (2 * city_pixel_radius / 3) != 0) {
-							continue;
+				for(int i = 0; i < N; i++) {
+					//auto center = settlement.first;
+					auto angle = (float) i / (float) N * 2.f * std::numbers::pi_v<float>;
+					auto direction_vector = sphere_R3::rotate(start, angle);
+					auto shifted_center_now = start.base.data + direction_vector.data * 0.0001f * (city_radius);
+
+
+					auto angle_next = (float)(i + 1) / (float)N * 2.f * std::numbers::pi_v<float>;
+					auto direction_vector_next = sphere_R3::rotate(start, angle_next);
+					auto shifted_center_next = start.base.data + direction_vector_next.data * 0.0001f * (city_radius);
+
+					city_vertices.push_back(
+						vertex{
+							start.base.data,
+							{ 0.f, 0.f }
 						}
-					}
-
-					if(abs(i * r1 + k * r2) > city_pixel_radius * 0.5f && abs(i * a + k * b + c) > city_pixel_radius * 0.2f) {
-						continue;
-					}
-
-					auto node_1 = get_node(state, settlement.first, i, k, size_x, size_y);
-					auto node_2 = get_node(state, settlement.first, i + 1, k, size_x, size_y);
-					auto node_3 = get_node(state, settlement.first, i, k + 1, size_x, size_y);
-					auto node_4 = get_node(state, settlement.first, i + 1, k + 1, size_x, size_y);
-
-					auto node_center = (node_1 + node_2 + node_3 + node_4) / 4.f;
-
-					//auto sample_1 = province::from_map_id(safe_get_province({ int(node_1.x), int(node_1.y) }));
-					//auto sample_2 = province::from_map_id(safe_get_province({ int(node_2.x), int(node_2.y) }));
-					//auto sample_3 = province::from_map_id(safe_get_province({ int(node_3.x), int(node_3.y) }));
-					//auto sample_4 = province::from_map_id(safe_get_province({ int(node_4.x), int(node_4.y) }));
-
-					auto sample = province::from_map_id(safe_get_province({ int(node_center.x), int(node_center.y) }));
-
-					if(sample.index() > state.province_definitions.first_sea_province.index()) {
-						continue;
-					}
-
-					//if(sample_2.index() > state.province_definitions.first_sea_province.index()) {
-					//	continue;
-					//}
-					//if(sample_3.index() > state.province_definitions.first_sea_province.index()) {
-					//	continue;
-					//}
-					//if(sample_4.index() > state.province_definitions.first_sea_province.index()) {
-					//	continue;
-					//}
-
-					// check if the node is far away from major roads:
-
-
-					const auto rpm1 = rng::get_random(state, p.id.index() ^ (uint32_t)center ^ (i / 2), p.id.index() ^ (k / 2));
-					const float rm1 = (float(rng::reduce(uint32_t(rpm1), 8192)) / (8192.f));
-					const auto rpm2 = rng::get_random(state, p.id.index() ^ (uint32_t)center ^ 5653 ^ (i / 2), p.id.index() ^ 435427 ^ (k / 2));
-					const float rm2 = (float(rng::reduce(uint32_t(rpm2), 8192)) / (8192.f));
-
-					glm::mat2 transform{
-						rm1, rm2, -rm2, rm1
-					};
-
-					transform /= sqrt(rm1 * rm1 + rm2 * rm2);
-					transform *= 3.f;
-
-					const auto rh = rng::get_random(state, p.id.index() ^ (uint32_t)center ^ 9572456, 432864 ^ p.id.index() ^ (uint32_t)(i * city_pixel_radius * 2 + k));
-					const float rhf = (float(rng::reduce(uint32_t(rh), 8192)) / (8192.f));
-					{
-						city_vertices.push_back(
-							vertex{
-								node_1 / size,
-								node_1 * transform
-							}
-						);
-						city_vertices.push_back(
-							vertex{
-								node_2 / size,
-								node_2* transform
-							}
-						);
-						city_vertices.push_back(
-							vertex{
-								node_3 / size,
-								node_3* transform
-							}
-						);
-
-						city_vertices.push_back(
-							vertex{
-								node_2 / size,
-								node_2 * transform
-							}
-						);
-						city_vertices.push_back(
-							vertex{
-								node_4 / size,
-								node_4* transform
-							}
-						);
-						city_vertices.push_back(
-							vertex{
-								node_3 / size,
-								node_3* transform
-							}
-						);
-						const auto r = rng::get_random(state, p.id.index() ^ (uint32_t)center ^ 43542, 4634 ^ p.id.index() ^ (uint32_t)(i * city_pixel_radius * 2 + k));
-						const float rf = (float(rng::reduce(uint32_t(r), 8192)) / (8192.f));
-
-						if(rf > 0.25f && (i == -city_pixel_radius || i + 1 == city_pixel_radius || k == -city_pixel_radius || k + 1 == city_pixel_radius)) {
-							connectors[p.id.index()].push_back((node_1 + node_2 + node_3 + node_4) / 4.f);
+					);
+					city_vertices.push_back(
+						vertex{
+							shifted_center_now,
+							{ cos(angle), sin(angle) }
 						}
-					}
+					);
+					city_vertices.push_back(
+						vertex{
+							shifted_center_next,
+							{ cos(angle_next), sin(angle_next) }
+						}
+					);
 				}
 			}
+
+			connectors[p.id.index()].push_back(settlement.first);
 		}
 	}
 
@@ -3005,7 +2955,7 @@ void display_data::update_sprawl(sys::state& state) {
 			}
 		}
 
-		if(closest1 > 0) {
+		if(closest1 >= 0) {
 			auto node1 = connectors[p1.id.index()][closest1];
 			auto node2 = connectors[p2.id.index()][closest2];
 
@@ -3135,8 +3085,13 @@ void display_data::set_text_lines(sys::state& state) {
 			}
 		}
 
-		left = std::clamp(left, 0.f, 1.f);
-		right = std::clamp(right, 0.f, 1.f);
+		if(!is_spherical) {
+			left = std::clamp(left, e.offset_left, 1.f);
+			right = std::clamp(right, 0.f, e.offset_right);
+		} else {			
+			left = std::clamp(left, 0.f, 1.f);
+			right = std::clamp(right, 0.f, 1.f);
+		}
 
 		if(right <= left) continue;
 
@@ -3209,6 +3164,7 @@ void display_data::set_text_lines(sys::state& state) {
 		assert(std::isfinite(text_length) && text_length != 0.f);
 
 		float size = (curve_length / text_length) * 0.8f;
+		if(!is_spherical) size /= 2.f;
 
 		float font_size_index = std::round(5.f * log(size) / log(1.618034f));
 		if(font_size_index > 45.f) font_size_index = 45.f;
@@ -3216,11 +3172,10 @@ void display_data::set_text_lines(sys::state& state) {
 		size = std::pow(1.618034f, font_size_index / 5.f);
 
 		auto real_text_half_size = size / size_x / 2.f;
-		if(!is_spherical) real_text_half_size /= 2.f;
 
 		float letter_spacing_map = 0.f;
 		if(!state.world.locale_get_prevent_letterspace(state.font_collection.get_current_locale()) && e.text.glyph_info.size() > 1) {
-			letter_spacing_map = std::clamp((0.8f * curve_length - text_length * size) / (e.text.glyph_info.size() - 1) / 2.f, 0.f, size * 2.f);
+			//letter_spacing_map = std::clamp((0.8f * curve_length - text_length * size) / (e.text.glyph_info.size() - 1) / 2.f, 0.f, size * 2.f);
 		}
 
 		float margin = (curve_length - text_length * size - (e.text.glyph_info.size() - 1) * letter_spacing_map) / 2.0f;
@@ -3325,10 +3280,27 @@ void display_data::set_text_lines(sys::state& state) {
 					auto new_tangent_square = sphere_R3::to_square(new_tangent);
 					final_direction = new_tangent_square.data * (float)size_x;
 				} else {
-					glm::vec2 forward_raw = glm::vec2(ratio.x / (float)size_x, ratio.y / (float)size_y * dpoly_fn(cur_x));
-					float norm = sqrt(equirectangular::dot({ {{0.f,0.f}}, forward_raw }, { {{0.f,0.f}}, forward_raw }, (float)size_x, (float)size_y));
+					// rectangle
+					equirectangular::tangent forward_rect { { { 0.f, 0.f } } , { ratio.x, ratio.y * dpoly_fn(cur_x) } };
+					square::tangent forward = equirectangular::to_square(forward_rect, (float)size_x, (float)size_y);
+					float norm = sqrt(equirectangular::dot(forward, forward, (float)size_x, (float)size_y));
 					if(norm <= 0.f) norm = 1.f;
-					auto forward = forward_raw / norm * (float)size_x;
+					forward.data /= norm;					
+					square::tangent up = equirectangular::rotate_left(forward, (float)size_x, (float)size_y);
+
+					equirectangular::point center_rect { glm::vec2(cur_x, poly_fn(cur_x)) * ratio + basis };
+					square::point center = equirectangular::to_square(center_rect, (float)size_x, (float)size_y);
+
+					actual_center = center.data;
+					actual_center -= up.data / 2.f * size / 64.f * glyph_height;
+					actual_center -= up.data / 2.f * size / 64.f * max_glyph_height;
+					actual_center += up.data / 1.f * size / 64.f * y_bearing;
+					actual_center += up.data / 1.f * size / 64.f * y_offset;
+					actual_center += forward.data * size / 64.f * glyph_width / 2.f;
+
+					final_direction = forward.data * (float)size_x;
+
+					/*
 					glm::vec2 up = equirectangular::rotate_left({ {{0.f,0.f}}, forward }, (float)size_x, (float)size_y).data;
 					auto raw_center = glm::vec2(cur_x, poly_fn(cur_x)) * ratio + basis;
 					auto center = raw_center / glm::vec2(size_x, size_y);
@@ -3336,6 +3308,7 @@ void display_data::set_text_lines(sys::state& state) {
 						+ (-0.5f * max_glyph_height + 0.5f * glyph_height + y_offset - (glyph_height - y_bearing)) * up * real_text_half_size / 64.f
 						+ (glyph_width + x_offset) * forward * real_text_half_size / 64.f;
 					final_direction = forward;
+					*/
 				}
 
 				float u0 = float(gi.ft_x_bearing) / (64.0f * text::dr_size);
@@ -3492,6 +3465,23 @@ void display_data::set_province_text_lines(sys::state& state, std::vector<text_l
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 	}
 	*/
+}
+
+GLuint load_dds_texture(simple_fs::directory const& dir, native_string_view file_name, uint32_t& size_x, uint32_t& size_y, int soil_flags = ogl::SOIL_FLAG_TEXTURE_REPEATS) {
+	auto file = simple_fs::open_file(dir, file_name);
+	if(!bool(file)) {
+		auto full_message = std::string("Can't load DDS file ") + simple_fs::native_to_utf8(file_name) + "\n";
+#ifdef _WIN64
+		OutputDebugStringA(full_message.c_str());
+#else
+		std::fprintf(stderr, "%s", full_message.c_str());
+#endif
+		return 0;
+	}
+	auto content = simple_fs::view_contents(*file);
+	//uint32_t size_x, size_y;
+	uint8_t const* data = (uint8_t const*)(content.data);
+	return ogl::SOIL_direct_load_DDS_from_memory(data, content.file_size, size_x, size_y, soil_flags);
 }
 
 GLuint load_dds_texture(simple_fs::directory const& dir, native_string_view file_name, int soil_flags = ogl::SOIL_FLAG_TEXTURE_REPEATS) {
@@ -3839,8 +3829,162 @@ void display_data::load_map(sys::state& state) {
 
 	if(texturesheet) {
 		if (simple_fs::get_full_name(texturesheet.value()).ends_with(NATIVE("dds"))) {
-			texture_arrays[texture_array_terrainsheet] = load_dds_texture(map_terrain_dir, NATIVE("texturesheet.dds"));
-			texturesheet_is_dds = true;
+
+			// cut the texture into 64 parts
+			uint32_t dds_size_x;
+			uint32_t dds_size_y;
+			int32_t tiles = 8;
+			auto dds_texture = load_dds_texture(map_terrain_dir, NATIVE("texturesheet.dds"), dds_size_x, dds_size_y);
+			size_t p_dx = dds_size_x / tiles; // Pixels of each tile in x
+			size_t p_dy = dds_size_y / tiles; // Pixels of each tile in y
+
+			GLuint decoded_texture;
+			glGenTextures(1, &decoded_texture);
+			glBindTexture(GL_TEXTURE_2D, decoded_texture);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, dds_size_x, dds_size_y, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
+			GLuint decoder_framebuffer;
+			glGenFramebuffers(1, &decoder_framebuffer);
+			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, decoder_framebuffer);
+
+
+			glFramebufferTexture2D(
+				GL_DRAW_FRAMEBUFFER,
+				GL_COLOR_ATTACHMENT0,
+				GL_TEXTURE_2D,
+				decoded_texture,
+				0
+			);
+
+			GLenum buf[1] = {GL_COLOR_ATTACHMENT0};
+			glDrawBuffers(1, buf);
+
+			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, decoder_framebuffer);
+			glViewport(0, 0, dds_size_x, dds_size_y);
+
+			auto msaa_fshader = open_file(root, NATIVE("assets/shaders/glsl/msaa_f_shader.glsl"));
+			auto msaa_vshader = open_file(root, NATIVE("assets/shaders/glsl/msaa_v_shader.glsl"));
+			//auto vertex_content = view_contents(*msaa_vshader);
+			//auto fragment_content = view_contents(*msaa_fshader);
+			auto shader_program = create_program(*msaa_vshader, *msaa_fshader);
+			auto screen_uniform = glGetUniformLocation(shader_program, "screen_size");
+			auto blur_uniform = glGetUniformLocation(shader_program, "gaussian_radius");
+
+			glUseProgram(shader_program);
+			glUniform1f(blur_uniform, 0);
+			glUniform2f(screen_uniform, (float)dds_size_x, (float)dds_size_y);
+
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, dds_texture);
+
+			static const float sq_vertices[] = {
+				// positions   // texCoords
+				-1.0f,  1.0f,  1.0f, 0.0f,
+				-1.0f, -1.0f,  0.0f, 0.0f,
+				1.0f, -1.0f,  0.0f, 1.0f,
+				-1.0f,  1.0f,  1.0f, 0.0f,
+				1.0f, -1.0f,  0.0f, 1.0f,
+				1.0f,  1.0f,  1.0f, 1.0f
+			};
+
+			GLuint vertex_array;
+			GLuint vertex_buffer;
+
+			glGenVertexArrays(1, &vertex_array);
+			glGenBuffers(1, &vertex_buffer);
+			glBindVertexArray(vertex_array);
+			glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
+			glBufferData(GL_ARRAY_BUFFER, sizeof(sq_vertices), &sq_vertices, GL_STATIC_DRAW);
+			glEnableVertexAttribArray(0);
+			glEnableVertexAttribArray(1);
+			glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+			glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+			glBindVertexArray(vertex_array);
+
+			glDrawArrays(GL_TRIANGLES, 0, 6);
+
+			glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+			state.console_log(ogl::opengl_get_error_name(glGetError()));
+
+			GLuint read_framebuffer;
+			glGenFramebuffers(1, &read_framebuffer);
+			glBindFramebuffer(GL_READ_FRAMEBUFFER, read_framebuffer);
+			glBindTexture(GL_TEXTURE_2D, decoded_texture);
+			glFramebufferTexture2D(
+				GL_READ_FRAMEBUFFER,
+				GL_COLOR_ATTACHMENT0,
+				GL_TEXTURE_2D,
+				decoded_texture,
+				0
+			);
+
+			GLuint write_framebuffer;
+			glGenFramebuffers(1, &write_framebuffer);
+			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, write_framebuffer);
+
+			auto& target_texture = texture_arrays[texture_array_terrainsheet];
+			glGenTextures(1, &target_texture);
+			glBindTexture(GL_TEXTURE_2D_ARRAY, target_texture);
+
+			glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_RGBA, GLsizei(p_dx), GLsizei(p_dy), GLsizei(tiles * tiles), 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+
+
+			for(int32_t x = 0; x < tiles; x++) {
+				for(int32_t y = 0; y < tiles; y++) {
+					glFramebufferTextureLayer(
+						GL_DRAW_FRAMEBUFFER,
+						GL_COLOR_ATTACHMENT0,
+						target_texture,
+						0,
+						GLint(x * tiles + y)
+					);
+
+					glBlitFramebuffer(
+						// SOURCE
+						x * (GLint)p_dx,
+						y * (GLint)p_dy,
+						(x + 1) * (GLint)p_dx,
+						(y + 1) * (GLint)p_dy,
+						// TARGET
+						(GLint)0,
+						(GLint)0,
+						(GLint)p_dx,
+						(GLint)p_dy,
+						// WHAT TO COPY
+						GL_COLOR_BUFFER_BIT,
+						// HOW TO COPY
+						GL_NEAREST
+					);
+				}
+			}
+
+			glGenerateMipmap(GL_TEXTURE_2D_ARRAY);
+			glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+			glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+			glBindFramebuffer(GL_FRAMEBUFFER, 0);
+			glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
+			glBindTexture(GL_TEXTURE_2D, 0);
+
+			glDeleteFramebuffers(1, &read_framebuffer);
+			glDeleteFramebuffers(1, &write_framebuffer);
+			glDeleteFramebuffers(1, &decoder_framebuffer);
+			glDeleteTextures(1, &dds_texture);
+			glDeleteTextures(1, &decoded_texture);
+
+			glDeleteVertexArrays(1, &vertex_array);
+			glDeleteBuffers(1, &vertex_buffer);
+
+
+			// no longer needed as now we treat DDS the same way as png
+			// TODO: remove related stuff from shaders
+			// texturesheet_is_dds = true;
 		} else {
 			texture_arrays[texture_array_terrainsheet] = ogl::load_texture_array_from_file(*texturesheet, 8, 8);
 		}
