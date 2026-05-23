@@ -338,8 +338,8 @@ trade_route_volume_change_reasons predict_trade_route_volume_change(
 	auto land_distance = state.world.trade_route_get_land_distance(route);
 	auto sea_distance = state.world.trade_route_get_sea_distance(route);
 
-	distance = is_land_route ? std::min(distance, land_distance) : distance;
-	distance = is_sea_route ? std::min(distance, sea_distance) : distance;
+	distance = is_land_route ? land_distance : distance;
+	distance = is_sea_route ? sea_distance : distance;
 
 	auto trade_good_loss_mult = std::max(0.f, 1.f - trade_loss_per_distance_unit * distance);
 
@@ -463,7 +463,7 @@ trade_route_volume_change_reasons predict_trade_route_volume_change(
 	auto buy_rate_perception_B = (optimism_confidence * std::max(expected_to_buy_B, buy_optimism) + pessimism_confidence_B * expected_to_buy_B);
 	auto buy_transport_perception = std::min(1.f, (economy::numerical::employment_unit::epsilon / (1.f + absolute_volume) + transport_availability * 2.f));
 
-	auto perception_divisor = (1.f + optimism_confidence + pessimism_confidence_B) * (1.f + optimism_confidence + pessimism_confidence_A);
+	auto perception_divisor = (optimism_confidence + pessimism_confidence_B) * (optimism_confidence + pessimism_confidence_A);
 
 	auto earn_A_to_B = price_B_import * sold_boundary * sell_rate_perception_B * buy_rate_perception_A / perception_divisor * buy_transport_perception;
 	auto earn_B_to_A = price_A_import * sold_boundary * sell_rate_perception_A * buy_rate_perception_B / perception_divisor * buy_transport_perception;
@@ -765,8 +765,8 @@ void update_trade_routes_volume(
 			auto buy_rate_perception_B = (optimism_confidence.get(c) * ve::max(expected_to_buy_B, buy_optimism) + pessimism_confidence_B * expected_to_buy_B);
 			auto buy_transport_perception = ve::min(1.f, (economy::numerical::employment_unit::epsilon / (1.f + absolute_volume) + transport_availability * 2.f));
 
-			auto perception_divisor_A = (ve::fp_vector{ 1.f } + optimism_confidence.get(c) + pessimism_confidence_A);
-			auto perception_divisor_B = (ve::fp_vector{ 1.f } + optimism_confidence.get(c) + pessimism_confidence_B);
+			auto perception_divisor_A = (optimism_confidence.get(c) + pessimism_confidence_A);
+			auto perception_divisor_B = (optimism_confidence.get(c) + pessimism_confidence_B);
 			auto perception_divisor = perception_divisor_A * perception_divisor_B;
 
 			auto earn_A_to_B = price_B_import * sold_boundary * sell_rate_perception_B * buy_rate_perception_A / perception_divisor * buy_transport_perception;

@@ -227,7 +227,7 @@ void recalculate_markets_distance(sys::state& state) {
 				auto stats_0 = state.world.nation_get_unit_stats(owner_0, transport_0);
 				auto stats_1 = state.world.nation_get_unit_stats(owner_1, transport_1);
 
-				auto speed = std::max(1.f, std::max(stats_0.maximum_speed, stats_1.maximum_speed));
+				auto speed = std::max(0.01f, std::max(stats_0.maximum_speed, stats_1.maximum_speed));
 
 				path = province::make_sea_trade_route_path(state, coast_0, coast_1);
 				p_prev = coast_0;

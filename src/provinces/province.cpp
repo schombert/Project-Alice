@@ -2548,6 +2548,15 @@ std::vector<dcon::province_id> make_sea_trade_route_path(sys::state& state, dcon
 		auto bits = state.world.province_adjacency_get_type(adj);
 		bool to_prov_is_land = to.index() < state.province_definitions.first_sea_province.index();
 		bool from_prov_is_land = from.index() < state.province_definitions.first_sea_province.index();
+		// move freely in target state.
+		if (state.world.province_get_state_membership(end) == state.world.province_get_state_membership(to)) {
+			return true;
+		}
+		// move freely in origin state
+		if (state.world.province_get_state_membership(start) == state.world.province_get_state_membership(to)) {
+			return true;
+		}
+
 		if(to_prov_is_land) { // is land
 			if(from_prov_is_land) {
 				return false; // cant move directly between land provs
@@ -2568,6 +2577,14 @@ std::vector<dcon::province_id> make_sea_trade_route_path(sys::state& state, dcon
 	};
 	auto province_func = [&](dcon::province_id to) {
 		if(to.index() < state.province_definitions.first_sea_province.index()) { // is land
+			// move freely in target state.
+			if (state.world.province_get_state_membership(end) == state.world.province_get_state_membership(to)) {
+				return true;
+			}
+			// move freely in origin state
+			if (state.world.province_get_state_membership(start) == state.world.province_get_state_membership(to)) {
+				return true;
+			}
 			// Land prov must be coastal to be considered
 			return state.world.province_get_is_coast(to);
 
@@ -2577,7 +2594,12 @@ std::vector<dcon::province_id> make_sea_trade_route_path(sys::state& state, dcon
 
 		};
 	auto modifier_func = [&](dcon::province_id to, dcon::province_id from, dcon::province_adjacency_id adj, float distance) {
-		return distance;
+		// prefer sea:
+		float mod = 0.2f;
+		if(to.index() < state.province_definitions.first_sea_province.index()) {
+			mod = 1.f;
+		}
+		return distance * mod;
 	};
 
 	return make_path_to_prov<1.0f>(state, start, end, adjacency_func, province_func, modifier_func); // use default heuristic mod 1.0f to prio faster paths over accurate ones

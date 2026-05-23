@@ -2949,7 +2949,7 @@ relationship{
 object {
 	name{ war }
 	storage_type{ erasable }
-	size{ 100 }
+	size{ 255 }
 	tag{ save }
 
 	property{

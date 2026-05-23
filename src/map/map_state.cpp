@@ -119,6 +119,8 @@ glm::vec2 get_army_location(sys::state& state, dcon::province_id prov_id) {
 }
 
 void register_trade_flow(display_data& map_data, int node1, int node2, float volume) {
+	assert(node1 >= 0);
+	assert(node2 >= 0);
 	if(map_data.particle_next_node_probability.contains(node1)) {
 		if(map_data.particle_next_node_probability[node1].contains(node2)) {
 			map_data.particle_next_node_probability[node1][node2] += volume;
@@ -527,6 +529,8 @@ void update_trade_flow_arrows(sys::state& state, display_data& map_data) {
 
 		if(state.world.province_get_port_to(origin)) {
 			map_data.trade_node_position[base_index] = get_port_location(state, origin) ;
+		} else {
+			map_data.trade_node_position[base_index] = get_army_location(state, origin);
 		}
 	});
 
