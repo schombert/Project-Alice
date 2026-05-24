@@ -306,6 +306,10 @@ void recalculate_markets_distance(sys::state& state) {
 						local_effective_distance = local_effective_distance / 2.f;
 					}
 
+					if(bits & province::border::coastal_bit) {
+						local_effective_distance = local_effective_distance / 2.f;
+					}
+
 					effective_distance += std::max(0.01f, local_effective_distance);
 					if(sum_mods > worst_movement_cost)
 						worst_movement_cost = std::max(0.01f, sum_mods);
@@ -650,6 +654,47 @@ void generate_initial_trade_routes(sys::state& state) {
 						? adj.get_connected_provinces(0)
 						: adj.get_connected_provinces(1);
 
+					if(!other.get_state_membership())
+						continue;
+					if(other.get_state_membership() == sid)
+						continue;
+					if(trade_route_candidates.contains(other.get_state_membership().id.value))
+						continue;
+
+					trade_route_candidates.insert(other.get_state_membership().id.value);
+				}
+			}
+
+			/*
+			Create trade routes through lakes.
+			Lake coasts have both impassible bit and coastal bit
+			*/
+			for(auto adj : state.world.province_get_province_adjacency(prov)) {
+				auto bits = adj.get_type();
+				if((bits & province::border::impassible_bit) == 0) {
+					continue;
+				}
+				if((bits & province::border::coastal_bit) == 0) {
+					continue;
+				}
+
+				auto through =
+					adj.get_connected_provinces(0) != prov
+					? adj.get_connected_provinces(0)
+					: adj.get_connected_provinces(1);
+
+				for(auto adj2 : state.world.province_get_province_adjacency(through)) {
+					auto bits2 = adj2.get_type();
+					if((bits2 & province::border::impassible_bit) == 0) {
+						continue;
+					}
+					if((bits2 & province::border::coastal_bit) == 0) {
+						continue;
+					}
+					auto other =
+						adj2.get_connected_provinces(0) != through
+						? adj2.get_connected_provinces(0)
+						: adj2.get_connected_provinces(1);
 					if(!other.get_state_membership())
 						continue;
 					if(other.get_state_membership() == sid)

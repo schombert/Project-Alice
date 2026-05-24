@@ -1168,6 +1168,47 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 				}
 			}
 
+			/*
+			Create trade routes through lakes.
+			Lake coasts have both impassible bit and coastal bit
+			*/
+			for(auto adj : state.world.province_get_province_adjacency(id)) {
+				auto bits = adj.get_type();
+				if((bits & province::border::impassible_bit) == 0) {
+					continue;
+				}
+				if((bits & province::border::coastal_bit) == 0) {
+					continue;
+				}
+
+				auto through =
+					adj.get_connected_provinces(0) != id
+					? adj.get_connected_provinces(0)
+					: adj.get_connected_provinces(1);
+
+				for(auto adj2 : state.world.province_get_province_adjacency(through)) {
+					auto bits2 = adj2.get_type();
+					if((bits2 & province::border::impassible_bit) == 0) {
+						continue;
+					}
+					if((bits2 & province::border::coastal_bit) == 0) {
+						continue;
+					}
+					auto other =
+						adj2.get_connected_provinces(0) != through
+						? adj2.get_connected_provinces(0)
+						: adj2.get_connected_provinces(1);
+					if(!other.get_state_membership())
+						continue;
+					if(other.get_state_membership() == new_si)
+						continue;
+					if(trade_route_candidates.contains(other.get_state_membership().id.value))
+						continue;
+
+					trade_route_candidates.insert(other.get_state_membership().id.value);
+				}
+			}
+
 			for(auto candidate_trade_partner_val : trade_route_candidates) {
 				auto si = dcon::state_instance_id{ uint16_t(candidate_trade_partner_val - 1) };
 				auto target_market = state.world.state_instance_get_market_from_local_market(si);
@@ -1218,6 +1259,49 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 						? adj.get_connected_provinces(0)
 						: adj.get_connected_provinces(1);
 
+					if(!other.get_state_membership())
+						continue;
+					if(other.get_state_membership() == new_si)
+						continue;
+					if(old_trade_routes.contains(other.get_state_membership().id.value))
+						continue;
+					if(trade_route_candidates.contains(other.get_state_membership().id.value))
+						continue;
+
+					trade_route_candidates.insert(other.get_state_membership().id.value);
+				}
+			}
+
+			/*
+			Create trade routes through lakes.
+			Lake coasts have both impassible bit and coastal bit
+			*/
+			for(auto adj : state.world.province_get_province_adjacency(id)) {
+				auto bits = adj.get_type();
+				if((bits & province::border::impassible_bit) == 0) {
+					continue;
+				}
+				if((bits & province::border::coastal_bit) == 0) {
+					continue;
+				}
+
+				auto through =
+					adj.get_connected_provinces(0) != id
+					? adj.get_connected_provinces(0)
+					: adj.get_connected_provinces(1);
+
+				for(auto adj2 : state.world.province_get_province_adjacency(through)) {
+					auto bits2 = adj2.get_type();
+					if((bits2 & province::border::impassible_bit) == 0) {
+						continue;
+					}
+					if((bits2 & province::border::coastal_bit) == 0) {
+						continue;
+					}
+					auto other =
+						adj2.get_connected_provinces(0) != through
+						? adj2.get_connected_provinces(0)
+						: adj2.get_connected_provinces(1);
 					if(!other.get_state_membership())
 						continue;
 					if(other.get_state_membership() == new_si)
@@ -2441,17 +2525,28 @@ std::vector<dcon::province_id> make_safe_land_path(sys::state& state, dcon::prov
 
 }
 
-// used for land trade (is allowed to path though sea provinces though)
+/*
+Generates the path for land trade
+Allowed to path through sea provinces.
+Becase there states which can have land  connection with other states while being split by sea
+*/
 std::vector<dcon::province_id> make_land_trade_path(sys::state& state, dcon::province_id start, dcon::province_id end) {
 
 	auto adjacency_func = [&](dcon::province_id to, dcon::province_id from, dcon::province_adjacency_id adj) {
 		auto bits = state.world.province_adjacency_get_type(adj);
-		return (bits & province::border::impassible_bit) == 0;
+		// allow going into lakes
+		return
+			(bits & province::border::impassible_bit) == 0
+			|| (
+				(bits & province::border::impassible_bit) != 0
+				&& (bits & province::border::coastal_bit) != 0
+			);
 	};
+
 	auto province_func = [&](dcon::province_id to) {
 		return true;
-
 	};
+
 	auto modifier_func = [&](dcon::province_id to, dcon::province_id from, dcon::province_adjacency_id adj, float distance) {
 		auto bits = state.world.province_adjacency_get_type(adj);
 		auto railroad_origin = state.world.province_get_building_level(from, uint8_t(economy::province_building_type::railroad));
@@ -2463,8 +2558,11 @@ std::vector<dcon::province_id> make_land_trade_path(sys::state& state, dcon::pro
 		if(bits & province::border::river_connection_bit) {
 			distance = distance / 2.f;
 		}
+		// lakes reduce distance even further:
+		if(bits & province::border::coastal_bit) {
+			distance = distance / 2.f;
+		}
 		return distance;
-
 	};
 
 	return make_path_to_prov<0.25f>(state, start, end, adjacency_func, province_func, modifier_func); // multiply heuristic by 0.25 for more optimal paths (and the paths generally being small)
