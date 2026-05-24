@@ -1,0 +1,26 @@
+PV_INTERNAL_IMMIGRATION;국내 이주:
+PV_EXTERNAL_IMMIGRATION;국외 이주:
+COUNTRYALERT_CanRemoveFromSphere;우리의 §Y세력권§!에서 국가를 제외할 수 있습니다:
+PV_CLERGY_LIT_DESC1;$LOC$ 인구의 $NUM$이(가) 성직자입니다.
+PV_CLERGY_LIT_DESC2;최적은 $OPT$입니다.
+PV_CLERGY_LIT_DESC3;월간 변화 기본값: $VAL$
+IN_SOCIAL_MOVEMENT;사회 운동 중
+NOT_IN_SOCIAL_MOVEMENT;사회 운동 중이 아님
+IN_POLITICAL_MOVEMENT;정치 운동 중
+NOT_IN_POLITICAL_MOVEMENT;정치 운동 중이 아님
+the_meiji_restoration2_title;초기 메이지 유신
+the_meiji_restoration2_desc;일본은 전통적으로 기원전 660년 진무 덴노에 의해 건국되었다고 여겨지며, 이후로 황통이 한 번도 끊어지지 않았다고 여겨졌음에도 천황의 지위는 에도 시대를 거치며 숭배와 존경을 받을 뿐 궁극적으로는 정치적 권력이 없는 제도로 전락했습니다. 제정 복고를 수용하고 이와 함께 신속한 산업 현대화, 입헌주의, 경제적 자유라는 프로그램을 수용한다면, 일본은 서구 세계의 강압으로 인해 채워진 족쇄를 끊을 수 있을지도 모릅니다.
+TPG;태평천국
+TPG_democracy;태평 공화국
+TPG_bourgeois_dictatorship;태평 공화국
+TPG_proletarian_dictatorship;공산 태평천국
+TPG_fascist_dictatorship;태평천국
+TPG_presidential_dictatorship;태평 군벌
+TPG_ADJ;태평천국
+TPG_conservative;서왕
+TPG_liberal;익왕
+TPG_reactionary;동왕
+TPG_socialist;북왕
+TPG_anarcho_liberal;급진파
+TPG_communist;공산파
+TPG_fascist;파시스트파

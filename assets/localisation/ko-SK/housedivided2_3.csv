@@ -1,0 +1,151 @@
+GREAT_WARS_ENABLED_DESC;대전쟁이 발견되었습니다.
+GREAT_WARS_DISABLED_DESC;대전쟁이 아직 발견되지 않았습니다.
+GREAT_WARS_ENABLE_DESC;전쟁이 대전쟁의 지위를 얻을 수 있습니다!
+GREAT_WAR_NAME;제$ORDER$차 대전쟁
+GW_DISCOVERED_SETUP;대전쟁이 발견되었을 때.
+GW_DISCOVERED_HEADER;대전쟁이 발견되었습니다!
+GW_DISCOVERED_1;대전쟁이 발견되었습니다!
+GW_DISCOVERED_2;이제부터 양측에 각각
+GW_DISCOVERED_3;최소 2개국 이상의 열강이
+GW_DISCOVERED_4;참여하는 전쟁은 다음의 지위를 얻게 됩니다:
+GW_DISCOVERED_5;§Y대전쟁§!.
+GW_DISCOVERED_6;*
+GW_DISCOVERED_BTN1;확인
+GW_DISCOVERED_BTN2;확인
+GW_DISCOVERED_BTN3;이동
+GW_DISCOVERED_LOG;대전쟁 발견
+WAR_GAIN_GW_STATUS_SETUP;우리의 전쟁이 대전쟁의 지위를 얻었을 때.
+WAR_GAIN_GW_STATUS_HEADER;대전쟁!
+WAR_GAIN_GW_STATUS_1;$WAR$
+WAR_GAIN_GW_STATUS_2;(은)는 다음 지위로 격상되었습니다:
+WAR_GAIN_GW_STATUS_3;§Y대전쟁§!.
+WAR_GAIN_GW_STATUS_4;*
+WAR_GAIN_GW_STATUS_5;*
+WAR_GAIN_GW_STATUS_6;*
+WAR_GAIN_GW_STATUS_BTN1;확인
+WAR_GAIN_GW_STATUS_BTN2;확인
+WAR_GAIN_GW_STATUS_BTN3;이동
+WAR_GAIN_GW_STATUS_LOG;$WAR$이(가) §Y대전쟁§!(으)로 격상되었습니다!
+WAR_LOST_GW_STATUS_SETUP;우리의 전쟁이 대전쟁의 지위를 잃었을 때.
+WAR_LOST_GW_STATUS_HEADER;더 이상 대전쟁이 아닙니다!
+WAR_LOST_GW_STATUS_1;$WAR$
+WAR_LOST_GW_STATUS_2;(은)는 더 이상 다음이 아닙니다:
+WAR_LOST_GW_STATUS_3;대전쟁.
+WAR_LOST_GW_STATUS_4;*
+WAR_LOST_GW_STATUS_5;*
+WAR_LOST_GW_STATUS_6;*
+WAR_LOST_GW_STATUS_BTN1;확인
+WAR_LOST_GW_STATUS_BTN2;확인
+WAR_LOST_GW_STATUS_BTN3;이동
+WAR_LOST_GW_STATUS_LOG;$WAR$이(가) 더 이상 §Y대전쟁§!이 아닙니다!
+GW_INTERVENE_MIN_RELATIONS;§Y$TARGET$§! 국가와의 관계도가 최소 §G$MIN$§!이어야 합니다. 현재 관계도는 §Y$VAL$§!입니다.
+GW_INTERVENE_MAX_EXHAUSTION;우리의 전쟁 피로도가 §G$MAX$§! 이하여야 합니다. 현재 전쟁 피로도는 §Y$VAL$§!입니다.
+great_war_penalty_cb;대전쟁 항복
+great_war_penalty_cb_desc;상대 §Y국가§!의 군비를 제한하고 우리에게 배상금을 지불하도록 강제합니다.
+great_war_penalty_cb_setup;$RECIPIENT$의 군비를 제한하고 배상금을 지불하게 합니다.
+great_war_penalty_cb_short;대전쟁 항복
+GREAT_WAR_OBLIGATORY_CB_DESC;모든 적국에 대한 의무적 대전쟁 전쟁 명분:
+GREAT_WAR_CB_JUSTIFY_COST_DESC;§Y대전쟁§! 상태로 인해 악명 비용이 원래 비용의 §G$PERC$%§!(으)로 감소합니다.
+GREAT_WAR_CB_CONSTRUCTION_SPEED_DESC;§Y$TARGET$§! 국가와 대전쟁 중
+fascist_focus_short;§Y파시즘§! 충성도
+reactionary_focus_short;§Y반동주의§! 충성도
+conservative_focus_short;§Y보수주의§! 충성도
+socialist_focus_short;§Y사회주의§! 충성도
+communist_focus_short;§Y공산주의§! 충성도
+liberal_focus_short;§Y자유주의§! 충성도
+anarcho_liberal_focus_short;§Y무정부적 자유주의§! 충성도
+automation_focus_short;자동차 산업
+electrical_focus_short;전기 산업
+chemical_focus_short;화학 산업
+shipping_focus_short;해운 산업
+textile_focus_short;섬유 산업
+wood_focus_short;목재 산업
+basic_industry_focus_short;기초 산업
+armaments_focus_short;군수 산업
+consumer_focus_short;소비재
+WAR_GOAL_SUCCESS_PRESTIGE_CHANGE;이 전쟁 목표를 달성하면 $PRES$의 위신을 획득합니다.
+WAR_GOAL_FAILURE_PRESTIGE_CHANGE;이 전쟁 목표 달성에 실패하면 $PRES$의 위신을 상실합니다.
+POP_INTERNAL_MIGRATION;§Y$NUM$§!명의 사람들이 다른 자국 프로빈스로 이주하려 합니다.
+POP_EXTERNAL_MIGRATION;§Y$NUM$§!명의 사람들이 다른 국가로 이민하려 합니다.
+POP_COLONIAL_MIGRATION;§Y$NUM$§!명의 사람들이 식민지로 이주하려 합니다.
+INVESTED_IN_US_SETUP;한 국가가 우리에게 투자했을 때
+INVESTED_IN_US_HEADER;외국인 투자
+INVESTED_IN_US_1;$ICOUNTRY$이(가) 우리에게 투자했습니다!
+INVESTED_IN_US_2;$INVESTED_IN_US_MESSAGE$
+INVESTED_IN_US_3;*
+INVESTED_IN_US_4;*
+INVESTED_IN_US_5;*
+INVESTED_IN_US_6;*
+INVESTED_IN_US_BTN1;확인
+INVESTED_IN_US_BTN2;확인
+INVESTED_IN_US_BTN3;이동
+INVESTED_IN_US_LOG;§Y$ICOUNTRY$§!이(가) 우리에게 투자했습니다: $INVESTED_IN_US_MESSAGE$
+INVESTED_IN_US_BUILD;$ILOCATION$에 $IAMOUNT$¤ 비용으로 $INAME$ 건설
+INVESTED_IN_US_OPEN;$ILOCATION$에 $IAMOUNT$¤ 비용으로 $INAME$ 가동
+INVESTED_IN_US_UPGRADE;$ILOCATION$의 $INAME$을(를) $IAMOUNT$¤ 비용으로 확장
+INVESTED_IN_US_UNKNOWN;우리에게 $IAMOUNT$¤ 투자함.
+MODIFY_RELATION_EFFECT;§Y$SOURCE$§!의 §Y$TARGET$§!에 대한 관계도가 $VALUE$만큼 변동했습니다.
+PRODUCTION_EXPAND_FACTORY_SHORTCUT_TOOLTIP;§GCtrl+클릭§! 시 고용 한계에 가까운 동일한 유형의 모든 공장(§Y$NUMSPECIALFACTORIES$§!)을 확장합니다.\n§GShift+클릭§! 시 고용 한계에 가까운 모든 공장(§Y$NUMFACTORIES$§!)을 확장합니다.
+EVTNAME19355;대전쟁
+EVTDESC19355;전 세계 국가들의 고조되는 민족적 자부심은 이제 열강 간의 충돌 시 완전한 승리가 아니면 그 무엇도 받아들이지 않는 지경에 이르렀습니다. 이제부터 양측에 각각 2개국 이상의 열강이 참여하는 분쟁은 대전쟁으로 간주됩니다!
+EVTOPTA19355;신이여 우리를 도우소서
+AGRESSION_WAR_INDEPENDENCE_NAME;$ORDER$$FIRST$ 독립 전쟁
+BYE;벨라루스
+BYE_ADJ;벨라루스
+UBD;발트 연합 주
+UBD_ADJ;발트
+UBD_conservative;보수당
+UBD_liberal;자유당
+UBD_reactionary;반동당
+UBD_anarcho_liberals;무정부적 자유당
+UBD_socialist;사회당
+UBD_communist;볼셰비키
+UBD_fascist;국가사회당
+BYE_conservative;보수당
+BYE_liberal;자유당
+BYE_reactionary;반동당
+BYE_anarcho_liberals;무정부적 자유당
+BYE_socialist;벨라루스 사회주의 회의
+BYE_communist;볼셰비키
+BYE_fascist;국가사회당
+PLC;폴란드-리투아니아
+PLC_ADJ;폴란드-리투아니아
+PLC_conservative;국민민주당
+PLC_liberal;애국당
+PLC_reactionary;타르고비차 연맹
+PLC_anarcho_liberal;급진당
+PLC_socialist;사회당
+PLC_communist;사회민주당
+PLC_fascist;국민당
+ARA;아라비아
+ARA_ADJ;아랍
+ARA_conservative;보수당
+ARA_liberal;자유당
+ARA_reactionary;반동당
+ARA_anarcho_liberals;무정부적 자유당
+ARA_socialist;사회당
+ARA_communist;공산당
+ARA_fascist;국가사회당
+GCO;그란 콜롬비아
+GCO_ADJ;그란 콜롬비아
+form_gran_colombia_title;그란 콜롬비아 형성
+form_gran_colombia_desc;그란 콜롬비아는 시몬 볼리바르가 스페인의 지배로부터 콜롬비아, 베네수엘라, 에콰도르 영토를 성공적으로 해방시킨 후 남아메리카에 세워진 정치적 연방이었습니다. 이 연방은 1831년에 해체되었습니다. 이제 우리는 새로운 그란 콜롬비아를 선포함으로써 북안데스 민족을 다시금 통합할 위치에 있습니다.
+GCO_conservative;중앙집권당
+GCO_conservative_2;신중앙집권당
+GCO_liberal;연방당
+GCO_liberal_2;신연방당
+GCO_liberal_3;자치당
+GCO_anarcho_liberal;급진당
+GCO_reactionary;전통당
+GCO_socialist;혁명사회당
+GCO_communist;공산당
+GCO_fascist;파시스트당
+arab;아랍
+form_arabia_title;아라비아 형성
+form_arabia_desc;형제들이여, 마침내 여기에 자유가 도래했고 운명을 건 전투에서 승리했습니다. 이제 아랍 민족은 부활을 향해 나아가고 있습니다!
+IS_EMPTY;소유국 없음
+IS_NOT_EMPTY;소유국 있음
+EVTNAME111011928;아라비아 형성
+EVTDESC111011928;전쟁과 외교를 통해 아라비아 연합이 창설되었습니다. 우리도 합류하겠습니까?
+EVTOPTA111011928;물론이지!
+EVTOPTB111011928;절대 안 된다!
