@@ -119,6 +119,8 @@ glm::vec2 get_army_location(sys::state& state, dcon::province_id prov_id) {
 }
 
 void register_trade_flow(display_data& map_data, int node1, int node2, float volume) {
+	assert(node1 >= 0);
+	assert(node2 >= 0);
 	if(map_data.particle_next_node_probability.contains(node1)) {
 		if(map_data.particle_next_node_probability[node1].contains(node2)) {
 			map_data.particle_next_node_probability[node1][node2] += volume;
@@ -527,6 +529,8 @@ void update_trade_flow_arrows(sys::state& state, display_data& map_data) {
 
 		if(state.world.province_get_port_to(origin)) {
 			map_data.trade_node_position[base_index] = get_port_location(state, origin) ;
+		} else {
+			map_data.trade_node_position[base_index] = get_army_location(state, origin);
 		}
 	});
 
@@ -829,6 +833,18 @@ void update_trade_flow_arrows(sys::state& state, display_data& map_data) {
 						continue;
 					}
 
+					auto adj = state.world.get_province_adjacency_by_province_pair(source, origin);
+					auto adj2 = state.world.get_province_adjacency_by_province_pair(origin, target);
+					bool not_lake =
+						(
+							(
+								state.world.province_adjacency_get_type(adj2)
+								| state.world.province_adjacency_get_type(adj)
+							)
+							& province::border::impassible_bit
+						) == 0;
+
+
 					// by default: connect centers of the segments between midpoints of provinces and use their tangents as start and end tangents
 
 					glm::vec2 tangent_start = glm::normalize(current_pos - prev_pos);
@@ -838,6 +854,8 @@ void update_trade_flow_arrows(sys::state& state, display_data& map_data) {
 
 					// sea -> [port->land->port] -> sea
 					if(
+						not_lake
+						&&
 						is_sea(target)
 						&&
 						!is_sea(origin)
@@ -852,7 +870,7 @@ void update_trade_flow_arrows(sys::state& state, display_data& map_data) {
 						tangent_end = glm::normalize(next_pos - current_pos);
 						start = (current_pos + prev_pos) / 2.f;
 						end = (current_pos + next_pos) / 2.f;
-					} else {
+					} else if (not_lake) {
 						// ??? -> sea -> [port->land]
 						if(
 							is_sea(origin)
@@ -939,9 +957,19 @@ void update_trade_flow_arrows(sys::state& state, display_data& map_data) {
 
 					//source -> origin
 
+					auto adj = state.world.get_province_adjacency_by_province_pair(source, origin);
+					bool not_lake = (state.world.province_adjacency_get_type(adj) & province::border::impassible_bit) == 0;
+
+					/*
+					if(!not_lake) {
+						continue;
+					}
+					*/
 
 					//[land->port] -> sea
 					if(
+						not_lake
+						&&
 						!is_sea(source)
 						&&
 						is_sea(origin)
@@ -953,6 +981,8 @@ void update_trade_flow_arrows(sys::state& state, display_data& map_data) {
 
 					//sea -> [port->land]
 					if(
+						not_lake
+						&&
 						is_sea(source)
 						&&
 						!is_sea(origin)
@@ -987,8 +1017,19 @@ void update_trade_flow_arrows(sys::state& state, display_data& map_data) {
 
 					//origin -> target
 
+					auto adj = state.world.get_province_adjacency_by_province_pair(origin, target);
+					bool not_lake = (state.world.province_adjacency_get_type(adj) & province::border::impassible_bit) == 0;
+
+					/*
+					if(!not_lake) {
+						continue;
+					}
+					*/
+
 					//sea -> [port->land]
 					if(
+						not_lake
+						&&
 						!is_sea(target)
 						&&
 						is_sea(origin)
@@ -999,6 +1040,8 @@ void update_trade_flow_arrows(sys::state& state, display_data& map_data) {
 
 					//[land->port] -> sea
 					if(
+						not_lake
+						&&
 						is_sea(target)
 						&&
 						!is_sea(origin)
@@ -1614,11 +1657,9 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 		float best_y_left_x = 0.f;
 
 		auto sample_province = [&](float x, float y) {
-			while (x < 0.f) {
+			x = fmod(x, (float)map_data.size_x);
+			if (x < 0.f) {
 				x += (float)map_data.size_x;
-			}
-			while (x >= map_data.size_x) {
-				x -= (float)map_data.size_x;
 			}
 			if(y < 0.f) return dcon::province_id{};
 			if((uint32_t)y >= map_data.size_y) return dcon::province_id{};

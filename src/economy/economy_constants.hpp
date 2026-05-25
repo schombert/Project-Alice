@@ -2,7 +2,7 @@
 
 namespace economy {
 
-constexpr inline float factories_per_state_required_city_size = 100'000.f;
+constexpr inline float factories_per_state_required_city_size = 60'000.f;
 
 namespace numerical {
 namespace commodity_unit {
@@ -27,7 +27,7 @@ inline constexpr float effect_of_transportation_scale = 0.0005f;
 inline constexpr float trade_distance_covered_by_pair_of_workers_per_unit_of_good = 10.f;
 // Huge values could cause massive spikes of demand for transportation labor
 inline constexpr float invalid_trade_route_distance = 0.01f;
-inline constexpr float trade_loss_per_distance_unit = 0.0001f;
+inline constexpr float trade_loss_per_distance_unit = 0.001f;
 inline constexpr float trade_effect_of_scale_lower_bound = 0.1f;
 inline constexpr float trade_base_multiplicative_decay = 0.0002f;
 inline constexpr float trade_base_additive_decay = 0.1f;
@@ -59,8 +59,8 @@ inline constexpr float investment_pool_investment_per_day = 0.25f;
 // greed drives incomes of corresponding pops up
 // while making life worse on average
 // profit cuts change distribution of incomes
-inline constexpr float aristocrats_greed = 0.2f;
-inline constexpr float artisans_greed = 0.3f;
+inline constexpr float aristocrats_greed = 0.1f;
+inline constexpr float artisans_greed = 0.1f;
 inline constexpr float labor_greed_life = 0.1f;
-inline constexpr float capitalists_greed = 0.4f;
+inline constexpr float capitalists_greed = 0.1f;
 }

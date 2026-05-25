@@ -1926,6 +1926,24 @@ VALUE gradient_employment_i(
 	return clamped;
 }
 
+template float gradient_employment_i<float>(
+	float expected_profit_per_perfect_worker,
+	float expected_input_cost_per_perfect_worker,
+	float power,
+	float wage,
+	float secondary_employment,
+	float secondary_power
+);
+
+template ve::fp_vector gradient_employment_i<ve::fp_vector>(
+	ve::fp_vector expected_profit_per_perfect_worker,
+	ve::fp_vector expected_input_cost_per_perfect_worker,
+	ve::fp_vector power,
+	ve::fp_vector wage,
+	ve::fp_vector secondary_employment,
+	ve::fp_vector secondary_power
+);
+
 template<typename VALUE>
 VALUE gradient_employment_i(
 	VALUE expected_profit_per_perfect_worker,
@@ -1939,6 +1957,19 @@ VALUE gradient_employment_i(
 	auto clamped = adaptive_ve::min<VALUE>(100.f, adaptive_ve::max<VALUE>(-100.f, diff));
 	return clamped;
 }
+template float gradient_employment_i<float>(
+	float expected_profit_per_perfect_worker,
+	float expected_input_cost_per_perfect_worker,
+	float power,
+	float wage
+);
+
+template ve::fp_vector gradient_employment_i<ve::fp_vector>(
+	ve::fp_vector expected_profit_per_perfect_worker,
+	ve::fp_vector expected_input_cost_per_perfect_worker,
+	ve::fp_vector power,
+	ve::fp_vector wage
+);
 
 template<size_t N, typename VALUE>
 VALUE gradient_employment_secondary(
@@ -2018,6 +2049,8 @@ VALUE gradient_to_employment_change(VALUE gradient, VALUE wage, VALUE current_em
 		return (current_employment * 0.001f + 1.f) * gradient * mult;
 	}
 }
+template float gradient_to_employment_change<float>(float gradient, float wage, float current_employment, float sat);
+template ve::fp_vector gradient_to_employment_change<ve::fp_vector>(ve::fp_vector gradient, ve::fp_vector wage, ve::fp_vector current_employment, ve::fp_vector sat);
 
 void update_employment(sys::state& state, bool ignore_reality, float presim_employment_mult) {
 	// note: markets are independent, so nations are independent:

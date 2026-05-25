@@ -2949,7 +2949,7 @@ relationship{
 object {
 	name{ war }
 	storage_type{ erasable }
-	size{ 100 }
+	size{ 255 }
 	tag{ save }
 
 	property{
@@ -5429,18 +5429,8 @@ object {
 		tag{ save }
 	}
 	property{
-		name{ ulife_needs_satisfaction }
-		type{ uint8_t }
-		tag{ save }
-	}
-	property{
-		name{ ueveryday_needs_satisfaction }
-		type{ uint8_t }
-		tag{ save }
-	}
-	property{
-		name{ uluxury_needs_satisfaction }
-		type{ uint8_t }
+		name{ satisfaction }
+		type{ float }
 		tag{ save }
 	}
 	property {

@@ -227,7 +227,7 @@ void recalculate_markets_distance(sys::state& state) {
 				auto stats_0 = state.world.nation_get_unit_stats(owner_0, transport_0);
 				auto stats_1 = state.world.nation_get_unit_stats(owner_1, transport_1);
 
-				auto speed = std::max(1.f, std::max(stats_0.maximum_speed, stats_1.maximum_speed));
+				auto speed = std::max(0.01f, std::max(stats_0.maximum_speed, stats_1.maximum_speed));
 
 				path = province::make_sea_trade_route_path(state, coast_0, coast_1);
 				p_prev = coast_0;
@@ -303,6 +303,10 @@ void recalculate_markets_distance(sys::state& state) {
 					local_effective_distance -= 0.03f * std::min(railroad_target, railroad_origin) * local_effective_distance;
 
 					if(bits & province::border::river_connection_bit) {
+						local_effective_distance = local_effective_distance / 2.f;
+					}
+
+					if(bits & province::border::coastal_bit) {
 						local_effective_distance = local_effective_distance / 2.f;
 					}
 
@@ -650,6 +654,47 @@ void generate_initial_trade_routes(sys::state& state) {
 						? adj.get_connected_provinces(0)
 						: adj.get_connected_provinces(1);
 
+					if(!other.get_state_membership())
+						continue;
+					if(other.get_state_membership() == sid)
+						continue;
+					if(trade_route_candidates.contains(other.get_state_membership().id.value))
+						continue;
+
+					trade_route_candidates.insert(other.get_state_membership().id.value);
+				}
+			}
+
+			/*
+			Create trade routes through lakes.
+			Lake coasts have both impassible bit and coastal bit
+			*/
+			for(auto adj : state.world.province_get_province_adjacency(prov)) {
+				auto bits = adj.get_type();
+				if((bits & province::border::impassible_bit) == 0) {
+					continue;
+				}
+				if((bits & province::border::coastal_bit) == 0) {
+					continue;
+				}
+
+				auto through =
+					adj.get_connected_provinces(0) != prov
+					? adj.get_connected_provinces(0)
+					: adj.get_connected_provinces(1);
+
+				for(auto adj2 : state.world.province_get_province_adjacency(through)) {
+					auto bits2 = adj2.get_type();
+					if((bits2 & province::border::impassible_bit) == 0) {
+						continue;
+					}
+					if((bits2 & province::border::coastal_bit) == 0) {
+						continue;
+					}
+					auto other =
+						adj2.get_connected_provinces(0) != through
+						? adj2.get_connected_provinces(0)
+						: adj2.get_connected_provinces(1);
 					if(!other.get_state_membership())
 						continue;
 					if(other.get_state_membership() == sid)

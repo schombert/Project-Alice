@@ -1110,48 +1110,10 @@ inline double pow_10(int n) {
 }
 
 inline bool float_from_chars(char const* start, char const* end, float& float_out) { // returns true on success
-	// first read the chars into an int, keeping track of the magnitude
-	// multiply by a pow of 10
-
-	int32_t magnitude = 0;
-	int64_t accumulated = 0;
-	bool after_decimal = false;
-
-	if(start == end) {
-		float_out = 0.0f;
-		return true;
-	}
-
-	bool is_negative = false;
-	if(*start == '-') {
-		is_negative = true;
-		++start;
-	} else if(*start == '+') {
-		++start;
-	}
-
-	for(; start < end; ++start) {
-		if(*start >= '0' && *start <= '9') {
-			accumulated = accumulated * 10 + (*start - '0');
-			magnitude += int32_t(after_decimal);
-		} else if(*start == '.') {
-			after_decimal = true;
-		} else {
-			// maybe check for non space and throw an error?
-		}
-	}
-	if(!is_negative) {
-		if(magnitude > 0)
-			float_out = float(double(accumulated) / pow_10(magnitude));
-		else
-			float_out = float(accumulated);
-	} else {
-		if(magnitude > 0)
-			float_out = -float(double(accumulated) / pow_10(magnitude));
-		else
-			float_out = -float(accumulated);
-	}
-	return true;
+	float decoded;
+	auto [ptr, ec] = std::from_chars(start, end, decoded, std::chars_format::fixed);
+	float_out = decoded;
+	return ec == std::errc();
 }
 
 inline int32_t parse_int(std::string_view content) {

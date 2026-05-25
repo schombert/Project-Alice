@@ -218,7 +218,7 @@ void rebalance_needs_weights(sys::state& state, dcon::market_id n) {
 	auto wage =
 		state.world.province_get_labor_price(capital, labor::no_education)
 		+ state.world.province_get_labor_price(capital, labor::basic_education)
-		+ state.world.province_get_labor_price(capital, labor::high_education);
+		+ state.world.province_get_labor_price(capital, labor::high_education) * 0.5f;
 
 	{
 		auto expected_cost = 0.f;
@@ -557,9 +557,7 @@ void initialize(sys::state& state) {
 
 	state.world.for_each_pop([&](dcon::pop_id p) {
 		auto fp = fatten(state.world, p);
-		pop_demographics::set_life_needs(state, p, 1.0f);
-		pop_demographics::set_everyday_needs(state, p, 0.1f);
-		pop_demographics::set_luxury_needs(state, p, 0.0f);
+		state.world.pop_set_satisfaction(p, 0.4f);
 		fp.set_savings(fp.get_size() * expected_savings);
 	});
 
@@ -3763,17 +3761,15 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 		}
 
 		{
-			auto ln = pop_demographics::get_life_needs(state, ids);
-			auto en = pop_demographics::get_everyday_needs(state, ids);
-			auto lx = pop_demographics::get_luxury_needs(state, ids);
+			auto satisfaction = state.world.pop_get_satisfaction(ids);
 
-			ln = ve::min(1.f, ve::max(0.f, ln + (potential_ratio_life.get(ids) * (ln_satisfaction + satisfaction_from_subsistence.get(ids)) - 2.f) * pop_demographics::pop_u8_scaling));
-			en = ve::min(1.f, ve::max(0.f, en + (potential_ratio_everyday.get(ids) * en_satisfaction - 2.f) * pop_demographics::pop_u8_scaling));
-			lx = ve::min(1.f, ve::max(0.f, lx + (potential_ratio_luxury.get(ids) * lx_satisfaction - 2.f) * pop_demographics::pop_u8_scaling));
+			auto satisfaction_gain =
+				ve::min(1.f, potential_ratio_life.get(ids) * ln_satisfaction)
+				+ ve::min(1.f, potential_ratio_everyday.get(ids) * en_satisfaction)
+				+ ve::min(1.f, potential_ratio_luxury.get(ids) * lx_satisfaction);
+			satisfaction = satisfaction * 0.999f + satisfaction_gain * 0.001f / 3.f;
 
-			pop_demographics::set_life_needs(state, ids, ln);
-			pop_demographics::set_everyday_needs(state, ids, en);
-			pop_demographics::set_luxury_needs(state, ids, lx);
+			state.world.pop_set_satisfaction(ids, satisfaction);
 		}
 
 		{
@@ -4021,7 +4017,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 				+ economy::price_properties::labor::min;
 
 			auto no_education = state.world.province_get_labor_price(ids, labor::no_education);
-			target_wage = ve::min(target_wage, no_education * 0.5f);
+			target_wage = ve::min(target_wage, no_education * 0.05f);
 			auto basic_education = state.world.province_get_labor_price(ids, labor::basic_education);
 			auto high_education = state.world.province_get_labor_price(ids, labor::high_education);
 			auto high_education_and_accepted = state.world.province_get_labor_price(ids, labor::high_education_and_accepted);
@@ -4414,7 +4410,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 
 			price_control =
 				price_control
-				* state.world.province_get_labor_supply_sold(ids, i)
+				* ve::max(0.f, state.world.province_get_labor_supply_sold(ids, i) - 0.8f) * 5.f
 				* state.world.province_get_control_ratio(ids)
 				/ state.defines.alice_needs_scaling_factor
 				* min_wage_factor;

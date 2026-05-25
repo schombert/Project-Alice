@@ -2,21 +2,9 @@
 
 #include "system_state.hpp"
 #include "demographics.hpp"
+#include "adaptive_ve.hpp"
 
 namespace pop_demographics {
-template<typename P, typename V>
-void set_life_needs(sys::state& state, P p, V v) {
-	state.world.pop_set_ulife_needs_satisfaction(p, to_pu8(v));
-}
-template<typename P, typename V>
-void set_everyday_needs(sys::state& state, P p, V v) {
-	state.world.pop_set_ueveryday_needs_satisfaction(p, to_pu8(v));
-}
-template<typename P, typename V>
-void set_luxury_needs(sys::state& state, P p, V v) {
-	state.world.pop_set_uluxury_needs_satisfaction(p, to_pu8(v));
-}
-
 template<typename T>
 auto get_employment(sys::state const& state, T p) {
 	auto ival = state.world.pop_get_uemployment(p);
@@ -58,18 +46,18 @@ void set_literacy(sys::state& state, P p, V v) {
 }
 template<typename T>
 auto get_life_needs(sys::state const& state, T p) {
-	auto ival = state.world.pop_get_ulife_needs_satisfaction(p);
-	return from_pu8(ival);
+	auto val = state.world.pop_get_satisfaction(p);
+	return adaptive_ve::min<decltype(val)>(val * 3.f, 1.f);
 }
 template<typename T>
 auto get_everyday_needs(sys::state const& state, T p) {
-	auto ival = state.world.pop_get_ueveryday_needs_satisfaction(p);
-	return from_pu8(ival);
+	auto val = state.world.pop_get_satisfaction(p);
+	return adaptive_ve::max<decltype(val)>(adaptive_ve::min<decltype(val)>(val * 3.f - 1.f, 1.f), 0.f);
 }
 template<typename T>
 auto get_luxury_needs(sys::state const& state, T p) {
-	auto ival = state.world.pop_get_uluxury_needs_satisfaction(p);
-	return from_pu8(ival);
+	auto val = state.world.pop_get_satisfaction(p);
+	return adaptive_ve::max<decltype(val)>(adaptive_ve::min<decltype(val)>(val * 3.f - 2.f, 1.f), 0.f);
 }
 template<typename T>
 auto get_demo(sys::state const& state, T p, dcon::pop_demographics_key k) {

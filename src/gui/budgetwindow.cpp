@@ -1010,16 +1010,17 @@ void  budgetwindow_main_espenses_table_t::update(sys::state& state, layout_windo
 		auto in = culture::income_type::education;
 		auto owner = state.local_player_nation;
 
+		auto bid = advanced_province_buildings::list::schools_and_universities;
+		auto& def = advanced_province_buildings::definitions[bid];
+
 		state.world.nation_for_each_province_ownership_as_nation(state.local_player_nation, [&](auto poid) {
 			auto pid = state.world.province_ownership_get_province(poid);
-			auto national_budget = state.world.nation_get_stockpiles(owner, economy::money);
-			auto education_budget = national_budget * fraction;
-			auto total_population = state.world.nation_get_demographics(owner, demographics::primary_or_accepted);
-			auto local_population = state.world.province_get_demographics(pid, demographics::primary_or_accepted);
-			auto weight = total_population == 0.f ? 0.f : local_population / total_population;
-			auto local_education_budget = weight * education_budget;
-			if(local_education_budget > 0.0f) {
-				add_budget_row(text::produce_simple_string(state, state.world.province_get_name(pid)), local_education_budget);
+			auto wage = state.world.province_get_labor_price(pid, def.throughput_labour_type);
+			auto current_size = state.world.province_get_advanced_province_building_national_size(pid, bid);
+			auto sat = state.world.province_get_labor_demand_satisfaction(pid, def.throughput_labour_type);
+
+			if(current_size > 0.0f) {
+				add_budget_row(text::produce_simple_string(state, state.world.province_get_name(pid)), wage * current_size * sat);
 			}
 		});
 	}
@@ -1471,12 +1472,9 @@ void budgetwindow_main_welfare_chart_poor_t::on_update(sys::state& state) noexce
 				auto pop_strata = state.world.pop_type_get_strata(state.world.pop_get_poptype(pop_id));
 				auto pop_size = pop_strata == uint8_t(culture::pop_strata::poor) ? state.world.pop_get_size(pop_id) : 0.f;
 
-				float total =
-					pop_demographics::get_luxury_needs(state, pop_id)
-					+ pop_demographics::get_everyday_needs(state, pop_id)
-					+ pop_demographics::get_life_needs(state, pop_id);
+				float total = state.world.pop_get_satisfaction(pop_id);
 
-				if(total / 3.f >= cutoff)
+				if(total >= cutoff)
 					value += pop_size;
 
 				integral += total / 3.f * pop_size;
