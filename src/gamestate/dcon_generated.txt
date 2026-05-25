@@ -5433,21 +5433,6 @@ object {
 		type{ float }
 		tag{ save }
 	}
-	property{
-		name{ ulife_needs_satisfaction }
-		type{ uint8_t }
-		tag{ save }
-	}
-	property{
-		name{ ueveryday_needs_satisfaction }
-		type{ uint8_t }
-		tag{ save }
-	}
-	property{
-		name{ uluxury_needs_satisfaction }
-		type{ uint8_t }
-		tag{ save }
-	}
 	property {
 		name{ upolitical_reform_desire }
 		type{ uint8_t }

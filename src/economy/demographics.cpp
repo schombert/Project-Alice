@@ -76,16 +76,16 @@ void set_consciousness(sys::state& state, T p, ve::fp_vector v) {
 	state.world.pop_set_uconsciousness(p, to_pmc(v));
 }
 float get_life_needs(sys::state const& state, dcon::pop_id p) {
-	auto ival = state.world.pop_get_ulife_needs_satisfaction(p);
-	return from_pu8(ival);
+	auto value = state.world.pop_get_satisfaction(p);
+	return std::min(value * 3.f, 1.f);
 }
 float get_everyday_needs(sys::state const& state, dcon::pop_id p) {
-	auto ival = state.world.pop_get_ueveryday_needs_satisfaction(p);
-	return from_pu8(ival);
+	auto value = state.world.pop_get_satisfaction(p);
+	return std::clamp(value* 3.f - 1.f, 0.f, 1.f);
 }
 float get_luxury_needs(sys::state const& state, dcon::pop_id p) {
-	auto ival = state.world.pop_get_uluxury_needs_satisfaction(p);
-	return from_pu8(ival);
+	auto value = state.world.pop_get_satisfaction(p);
+	return std::clamp(value* 3.f - 2.f, 0.f, 1.f);
 }
 float get_literacy(sys::state const& state, dcon::pop_id p) {
 	auto ival = state.world.pop_get_uliteracy(p);

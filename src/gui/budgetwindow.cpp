@@ -1472,12 +1472,9 @@ void budgetwindow_main_welfare_chart_poor_t::on_update(sys::state& state) noexce
 				auto pop_strata = state.world.pop_type_get_strata(state.world.pop_get_poptype(pop_id));
 				auto pop_size = pop_strata == uint8_t(culture::pop_strata::poor) ? state.world.pop_get_size(pop_id) : 0.f;
 
-				float total =
-					pop_demographics::get_luxury_needs(state, pop_id)
-					+ pop_demographics::get_everyday_needs(state, pop_id)
-					+ pop_demographics::get_life_needs(state, pop_id);
+				float total = state.world.pop_get_satisfaction(pop_id);
 
-				if(total / 3.f >= cutoff)
+				if(total >= cutoff)
 					value += pop_size;
 
 				integral += total / 3.f * pop_size;

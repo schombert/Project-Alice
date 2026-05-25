@@ -557,9 +557,7 @@ void initialize(sys::state& state) {
 
 	state.world.for_each_pop([&](dcon::pop_id p) {
 		auto fp = fatten(state.world, p);
-		pop_demographics::set_life_needs(state, p, 1.0f);
-		pop_demographics::set_everyday_needs(state, p, 0.1f);
-		pop_demographics::set_luxury_needs(state, p, 0.0f);
+		state.world.pop_set_satisfaction(p, 0.4f);
 		fp.set_savings(fp.get_size() * expected_savings);
 	});
 
@@ -3772,25 +3770,6 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			satisfaction = satisfaction * 0.999f + satisfaction_gain * 0.001f / 3.f;
 
 			state.world.pop_set_satisfaction(ids, satisfaction);
-
-			//auto ln = pop_demographics::get_life_needs(state, ids);
-			//auto en = pop_demographics::get_everyday_needs(state, ids);
-			//auto lx = pop_demographics::get_luxury_needs(state, ids);
-
-			//ln = ve::min(1.f, ve::max(0.f, ln + 2.f * (potential_ratio_life.get(ids) * (ln_satisfaction + satisfaction_from_subsistence.get(ids)) - 1.f) * pop_demographics::pop_u8_scaling));
-			//en = ve::min(1.f, ve::max(0.f, en + 2.f * (potential_ratio_everyday.get(ids) * en_satisfaction - 1.f) * pop_demographics::pop_u8_scaling));
-			//lx = ve::min(1.f, ve::max(0.f, lx + 2.f * (potential_ratio_luxury.get(ids) * lx_satisfaction - 1.f) * pop_demographics::pop_u8_scaling));
-
-			satisfaction = satisfaction * 3.f;
-			auto ln = ve::min(1.f, satisfaction);
-			satisfaction = satisfaction - 1.f;
-			auto en = ve::max(0.f, ve::min(1.f, satisfaction));
-			satisfaction = satisfaction - 1.f;
-			auto lx = ve::max(0.f, ve::min(1.f, satisfaction));
-
-			pop_demographics::set_life_needs(state, ids, ln);
-			pop_demographics::set_everyday_needs(state, ids, en);
-			pop_demographics::set_luxury_needs(state, ids, lx);
 		}
 
 		{
