@@ -439,8 +439,10 @@ std::vector<employment_record> explain_local_administration_employment(sys::stat
 
 	for(auto admin : state.world.nation_get_nation_administration(n)) {
 		if(admin.get_administration().get_capital() == p) {
-			record.target_employment = state.world.province_get_administration_employment_target(p);
-			record.satisfaction = state.world.province_get_labor_demand_satisfaction(p, economy::labor::high_education_and_accepted);
+			auto capital_state = state.world.province_get_state_membership(p);
+			auto capital_of_capital_state = state.world.state_instance_get_capital(capital_state);
+			record.target_employment = state.world.province_get_administration_employment_target(capital_of_capital_state);
+			record.satisfaction = state.world.province_get_labor_demand_satisfaction(capital_of_capital_state, economy::labor::high_education_and_accepted);
 			record.actual_employment = record.target_employment * record.satisfaction;
 			return std::vector<employment_record> {record};
 		}
