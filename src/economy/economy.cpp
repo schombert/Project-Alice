@@ -5415,11 +5415,9 @@ void try_add_factory_to_state(sys::state& state, dcon::state_instance_id s, dcon
 			return; // can't build another of this type
 	}
 
-	auto urbanisation = state.world.province_get_advanced_province_building_max_private_size(province, advanced_province_buildings::list::local_cities_and_towns);
+	// do not limit it here because it feels bad to get factory reward from event not appearing at all
 
-	if(num_factories < int32_t(state.defines.factories_per_state * urbanisation / economy::factories_per_state_required_city_size)) {
-		add_factory_level_to_province(state, province, t);
-	}
+	add_factory_level_to_province(state, province, t);
 }
 
 command::budget_settings_data budget_minimums(sys::state& state, dcon::nation_id n) {
