@@ -2016,5 +2016,11 @@ effective_output_tooltip;有效产出（产出 ÷ 基础产出）
 subsidies_explanation_tooltip;补贴总量来自国家预算。工厂依有效产出按比例受到补贴。你可设置补贴在更新的生产界面通过指令。
 factory_investments_header;投资
 total_investments_label;总计
-investment_efficiency_tooltip;工具，效率输入和机器
+investment_efficiency_tooltip;工具、效率输入和机器
 investment_expansion_tooltip;扩张
+private_education_supply_1;私人教育供应 ?Y$val$?!
+private_education_supply_2;公共教育供应 ?Y$val$?!
+private_education_demand_1;公共教育需求 ?Y$val$?!
+private_education_demand_2;私人教育需求 ?Y$val$?!
+private_education_size_public;公共教育规模 ?Y$val$?!
+private_education_size_private;私人教育规模 ?Y$val$?!
