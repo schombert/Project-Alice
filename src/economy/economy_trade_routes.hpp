@@ -11,7 +11,7 @@ struct state;
 }
 
 namespace economy {
-float estimate_port_service_price(sys::state& state, dcon::state_instance_id s);
+float estimate_port_service_price(sys::state const& state, dcon::state_instance_id s);
 
 void update_trade_routes_volume(
 	sys::state& state,
@@ -55,7 +55,7 @@ bool is_trade_route_relevant(sys::state& state, dcon::trade_route_id trade_route
 
 
 trade_route_volume_change_reasons predict_trade_route_volume_change(
-	sys::state& state, dcon::trade_route_id route, dcon::commodity_id cid
+	sys::state const& state, dcon::trade_route_id route, dcon::commodity_id cid
 );
 
 struct embargo_explanation {
@@ -80,7 +80,7 @@ struct trade_breakdown_item {
 std::vector<trade_breakdown_item> explain_national_tariff(sys::state& state, dcon::nation_id n, bool import_flag, bool export_flag);
 
 
-trade_and_tariff<dcon::trade_route_id> explain_trade_route_commodity(sys::state& state, dcon::trade_route_id trade_route, dcon::commodity_id cid);
+trade_and_tariff<dcon::trade_route_id> explain_trade_route_commodity(sys::state const& state, dcon::trade_route_id trade_route, dcon::commodity_id cid);
 trade_and_tariff<ve::contiguous_tags<dcon::trade_route_id>> explain_trade_route_commodity(
 	sys::state const& state,
 	ve::contiguous_tags<dcon::trade_route_id> trade_route,

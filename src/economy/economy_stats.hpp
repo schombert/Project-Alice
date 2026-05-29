@@ -167,11 +167,11 @@ void ve_register_domestic_supply(
 	economy_reason reason
 );
 
-float trade_influx(sys::state& state,
+float trade_influx(sys::state const& state,
 	dcon::market_id m,
 	dcon::commodity_id c
 );
-float trade_outflux(sys::state& state,
+float trade_outflux(sys::state const& state,
 	dcon::market_id m,
 	dcon::commodity_id c
 );
@@ -181,18 +181,18 @@ float trade_supply(sys::state const& state,
 	dcon::commodity_id c
 );
 
-float trade_demand(sys::state& state,
+float trade_demand(sys::state const& state,
 	dcon::market_id m,
 	dcon::commodity_id c
 );
 
-float stockpile(sys::state& state, dcon::nation_id n, dcon::commodity_id c);
+float stockpile(sys::state const& state, dcon::nation_id n, dcon::commodity_id c);
 
-float trade_supply(sys::state& state,
+float trade_supply(sys::state const& state,
 	dcon::nation_id n,
 	dcon::commodity_id c
 );
-float trade_demand(sys::state& state,
+float trade_demand(sys::state const& state,
 	dcon::nation_id n,
 	dcon::commodity_id c
 );
@@ -209,14 +209,14 @@ float price(
 	dcon::commodity_id c
 );
 float price(
-	sys::state& state,
+	sys::state const& state,
 	dcon::commodity_id c
 );
 float median_price(
-	sys::state& state,
+	sys::state const& state,
 	dcon::commodity_id c
 );
-float median_price(sys::state& state, dcon::nation_id s, dcon::commodity_id c);
+float median_price(sys::state const& state, dcon::nation_id s, dcon::commodity_id c);
 
 float price(
 	sys::state const& state,
@@ -225,128 +225,128 @@ float price(
 );
 
 float supply(
-	sys::state& state,
+	sys::state const& state,
 	dcon::market_id s,
 	dcon::commodity_id c
 );
 float supply(
-	sys::state& state,
+	sys::state const& state,
 	dcon::nation_id s,
 	dcon::commodity_id c
 );
 float supply(
-	sys::state& state,
+	sys::state const& state,
 	dcon::commodity_id c
 );
 
 float demand(
-	sys::state& state,
+	sys::state const& state,
 	dcon::market_id s,
 	dcon::commodity_id c
 );
 float demand(
-	sys::state& state,
+	sys::state const& state,
 	dcon::nation_id s,
 	dcon::commodity_id c
 );
 float demand(
-	sys::state& state,
+	sys::state const& state,
 	dcon::commodity_id c
 );
 
 float consumption(
-	sys::state& state,
+	sys::state const& state,
 	dcon::market_id s,
 	dcon::commodity_id c
 );
 float consumption(
-	sys::state& state,
+	sys::state const& state,
 	dcon::nation_id s,
 	dcon::commodity_id c
 );
 float consumption(
-	sys::state& state,
+	sys::state const& state,
 	dcon::commodity_id c
 );
 
 float demand_satisfaction(
-	sys::state& state,
+	sys::state const& state,
 	dcon::market_id s,
 	dcon::commodity_id c
 );
 float demand_satisfaction(
-	sys::state& state,
+	sys::state const& state,
 	dcon::nation_id s,
 	dcon::commodity_id c
 );
 float demand_satisfaction(
-	sys::state& state,
+	sys::state const& state,
 	dcon::commodity_id c
 );
 
 float market_pool(
-	sys::state& state,
+	sys::state const& state,
 	dcon::market_id s,
 	dcon::commodity_id c
 );
 float market_pool(
-	sys::state& state,
+	sys::state const& state,
 	dcon::nation_id s,
 	dcon::commodity_id c
 );
 float market_pool(
-	sys::state& state,
+	sys::state const& state,
 	dcon::commodity_id c
 );
 std::vector<float> trade_value_flow_all_to_nation(
-	sys::state& state,
+	sys::state const& state,
 	dcon::nation_id
 );
 std::vector<float> trade_value_flow_nation_to_all(
-	sys::state& state,
+	sys::state const& state,
 	dcon::nation_id
 );
 float trade_value_flow(
-	sys::state& state,
+	sys::state const& state,
 	dcon::market_id origin,
 	dcon::market_id target
 );
 float trade_value_flow(
-	sys::state& state,
+	sys::state const& state,
 	dcon::nation_id origin,
 	dcon::nation_id target
 );
 float export_value(
-	sys::state& state,
+	sys::state const& state,
 	dcon::market_id s
 );
 float export_value(
-	sys::state& state,
+	sys::state const& state,
 	dcon::nation_id s
 );
 float import_value(
-	sys::state& state,
+	sys::state const& state,
 	dcon::market_id s
 );
 float import_value(
-	sys::state& state,
+	sys::state const& state,
 	dcon::nation_id s
 );
 
 
 float export_volume(
-	sys::state& state,
+	sys::state const& state,
 	dcon::market_id s,
 	dcon::commodity_id c
 );
 float export_volume(
-	sys::state& state,
+	sys::state const& state,
 	dcon::nation_id s,
 	dcon::commodity_id c
 );
 
 float domestic_trade_volume(
-	sys::state& state,
+	sys::state const& state,
 	dcon::nation_id s,
 	dcon::commodity_id c
 );
@@ -364,56 +364,51 @@ struct trade_volume_data_detailed {
 };
 
 trade_volume_data_detailed export_volume_detailed(
-	sys::state& state,
+	sys::state const& state,
 	dcon::nation_id s,
 	dcon::commodity_id c
 );
 
 float import_volume(
-	sys::state& state,
+	sys::state const& state,
 	dcon::market_id s,
 	dcon::commodity_id c
 );
 float import_volume(
-	sys::state& state,
+	sys::state const& state,
 	dcon::nation_id s,
 	dcon::commodity_id c
 );
 trade_volume_data_detailed import_volume_detailed(
-	sys::state& state,
+	sys::state const& state,
 	dcon::nation_id s,
 	dcon::commodity_id c
 );
 
-float average_capitalists_luxury_cost(
-	sys::state& state,
-	dcon::nation_id s
-);
+int32_t state_factory_count(sys::state const& state, dcon::state_instance_id sid, dcon::nation_id n);
+float state_factory_level(sys::state const& state, dcon::state_instance_id sid, dcon::nation_id n);
+int32_t province_factory_count(sys::state const& state, dcon::province_id sid);
+float province_factory_level(sys::state const& state, dcon::province_id sid);
 
-int32_t state_factory_count(sys::state& state, dcon::state_instance_id sid, dcon::nation_id n);
-float state_factory_level(sys::state& state, dcon::state_instance_id sid, dcon::nation_id n);
-int32_t province_factory_count(sys::state& state, dcon::province_id sid);
-float province_factory_level(sys::state& state, dcon::province_id sid);
-
-float get_factory_level(sys::state& state, dcon::factory_id f);
+float get_factory_level(sys::state const& state, dcon::factory_id f);
 
 // checks existence of factory in province (could be under construction)
 bool has_factory(sys::state const&, dcon::province_id);
 // checks existence of factory in state (could be under construction)
 bool has_factory(sys::state const&, dcon::state_instance_id);
 // checks existence of factory in province (only constructed factories count)
-bool has_constructed_factory(sys::state& state, dcon::state_instance_id si, dcon::factory_type_id ft);
+bool has_constructed_factory(sys::state const& state, dcon::state_instance_id si, dcon::factory_type_id ft);
 // checks existence of factory of given type in state (could be under construction)
-bool has_factory(sys::state& state, dcon::state_instance_id s, dcon::factory_type_id ft);
+bool has_factory(sys::state const& state, dcon::state_instance_id s, dcon::factory_type_id ft);
 
 
-float effective_tariff_import_rate(sys::state& state, dcon::nation_id n, dcon::market_id m);
-float effective_tariff_export_rate(sys::state& state, dcon::nation_id n, dcon::market_id m);
+float effective_tariff_import_rate(sys::state const& state, dcon::nation_id n, dcon::market_id m);
+float effective_tariff_export_rate(sys::state const& state, dcon::nation_id n, dcon::market_id m);
 
-float estimate_probability_to_buy_after_demand_increase(sys::state& state, dcon::market_id, dcon::commodity_id, float additional_demand);
-float estimate_probability_to_sell_after_supply_increase(sys::state& state, dcon::market_id m, dcon::commodity_id c, float additional_supply);
-float estimate_probability_to_buy_after_supply_increase(sys::state& state, dcon::market_id m, dcon::commodity_id c, float additional_supply);
-float estimate_next_budget(sys::state& state, dcon::nation_id n);
+float estimate_probability_to_buy_after_demand_increase(sys::state const& state, dcon::market_id, dcon::commodity_id, float additional_demand);
+float estimate_probability_to_sell_after_supply_increase(sys::state const& state, dcon::market_id m, dcon::commodity_id c, float additional_supply);
+float estimate_probability_to_buy_after_supply_increase(sys::state const& state, dcon::market_id m, dcon::commodity_id c, float additional_supply);
+float estimate_next_budget(sys::state const& state, dcon::nation_id n);
 
 struct market_budget {
 	float sold;
@@ -428,7 +423,7 @@ struct market_budget {
 	float estimated_change;
 };
 
-market_budget breakdown_market_budget(sys::state& state, dcon::market_id m);
+market_budget breakdown_market_budget(sys::state const& state, dcon::market_id m);
 
 struct nation_monetary_breakdown {
 	float total = 0.f;

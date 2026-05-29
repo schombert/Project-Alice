@@ -262,7 +262,7 @@ float price(sys::state const& state, dcon::nation_id s, dcon::commodity_id c) {
 	return total_cost / total_supply;
 }
 
-float price(sys::state& state, dcon::commodity_id c) {
+float price(sys::state const& state, dcon::commodity_id c) {
 	auto total_cost = 0.f;
 	auto total_supply = 0.f;
 	state.world.for_each_market([&](auto m) {
@@ -280,7 +280,7 @@ float price(sys::state& state, dcon::commodity_id c) {
 	return total_cost / total_supply;
 }
 
-float median_price(sys::state& state, dcon::commodity_id c) {
+float median_price(sys::state const& state, dcon::commodity_id c) {
 	std::vector<float> prices{};
 	state.world.for_each_market([&](auto m) {
 		auto local_price = price(state, m, c);
@@ -295,7 +295,7 @@ float median_price(sys::state& state, dcon::commodity_id c) {
 	}
 	return (prices[prices.size() / 2]);
 }
-float median_price(sys::state& state, dcon::nation_id s, dcon::commodity_id c) {
+float median_price(sys::state const& state, dcon::nation_id s, dcon::commodity_id c) {
 	std::vector<float> prices{};
 	state.world.nation_for_each_state_ownership(s, [&](auto soid) {
 		auto sid = state.world.state_ownership_get_state(soid);
@@ -313,7 +313,7 @@ float median_price(sys::state& state, dcon::nation_id s, dcon::commodity_id c) {
 	return (prices[prices.size() / 2]);
 }
 
-float stockpile(sys::state& state, dcon::nation_id n, dcon::commodity_id c) {
+float stockpile(sys::state const& state, dcon::nation_id n, dcon::commodity_id c) {
 	float total = 0.f;
 	state.world.nation_for_each_state_ownership(n, [&](auto soid) {
 		auto sid = state.world.state_ownership_get_state(soid);
@@ -329,14 +329,14 @@ float price(sys::state const& state, dcon::market_id s, dcon::commodity_id c) {
 }
 
 float supply(
-	sys::state& state,
+	sys::state const& state,
 	dcon::market_id s,
 	dcon::commodity_id c
 ) {
 	return state.world.market_get_supply(s, c);
 }
 float supply(
-	sys::state& state,
+	sys::state const& state,
 	dcon::nation_id s,
 	dcon::commodity_id c
 ) {
@@ -353,7 +353,7 @@ float supply(
 }
 
 float domestic_trade_volume(
-	sys::state& state,
+	sys::state const& state,
 	dcon::nation_id s,
 	dcon::commodity_id c
 ) {
@@ -374,7 +374,7 @@ float domestic_trade_volume(
 }
 
 float supply(
-	sys::state& state,
+	sys::state const& state,
 	dcon::commodity_id c
 ) {
 	auto total_supply = 0.f;
@@ -386,14 +386,14 @@ float supply(
 }
 
 float demand(
-	sys::state& state,
+	sys::state const& state,
 	dcon::market_id s,
 	dcon::commodity_id c
 ) {
 	return state.world.market_get_demand(s, c);
 }
 float demand(
-	sys::state& state,
+	sys::state const& state,
 	dcon::nation_id s,
 	dcon::commodity_id c
 ) {
@@ -408,7 +408,7 @@ float demand(
 	return total_demand;
 }
 float demand(
-	sys::state& state,
+	sys::state const& state,
 	dcon::commodity_id c
 ) {
 	auto total_demand = 0.f;
@@ -428,14 +428,14 @@ float demand(
 }
 
 float consumption(
-	sys::state& state,
+	sys::state const& state,
 	dcon::market_id s,
 	dcon::commodity_id c
 ) {
 	return std::max(0.f, (state.world.market_get_demand(s, c) - trade_demand(state, s, c))) * state.world.market_get_actual_probability_to_buy(s, c);
 }
 float consumption(
-	sys::state& state,
+	sys::state const& state,
 	dcon::nation_id s,
 	dcon::commodity_id c
 ) {
@@ -451,7 +451,7 @@ float consumption(
 	return total;
 }
 float consumption(
-	sys::state& state,
+	sys::state const& state,
 	dcon::commodity_id c
 ) {
 	auto total = 0.f;
@@ -463,7 +463,7 @@ float consumption(
 }
 
 float market_pool(
-	sys::state& state,
+	sys::state const& state,
 	dcon::market_id s,
 	dcon::commodity_id c
 ) {
@@ -486,7 +486,7 @@ float market_pool(
 	return total;
 }
 float market_pool(
-	sys::state& state,
+	sys::state const& state,
 	dcon::commodity_id c
 ) {
 	auto total = 0.f;
@@ -498,19 +498,14 @@ float market_pool(
 }
 
 float demand_satisfaction(
-	sys::state& state,
+	sys::state const& state,
 	dcon::market_id s,
 	dcon::commodity_id c
 ) {
-	auto d = demand(state, s, c);
-	auto con = consumption(state, s, c);
-	if(d == 0.f) {
-		return 0.f;
-	}
-	return con / d;
+	return  state.world.market_get_actual_probability_to_buy(s, c);
 }
 float demand_satisfaction(
-	sys::state& state,
+	sys::state const& state,
 	dcon::nation_id s,
 	dcon::commodity_id c
 ) {
@@ -522,7 +517,7 @@ float demand_satisfaction(
 	return con / d;
 }
 float demand_satisfaction(
-	sys::state& state,
+	sys::state const& state,
 	dcon::commodity_id c
 ) {
 	auto d = demand(state, c);
@@ -531,45 +526,6 @@ float demand_satisfaction(
 		return 0.f;
 	}
 	return con / d;
-}
-
-
-float average_capitalists_luxury_cost(
-	sys::state& state,
-	dcon::nation_id s
-) {
-	auto total = 0.f;
-	auto count = 0.f;
-	auto def = state.culture_definitions.capitalists;
-	auto key = demographics::to_key(state, def);
-
-	state.world.nation_for_each_state_ownership(s, [&](auto soid) {
-		auto sid = state.world.state_ownership_get_state(soid);
-		auto market = state.world.state_instance_get_market_from_local_market(sid);
-
-		auto local_count = state.world.state_instance_get_demographics(
-			sid, key
-		);
-
-		auto luxury = state.world.market_get_luxury_needs_costs(
-			market, def
-		);
-		auto everyday = state.world.market_get_everyday_needs_costs(
-			market, def
-		);
-		auto life = state.world.market_get_life_needs_costs(
-			market, def
-		);
-
-		total += (luxury + everyday + life) * local_count / state.defines.alice_needs_scaling_factor;
-		count += local_count;
-	});
-
-	if(count == 0.f) {
-		return 0.f;
-	}
-
-	return total / count;
 }
 
 float trade_supply(sys::state const& state,
@@ -590,7 +546,7 @@ float trade_supply(sys::state const& state,
 	return merchants_supply;
 }
 
-float trade_supply(sys::state& state,
+float trade_supply(sys::state const& state,
 	dcon::nation_id n,
 	dcon::commodity_id c
 ) {
@@ -603,7 +559,7 @@ float trade_supply(sys::state& state,
 	return total;
 }
 
-float trade_demand(sys::state& state,
+float trade_demand(sys::state const& state,
 	dcon::market_id m,
 	dcon::commodity_id c
 ) {
@@ -630,7 +586,7 @@ float trade_demand(sys::state& state,
 	return result;
 }
 
-float trade_demand(sys::state& state,
+float trade_demand(sys::state const& state,
 	dcon::nation_id n,
 	dcon::commodity_id c
 ) {
@@ -643,7 +599,7 @@ float trade_demand(sys::state& state,
 	return total;
 }
 
-float trade_influx(sys::state& state,
+float trade_influx(sys::state const& state,
 	dcon::market_id m,
 	dcon::commodity_id c
 ) {
@@ -668,7 +624,7 @@ float trade_influx(sys::state& state,
 	return result;
 }
 
-float trade_outflux(sys::state& state,
+float trade_outflux(sys::state const& state,
 	dcon::market_id m,
 	dcon::commodity_id c
 ) {
@@ -692,7 +648,7 @@ float trade_outflux(sys::state& state,
 }
 
 float trade_value_flow(
-	sys::state& state,
+	sys::state const& state,
 	dcon::market_id origin,
 	dcon::market_id target
 ) {
@@ -727,7 +683,7 @@ float trade_value_flow(
 }
 
 std::vector<float> trade_value_flow_nation_to_all(
-	sys::state& state,
+	sys::state const& state,
 	dcon::nation_id origin
 ) {
 	std::vector<float> result;
@@ -766,7 +722,7 @@ std::vector<float> trade_value_flow_nation_to_all(
 }
 
 std::vector<float> trade_value_flow_all_to_nation(
-	sys::state& state,
+	sys::state const& state,
 	dcon::nation_id target
 ) {
 	std::vector<float> result;
@@ -807,7 +763,7 @@ std::vector<float> trade_value_flow_all_to_nation(
 
 
 float trade_value_flow(
-	sys::state& state,
+	sys::state const& state,
 	dcon::nation_id origin,
 	dcon::nation_id target
 ) {
@@ -851,7 +807,7 @@ float trade_value_flow(
 
 
 float export_value(
-	sys::state& state,
+	sys::state const& state,
 	dcon::market_id s
 ) {
 	float result = 0.f;
@@ -885,7 +841,7 @@ float export_value(
 	return result;
 }
 float export_value(
-	sys::state& state,
+	sys::state const& state,
 	dcon::nation_id s
 ) {
 	float result = 0.f;
@@ -896,7 +852,7 @@ float export_value(
 	return result;
 }
 float import_value(
-	sys::state& state,
+	sys::state const& state,
 	dcon::market_id s
 ) {
 	float result = 0.f;
@@ -931,7 +887,7 @@ float import_value(
 	return result;
 }
 float import_value(
-	sys::state& state,
+	sys::state const& state,
 	dcon::nation_id s
 ) {
 	float result = 0.f;
@@ -943,14 +899,14 @@ float import_value(
 }
 
 float export_volume(
-	sys::state& state,
+	sys::state const& state,
 	dcon::market_id s,
 	dcon::commodity_id c
 ) {
 	return state.world.market_get_export(s, c);
 }
 float export_volume(
-	sys::state& state,
+	sys::state const& state,
 	dcon::nation_id s,
 	dcon::commodity_id c
 ) {
@@ -959,7 +915,7 @@ float export_volume(
 }
 
 trade_volume_data_detailed export_volume_detailed(
-	sys::state& state,
+	sys::state const& state,
 	dcon::nation_id s,
 	dcon::commodity_id c
 ) {
@@ -1051,7 +1007,7 @@ float import_volume(
 	return state.world.market_get_import(s, c);
 }
 float import_volume(
-	sys::state& state,
+	sys::state const& state,
 	dcon::nation_id s,
 	dcon::commodity_id c
 ) {
@@ -1060,18 +1016,11 @@ float import_volume(
 }
 
 trade_volume_data_detailed import_volume_detailed(
-	sys::state& state,
+	sys::state const& state,
 	dcon::nation_id s,
 	dcon::commodity_id c
 ) {
-	static ve::vectorizable_buffer<float, dcon::nation_id> per_nation_data(uint32_t(1));
-	static uint32_t old_count = 1;
-
-	auto new_count = state.world.nation_size();
-	if(new_count > old_count) {
-		per_nation_data = state.world.nation_make_vectorizable_float_buffer();
-		old_count = new_count;
-	}
+	ve::vectorizable_buffer<float, dcon::nation_id> per_nation_data(uint32_t(1));
 
 	state.world.execute_serial_over_nation([&](auto nids) {
 		per_nation_data.set(nids, 0.f);
@@ -1145,12 +1094,12 @@ trade_volume_data_detailed import_volume_detailed(
 	return result;
 }
 
-float get_factory_level(sys::state& state, dcon::factory_id f) {
+float get_factory_level(sys::state const& state, dcon::factory_id f) {
 	auto ftid = state.world.factory_get_building_type(f);
 	return state.world.factory_get_size(f) / state.world.factory_type_get_base_workforce(ftid);
 }
 
-int32_t province_factory_count(sys::state& state, dcon::province_id pid) {
+int32_t province_factory_count(sys::state const& state, dcon::province_id pid) {
 	int32_t num_factories = 0;
 	num_factories += int32_t(state.world.province_get_factory_location(pid).end() - state.world.province_get_factory_location(pid).begin());
 	for(auto p : state.world.province_get_factory_construction(pid))
@@ -1164,7 +1113,7 @@ int32_t province_factory_count(sys::state& state, dcon::province_id pid) {
 	return num_factories;
 }
 // Returns sum of all factory levels in a province
-float province_factory_level(sys::state& state, dcon::province_id pid) {
+float province_factory_level(sys::state const& state, dcon::province_id pid) {
 	float factory_size = 0;
 	for(auto fl : state.world.province_get_factory_location(pid)) {
 		factory_size += get_factory_level(state, fl.get_factory());
@@ -1172,7 +1121,7 @@ float province_factory_level(sys::state& state, dcon::province_id pid) {
 	return factory_size;
 }
 
-int32_t state_factory_count(sys::state& state, dcon::state_instance_id sid, dcon::nation_id n) {
+int32_t state_factory_count(sys::state const& state, dcon::state_instance_id sid, dcon::nation_id n) {
 	int32_t num_factories = 0;
 	auto d = state.world.state_instance_get_definition(sid);
 	for(auto p : state.world.state_definition_get_abstract_state_membership(d))
@@ -1181,7 +1130,7 @@ int32_t state_factory_count(sys::state& state, dcon::state_instance_id sid, dcon
 	return num_factories;
 }
 // Returns sum of all factory levels in a state
-float state_factory_level(sys::state& state, dcon::state_instance_id sid, dcon::nation_id n) {
+float state_factory_level(sys::state const& state, dcon::state_instance_id sid, dcon::nation_id n) {
 	float factory_size = 0;
 	auto d = state.world.state_instance_get_definition(sid);
 	for(auto p : state.world.state_definition_get_abstract_state_membership(d))
@@ -1211,7 +1160,7 @@ bool has_factory(sys::state const& state, dcon::state_instance_id sid) {
 }
 
 
-bool has_constructed_factory(sys::state& state, dcon::state_instance_id s, dcon::factory_type_id ft) {
+bool has_constructed_factory(sys::state const& state, dcon::state_instance_id s, dcon::factory_type_id ft) {
 	auto d = state.world.state_instance_get_definition(s);
 	for(auto p : state.world.state_definition_get_abstract_state_membership(d)) {
 		if(p.get_province().get_state_membership() == s) {
@@ -1224,7 +1173,7 @@ bool has_constructed_factory(sys::state& state, dcon::state_instance_id s, dcon:
 	return false;
 }
 
-bool has_factory(sys::state& state, dcon::state_instance_id s, dcon::factory_type_id ft) {
+bool has_factory(sys::state const& state, dcon::state_instance_id s, dcon::factory_type_id ft) {
 	auto d = state.world.state_instance_get_definition(s);
 
 	for(auto p : state.world.state_definition_get_abstract_state_membership(d)) {
@@ -1246,33 +1195,33 @@ bool has_factory(sys::state& state, dcon::state_instance_id s, dcon::factory_typ
 	return false;
 }
 
-float effective_tariff_import_rate(sys::state& state, dcon::nation_id n, dcon::market_id m) {
+float effective_tariff_import_rate(sys::state const& state, dcon::nation_id n, dcon::market_id m) {
 	auto tariff_efficiency = std::max(0.0f, nations::tariff_efficiency(state, n, m));
 	auto r = tariff_efficiency * float(state.world.nation_get_tariffs_import(n)) / 100.0f;
 	return std::max(r, 0.0f);
 }
-float effective_tariff_export_rate(sys::state& state, dcon::nation_id n, dcon::market_id m) {
+float effective_tariff_export_rate(sys::state const& state, dcon::nation_id n, dcon::market_id m) {
 	auto tariff_efficiency = std::max(0.0f, nations::tariff_efficiency(state, n, m));
 	auto r = tariff_efficiency * float(state.world.nation_get_tariffs_export(n)) / 100.0f;
 	return std::max(r, 0.0f);
 }
 
 
-float estimate_probability_to_buy_after_demand_increase(sys::state& state, dcon::market_id m, dcon::commodity_id c, float additional_demand) {
+float estimate_probability_to_buy_after_demand_increase(sys::state const& state, dcon::market_id m, dcon::commodity_id c, float additional_demand) {
 	auto historical_demand = state.world.market_get_aggregated_demand_history(m, c);
 	auto historical_supply = state.world.market_get_aggregated_supply_history(m, c);
 	auto target_demand = historical_demand + additional_demand;
 	return target_demand == 0.f ? 0.f : std::min(1.f, historical_supply / target_demand);
 }
 
-float estimate_probability_to_buy_after_supply_increase(sys::state& state, dcon::market_id m, dcon::commodity_id c, float additional_supply) {
+float estimate_probability_to_buy_after_supply_increase(sys::state const& state, dcon::market_id m, dcon::commodity_id c, float additional_supply) {
 	auto historical_demand = state.world.market_get_aggregated_demand_history(m, c);
 	auto historical_supply = state.world.market_get_aggregated_supply_history(m, c);
 	auto target_supply = historical_supply + additional_supply;
 	return historical_demand == 0.f ? 0.f : std::min(1.f, target_supply / historical_demand);
 }
 
-float estimate_probability_to_sell_after_supply_increase(sys::state& state, dcon::market_id m, dcon::commodity_id c, float additional_supply) {
+float estimate_probability_to_sell_after_supply_increase(sys::state const& state, dcon::market_id m, dcon::commodity_id c, float additional_supply) {
 	auto historical_demand = state.world.market_get_aggregated_demand_history(m, c);
 	auto historical_supply = state.world.market_get_aggregated_supply_history(m, c);
 	auto target_supply = historical_supply + additional_supply;
@@ -1280,7 +1229,7 @@ float estimate_probability_to_sell_after_supply_increase(sys::state& state, dcon
 }
 
 
-float estimate_next_budget(sys::state& state, dcon::nation_id n) {
+float estimate_next_budget(sys::state const& state, dcon::nation_id n) {
 	// treasury is remainder after spending + income
 	// so there is no need to account for income as it's already there
 	auto treasury = state.world.nation_get_stockpiles(n, economy::money);
@@ -1299,15 +1248,14 @@ Exports are accounted as part of demand.
 Imports are going directly into the stockpiles, so they are not a part of local supply.
 
 */
-market_budget breakdown_market_budget(sys::state& unsafe_state, dcon::market_id m) {
-	const sys::state& state = unsafe_state;
+market_budget breakdown_market_budget(sys::state const& state, dcon::market_id m) {
 
 	market_budget result {};
 
-	unsafe_state.world.for_each_commodity([&](auto cid) {
+	state.world.for_each_commodity([&](auto cid) {
 		auto p = price(state, m, cid);
-		result.bought += (supply(unsafe_state, m, cid) - trade_supply(state, m, cid)) * p * state.world.market_get_actual_probability_to_sell(m, cid);
-		result.sold += demand(unsafe_state, m, cid) * p * state.world.market_get_actual_probability_to_buy(m, cid);
+		result.bought += (supply(state, m, cid) - trade_supply(state, m, cid)) * p * state.world.market_get_actual_probability_to_sell(m, cid);
+		result.sold += demand(state, m, cid) * p * state.world.market_get_actual_probability_to_buy(m, cid);
 	});
 
 
@@ -1316,7 +1264,7 @@ market_budget breakdown_market_budget(sys::state& unsafe_state, dcon::market_id 
 	result.dividents = treasury > 0 ? treasury * economy::pops::trade_dividents_rate : 0.f;
 
 	auto sid = state.world.market_get_zone_from_local_market(m);
-	province::for_each_province_in_state_instance(unsafe_state, sid, [&](auto pid) {
+	province::for_each_province_in_state_instance(state, sid, [&](auto pid) {
 		state.world.province_for_each_pop_location(pid, [&](auto poploc){
 			auto pop = state.world.pop_location_get_pop(poploc);
 			result.investments += economy::pops::estimate_trade_spending(state, pop);
@@ -1338,9 +1286,9 @@ market_budget breakdown_market_budget(sys::state& unsafe_state, dcon::market_id 
 		}
 	});
 
-	unsafe_state.world.for_each_commodity([&](auto cid) {
+	state.world.for_each_commodity([&](auto cid) {
 		state.world.market_for_each_trade_route(m, [&](auto route){
-			trade_and_tariff<dcon::trade_route_id> details = explain_trade_route_commodity(unsafe_state, route, cid);
+			trade_and_tariff<dcon::trade_route_id> details = explain_trade_route_commodity(state, route, cid);
 			if(m == details.origin) {
 				result.exports += details.payment_received_per_unit * details.amount_origin;
 			} else {

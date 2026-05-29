@@ -39,7 +39,7 @@ inline constexpr float base_population_per_admin = 8000.f;
 inline constexpr float admin_reform_mult = 100.0f;
 
 // Social issues increase the number of bureaucrats the nation needs per population
-float get_nation_administrative_multiplier(sys::state& state, dcon::nation_id nation) {
+float get_nation_administrative_multiplier(sys::state const& state, dcon::nation_id nation) {
 	float admin_mult_sum = 0.0f;
 	for(auto issue : state.culture_definitions.social_issues) {
 		admin_mult_sum = admin_mult_sum + state.world.issue_option_get_administrative_multiplier(state.world.nation_get_issues(nation, issue));
@@ -48,7 +48,7 @@ float get_nation_administrative_multiplier(sys::state& state, dcon::nation_id na
 }
 
 // How many bureaucrats do we need to get 1 control scale
-float population_per_admin(sys::state& state, dcon::nation_id n) {
+float population_per_admin(sys::state const& state, dcon::nation_id n) {
 	float admin_mult = get_nation_administrative_multiplier(state, n);
 	float normalized_admin_divisor = admin_mult * admin_reform_mult + 1.0f;
 	return base_population_per_admin * (1.f + state.world.nation_get_administrative_efficiency(n)) / normalized_admin_divisor;
@@ -59,7 +59,7 @@ float population_per_admin(sys::state& state, dcon::nation_id n) {
 // with the central administration
 inline constexpr float base_admin_employment = 250.f;
 
-float count_active_administrations(sys::state& state, dcon::nation_id n) {
+float count_active_administrations(sys::state const& state, dcon::nation_id n) {
 	auto num_of_administrations = 0.f;
 	{
 		auto capital = state.world.nation_get_capital(n);
@@ -76,7 +76,7 @@ float count_active_administrations(sys::state& state, dcon::nation_id n) {
 	return num_of_administrations;
 }
 
-float tax_collection_rate(sys::state& state, dcon::nation_id n, dcon::province_id pid) {
+float tax_collection_rate(sys::state const& state, dcon::nation_id n, dcon::province_id pid) {
 	auto from_control = state.world.province_get_control_ratio(pid);
 	auto efficiency = nations::tax_efficiency(state, n);
 	// we can always collect at least some taxes in the capital:
@@ -88,7 +88,7 @@ float tax_collection_rate(sys::state& state, dcon::nation_id n, dcon::province_i
 	return std::min(0.5f * from_control * (1.f + efficiency), 1.f);
 }
 
-float estimate_spendings_administration_capital(sys::state& state, dcon::nation_id n, float budget) {
+float estimate_spendings_administration_capital(sys::state const& state, dcon::nation_id n, float budget) {
 	auto capital = state.world.nation_get_capital(n);
 	if(state.world.province_get_nation_from_province_control(capital) != n) {
 		return 0.f;
@@ -100,7 +100,7 @@ float estimate_spendings_administration_capital(sys::state& state, dcon::nation_
 	return demand * wage * state.world.province_get_labor_demand_satisfaction(capital_of_capital_state, economy::labor::high_education_and_accepted);
 }
 
-float estimate_spendings_administration_local(sys::state& state, dcon::nation_id n, dcon::administration_id admin, float budget) {
+float estimate_spendings_administration_local(sys::state const& state, dcon::nation_id n, dcon::administration_id admin, float budget) {
 	auto capital = state.world.administration_get_capital(admin);
 	if(state.world.province_get_nation_from_province_control(capital) != n) {
 		return 0.f;
@@ -112,7 +112,7 @@ float estimate_spendings_administration_local(sys::state& state, dcon::nation_id
 	return demand * wage * state.world.province_get_labor_demand_satisfaction(capital_of_capital_state, economy::labor::high_education_and_accepted);
 }
 
-float estimate_spendings_administration(sys::state& state, dcon::nation_id n, float budget) {
+float estimate_spendings_administration(sys::state const& state, dcon::nation_id n, float budget) {
 	float total = 0.f;
 	auto admin_count = count_active_administrations(state, n);
 	if(admin_count == 0.f) {
@@ -127,7 +127,7 @@ float estimate_spendings_administration(sys::state& state, dcon::nation_id n, fl
 	return total;
 }
 
-float full_spendings_administration(sys::state& state, dcon::nation_id n, float budget) {
+float full_spendings_administration(sys::state const& state, dcon::nation_id n, float budget) {
 	auto admin_count = count_active_administrations(state, n);
 	if(admin_count == 0.f) {
 		return 0.f;
@@ -215,7 +215,7 @@ void refund_demand_administration(sys::state& state, dcon::nation_id n) {
 	});
 }
 
-float capital_administration_control_production(sys::state& state, dcon::nation_id n, dcon::province_id capital) {
+float capital_administration_control_production(sys::state const& state, dcon::nation_id n, dcon::province_id capital) {
 	if(state.world.province_get_nation_from_province_control(capital) == n) {
 		auto capital_state = state.world.province_get_state_membership(capital);
 		auto capital_of_capital_state = state.world.state_instance_get_capital(capital_state);
@@ -227,7 +227,7 @@ float capital_administration_control_production(sys::state& state, dcon::nation_
 	}
 	return 0.f;
 }
-float local_administration_control_production(sys::state& state, dcon::nation_id n, dcon::province_id p) {
+float local_administration_control_production(sys::state const& state, dcon::nation_id n, dcon::province_id p) {
 	if(state.world.province_get_nation_from_province_control(p) != n) {
 		return 0.f;
 	}
@@ -359,7 +359,7 @@ void collect_taxes(sys::state& state, ve::vectorizable_buffer<float, dcon::pop_i
 	});
 }
 
-tax_information explain_tax_income_local(sys::state& state, dcon::nation_id n, dcon::province_id province) {
+tax_information explain_tax_income_local(sys::state const& state, dcon::nation_id n, dcon::province_id province) {
 	tax_information result{ };
 	result.local_multiplier = tax_collection_rate(state, n, province);
 	result.poor_potential += state.world.province_get_tax_base_poor(province);
@@ -371,7 +371,7 @@ tax_information explain_tax_income_local(sys::state& state, dcon::nation_id n, d
 	return result;
 }
 
-tax_information explain_tax_income(sys::state& state, dcon::nation_id n) {
+tax_information explain_tax_income(sys::state const& state, dcon::nation_id n) {
 	tax_information result{ };
 
 	float total_poor_tax_base = 0.0f;
@@ -399,7 +399,7 @@ tax_information explain_tax_income(sys::state& state, dcon::nation_id n) {
 }
 
 
-bool non_war_embargo_status(sys::state& state, dcon::nation_id n_a, dcon::nation_id n_b, dcon::nation_id market_leader_a, dcon::nation_id market_leader_b) {
+bool non_war_embargo_status(sys::state const& state, dcon::nation_id n_a, dcon::nation_id n_b, dcon::nation_id market_leader_a, dcon::nation_id market_leader_b) {
 	auto leader_source_tariffs_rel = state.world.get_unilateral_relationship_by_unilateral_pair(market_leader_b, market_leader_a);
 	auto leader_target_tariffs_rel = state.world.get_unilateral_relationship_by_unilateral_pair(market_leader_a, market_leader_b);
 	auto nation_source_tariffs_rel = state.world.get_unilateral_relationship_by_unilateral_pair(n_b, n_a);
@@ -411,7 +411,7 @@ bool non_war_embargo_status(sys::state& state, dcon::nation_id n_a, dcon::nation
 	return state.world.unilateral_relationship_get_embargo(nation_source_tariffs_rel) || state.world.unilateral_relationship_get_embargo(nation_target_tariffs_rel);
 }
 
-bool war_embargo_status(sys::state& state, dcon::nation_id n_a, dcon::nation_id n_b, dcon::nation_id market_leader_a, dcon::nation_id market_leader_b) {
+bool war_embargo_status(sys::state const& state, dcon::nation_id n_a, dcon::nation_id n_b, dcon::nation_id market_leader_a, dcon::nation_id market_leader_b) {
 	auto market_leaders_at_war = military::are_at_war(state, market_leader_a, market_leader_a);
 	if(market_leaders_at_war) {
 		return true;
@@ -420,7 +420,7 @@ bool war_embargo_status(sys::state& state, dcon::nation_id n_a, dcon::nation_id 
 
 }
 
-bool has_active_embargo(sys::state& state, dcon::nation_id from, dcon::nation_id to) {
+bool has_active_embargo(sys::state const& state, dcon::nation_id from, dcon::nation_id to) {
 	// Only shows if the diplomatic relationship has an embargo, and dosent show "derived" embargos from spheres and subjects
 
 	auto rel_1 = state.world.get_unilateral_relationship_by_unilateral_pair(to, from);
@@ -433,7 +433,7 @@ bool has_active_embargo(sys::state& state, dcon::nation_id from, dcon::nation_id
 
 // Calculate employment of local administrations in the province for the UI.
 // When using, check for capital administration separately
-std::vector<employment_record> explain_local_administration_employment(sys::state& state, dcon::province_id p) {
+std::vector<employment_record> explain_local_administration_employment(sys::state const& state, dcon::province_id p) {
 	auto n = state.world.province_get_nation_from_province_ownership(p);
 	auto record = employment_record{ economy::labor::high_education_and_accepted, 0.f, 0.f, 0.f };
 
@@ -452,7 +452,7 @@ std::vector<employment_record> explain_local_administration_employment(sys::stat
 }
 
 // Calculate employment of the capital administration for the UI
-std::vector<employment_record> explain_capital_administration_employment(sys::state& state, dcon::nation_id n) {
+std::vector<employment_record> explain_capital_administration_employment(sys::state const& state, dcon::nation_id n) {
 	auto capital = state.world.nation_get_capital(n);
 	auto capital_state = state.world.province_get_state_membership(capital);
 	auto capital_of_capital_state = state.world.state_instance_get_capital(capital_state);

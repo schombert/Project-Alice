@@ -16,7 +16,7 @@
 namespace province {
 
 template auto is_overseas<ve::tagged_vector<dcon::province_id>>(sys::state const&, ve::tagged_vector<dcon::province_id>);
-template void for_each_province_in_state_instance<std::function<void(dcon::province_id)>>(sys::state&, dcon::state_instance_id, std::function<void(dcon::province_id)> const&);
+template void for_each_province_in_state_instance<std::function<void(dcon::province_id)>>(sys::state const &, dcon::state_instance_id, std::function<void(dcon::province_id)> const&);
 
 bool is_overseas(sys::state const& state, dcon::province_id ids) {
 	auto owners = state.world.province_get_nation_from_province_ownership(ids);
@@ -2166,7 +2166,7 @@ void update_colonization(sys::state& state) {
 	}
 }
 
-dcon::province_id state_get_coastal_capital(sys::state& state, dcon::state_instance_id s) {
+dcon::province_id state_get_coastal_capital(sys::state const& state, dcon::state_instance_id s) {
 	auto d = state.world.state_instance_get_definition(s);
 	auto o = state.world.state_instance_get_nation_from_state_ownership(s);
 	auto max_pop = -100.0f; // start as negative number so that states w/ only 0 pops can pick a coastal capital
