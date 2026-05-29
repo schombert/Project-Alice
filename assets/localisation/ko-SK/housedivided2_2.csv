@@ -1,0 +1,33 @@
+RALLY_POINT_NAVY_MERGE_INFO;도착지에서 해군 병합 활성화 또는 비활성화.\n(함선들은 이곳의 가장 큰 부대와 병합됩니다.)
+RALLY_POINT_NAVY_PROVINCE_MERGE_INFO;모든 해군 부대는 이곳에 도착하면 가장 큰 부대와 병합됩니다.
+BUDGET_INTERNALLY_SOLD_STOCKPILE;건설 프로젝트에 판매된 비축량: §Y$VAL$§!
+OL_VIEW_RALLYPOINTS_NAVY_TOOLTIP;인근에서 건조된 모든 함선은 §Y$PROV$§!(으)로 향합니다!
+OL_VIEW_RALLYPOINTS_NAVY_MERGE_TOOLTIP;이곳에 도착하면 가장 큰 부대와 병합을 시도합니다.
+ARMY_SPLIT_AND_LOAD_DESC_1;§Y$UNIT$§! 부대가 §G$NUM$§!척의 함선에 나뉘어 승선합니다:
+ARMY_SPLIT_AND_LOAD_DESC_2;- §Y$NAVY$§! (무게 $NUM$)
+ARMY_SPLIT_AND_LOAD_DESC_3;§R총 무게 ($NUM$)의 남은 육군은 승선할 수 없습니다.§!
+UW_NOT_POSSIBLE_TO_ATTACH;이곳에는 합류할 수 있는 아군 부대가 없습니다.
+UW_UNITS_ATTACHED;다음 부대가 합류되어 있습니다.
+UW_ATTACH_TO;$NAME$ 부대를 항상 따라다니도록 합류합니다.
+UW_DETACH_FROM;$NAME$ 부대를 따라다니지 않도록 분리합니다.
+IW_SUPPLY_COST;이 부대의 보급품을 지불하기 위해 매일 §Y$VAL$§W¤가 필요합니다.
+HAS_NOT_CULTURE_CORE;$CUL$ 문화는 $WHERE$의 핵심 문화가 아닙니다.\n
+HAS_CULTURE_CORE;$CUL$ 문화는 $WHERE$의 핵심 문화입니다.\n
+PROMOTION_EFFECT_FROM_ADMIN;승격 속도에 대한 행정 효율의 효과: §Y$PERCENTAGE$§!
+OUTLINER_TOOLTIP_FACTORY_OCCUPANCY;지역 공장 고용률: $PERC$
+REVOLTALLIANCE_LOG;혁명입니다! 우리의 동맹이 파기되었습니다!
+tut_5b_12b;계속하려면 결정 탭을 클릭하십시오.
+tut_5b_14b;계속하려면 운동 탭을 클릭하십시오.
+Workforce;노동력
+Ideology;이념
+SELL;판매
+BUY;구매
+Start Research;연구 시작
+Maneuver;기동
+LEDGER;장부
+OK;확인
+TOPBAR_POPULATION;우리의 성인 남성 인구는 $CURR$명입니다. 성인 남성 인구는 지난 §Y$DAYS$§!일 동안 $CHANGE$명만큼 변동했습니다.
+DIG_IN_TOOLTIP_1;현재 참호화 레벨: $LEV$/$MAX$.
+DIG_IN_TOOLTIP_2;참호화 레벨을 §G+$VAL$§!만큼 증가시키는 데 §Y$DAYS$§!일이 걸립니다.
+in_bankrupcy;파산 상태
+in_bankrupcy_desc;우리는 파산했습니다!

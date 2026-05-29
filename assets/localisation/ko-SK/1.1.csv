@@ -1,0 +1,54 @@
+HAVE_MILITARY_SCORE_LESS_THAN;군사 점수가 다음보다 낮음:
+STRATA_NEED_LESS_THAN;욕구 충족률이 다음 미만:
+STRATA_NEED_MORE_THAN;욕구 충족률이 다음 이상:
+HAVE_LESS_POPS_WANTING_POLITICAL_REFORM_THAN;$VAL$ 미만이 정치 개혁을 원함.
+HAVE_MORE_POPS_WANTING_POLITICAL_REFORM_THAN;$VAL$ 이상이 정치 개혁을 원함.
+HAVE_LESS_POPS_WANTING_SOCIAL_REFORM_THAN;$VAL$ 미만이 사회 개혁을 원함.
+HAVE_MORE_POPS_WANTING_SOCIAL_REFORM_THAN;$VAL$ 이상이 사회 개혁을 원함.
+CSA_proletarian_dictatorship;아메리카 연합주
+USA_presidential_dictatorship;미국
+CSA_presidential_dictatorship;아메리카 연합주
+USA_bourgeois_dictatorship;미국
+CSA_bourgeois_dictatorship;아메리카 연합주
+USA_fascist_dictatorship;미국
+CSA_fascist_dictatorship;아메리카 연합주
+REMOVE_USA_prussian_constitutionalism;미국
+CSA_prussian_constitutionalism;아메리카 연합주
+USA_democracy;미국
+CSA_democracy;아메리카 연합주
+CAL_absolute_monarchy;캘리포니아 왕국
+CAL_hms_government;캘리포니아 왕국
+DOM_absolute_monarchy;산토도밍고
+DOM_hms_government;산토도밍고
+ENG_democracy;영국
+TECH_DAILY_LEADERSHIP_BASE_TOOLTIP;월간 기본 지휘력: §Y$VALUE$§W
+TECH_DAILY_LEADERSHIP_TOTAL_TOOLTIP;월간 지휘력: §G+$VALUE$§W
+TECH_DAILY_LEADERSHIP_TOOLTIP;$POPTYPE$이(가) §G$VALUE$§W 지휘력을 제공합니다.\n (인구의 §Y$FRACTION$%§W, 최적의 비율은 $OPTIMAL$%입니다.)
+MODIFIER_CORE_POP_MILITANCY_MODIFIER;비식민지 투쟁성
+MODIFIER_CORE_POP_CONSCIOUSNESS_MODIFIER;비식민지 의식
+MODIFIER_NON_ACCEPTED_POP_MILITANCY_MODIFIER;미수용 문화 투쟁성
+MODIFIER_NON_ACCEPTED_POP_CONSCIOUSNESS_MODIFIER;미수용 문화 의식
+AUS_734;남티롤
+EVTNAME23212;혜성 관측
+EVTDESC23212;하늘에서 혜성이 관측되었습니다. 일부는 이것이 암울한 시대의 도래를 예고한다고 믿습니다. 다른 이들은 그것이 사실 하늘을 떠다니는 픽시 요정이라고 믿습니다. 이 혜성이 아마도 하늘을 떠다니는 거대한 얼음덩어리일 뿐이며 그 긴 꼬리는 태양의 에너지에 의해 생겨난 것이라고 믿는 사람들도 있습니다. 이 세 가지의 동등하게 일리 있는 이론들 사이의 논쟁은 우리 국가의 지식 탐구에 자극을 주고 있습니다.
+EVTOPTA23212;이런 계몽된 시대에 살고 있다는 것에 신께 감사합니다
+EVTNAME60140;제헌 회의
+EVTDESC60140;자유주의자들이 국가를 확고히 통제하게 되면서, 그들은 지금이 헌법 제정 회의를 열 때라고 느끼고 있습니다. 모든 사람의 의견, 적어도 진정으로 중요한 모든 사람의 의견은 우리 국가의 진로를 결정할 이 새로운 모임에서 대변될 것입니다.
+EVTOPTA60140;그렇지 않았다면 이 상황을 이용하는 사람들이 있었을 것이다
+become_guatemala_title;과테말라 형성
+BUDGET_STOCKPILE_YESTERDAYS;어제 비축량 구매:
+become_guatemala_desc;통일된 중앙아메리카의 꿈은 죽었습니다. 다른 프로빈스들은 과테말라에 지배당하는 것을 너무 걱정한 나머지, 우리가 연방을 유지하기 위해 치른 희생을 깨닫지 못했습니다. 글쎄요, 이제 그만합시다. 우리는 그들과 끝났습니다. 과테말라는 스스로의 운명을 찾을 것입니다.
+MOR_1683;타자
+LAG_PAUSE;$PLAYER$의 지연 발생, 게임을 일시 정지합니다.
+LAG_DECREASE_SPEED;$PLAYER$의 지연 발생, 속도를 줄입니다.
+PAUSED_BY;§Y$PLAYER$§W 님이 게임을 일시 정지했습니다.
+WARGOAL_OTHER_ACCEPT_SETUP;전쟁 중인 국가가 전쟁 목표를 추가할 때.
+WARGOAL_THEY_ACCEPT_SETUP;우리가 다른 국가를 상대로 전쟁 목표를 추가할 때.
+WARGOAL_WE_ACCEPT_SETUP;국가가 우리를 상대로 전쟁 목표를 추가할 때..
+status_quo_setup;우리가 바라는 것은 간섭받지 않는 것뿐입니다
+PROV3041;아르헨티나 융기대
+TUR_819;서마케도니아
+TUR_806;북마케도니아
+GUNBOAT_OTHER_ACCEPT_LOG;$ACTOR$이(가) 포함을 동원하여 $RECIPIENT$에게 부채 상환을 강제하고 있습니다!
+GUNBOAT_THEY_ACCEPT_LOG;우리가 포함을 동원하여 $RECIPIENT$에게 부채 상환을 강제하고 있습니다!
+GUNBOAT_WE_ACCEPT_LOG;$ACTOR$이(가) 포함을 동원하여 우리의 부채 상환을 강제하고 있습니다!
