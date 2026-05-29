@@ -2052,7 +2052,7 @@ float get_debt(sys::state& state, dcon::nation_id n) {
 }
 
 // estimates rate of tariffs collected in a market
-float tariff_efficiency(sys::state& state, dcon::nation_id n, dcon::market_id m) {
+float tariff_efficiency(sys::state const& state, dcon::nation_id n, dcon::market_id m) {
 	auto sid = state.world.market_get_zone_from_local_market(m);
 	auto pid = state.world.state_instance_get_capital(sid);
 	auto eff_mod = state.world.nation_get_modifier_values(n, sys::national_mod_offsets::tariff_efficiency_modifier);

@@ -233,7 +233,7 @@ embargo_explanation embargo_exists(
 }
 
 trade_route_volume_change_reasons predict_trade_route_volume_change(
-	sys::state& state, dcon::trade_route_id route, dcon::commodity_id cid
+	sys::state const& state, dcon::trade_route_id route, dcon::commodity_id cid
 ) {
 	trade_route_volume_change_reasons result{
 		.export_price = { 0.f, 0.f },
@@ -1049,7 +1049,7 @@ bool is_trade_route_relevant(sys::state& state, dcon::trade_route_id trade_route
 	return false;
 }
 
-float estimate_port_service_price(sys::state& state, dcon::state_instance_id s) {
+float estimate_port_service_price(sys::state const& state, dcon::state_instance_id s) {
 	auto port_weight_target_total = 0.f;
 	auto price_port_target = 0.f;
 	province::for_each_province_in_state_instance(state, s, [&](dcon::province_id pid) {
@@ -1067,7 +1067,7 @@ float estimate_port_service_price(sys::state& state, dcon::state_instance_id s) 
 	return price_port_target;
 }
 
-trade_and_tariff<dcon::trade_route_id> explain_trade_route_commodity(sys::state& state, dcon::trade_route_id trade_route, dcon::commodity_id cid) {
+trade_and_tariff<dcon::trade_route_id> explain_trade_route_commodity(sys::state const& state, dcon::trade_route_id trade_route, dcon::commodity_id cid) {
 	auto current_volume = state.world.trade_route_get_volume(trade_route, cid);
 	auto origin =
 		current_volume > 0.f

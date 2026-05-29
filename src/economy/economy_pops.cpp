@@ -1786,7 +1786,7 @@ float estimate_pop_demand_internal_luxury(
 		* invention_factor;
 }
 
-float estimate_pop_spending_life(sys::state& state, dcon::pop_id pop, dcon::commodity_id cid) {
+float estimate_pop_spending_life(sys::state const& state, dcon::pop_id pop, dcon::commodity_id cid) {
 	auto pid = state.world.pop_get_province_from_pop_location(pop);
 	auto nation = state.world.province_get_nation_from_province_ownership(pid);
 	auto zone = state.world.province_get_state_membership(pid);
@@ -1814,7 +1814,7 @@ float estimate_pop_spending_life(sys::state& state, dcon::pop_id pop, dcon::comm
 	return demand * actually_bought * cost;
 }
 
-float estimate_pop_spending_everyday(sys::state& state, dcon::pop_id pop, dcon::commodity_id cid) {
+float estimate_pop_spending_everyday(sys::state const& state, dcon::pop_id pop, dcon::commodity_id cid) {
 	auto pid = state.world.pop_get_province_from_pop_location(pop);
 	auto nation = state.world.province_get_nation_from_province_ownership(pid);
 	auto zone = state.world.province_get_state_membership(pid);
@@ -1842,7 +1842,7 @@ float estimate_pop_spending_everyday(sys::state& state, dcon::pop_id pop, dcon::
 	return demand * actually_bought * cost;
 }
 
-float estimate_pop_spending_luxury(sys::state& state, dcon::pop_id pop, dcon::commodity_id cid) {
+float estimate_pop_spending_luxury(sys::state const& state, dcon::pop_id pop, dcon::commodity_id cid) {
 	auto pid = state.world.pop_get_province_from_pop_location(pop);
 	auto nation = state.world.province_get_nation_from_province_ownership(pid);
 	auto zone = state.world.province_get_state_membership(pid);
@@ -1876,7 +1876,7 @@ vectorized_pops_budget<float> prepare_pop_budget(const sys::state& state, dcon::
 
 }
 
-float estimate_pops_consumption(sys::state& state, dcon::commodity_id c, dcon::province_id p) {
+float estimate_pops_consumption(sys::state const& state, dcon::commodity_id c, dcon::province_id p) {
 	auto zone = state.world.province_get_state_membership(p);
 	auto market = state.world.state_instance_get_market_from_local_market(zone);
 
