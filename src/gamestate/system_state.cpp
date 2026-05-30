@@ -219,7 +219,7 @@ void state::on_resize(int32_t x, int32_t y, window::window_state win_state) {
 }
 
 void state::on_key_down(virtual_key keycode, key_modifiers mod) {
-	if(keycode == virtual_key::CONTROL)
+	if(keycode == virtual_key::CONTROL || keycode == virtual_key::LCONTROL || keycode == virtual_key::RCONTROL)
 		ui_state.ctrl_held_down = true;
 	if(keycode == virtual_key::SHIFT || keycode == virtual_key::LSHIFT || keycode == virtual_key::RSHIFT)
 		ui_state.shift_held_down = true;
