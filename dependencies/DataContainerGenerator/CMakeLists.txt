@@ -10,6 +10,17 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(DataContainer)
 
+if(APPLE AND NOT CMAKE_SYSTEM_PROCESSOR MATCHES "^(x86_64|AMD64|amd64|i[3-6]86)$")
+	set(DCON_COMMON_TYPES_HEADER "${datacontainer_SOURCE_DIR}/CommonIncludes/common_types.hpp")
+	file(READ "${DCON_COMMON_TYPES_HEADER}" DCON_COMMON_TYPES_CONTENTS)
+	string(REPLACE
+		"#ifdef _MSC_VER \n#include <intrin.h>\n#else\n#include <x86intrin.h>\n#endif"
+		"#ifdef _MSC_VER \n#include <intrin.h>\n#elif defined(__x86_64__) || defined(__i386__)\n#include <x86intrin.h>\n#endif"
+		DCON_COMMON_TYPES_CONTENTS
+		"${DCON_COMMON_TYPES_CONTENTS}")
+	file(WRITE "${DCON_COMMON_TYPES_HEADER}" "${DCON_COMMON_TYPES_CONTENTS}")
+endif()
+
 add_library(dependency_DataContainer INTERFACE)
 target_include_directories(dependency_DataContainer SYSTEM INTERFACE "${datacontainer_SOURCE_DIR}/CommonIncludes/")
 

@@ -55,5 +55,5 @@ else() # GCC or CLANG
 	target_compile_options(tbb PRIVATE
 		$<$<CONFIG:Debug>:			-fexceptions>
 		$<$<NOT:$<CONFIG:Debug>>: 	-fexceptions>
-                -mwaitpkg)
+		$<$<OR:$<STREQUAL:${CMAKE_SYSTEM_PROCESSOR},x86_64>,$<STREQUAL:${CMAKE_SYSTEM_PROCESSOR},AMD64>,$<STREQUAL:${CMAKE_SYSTEM_PROCESSOR},amd64>>:-mwaitpkg>)
 endif()
