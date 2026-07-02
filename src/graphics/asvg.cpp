@@ -2,6 +2,7 @@
 #include "lunasvg.h"
 #include <charconv>
 #include "glew.h"
+#include "parsers.hpp"
 #include "system_state.hpp"
 
 namespace asvg {
@@ -112,7 +113,7 @@ svg::svg(char const* data, size_t count, int32_t base_width, int32_t base_height
 					while(start < end && svg_data[start] == ' ')
 						++start;
 
-					std::from_chars(svg_data.data() + start, svg_data.data() + end, new_rep.scale);
+					parsers::float_from_chars(svg_data.data() + start, svg_data.data() + end, new_rep.scale);
 					++stage;
 				} else if(stage == 2) { // read offset
 					auto start = i;
@@ -132,7 +133,7 @@ svg::svg(char const* data, size_t count, int32_t base_width, int32_t base_height
 					while(start < end && svg_data[start] == ' ')
 						++start;
 
-					std::from_chars(svg_data.data() + start, svg_data.data() + end, new_rep.offset);
+					parsers::float_from_chars(svg_data.data() + start, svg_data.data() + end, new_rep.offset);
 					++stage;
 				}
 

@@ -6,6 +6,10 @@
 #include "opengl_wrapper.hpp"
 #include "math_fns.hpp"
 
+#include <bit>
+#include <cstring>
+#include <type_traits>
+
 #ifdef _WIN64
 
 #ifndef UNICODE
@@ -19,6 +23,16 @@
 #endif
 
 namespace map {
+
+namespace {
+	template<typename T>
+	T read_packed(uint8_t const* data) {
+		static_assert(std::is_trivially_copyable_v<T>);
+		T value{};
+		std::memcpy(&value, data, sizeof(T));
+		return value;
+	}
+}
 
 struct bmp_pixel_data {
 	uint8_t blue;
@@ -41,103 +55,107 @@ std::vector<uint8_t> load_bmp(parsers::scenario_building_context& context, nativ
 	auto content = simple_fs::view_contents(*terrain_bmp);
 	uint8_t const* start = (uint8_t const*)(content.data);
 
-#ifdef __unix__
+#if !defined(_WIN64)
+	struct CIEXYZ {
+		int32_t ciexyzX;
+		int32_t ciexyzY;
+		int32_t ciexyzZ;
+	} __attribute__((__packed__));
 
-	//Ported from Microsoft's documentation
-	//Replaced DWORD into uint32_t, WORD into uint16_t
-	//LONG into int32_t
-	typedef struct {
-		int32_t   ciexyzX;
-		int32_t	  ciexyzY;
-		int32_t	  ciexyzZ;
-	} CIEXYZ;
+	struct CIEXYZTRIPLE {
+		CIEXYZ ciexyzRed;
+		CIEXYZ ciexyzGreen;
+		CIEXYZ ciexyzBlue;
+	} __attribute__((__packed__));
 
-	typedef struct {
-		CIEXYZ    ciexyzRed;
-		CIEXYZ	  ciexyzGreen;
-		CIEXYZ	  ciexyzBlue;
-	} CIEXYZTRIPLE;
+	struct BITMAPFILEHEADER {
+		uint16_t bfType;
+		uint32_t bfSize;
+		uint16_t bfReserved1;
+		uint16_t bfReserved2;
+		uint32_t bfOffBits;
+	} __attribute__((__packed__));
 
-	typedef struct {
-  		uint16_t  bfType;
-  		uint32_t  bfSize;
-  		uint16_t  bfReserved1;
-  		uint16_t  bfReserved2;
-		uint32_t  bfOffBits;
-	} __attribute__((__packed__))
-	BITMAPFILEHEADER;
+	struct BITMAPINFOHEADER {
+		uint32_t biSize;
+		int32_t biWidth;
+		int32_t biHeight;
+		uint16_t biPlanes;
+		uint16_t biBitCount;
+		uint32_t biCompression;
+		uint32_t biSizeImage;
+		int32_t biXPelsPerMeter;
+		int32_t biYPelsPerMeter;
+		uint32_t biClrUsed;
+		uint32_t biClrImportant;
+	} __attribute__((__packed__));
 
-	typedef struct {
-		uint32_t  biSize;
-  		int32_t   biWidth;
-  		int32_t   biHeight;
-  		uint16_t  biPlanes;
-  		uint16_t  biBitCount;
-  		uint32_t  biCompression;
-  		uint32_t  biSizeImage;
-		int32_t   biXPelsPerMeter;
-		int32_t	  biYPelsPerMeter;
-		uint32_t  biClrUsed;
-		uint32_t  biClrImportant;
-	} __attribute__((__packed__))
-	BITMAPINFOHEADER;
+	struct BITMAPCOREHEADER {
+		uint32_t bcSize;
+		uint16_t bcWidth;
+		uint16_t bcHeight;
+		uint16_t bcPlanes;
+		uint16_t bcBitCount;
+	} __attribute__((__packed__));
 
-	typedef struct {
-  		uint32_t  bcSize;
-  		uint16_t  bcWidth;
-  		uint16_t  bcHeight;
-  		uint16_t  bcPlanes;
-  		uint16_t  bcBitCount;
-	} BITMAPCOREHEADER;
+	struct BITMAPV4HEADER {
+		uint32_t bV4Size;
+		int32_t bV4Width;
+		int32_t bV4Height;
+		uint16_t bV4Planes;
+		uint16_t bV4BitCount;
+		uint32_t bV4V4Compression;
+		uint32_t bV4SizeImage;
+		int32_t bV4XPelsPerMeter;
+		int32_t bV4YPelsPerMeter;
+		uint32_t bV4ClrUsed;
+		uint32_t bV4ClrImportant;
+		uint32_t bV4RedMask;
+		uint32_t bV4GreenMask;
+		uint32_t bV4BlueMask;
+		uint32_t bV4AlphaMask;
+		uint32_t bV4CSType;
+		CIEXYZTRIPLE bV4Endpoints;
+		uint32_t bV4GammaRed;
+		uint32_t bV4GammaGreen;
+		uint32_t bV4GammaBlue;
+	} __attribute__((__packed__));
 
-	typedef struct {
-  		uint32_t  bV4Size;
-  		int32_t   bV4Width;
-  		int32_t   bV4Height;
-  		uint16_t  bV4Planes;
-  		uint16_t  bV4BitCount;
-  		uint32_t  bV4V4Compression;
-  		uint32_t  bV4SizeImage;
-		int32_t	  bV4XPelsPerMeter;
-		int32_t	  bV4YPelsPerMeter;
-		uint32_t  bV4ClrUsed;
-		uint32_t  bV4ClrImportant;
-		uint32_t  bV4RedMask;
-		uint32_t  bV4GreenMask;
-		uint32_t  bV4BlueMask;
-		uint32_t  bV4AlphaMask;
-		uint32_t  bV4CSType;
-		uint32_t  bV4GammaRed;
-		uint32_t  bV4GammaGreen;
-		uint32_t  bV4GammaBlue;
-	} BITMAPV4HEADER;
-
-	typedef struct {
-  		uint32_t  	 bV5Size;
-  		int32_t   	 bV5Width;
-  		int32_t   	 bV5Height;
-  		uint16_t  	 bV5Planes;
-		uint16_t  	 bV5BitCount;
-  		uint32_t  	 bV5Compression;
-  		uint32_t  	 bV5SizeImage;
-		int32_t	  	 bV5XPelsPerMeter;
-		int32_t	  	 bV5YPelsPerMeter;
-		uint32_t  	 bV5ClrUsed;
-		uint32_t  	 bV5ClrImportant;
-		uint32_t  	 bV5RedMask;
-		uint32_t  	 bV5GreenMask;
-		uint32_t  	 bV5BlueMask;
-		uint32_t  	 bV5AlphaMask;
-		uint32_t  	 bV5CSType;
+	struct BITMAPV5HEADER {
+		uint32_t bV5Size;
+		int32_t bV5Width;
+		int32_t bV5Height;
+		uint16_t bV5Planes;
+		uint16_t bV5BitCount;
+		uint32_t bV5Compression;
+		uint32_t bV5SizeImage;
+		int32_t bV5XPelsPerMeter;
+		int32_t bV5YPelsPerMeter;
+		uint32_t bV5ClrUsed;
+		uint32_t bV5ClrImportant;
+		uint32_t bV5RedMask;
+		uint32_t bV5GreenMask;
+		uint32_t bV5BlueMask;
+		uint32_t bV5AlphaMask;
+		uint32_t bV5CSType;
 		CIEXYZTRIPLE bV5Endpoints;
-		uint32_t  	 bV5GammaRed;
-		uint32_t  	 bV5GammaGreen;
-		uint32_t  	 bV5GammaBlue;
-		uint32_t  	 bV5Intent;
-		uint32_t  	 bV5ProfileData;
-		uint32_t  	 bV5ProfileSize;
-		uint32_t  	 bV5Reserved;
-	} BITMAPV5HEADER;
+		uint32_t bV5GammaRed;
+		uint32_t bV5GammaGreen;
+		uint32_t bV5GammaBlue;
+		uint32_t bV5Intent;
+		uint32_t bV5ProfileData;
+		uint32_t bV5ProfileSize;
+		uint32_t bV5Reserved;
+	} __attribute__((__packed__));
+
+	static_assert(std::endian::native == std::endian::little);
+	static_assert(sizeof(CIEXYZ) == 12);
+	static_assert(sizeof(CIEXYZTRIPLE) == 36);
+	static_assert(sizeof(BITMAPFILEHEADER) == 14);
+	static_assert(sizeof(BITMAPCOREHEADER) == 12);
+	static_assert(sizeof(BITMAPINFOHEADER) == 40);
+	static_assert(sizeof(BITMAPV4HEADER) == 108);
+	static_assert(sizeof(BITMAPV5HEADER) == 124);
 
 	const int	BI_RGB	= 0;
 	const int	BI_RLE8	= 1;
@@ -154,54 +172,53 @@ std::vector<uint8_t> load_bmp(parsers::scenario_building_context& context, nativ
 	bool has_BI_BITFIELDS = false;
 	bool has_BI_ALPHABITFIELDS = false;
 
-	BITMAPFILEHEADER const* fh = (BITMAPFILEHEADER const*)(start);
-	uint8_t const* data = start + fh->bfOffBits;
+	auto const fh = read_packed<BITMAPFILEHEADER>(start);
+	uint8_t const* data = start + fh.bfOffBits;
 	std::unique_ptr<uint8_t[]> decompressed_data;
 
 	auto color_table_offset = start + sizeof(BITMAPFILEHEADER);
 
-	BITMAPCOREHEADER const* core_h = (BITMAPCOREHEADER const*)(start + sizeof(BITMAPFILEHEADER));
-	if(core_h->bcSize == sizeof(BITMAPINFOHEADER)) {
-		BITMAPINFOHEADER const* h = (BITMAPINFOHEADER const*)(start + sizeof(BITMAPFILEHEADER));
-		size_x = h->biWidth;
-		size_y = h->biHeight;
-		num_of_colors = h->biClrUsed;
+	auto const core_h = read_packed<BITMAPCOREHEADER>(start + sizeof(BITMAPFILEHEADER));
+	if(core_h.bcSize == sizeof(BITMAPINFOHEADER)) {
+		auto const h = read_packed<BITMAPINFOHEADER>(start + sizeof(BITMAPFILEHEADER));
+		size_x = h.biWidth;
+		size_y = h.biHeight;
+		num_of_colors = h.biClrUsed;
 		if(num_of_colors == 0) {
-			num_of_colors = 1 << h->biBitCount;
+			num_of_colors = 1 << h.biBitCount;
 		}
-		if(h->biCompression == BI_RLE8) {
+		if(h.biCompression == BI_RLE8) {
 			compression_type = 1;
 		}
 		color_table_offset += sizeof(BITMAPINFOHEADER);
-	} else if(core_h->bcSize == sizeof(BITMAPV5HEADER)) {
-		BITMAPV5HEADER const* h = (BITMAPV5HEADER const*)(start + sizeof(BITMAPFILEHEADER));
-		if(h->bV5Compression == BI_RLE8) {
+	} else if(core_h.bcSize == sizeof(BITMAPV5HEADER)) {
+		auto const h = read_packed<BITMAPV5HEADER>(start + sizeof(BITMAPFILEHEADER));
+		if(h.bV5Compression == BI_RLE8) {
 			compression_type = 1;
 		}
-		size_x = h->bV5Width;
-		size_y = h->bV5Height;
-		num_of_colors = h->bV5ClrUsed;
+		size_x = h.bV5Width;
+		size_y = h.bV5Height;
+		num_of_colors = h.bV5ClrUsed;
 		if(num_of_colors == 0) {
-			num_of_colors = 1 << h->bV5BitCount;
+			num_of_colors = 1 << h.bV5BitCount;
 		}
 		color_table_offset += sizeof(BITMAPV5HEADER);
-	} else if(core_h->bcSize == sizeof(BITMAPV4HEADER)) {
-		BITMAPV4HEADER const* h = (BITMAPV4HEADER const*)(start + sizeof(BITMAPFILEHEADER));
-		if(h->bV4V4Compression == BI_RLE8) {
+	} else if(core_h.bcSize == sizeof(BITMAPV4HEADER)) {
+		auto const h = read_packed<BITMAPV4HEADER>(start + sizeof(BITMAPFILEHEADER));
+		if(h.bV4V4Compression == BI_RLE8) {
 			compression_type = 1;
 		}
-		size_x = h->bV4Width;
-		size_y = h->bV4Height;
-		num_of_colors = h->bV4ClrUsed;
+		size_x = h.bV4Width;
+		size_y = h.bV4Height;
+		num_of_colors = h.bV4ClrUsed;
 		if(num_of_colors == 0) {
-			num_of_colors = 1 << h->bV4BitCount;
+			num_of_colors = 1 << h.bV4BitCount;
 		}
 		color_table_offset += sizeof(BITMAPV4HEADER);
-	} else if(core_h->bcSize == sizeof(BITMAPCOREHEADER)) {
-		BITMAPCOREHEADER const* h = (BITMAPCOREHEADER const*)(start + sizeof(BITMAPFILEHEADER));
-		size_x = h->bcWidth;
-		size_y = h->bcHeight;
-		num_of_colors = 1 << h->bcBitCount;
+	} else if(core_h.bcSize == sizeof(BITMAPCOREHEADER)) {
+		size_x = core_h.bcWidth;
+		size_y = core_h.bcHeight;
+		num_of_colors = 1 << core_h.bcBitCount;
 		color_table_offset += sizeof(BITMAPCOREHEADER);
 	} else {
 		std::abort(); // unknown bitmap type
@@ -210,10 +227,7 @@ std::vector<uint8_t> load_bmp(parsers::scenario_building_context& context, nativ
 	// reading color table:
 	if(color_table != nullptr) {
 		for(uint32_t color_entry_index = 0; color_entry_index < num_of_colors; color_entry_index++) {
-			bmp_pixel_data const* new_color =
-				(bmp_pixel_data const*)
-				(color_table_offset + color_entry_index * sizeof(bmp_pixel_data));
-			color_table->push_back(*new_color);
+			color_table->push_back(read_packed<bmp_pixel_data>(color_table_offset + color_entry_index * sizeof(bmp_pixel_data)));
 		}
 	}
 

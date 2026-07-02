@@ -3,23 +3,42 @@ message(STATUS "Fetching DataContainer...")
 FetchContent_Declare(
 	DataContainer
 	GIT_REPOSITORY https://github.com/schombert/DataContainer
-	GIT_TAG master
+	GIT_TAG 8203e5c56a1f00854c04807a15fa486e2d19a422
 	GIT_SHALLOW 1
 	GIT_PROGRESS TRUE
 )
 
 FetchContent_MakeAvailable(DataContainer)
+set(DCON_COMMON_TYPES_HEADER "${datacontainer_SOURCE_DIR}/CommonIncludes/common_types.hpp")
+set(DCON_VE_HEADER "${datacontainer_SOURCE_DIR}/CommonIncludes/ve.hpp")
+set(DCON_VE_SCALAR_HEADER "${datacontainer_SOURCE_DIR}/CommonIncludes/ve_scalar.hpp")
 
-if(APPLE AND NOT CMAKE_SYSTEM_PROCESSOR MATCHES "^(x86_64|AMD64|amd64|i[3-6]86)$")
-	set(DCON_COMMON_TYPES_HEADER "${datacontainer_SOURCE_DIR}/CommonIncludes/common_types.hpp")
-	file(READ "${DCON_COMMON_TYPES_HEADER}" DCON_COMMON_TYPES_CONTENTS)
-	string(REPLACE
-		"#ifdef _MSC_VER \n#include <intrin.h>\n#else\n#include <x86intrin.h>\n#endif"
-		"#ifdef _MSC_VER \n#include <intrin.h>\n#elif defined(__x86_64__) || defined(__i386__)\n#include <x86intrin.h>\n#endif"
-		DCON_COMMON_TYPES_CONTENTS
-		"${DCON_COMMON_TYPES_CONTENTS}")
-	file(WRITE "${DCON_COMMON_TYPES_HEADER}" "${DCON_COMMON_TYPES_CONTENTS}")
+configure_file(
+	"${CMAKE_CURRENT_LIST_DIR}/patches/CommonIncludes/ve_scalar.hpp"
+	"${DCON_VE_SCALAR_HEADER}"
+	COPYONLY
+)
+
+file(READ "${DCON_COMMON_TYPES_HEADER}" DCON_COMMON_TYPES_CONTENTS)
+set(DCON_COMMON_TYPES_OLD_INTRINSICS "#ifdef _MSC_VER \n#include <intrin.h>\n#else\n#include <x86intrin.h>\n#endif")
+set(DCON_COMMON_TYPES_NEW_INTRINSICS "#ifdef _MSC_VER \n#include <intrin.h>\n#elif defined(__x86_64__) || defined(__i386__) || defined(_M_X64) || defined(_M_IX86)\n#include <x86intrin.h>\n#endif")
+if(NOT DCON_COMMON_TYPES_CONTENTS MATCHES "#include <intrin.h>")
+	message(FATAL_ERROR "DataContainer common_types.hpp format changed; update patch logic.")
 endif()
+string(REPLACE "${DCON_COMMON_TYPES_OLD_INTRINSICS}" "${DCON_COMMON_TYPES_NEW_INTRINSICS}" DCON_COMMON_TYPES_CONTENTS "${DCON_COMMON_TYPES_CONTENTS}")
+file(WRITE "${DCON_COMMON_TYPES_HEADER}" "${DCON_COMMON_TYPES_CONTENTS}")
+
+file(READ "${DCON_VE_HEADER}" DCON_VE_CONTENTS)
+set(DCON_VE_OLD_INCLUDE "#include <immintrin.h>\n")
+set(DCON_VE_NEW_INCLUDE "")
+string(REPLACE "${DCON_VE_OLD_INCLUDE}" "${DCON_VE_NEW_INCLUDE}" DCON_VE_CONTENTS "${DCON_VE_CONTENTS}")
+set(DCON_VE_OLD_BACKEND "#ifdef __AVX512BW__\n#include \"ve_avx512.hpp\"\n#else\n#ifdef __AVX2__\n#include \"ve_avx2.hpp\"\n#else\n#ifdef __AVX__\n#include \"ve_avx.hpp\"\n#else\n#ifdef __SSE4_2__ \n#include \"ve_sse.hpp\"\n#else // Worst case, fallback to SSE3\n#include \"ve_sse3.hpp\"\n#endif\n#endif\n#endif\n#endif")
+set(DCON_VE_NEW_BACKEND "#if defined(__x86_64__) || defined(__i386__) || defined(_M_X64) || defined(_M_IX86)\n#include <immintrin.h>\n#ifdef __AVX512BW__\n#include \"ve_avx512.hpp\"\n#else\n#ifdef __AVX2__\n#include \"ve_avx2.hpp\"\n#else\n#ifdef __AVX__\n#include \"ve_avx.hpp\"\n#else\n#ifdef __SSE4_2__ \n#include \"ve_sse.hpp\"\n#else\n#include \"ve_sse3.hpp\"\n#endif\n#endif\n#endif\n#endif\n#elif defined(__aarch64__) || defined(__arm64__) || defined(_M_ARM64)\n#include \"ve_scalar.hpp\"\n#else\n#error \"DataContainer ve backend is unsupported on this architecture\"\n#endif")
+if(NOT DCON_VE_CONTENTS MATCHES "ve_sse3.hpp")
+	message(FATAL_ERROR "DataContainer ve.hpp format changed; update patch logic.")
+endif()
+string(REPLACE "${DCON_VE_OLD_BACKEND}" "${DCON_VE_NEW_BACKEND}" DCON_VE_CONTENTS "${DCON_VE_CONTENTS}")
+file(WRITE "${DCON_VE_HEADER}" "${DCON_VE_CONTENTS}")
 
 add_library(dependency_DataContainer INTERFACE)
 target_include_directories(dependency_DataContainer SYSTEM INTERFACE "${datacontainer_SOURCE_DIR}/CommonIncludes/")

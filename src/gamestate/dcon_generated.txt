@@ -6058,13 +6058,13 @@ object{
 	}
 	property{
 		name{ recv_count }
-		type{ size_t }
+		type{ uint64_t }
 		tag { keep_after_state_reload }
 		tag { mp_checksum_excluded }
 	}
 	property{
 		name{ total_sent_bytes }
-		type{ size_t }
+		type{ uint64_t }
 		tag { keep_after_state_reload }
 		tag { mp_checksum_excluded }
 	}
@@ -6186,5 +6186,4 @@ load_save{
 	only_objects{mp_data}
 	only_properties{mp_data}
 }
-
 

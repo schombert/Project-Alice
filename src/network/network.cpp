@@ -57,6 +57,7 @@ using fmt::format;
 #endif
 
 #include <webapi/json.hpp>
+#include <limits>
 #include "dcon_oos_reporter_generated.hpp"
 using json = nlohmann::json;
 
@@ -417,11 +418,27 @@ void disconnect_player(sys::state& state, dcon::mp_player_id player_id, bool mak
 
 // Helper function for network command receiving which calls the specified function and cleans up the variables so a new command is ready to be parsed
 template<typename F>
-static inline void finish_command_parsing(command::command_data& command_recv_buffer, fixed_bool_t& receiving_payload, size_t& recv_count, F&& func) {
+static inline void finish_command_parsing(command::command_data& command_recv_buffer, fixed_bool_t& receiving_payload, auto& recv_count, F&& func) {
 	func(command_recv_buffer); // we are done parsing this command, run the provided function which will process it with the parsed command
 	receiving_payload = false;
 	recv_count = 0;
 	command_recv_buffer.payload.clear(); // clear the payload vector incase the function didnt take ownership of the passed command
+}
+
+template<typename Dest, typename Src>
+static Dest checked_narrow_cast(Src value) {
+	if(value < 0 || static_cast<uint64_t>(value) > static_cast<uint64_t>(std::numeric_limits<Dest>::max())) {
+		std::abort();
+	}
+	return static_cast<Dest>(value);
+}
+
+template<typename Counter>
+static void checked_counter_add(Counter& counter, size_t delta) {
+	if(delta > static_cast<size_t>(std::numeric_limits<Counter>::max()) - static_cast<size_t>(counter)) {
+		std::abort();
+	}
+	counter += static_cast<Counter>(delta);
 }
 
 
@@ -443,21 +460,21 @@ static int translate_network_error() {
 }
 
 // helper function to copy the command header, and update accociated counters
-static void memcpy_command_header(size_t& recv_count, int& buf_size_used, int& bytes_read, command::command_data& command_recv_buffer, std::array<uint8_t, RECV_BUFFER_SIZE>& receive_buffer) {
-	size_t to_read = std::min(sizeof(command::cmd_header) - recv_count, static_cast<size_t>(buf_size_used - bytes_read));
-	std::memcpy(reinterpret_cast<uint8_t*>(&command_recv_buffer) + recv_count, receive_buffer.data() + bytes_read, to_read);
-	recv_count += to_read;
-	bytes_read += static_cast<int>(to_read);
+static void memcpy_command_header(auto& recv_count, int& buf_size_used, int& bytes_read, command::command_data& command_recv_buffer, std::array<uint8_t, RECV_BUFFER_SIZE>& receive_buffer) {
+	size_t to_read = std::min(sizeof(command::cmd_header) - static_cast<size_t>(recv_count), static_cast<size_t>(buf_size_used - bytes_read));
+	std::memcpy(reinterpret_cast<uint8_t*>(&command_recv_buffer) + static_cast<size_t>(recv_count), receive_buffer.data() + bytes_read, to_read);
+	checked_counter_add(recv_count, to_read);
+	bytes_read += checked_narrow_cast<int>(to_read);
 }
 
 
 // helper function to copy the command payload, and update accociated counters
-static void memcpy_command_payload(size_t& recv_count, int& buf_size_used, int& bytes_read, command::command_data& command_recv_buffer, std::array<uint8_t, RECV_BUFFER_SIZE>& receive_buffer) {
+static void memcpy_command_payload(auto& recv_count, int& buf_size_used, int& bytes_read, command::command_data& command_recv_buffer, std::array<uint8_t, RECV_BUFFER_SIZE>& receive_buffer) {
 	auto payload_sz = command_recv_buffer.header.payload_size;
-	size_t to_read = std::min<uint64_t>(payload_sz - recv_count, static_cast<uint64_t>(buf_size_used - bytes_read));
-	std::memcpy(command_recv_buffer.payload.data() + recv_count, receive_buffer.data() + bytes_read, to_read);
-	recv_count += to_read;
-	bytes_read += static_cast<int>(to_read);
+	size_t to_read = static_cast<size_t>(std::min<uint64_t>(payload_sz - static_cast<uint64_t>(recv_count), static_cast<uint64_t>(buf_size_used - bytes_read)));
+	std::memcpy(command_recv_buffer.payload.data() + static_cast<size_t>(recv_count), receive_buffer.data() + bytes_read, to_read);
+	checked_counter_add(recv_count, to_read);
+	bytes_read += checked_narrow_cast<int>(to_read);
 }
 
 
@@ -606,11 +623,11 @@ static int host_socket_recv_command(sys::state& state, dcon::client_id client, i
 
 
 template<typename F>
-static int socket_recv(socket_t socket_fd, void* data, size_t len, size_t* m, F&& func) {
+static int socket_recv(socket_t socket_fd, void* data, size_t len, auto* m, F&& func) {
 	while(*m < len) {
-		int r = internal_socket_recv(socket_fd, reinterpret_cast<uint8_t*>(data) + *m, len - *m);
+		int r = internal_socket_recv(socket_fd, reinterpret_cast<uint8_t*>(data) + static_cast<size_t>(*m), len - static_cast<size_t>(*m));
 		if(r > 0) {
-			*m += static_cast<size_t>(r);
+			checked_counter_add(*m, checked_narrow_cast<size_t>(r));
 		} else if(r < 0) { // error
 			return translate_network_error();
 
@@ -630,14 +647,15 @@ static int socket_recv(socket_t socket_fd, void* data, size_t len, size_t* m, F&
 }
 
 
-inline static int socket_send_command(socket_t socket_fd, std::queue<std::shared_ptr<command::command_data>>& buffer, uint32_t& cmd_bytes_sent, fixed_bool_t& sending_payload, size_t& total_sent_bytes) {
+inline static int socket_send_command(socket_t socket_fd, std::queue<std::shared_ptr<command::command_data>>& buffer, uint32_t& cmd_bytes_sent, fixed_bool_t& sending_payload, auto& total_sent_bytes) {
 	while(!buffer.empty()) {
 		const auto* ptr = buffer.front().get();
 		if(!sending_payload) {
 			int r = internal_socket_send(socket_fd, ptr + cmd_bytes_sent, sizeof(command::cmd_header) - cmd_bytes_sent);
 			if(r > 0) {
-				total_sent_bytes += static_cast<size_t>(r);
-				cmd_bytes_sent += static_cast<uint32_t>(r);
+				auto sent = checked_narrow_cast<size_t>(r);
+				checked_counter_add(total_sent_bytes, sent);
+				cmd_bytes_sent += checked_narrow_cast<uint32_t>(sent);
 				if(cmd_bytes_sent == sizeof(command::cmd_header)) {
 					cmd_bytes_sent = 0;
 					if(ptr->payload.size() == 0) {
@@ -660,8 +678,9 @@ inline static int socket_send_command(socket_t socket_fd, std::queue<std::shared
 		else {
 			int r = internal_socket_send(socket_fd, ptr->payload.data() + cmd_bytes_sent, ptr->payload.size() - cmd_bytes_sent);
 			if(r > 0) {
-				total_sent_bytes += static_cast<size_t>(r);
-				cmd_bytes_sent += static_cast<uint32_t>(r);
+				auto sent = checked_narrow_cast<size_t>(r);
+				checked_counter_add(total_sent_bytes, sent);
+				cmd_bytes_sent += checked_narrow_cast<uint32_t>(sent);
 				if(cmd_bytes_sent == ptr->payload.size()) {
 					buffer.pop();
 					sending_payload = false;
@@ -681,12 +700,13 @@ inline static int socket_send_command(socket_t socket_fd, std::queue<std::shared
 
 
 
-inline static int socket_send(socket_t socket_fd, std::vector<char>& buffer, size_t& total_sent_bytes) {
+inline static int socket_send(socket_t socket_fd, std::vector<char>& buffer, auto& total_sent_bytes) {
 	while(!buffer.empty()) {
 		int r = internal_socket_send(socket_fd, buffer.data(), buffer.size());
 		if(r > 0) {
-			total_sent_bytes += static_cast<size_t>(r);
-			buffer.erase(buffer.begin(), buffer.begin() + static_cast<size_t>(r));
+			auto sent = checked_narrow_cast<size_t>(r);
+			checked_counter_add(total_sent_bytes, sent);
+			buffer.erase(buffer.begin(), buffer.begin() + sent);
 		} else if(r < 0) {
 			return translate_network_error();
 		} else {
