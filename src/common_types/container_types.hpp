@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cassert>
 #include <vector>
 #include <type_traits>
 #include "unordered_dense.h"
@@ -631,5 +632,3 @@ struct chat_message {
 	}
 };
 }
-
-

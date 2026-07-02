@@ -10,6 +10,11 @@ namespace economy {
 
 namespace pops {
 
+template<typename BOOL_VALUE, typename VALUE>
+VALUE safe_spending_ratio(BOOL_VALUE zero_required, VALUE spent, VALUE required, VALUE ratio_when_zero_required) {
+	return adaptive_ve::select<BOOL_VALUE, VALUE>(zero_required, ratio_when_zero_required, spent / required);
+}
+
 vectorized_pops_budget<float> prepare_pop_budget(const sys::state& state, dcon::pop_id ids);
 
 void update_consumption(

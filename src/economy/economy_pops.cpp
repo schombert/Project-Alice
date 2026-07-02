@@ -274,13 +274,15 @@ auto prepare_pop_budget_templated(
 	auto demand_scale = 1.f;
 	result.housing.demand_scale = 1.f;
 	result.housing.required = pop_size * housing_price;
+	auto zero_housing_costs = result.housing.required == 0;
 	//result.housing.spent = adaptive_ve::min<VALUE>(savings, adaptive_ve::min<VALUE>(spend_on_housing, result.housing.required));
 	result.housing.spent = adaptive_ve::min<VALUE>(savings, adaptive_ve::min<VALUE>(result.housing.required * 1.5f, spend_on_housing));
 	result.housing.satisfied_for_free_ratio = 0.f;
-	result.housing.satisfied_with_money_ratio = adaptive_ve::select<BOOL_VALUE, VALUE>(
-		pop_size == 0.f,
-		1.f,
-		result.housing.spent / result.housing.required
+	result.housing.satisfied_with_money_ratio = safe_spending_ratio(
+		zero_housing_costs,
+		result.housing.spent,
+		result.housing.required,
+		VALUE{ 1.f }
 	);
 	result.spent_total = result.spent_total + result.housing.spent;
 	savings = savings - result.housing.spent;
@@ -725,16 +727,12 @@ void update_income_artisans(sys::state& state) {
 		ve::apply([&](auto province, auto payment) {
 			for(auto pl : state.world.province_get_pop_location(province)) {
 				if(artisan_type == pl.get_pop().get_poptype()) {
-					pl.get_pop().set_savings(
-						pl.get_pop().get_savings()
-						+
-						pl.get_pop().get_size()
-						* payment
-					);
+					auto pop = pl.get_pop();
+					pop.set_savings(pop.get_savings() + pop.get_size() * payment);
 #ifndef NDEBUG
 					assert(
-						std::isfinite(pl.get_pop().get_savings())
-						&& pl.get_pop().get_savings() >= 0
+						std::isfinite(pop.get_savings())
+						&& pop.get_savings() >= 0
 					);
 #endif
 				}

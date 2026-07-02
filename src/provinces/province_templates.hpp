@@ -150,7 +150,7 @@ std::vector<dcon::province_id> make_path_to_prov(sys::state& state, dcon::provin
 
 	std::vector<dcon::province_id> path_result;
 
-	if(start == end || !prov_func(end)) // early exit if start is already at destination, or if the end province would fail the province check
+	if(!start || !end || start == end || !prov_func(end)) // early exit if endpoints are null, start is already at destination, or if the end province would fail the province check
 		return path_result;
 
 
@@ -203,6 +203,9 @@ std::vector<dcon::province_id> make_path_to_prov(sys::state& state, dcon::provin
 		for(auto adj : state.world.province_get_province_adjacency(current_prov)) {
 			auto other_prov =
 				adj.get_connected_provinces(0) == current_prov ? adj.get_connected_provinces(1) : adj.get_connected_provinces(0);
+			if(!other_prov) {
+				continue;
+			}
 			auto bits = adj.get_type();
 			auto distance = adj.get_distance();
 
@@ -269,7 +272,7 @@ std::vector<dcon::province_id> make_path_to_prov_fast(sys::state& state, dcon::p
 
 	std::vector<dcon::province_id> path_result;
 
-	if(start == end)
+	if(!start || !end || start == end)
 		return path_result;
 
 	auto fill_path_result = [&](dcon::province_id i) {
@@ -299,6 +302,9 @@ std::vector<dcon::province_id> make_path_to_prov_fast(sys::state& state, dcon::p
 		for(auto adj : state.world.province_get_province_adjacency(nearest.province)) {
 			auto other_prov =
 				adj.get_connected_provinces(0) == nearest.province ? adj.get_connected_provinces(1) : adj.get_connected_provinces(0);
+			if(!other_prov) {
+				continue;
+			}
 			auto bits = adj.get_type();
 			auto distance = adj.get_distance();
 
