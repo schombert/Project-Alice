@@ -108,9 +108,14 @@ namespace ve {
 			: value(tag_type::zero_is_null_t::value
 				? int_vector(v[0] - 1, v[1] - 1, v[2] - 1, v[3] - 1)
 				: v) {}
-		RELEASE_INLINE tagged_vector(tag_type v) : value(v.index()) {}
+		RELEASE_INLINE tagged_vector(tag_type v)
+			: value(tag_type::zero_is_null_t::value ? int_vector(v.index() - 1) : int_vector(v.index())) {}
 		RELEASE_INLINE tagged_vector(tag_type a, tag_type b, tag_type c, tag_type d)
-			: value(a.index(), b.index(), c.index(), d.index()) {}
+			: value(
+				tag_type::zero_is_null_t::value ? a.index() - 1 : a.index(),
+				tag_type::zero_is_null_t::value ? b.index() - 1 : b.index(),
+				tag_type::zero_is_null_t::value ? c.index() - 1 : c.index(),
+				tag_type::zero_is_null_t::value ? d.index() - 1 : d.index()) {}
 		RELEASE_INLINE tagged_vector(int_vector v, std::true_type) : value(v) {}
 		template<typename other_tag_type>
 		RELEASE_INLINE tagged_vector(tagged_vector<other_tag_type> v, std::true_type) : value(v.value) {}
@@ -131,7 +136,7 @@ namespace ve {
 		}
 
 		RELEASE_INLINE void set(uint32_t i, tag_type v) noexcept {
-			value.set(i, v.index());
+			value.set(i, tag_type::zero_is_null_t::value ? v.index() - 1 : v.index());
 		}
 	};
 
@@ -603,48 +608,56 @@ namespace ve {
 
 	template<typename U>
 	RELEASE_INLINE fp_vector load(tagged_vector<U> indices, float const* source) {
-		return fp_vector(source[indices[0].index()], source[indices[1].index()], source[indices[2].index()], source[indices[3].index()]);
+		auto original = indices.to_original_values();
+		return fp_vector(source[original[0]], source[original[1]], source[original[2]], source[original[3]]);
 	}
 	template<typename U, typename I>
 	RELEASE_INLINE auto load(tagged_vector<U> indices, I const* source) -> std::enable_if_t<std::numeric_limits<I>::is_integer && sizeof(I) <= 4, int_vector> {
-		return int_vector(int32_t(source[indices[0].index()]), int32_t(source[indices[1].index()]), int32_t(source[indices[2].index()]), int32_t(source[indices[3].index()]));
+		auto original = indices.to_original_values();
+		return int_vector(int32_t(source[original[0]]), int32_t(source[original[1]]), int32_t(source[original[2]]), int32_t(source[original[3]]));
 	}
 	template<typename U, typename T>
 	RELEASE_INLINE auto load(tagged_vector<U> indices, T const* source) -> std::enable_if_t<!std::numeric_limits<T>::is_integer, tagged_vector<T>> {
+		auto original = indices.to_original_values();
 		return tagged_vector<T>(
 			int_vector(
-				source[indices[0].index()].index() - (T::zero_is_null_t::value ? 1 : 0),
-				source[indices[1].index()].index() - (T::zero_is_null_t::value ? 1 : 0),
-				source[indices[2].index()].index() - (T::zero_is_null_t::value ? 1 : 0),
-				source[indices[3].index()].index() - (T::zero_is_null_t::value ? 1 : 0)),
+				source[original[0]].index() - (T::zero_is_null_t::value ? 1 : 0),
+				source[original[1]].index() - (T::zero_is_null_t::value ? 1 : 0),
+				source[original[2]].index() - (T::zero_is_null_t::value ? 1 : 0),
+				source[original[3]].index() - (T::zero_is_null_t::value ? 1 : 0)),
 			std::true_type{});
 	}
 	template<typename U>
 	RELEASE_INLINE vbitfield_type load(tagged_vector<U> indices, dcon::bitfield_type const* source) {
-		return vbitfield_type{ uint8_t((int32_t(dcon::bit_vector_test(source, indices[0].index())) << 0) | (int32_t(dcon::bit_vector_test(source, indices[1].index())) << 1) | (int32_t(dcon::bit_vector_test(source, indices[2].index())) << 2) | (int32_t(dcon::bit_vector_test(source, indices[3].index())) << 3)) };
+		auto original = indices.to_original_values();
+		return vbitfield_type{ uint8_t((int32_t(dcon::bit_vector_test(source, original[0])) << 0) | (int32_t(dcon::bit_vector_test(source, original[1])) << 1) | (int32_t(dcon::bit_vector_test(source, original[2])) << 2) | (int32_t(dcon::bit_vector_test(source, original[3])) << 3)) };
 	}
 
 	template<typename U>
 	RELEASE_INLINE fp_vector load(tagged_vector<U> indices, mask_vector mask, float const* source) {
-		return fp_vector(mask[0] ? source[indices[0].index()] : 0.0f, mask[1] ? source[indices[1].index()] : 0.0f, mask[2] ? source[indices[2].index()] : 0.0f, mask[3] ? source[indices[3].index()] : 0.0f);
+		auto original = indices.to_original_values();
+		return fp_vector(mask[0] ? source[original[0]] : 0.0f, mask[1] ? source[original[1]] : 0.0f, mask[2] ? source[original[2]] : 0.0f, mask[3] ? source[original[3]] : 0.0f);
 	}
 	template<typename U, typename I>
 	RELEASE_INLINE auto load(tagged_vector<U> indices, mask_vector mask, I const* source) -> std::enable_if_t<std::numeric_limits<I>::is_integer && sizeof(I) <= 4, int_vector> {
-		return int_vector(mask[0] ? int32_t(source[indices[0].index()]) : 0, mask[1] ? int32_t(source[indices[1].index()]) : 0, mask[2] ? int32_t(source[indices[2].index()]) : 0, mask[3] ? int32_t(source[indices[3].index()]) : 0);
+		auto original = indices.to_original_values();
+		return int_vector(mask[0] ? int32_t(source[original[0]]) : 0, mask[1] ? int32_t(source[original[1]]) : 0, mask[2] ? int32_t(source[original[2]]) : 0, mask[3] ? int32_t(source[original[3]]) : 0);
 	}
 	template<typename U, typename T>
 	RELEASE_INLINE auto load(tagged_vector<U> indices, mask_vector mask, T const* source) -> std::enable_if_t<!std::numeric_limits<T>::is_integer, tagged_vector<T>> {
+		auto original = indices.to_original_values();
 		return tagged_vector<T>(
 			int_vector(
-				mask[0] ? source[indices[0].index()].index() - (T::zero_is_null_t::value ? 1 : 0) : -1,
-				mask[1] ? source[indices[1].index()].index() - (T::zero_is_null_t::value ? 1 : 0) : -1,
-				mask[2] ? source[indices[2].index()].index() - (T::zero_is_null_t::value ? 1 : 0) : -1,
-				mask[3] ? source[indices[3].index()].index() - (T::zero_is_null_t::value ? 1 : 0) : -1),
+				mask[0] ? source[original[0]].index() - (T::zero_is_null_t::value ? 1 : 0) : -1,
+				mask[1] ? source[original[1]].index() - (T::zero_is_null_t::value ? 1 : 0) : -1,
+				mask[2] ? source[original[2]].index() - (T::zero_is_null_t::value ? 1 : 0) : -1,
+				mask[3] ? source[original[3]].index() - (T::zero_is_null_t::value ? 1 : 0) : -1),
 			std::true_type{});
 	}
 	template<typename U>
 	RELEASE_INLINE vbitfield_type load(tagged_vector<U> indices, mask_vector mask, dcon::bitfield_type const* source) {
-		return vbitfield_type{ uint8_t((int32_t(mask[0] ? dcon::bit_vector_test(source, indices[0].index()) : false) << 0) | (int32_t(mask[1] ? dcon::bit_vector_test(source, indices[1].index()) : false) << 1) | (int32_t(mask[2] ? dcon::bit_vector_test(source, indices[2].index()) : false) << 2) | (int32_t(mask[3] ? dcon::bit_vector_test(source, indices[3].index()) : false) << 3)) };
+		auto original = indices.to_original_values();
+		return vbitfield_type{ uint8_t((int32_t(mask[0] ? dcon::bit_vector_test(source, original[0]) : false) << 0) | (int32_t(mask[1] ? dcon::bit_vector_test(source, original[1]) : false) << 1) | (int32_t(mask[2] ? dcon::bit_vector_test(source, original[2]) : false) << 2) | (int32_t(mask[3] ? dcon::bit_vector_test(source, original[3]) : false) << 3)) };
 	}
 
 	template<typename U>
@@ -838,35 +851,80 @@ namespace ve {
 	RELEASE_INLINE void store(partial_contiguous_tags<T> e, dcon::bitfield_type* dest, mask_vector values) { store(e, dest, compress_mask(values)); }
 
 	template<typename U>
-	RELEASE_INLINE void store(tagged_vector<U> indices, float* dest, fp_vector values) { for(int32_t i = 0; i < vector_size; ++i) dest[indices[i].index()] = values[i]; }
+	RELEASE_INLINE void store(tagged_vector<U> indices, float* dest, fp_vector values) {
+		auto original = indices.to_original_values();
+		for(int32_t i = 0; i < vector_size; ++i) dest[original[i]] = values[i];
+	}
 	template<typename U, typename I>
-	RELEASE_INLINE auto store(tagged_vector<U> indices, I* dest, int_vector values) -> std::enable_if_t<std::numeric_limits<I>::is_integer && sizeof(I) <= 4, void> { for(int32_t i = 0; i < vector_size; ++i) dest[indices[i].index()] = I(values[i]); }
+	RELEASE_INLINE auto store(tagged_vector<U> indices, I* dest, int_vector values) -> std::enable_if_t<std::numeric_limits<I>::is_integer && sizeof(I) <= 4, void> {
+		auto original = indices.to_original_values();
+		for(int32_t i = 0; i < vector_size; ++i) dest[original[i]] = I(values[i]);
+	}
 	template<typename U, typename T>
-	RELEASE_INLINE void store(tagged_vector<U> indices, T* dest, tagged_vector<T> values) { for(int32_t i = 0; i < vector_size; ++i) dest[indices[i].index()] = values[i]; }
+	RELEASE_INLINE void store(tagged_vector<U> indices, T* dest, tagged_vector<T> values) {
+		auto original = indices.to_original_values();
+		for(int32_t i = 0; i < vector_size; ++i) dest[original[i]] = values[i];
+	}
 	template<typename U>
-	RELEASE_INLINE void store(tagged_vector<U> indices, dcon::bitfield_type* dest, vbitfield_type values) { for(int32_t i = 0; i < vector_size; ++i) dcon::bit_vector_set(dest, indices[i].index(), ((values.v >> i) & 1) != 0); }
+	RELEASE_INLINE void store(tagged_vector<U> indices, dcon::bitfield_type* dest, vbitfield_type values) {
+		auto original = indices.to_original_values();
+		for(int32_t i = 0; i < vector_size; ++i) dcon::bit_vector_set(dest, original[i], ((values.v >> i) & 1) != 0);
+	}
 	template<typename U>
-	RELEASE_INLINE void store(tagged_vector<U> indices, dcon::bitfield_type* dest, mask_vector values) { for(int32_t i = 0; i < vector_size; ++i) dcon::bit_vector_set(dest, indices[i].index(), values[i]); }
+	RELEASE_INLINE void store(tagged_vector<U> indices, dcon::bitfield_type* dest, mask_vector values) {
+		auto original = indices.to_original_values();
+		for(int32_t i = 0; i < vector_size; ++i) dcon::bit_vector_set(dest, original[i], values[i]);
+	}
 
 	template<typename U>
-	RELEASE_INLINE void store(tagged_vector<U> indices, vbitfield_type mask, float* dest, fp_vector values) { for(int32_t i = 0; i < vector_size; ++i) if(((mask.v >> i) & 1) != 0) dest[indices[i].index()] = values[i]; }
+	RELEASE_INLINE void store(tagged_vector<U> indices, vbitfield_type mask, float* dest, fp_vector values) {
+		auto original = indices.to_original_values();
+		for(int32_t i = 0; i < vector_size; ++i) if(((mask.v >> i) & 1) != 0) dest[original[i]] = values[i];
+	}
 	template<typename U, typename I>
-	RELEASE_INLINE auto store(tagged_vector<U> indices, vbitfield_type mask, I* dest, int_vector values) -> std::enable_if_t<std::numeric_limits<I>::is_integer && sizeof(I) <= 4, void> { for(int32_t i = 0; i < vector_size; ++i) if(((mask.v >> i) & 1) != 0) dest[indices[i].index()] = I(values[i]); }
+	RELEASE_INLINE auto store(tagged_vector<U> indices, vbitfield_type mask, I* dest, int_vector values) -> std::enable_if_t<std::numeric_limits<I>::is_integer && sizeof(I) <= 4, void> {
+		auto original = indices.to_original_values();
+		for(int32_t i = 0; i < vector_size; ++i) if(((mask.v >> i) & 1) != 0) dest[original[i]] = I(values[i]);
+	}
 	template<typename U, typename T>
-	RELEASE_INLINE void store(tagged_vector<U> indices, vbitfield_type mask, T* dest, tagged_vector<T> values) { for(int32_t i = 0; i < vector_size; ++i) if(((mask.v >> i) & 1) != 0) dest[indices[i].index()] = values[i]; }
+	RELEASE_INLINE void store(tagged_vector<U> indices, vbitfield_type mask, T* dest, tagged_vector<T> values) {
+		auto original = indices.to_original_values();
+		for(int32_t i = 0; i < vector_size; ++i) if(((mask.v >> i) & 1) != 0) dest[original[i]] = values[i];
+	}
 	template<typename U>
-	RELEASE_INLINE void store(tagged_vector<U> indices, vbitfield_type mask, dcon::bitfield_type* dest, vbitfield_type values) { for(int32_t i = 0; i < vector_size; ++i) if(((mask.v >> i) & 1) != 0) dcon::bit_vector_set(dest, indices[i].index(), ((values.v >> i) & 1) != 0); }
+	RELEASE_INLINE void store(tagged_vector<U> indices, vbitfield_type mask, dcon::bitfield_type* dest, vbitfield_type values) {
+		auto original = indices.to_original_values();
+		for(int32_t i = 0; i < vector_size; ++i) if(((mask.v >> i) & 1) != 0) dcon::bit_vector_set(dest, original[i], ((values.v >> i) & 1) != 0);
+	}
 	template<typename U>
-	RELEASE_INLINE void store(tagged_vector<U> indices, vbitfield_type mask, dcon::bitfield_type* dest, mask_vector values) { for(int32_t i = 0; i < vector_size; ++i) if(((mask.v >> i) & 1) != 0) dcon::bit_vector_set(dest, indices[i].index(), values[i]); }
+	RELEASE_INLINE void store(tagged_vector<U> indices, vbitfield_type mask, dcon::bitfield_type* dest, mask_vector values) {
+		auto original = indices.to_original_values();
+		for(int32_t i = 0; i < vector_size; ++i) if(((mask.v >> i) & 1) != 0) dcon::bit_vector_set(dest, original[i], values[i]);
+	}
 
 	template<typename U>
-	RELEASE_INLINE void store(tagged_vector<U> indices, mask_vector mask, float* dest, fp_vector values) { for(int32_t i = 0; i < vector_size; ++i) if(mask[i]) dest[indices[i].index()] = values[i]; }
+	RELEASE_INLINE void store(tagged_vector<U> indices, mask_vector mask, float* dest, fp_vector values) {
+		auto original = indices.to_original_values();
+		for(int32_t i = 0; i < vector_size; ++i) if(mask[i]) dest[original[i]] = values[i];
+	}
 	template<typename U, typename I>
-	RELEASE_INLINE auto store(tagged_vector<U> indices, mask_vector mask, I* dest, int_vector values) -> std::enable_if_t<std::numeric_limits<I>::is_integer && sizeof(I) <= 4, void> { for(int32_t i = 0; i < vector_size; ++i) if(mask[i]) dest[indices[i].index()] = I(values[i]); }
+	RELEASE_INLINE auto store(tagged_vector<U> indices, mask_vector mask, I* dest, int_vector values) -> std::enable_if_t<std::numeric_limits<I>::is_integer && sizeof(I) <= 4, void> {
+		auto original = indices.to_original_values();
+		for(int32_t i = 0; i < vector_size; ++i) if(mask[i]) dest[original[i]] = I(values[i]);
+	}
 	template<typename U, typename T>
-	RELEASE_INLINE void store(tagged_vector<U> indices, mask_vector mask, T* dest, tagged_vector<T> values) { for(int32_t i = 0; i < vector_size; ++i) if(mask[i]) dest[indices[i].index()] = values[i]; }
+	RELEASE_INLINE void store(tagged_vector<U> indices, mask_vector mask, T* dest, tagged_vector<T> values) {
+		auto original = indices.to_original_values();
+		for(int32_t i = 0; i < vector_size; ++i) if(mask[i]) dest[original[i]] = values[i];
+	}
 	template<typename U>
-	RELEASE_INLINE void store(tagged_vector<U> indices, mask_vector mask, dcon::bitfield_type* dest, vbitfield_type values) { for(int32_t i = 0; i < vector_size; ++i) if(mask[i]) dcon::bit_vector_set(dest, indices[i].index(), ((values.v >> i) & 1) != 0); }
+	RELEASE_INLINE void store(tagged_vector<U> indices, mask_vector mask, dcon::bitfield_type* dest, vbitfield_type values) {
+		auto original = indices.to_original_values();
+		for(int32_t i = 0; i < vector_size; ++i) if(mask[i]) dcon::bit_vector_set(dest, original[i], ((values.v >> i) & 1) != 0);
+	}
 	template<typename U>
-	RELEASE_INLINE void store(tagged_vector<U> indices, mask_vector mask, dcon::bitfield_type* dest, mask_vector values) { for(int32_t i = 0; i < vector_size; ++i) if(mask[i]) dcon::bit_vector_set(dest, indices[i].index(), values[i]); }
+	RELEASE_INLINE void store(tagged_vector<U> indices, mask_vector mask, dcon::bitfield_type* dest, mask_vector values) {
+		auto original = indices.to_original_values();
+		for(int32_t i = 0; i < vector_size; ++i) if(mask[i]) dcon::bit_vector_set(dest, original[i], values[i]);
+	}
 }
