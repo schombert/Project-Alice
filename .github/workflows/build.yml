@@ -65,7 +65,7 @@ jobs:
 
     - name: Configure Build Files
       run: |
-        cmake -G "Visual Studio 17 2026" --preset=x64-${{ matrix.config }} -B build
+        cmake -G "Visual Studio 18 2026" --preset=x64-${{ matrix.config }} -B build
 
     - name: Build Project Alice
       run: |
