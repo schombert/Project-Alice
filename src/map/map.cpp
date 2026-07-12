@@ -537,7 +537,6 @@ void display_data::create_meshes() {
 		glVertexAttribFormat(0, 2, GL_FLOAT, GL_FALSE, offsetof(square::point, data));
 		glEnableVertexAttribArray(0);
 		glVertexAttribBinding(0, 0);
-		assert(glGetError() == GL_NO_ERROR);
 		map_drawing_mutex.unlock();
 	}
 	glBindVertexArray(vao_array[vo_coastal]);
@@ -1299,14 +1298,9 @@ void display_data::render(
 		if(arbitrary_map_triangles_counts.size() > 0) {
 			glDisable(GL_CULL_FACE);
 			load_shader(shader_map_triangle);
-			assert(vao_array[vo_arbitrary_map_triangles] != 0);
-			assert(vbo_array[vo_arbitrary_map_triangles] != 0);
 			glBindVertexArray(vao_array[vo_arbitrary_map_triangles]);
-			assert(glGetError() == GL_NO_ERROR);
 			glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_arbitrary_map_triangles]);
-			assert(glGetError() == GL_NO_ERROR);
 			glMultiDrawArrays(GL_TRIANGLES, buffered_arbitrary_map_triangles_starts.data(), buffered_arbitrary_map_triangles_counts.data(), GLsizei(buffered_arbitrary_map_triangles_starts.size()));
-			assert(glGetError() == GL_NO_ERROR);
 			glEnable(GL_CULL_FACE);
 		}
 		map_drawing_mutex.unlock();

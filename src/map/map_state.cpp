@@ -2625,7 +2625,6 @@ void map_state::update(sys::state& state) {
 
 	state.map_state.map_data.map_drawing_mutex.lock();
 	if(state.map_state.map_data.new_arbitrary_map_triangle) {
-		assert(map_data.vbo_array[map_data.vo_arbitrary_map_triangles] != 0);
 		state.map_state.map_data.new_arbitrary_map_triangle = false;
 		glBindBuffer(GL_ARRAY_BUFFER, map_data.vbo_array[map_data.vo_arbitrary_map_triangles]);
 		glBufferData(
@@ -2637,7 +2636,6 @@ void map_state::update(sys::state& state) {
 		);
 		state.map_state.map_data.buffered_arbitrary_map_triangles_starts = state.map_state.map_data.arbitrary_map_triangles_starts;
 		state.map_state.map_data.buffered_arbitrary_map_triangles_counts = state.map_state.map_data.arbitrary_map_triangles_counts;
-		assert(glGetError() == GL_NO_ERROR);
 	}
 	state.map_state.map_data.map_drawing_mutex.unlock();
 
