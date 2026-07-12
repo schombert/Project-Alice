@@ -1797,7 +1797,6 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 
 		for(int i = 0; i < grid_radius_steps; i++) {
 			float radius = (float)i / (float) grid_radius_steps * raw_bounding_box_radius;
-
 			for(int j = 0; j < 40; j++) {
 				auto angle = 2.f * glm::pi<float>() * (float)j / 20;
 
@@ -1829,60 +1828,6 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 			}
 		}
 
-		//for(int iteration = 0; iteration < 1; iteration++) {
-		//	// smooth image
-		//	{		
-		//		float corner = 1.f;
-		//		float edge = 2.f;
-		//		float center = 3.f;
-
-		//		float total = 4.f * corner + 4.f * edge + center;
-
-		//		corner /= total;
-		//		edge /= total;
-		//		center /= total;
-
-		//		for(int j = 0; j < height_steps; j++) {
-		//			for(int i = 0; i < width_steps; i++) {
-		//				if(i == 0 || j == 0 || i == width_steps - 1 || j == height_steps - 1) {
-		//					weights_buffer[j * width_steps + i] = 0.f;
-		//					continue;
-		//				}
-
-		//				auto smooth =
-		//					corner * get(i - 1, j - 1) + edge * get(i - 1, j) + corner * get(i - 1, j + 1)
-		//					+ edge * get(i, j - 1) + center * get(i, j) + edge * get(i, j + 1)
-		//					+ edge * get(i + 1, j - 1) + center * get(i + 1, j) + edge * get(i + 1, j + 1);
-
-		//				weights_buffer[j * width_steps + i] = 
-		//					(smooth + original_weights[j * width_steps + i] * 0.1f)
-		//					* decay_multiplier[j * width_steps + i]
-		//				;
-		//			}
-		//		}
-		//	}
-
-		//	// push buffer to grid:
-		//	{
-		//		for(int j = 0; j < height_steps; j++) {
-		//			for(int i = 0; i < width_steps; i++) {
-		//				grid[j * width_steps + i].z = weights_buffer[j * width_steps + i];
-		//			}
-		//		}
-		//	}
-
-		//	// threshold
-		//	{
-		//		for(int j = 0; j < height_steps; j++) {
-		//			for(int i = 0; i < width_steps; i++) {
-		//				if(grid[j * width_steps + i].z < 0.2f) {
-		//					grid[j * width_steps + i].z = 0.f;
-		//				}
-		//			}
-		//		}
-		//	}
-		//}
-
 		glm::vec2 grid_center = { 0.f, 0.f };
 		float total_weight = 0.f;
 
@@ -1903,73 +1848,11 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 
 		grid_center = grid_center / total_weight;
 
-		/*
-		// remove edges
-		for(int j = 0; j < height_steps; j++) {
-			for(int i = 0; i < width_steps; i++) {
-				bool is_edge = false;
-				if(i == 0 || j == 0) {
-					is_edge = true;
-				}
-				if(i == width_steps - 1 || j == height_steps - 1) {
-					is_edge = true;
-				}
-				{
-					auto x = grid[j * width_steps + i].x;
-					auto y = grid[j * width_steps + i].y;
-					auto weight = grid[j * width_steps + i].z;
-					draw_small_square(state, state.map_state.map_data, { { x / (float)map_data.size_x, y / (float)map_data.size_y } }, 0.00005f * weight);
-				}
-				
-				if(!is_edge) {
-					auto sobel_i =
-						get(i - 1, j - 1) + 2.f * get(i - 1, j) + get(i - 1, j + 1)
-						- (get(i + 1, j - 1) + 2.f * get(i + 1, j) + get(i + 1, j + 1));
-					auto sobel_j =
-						get(i - 1, j - 1) + 2.f * get(i, j - 1) + get(i + 1, j - 1)
-						- (get(i - 1, j + 1) + 2.f * get(i, j + 1) + get(i + 1, j + 1));
 
-					auto grad_norm = sqrt(sobel_i * sobel_i + sobel_j * sobel_j);
-
-					if(grad_norm > 0.2f) {
-						continue;
-					}
-				}
-			}
-		}
-		*/
-
-		// prepare points for a local grid
-		/*
-		float aversion_radius = 1.5f;
-		for(int roughness = 1; roughness < 3; roughness++) {		
-			for(int j = 0; j < height_steps / roughness; j++) {
-				float y = rough_box_bottom + j * local_step.y * roughness;
-
-				for(int i = 0; i < width_steps / roughness; i++) {
-					float x = rough_box_left + float(i) * local_step.x * roughness;
-					glm::vec2 candidate = { x, y };
-					float weight = 0.f;
-
-					weight += check_point(x, y);
-					weight += check_point(x - local_step.x * roughness * aversion_radius, y);
-					weight += check_point(x + local_step.x * roughness * aversion_radius, y);
-					weight += check_point(x, y - local_step.y * roughness * aversion_radius);
-					weight += check_point(x, y + local_step.y * roughness * aversion_radius);
-
-					if(weight >= 2.f) {
-						points.push_back(glm::vec3{ candidate, weight });
-
-						
-					}
-				}
-			}
-		}
-		*/
 		// print points into files
 
-		static int file_index = 0;
-		file_index++;
+		//static int file_index = 0;
+		// file_index++;
 		/*
 		std::filesystem::create_directory("shapes");
 
@@ -2070,20 +1953,6 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 				}
 				//new_centroids_R3[i].data /= glm::length(new_centroids_R3[i].data);
 			}
-			
-			//for(size_t i = 1; i <= num_of_clusters; i++) {
-			//	for(size_t j = 0; j < num_of_clusters; j++) {
-			//		if(state.user_settings.map_label == sys::map_label_mode::spherical) {
-			//			auto diff = centroids_R3[i].data - centroids_R3[j].data;
-			//			new_centroids_R3[i].data += diff * 0.2f;
-			//			new_centroids_R3[j].data -= diff * 0.2f;
-			//		} else {
-			//			auto diff = centroids[i] - centroids[j];
-			//			new_centroids[i] += diff * 0.2f;
-			//			new_centroids[j] -= diff * 0.2f;
-			//		}
-			//	}
-			//}
 
 			for(size_t i = 0; i < new_centroids.size(); i++) {
 				new_centroids_R3[i].data /= glm::length(new_centroids_R3[i].data);
@@ -2259,23 +2128,6 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 			float left = 0.f;
 			float top = 0.f;
 			float bottom = 0.f;
-			//for(auto point : points) {
-			//	//if(point.z < average_weight * 0.1f) continue;
-			//	auto coord = glm::vec2{ point.x, point.y };
-			//	glm::vec2 current = coord - center;
-			//	if((current.x > right)) {
-			//		right = current.x;
-			//	}
-			//	if(current.y > top) {
-			//		top = current.y;
-			//	}
-			//	if((current.x < left)) {
-			//		left = current.x;
-			//	}
-			//	if(current.y < bottom) {
-			//		bottom = current.y;
-			//	}
-			//}
 			for(auto point : centroids) {
 				auto coord = glm::vec2{ point.x, point.y };
 				glm::vec2 current = coord - center;
@@ -2369,7 +2221,6 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 		std::vector<std::array<float, 4>> in_y;
 
 		//draw_small_square(state, state.map_state.map_data, { { basis.x / (float)map_data.size_x, basis.y / (float)map_data.size_y } }, 0.005f);
-
 		//draw_small_square(state, state.map_state.map_data, { { (basis.x + ratio.x) / (float)map_data.size_x, (basis.y + ratio.y) / (float)map_data.size_y } }, 0.005f);
 
 		for (auto point : centroids) {
