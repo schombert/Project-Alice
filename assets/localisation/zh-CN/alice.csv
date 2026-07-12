@@ -1609,7 +1609,7 @@ employment_type_guild_education;雇佣类型：?Y行会教育?W
 employment_type_no_education;雇佣类型：?Y无教育?W
 pop_literacy_spending; 人群教育预算 ?Y$val$?W。
 pop_literacy_spending_required;最高教育支出：?Y$val$?W。
-pop_literacy_spending_public;?Y$val$?W 由公共教育预算支付。
+pop_literacy_spending_public;?Y$val$?W 由公立教育预算支付。
 pop_literacy_spending_ratio;满足度：?Y$x$?W。
 pop_literacy_spending_result_success;如 ?Y$x$?W 高于 ?Y$y$?W，识字率会提高 ?Y$val$?W
 pop_literacy_spending_result_failure;如 ?Y$x$?W 低于 ?Y$y$?W，识字率会降低 ?Y$val$?W
@@ -2018,9 +2018,9 @@ factory_investments_header;投资
 total_investments_label;总计
 investment_efficiency_tooltip;工具、效率输入和机器
 investment_expansion_tooltip;扩张
-private_education_supply_1;私人教育供应 ?Y$val$?!
-private_education_supply_2;公共教育供应 ?Y$val$?!
-private_education_demand_1;公共教育需求 ?Y$val$?!
-private_education_demand_2;私人教育需求 ?Y$val$?!
-private_education_size_public;公共教育规模 ?Y$val$?!
-private_education_size_private;私人教育规模 ?Y$val$?!
+private_education_supply_1;私立教育供应 ?Y$val$?!
+private_education_supply_2;公立教育供应 ?Y$val$?!
+private_education_demand_1;公立教育需求 ?Y$val$?!
+private_education_demand_2;私立教育需求 ?Y$val$?!
+private_education_size_public;公立教育规模 ?Y$val$?!
+private_education_size_private;私立教育规模 ?Y$val$?!

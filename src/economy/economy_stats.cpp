@@ -1020,7 +1020,7 @@ trade_volume_data_detailed import_volume_detailed(
 	dcon::nation_id s,
 	dcon::commodity_id c
 ) {
-	ve::vectorizable_buffer<float, dcon::nation_id> per_nation_data(uint32_t(1));
+	ve::vectorizable_buffer<float, dcon::nation_id> per_nation_data = state.world.nation_make_vectorizable_float_buffer();
 
 	state.world.execute_serial_over_nation([&](auto nids) {
 		per_nation_data.set(nids, 0.f);
