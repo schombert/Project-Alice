@@ -183,6 +183,12 @@ square::tangent rotate_right(square::tangent x) {
 	return to_square(rotated);
 }
 
+tangent rotate(tangent x, float angle) {
+	auto away = x.base.data;
+	auto to_side = glm::cross(away, x.data);
+	return {x.base, x.data * cos(angle) + to_side * sin(angle) };
+}
+
 square::tangent rotate(square::tangent x, float angle) {
 	auto sphere_tangent = from_square(x);
 	auto away = sphere_tangent.base.data;

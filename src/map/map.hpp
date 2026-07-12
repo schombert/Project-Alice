@@ -223,9 +223,12 @@ public:
 	std::vector<GLsizei> other_objective_unit_arrow_counts;
 	//
 	bool new_arbitrary_map_triangle = false;
-	std::vector<square::point> arbitrary_map_triangles;
-	std::vector<GLint> arbitrary_map_triangles_starts;
-	std::vector<GLsizei> arbitrary_map_triangles_counts;
+	std::mutex map_drawing_mutex {};
+	std::vector<square::point> arbitrary_map_triangles {};
+	std::vector<GLint> buffered_arbitrary_map_triangles_starts{};
+	std::vector<GLsizei> buffered_arbitrary_map_triangles_counts{};
+	std::vector<GLint> arbitrary_map_triangles_starts {};
+	std::vector<GLsizei> arbitrary_map_triangles_counts {};
 	//
 	std::vector<text_line_vertex> text_line_vertices;
 	GLsizei last_size_of_text_line_vertices = 0;
