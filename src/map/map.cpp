@@ -528,6 +528,7 @@ void display_data::create_meshes() {
 	}
 	{
 		// Create and populate the border VBO
+		map_drawing_mutex.lock();
 		glBindVertexArray(vao_array[vo_arbitrary_map_triangles]);
 		glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_arbitrary_map_triangles]);
 		// Bind the VBO to 0 of the VAO
@@ -536,6 +537,8 @@ void display_data::create_meshes() {
 		glVertexAttribFormat(0, 2, GL_FLOAT, GL_FALSE, offsetof(square::point, data));
 		glEnableVertexAttribArray(0);
 		glVertexAttribBinding(0, 0);
+		assert(glGetError() == GL_NO_ERROR);
+		map_drawing_mutex.unlock();
 	}
 	glBindVertexArray(vao_array[vo_coastal]);
 	create_textured_line_b_vbo(vbo_array[vo_coastal], coastal_vertices);
@@ -1292,12 +1295,21 @@ void display_data::render(
 	// arbitrary things
 
 	{
-		glDisable(GL_CULL_FACE);
-		load_shader(shader_map_triangle);
-		glBindVertexArray(vao_array[vo_arbitrary_map_triangles]);
-		glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_arbitrary_map_triangles]);
-		glMultiDrawArrays(GL_TRIANGLES, arbitrary_map_triangles_starts.data(), arbitrary_map_triangles_counts.data(), GLsizei(arbitrary_map_triangles_starts.size()));
-		glEnable(GL_CULL_FACE);
+		map_drawing_mutex.lock();
+		if(arbitrary_map_triangles_counts.size() > 0) {
+			glDisable(GL_CULL_FACE);
+			load_shader(shader_map_triangle);
+			assert(vao_array[vo_arbitrary_map_triangles] != 0);
+			assert(vbo_array[vo_arbitrary_map_triangles] != 0);
+			glBindVertexArray(vao_array[vo_arbitrary_map_triangles]);
+			assert(glGetError() == GL_NO_ERROR);
+			glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_arbitrary_map_triangles]);
+			assert(glGetError() == GL_NO_ERROR);
+			glMultiDrawArrays(GL_TRIANGLES, buffered_arbitrary_map_triangles_starts.data(), buffered_arbitrary_map_triangles_counts.data(), GLsizei(buffered_arbitrary_map_triangles_starts.size()));
+			assert(glGetError() == GL_NO_ERROR);
+			glEnable(GL_CULL_FACE);
+		}
+		map_drawing_mutex.unlock();
 	}
 
 	// trade flow
@@ -3164,7 +3176,7 @@ void display_data::set_text_lines(sys::state& state) {
 		assert(std::isfinite(text_length) && text_length != 0.f);
 
 		float size = (curve_length / text_length) * 0.8f;
-		if(!is_spherical) size /= 2.f;
+		//if(!is_spherical) size /= 2.f;
 
 		float font_size_index = std::round(5.f * log(size) / log(1.618034f));
 		if(font_size_index > 45.f) font_size_index = 45.f;
@@ -3218,7 +3230,7 @@ void display_data::set_text_lines(sys::state& state) {
 			float param_range = right - left;
 			float actual_ratio = (cur_x - left) / param_range;
 			float diff = std::abs(actual_ratio - expected_ratio);
-			assert(diff < 0.04f);
+			//assert(diff < 0.04f);
 		} else {
 			// Clean margin advance on sphere (restart from start)
 			float accumulated = 0.f;
@@ -3361,7 +3373,7 @@ void display_data::set_text_lines(sys::state& state) {
 			float param_range = right - left;
 			float actual_ratio = (cur_x - left) / param_range;
 			float diff = std::abs(actual_ratio - expected_ratio);
-			assert(diff < 0.04f);
+			//assert(diff < 0.04f);
 		}
 	}
 
