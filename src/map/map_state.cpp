@@ -1383,7 +1383,7 @@ void commit_text_lines(sys::state& state, display_data& map_data) {
 
 void update_text_lines(sys::state& state, display_data& map_data) {
 
-	//clear_drawing(state, state.map_state.map_data);
+	clear_drawing(state, state.map_state.map_data);
 
 	// retroscipt
 	std::vector<text_line_generator_data>& text_data = map_data.text_data;
@@ -1660,17 +1660,17 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 		std::vector<glm::vec3> points;
 		std::vector<sphere_R3::point> points_R3;
 
-		raw_bounding_box_x_min -= 0.025f;
-		raw_bounding_box_y_min -= 0.025f;
-		raw_bounding_box_z_min -= 0.025f;
-		raw_bounding_box_x_max += 0.025f;
-		raw_bounding_box_y_max += 0.025f;
-		raw_bounding_box_z_max += 0.025f;
+		raw_bounding_box_x_min -= 0.015f;
+		raw_bounding_box_y_min -= 0.015f;
+		raw_bounding_box_z_min -= 0.015f;
+		raw_bounding_box_x_max += 0.015f;
+		raw_bounding_box_y_max += 0.015f;
+		raw_bounding_box_z_max += 0.015f;
 		float raw_x_width = raw_bounding_box_x_max - raw_bounding_box_x_min;
 		float raw_y_width = raw_bounding_box_y_max - raw_bounding_box_y_min;
 		float raw_z_width = raw_bounding_box_z_max - raw_bounding_box_z_min;
 
-		float raw_bounding_box_radius = std::max(std::max(raw_x_width, raw_y_width), raw_z_width);
+		float raw_bounding_box_radius = std::max(std::max(raw_x_width, raw_y_width), raw_z_width) / 2.f * sqrtf(2.f);
 		glm::vec3 raw_bounding_box_center {
 			raw_bounding_box_x_min + raw_bounding_box_x_max,
 			raw_bounding_box_y_min + raw_bounding_box_y_max,
@@ -1681,8 +1681,13 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 		//int grid_steps = 9;
 		//int grid_size = grid_steps
 
-		int grid_radius_steps = 20;
+		int grid_layers = 3;
+		int grid_radius_steps = 3 + int(raw_bounding_box_radius / 0.05f);
+		int circle_splits = 20;
 		int grid_center_index = 0;
+
+		std::vector<glm::vec3> grid_centers;
+		grid_centers.push_back(raw_bounding_box_center);
 
 		//glm::vec3 local_step = glm::vec3(raw_x_width, raw_y_width, raw_z_width) / (float)grid_steps;
 
@@ -1738,21 +1743,44 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 			return 0.f;
 		};
 
-		auto avoid_point = [&](float x, float y) {
+		auto is_in_region = [&](float x, float y) {
 			auto pid = sample_province(x, y);
 			if(!pid) {
 				return false;
 			}
 			auto owner = state.world.province_get_nation_from_province_ownership(pid);
 			if(!owner) {
+				return false;
+			}
+			for(auto visited_region : group_of_regions) {
+				if(state.world.province_get_connected_region_id(pid) == visited_region) {
+					return true;
+				}
+			}
+			return false;
+		};
+
+		auto avoid_point = [&](float x, float y, float tolerance) {
+			auto pid = sample_province(x, y);
+			if(!pid) {
+				return false;
+			}
+			auto owner = state.world.province_get_nation_from_province_ownership(pid);
+			if(!owner) {
+				return false;
+				/*
+				if(raw_bounding_box_radius > 0.3f && raw_bounding_box_radius * tolerance > 0.3f) {
+					return false;
+				}
 				if (!sea_owner[pid.index()]) {
 					auto mp = sea_to_coast[pid.index()];
-					return glm::distance(mp, { x, y }) > 80.f;
+					return glm::distance(mp, { x, y }) > (float)map_data.size_x * raw_bounding_box_radius * 0.01f * 3.f * tolerance;
 				} else if(sea_owner[pid.index()] == n) {
 					auto mp = sea_to_coast[pid.index()];
-					return glm::distance(mp, { x, y }) > 40.f;
+					return glm::distance(mp, { x, y }) > (float)map_data.size_x * raw_bounding_box_radius * 0.02f * 3.f * tolerance;
 				}
 				return true;
+				*/
 			}
 			for(auto visited_region : group_of_regions) {
 				if(state.world.province_get_connected_region_id(pid) == visited_region) {
@@ -1790,31 +1818,36 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 			return 0.f;
 		};
 
-		std::vector<float> original_weights{ };
-		std::vector<float> decay_multiplier{ };
-		std::vector<float> weights_buffer{ };
 		std::vector<glm::vec3> grid{ };
 
-		for(int i = 0; i < grid_radius_steps; i++) {
-			float radius = (float)i / (float) grid_radius_steps * raw_bounding_box_radius;
-			for(int j = 0; j < 40; j++) {
-				auto angle = 2.f * glm::pi<float>() * (float)j / 20;
+		std::vector<glm::vec3> accumulated_centers { };
+
+		float base_grid_radius = raw_bounding_box_radius;
+
+		int grid_size = (5 + int(75.f * raw_bounding_box_radius));
+
+		for(int i = 0; i <= grid_size; i++) {
+			for(int j = 0; j <= grid_size; j++) {
+				float x = ((float)i / (float)(grid_size + 1) - 0.5f) * 2.f * base_grid_radius;
+				float y = ((float)j / (float)(grid_size + 1) - 0.5f) * 2.f * base_grid_radius;
+
+				auto grid_center = grid_centers[0];
 
 				glm::vec3 raw_tangent { 0.f, 0.f, 1.f };
 
-				if(raw_bounding_box_center.z == 1.f) {
+				if(grid_center.z == 1.f) {
 					raw_tangent.y = 1.f;
 				}
 
-				auto distance_from_tangent_plane = glm::dot(raw_bounding_box_center, raw_tangent);
-				raw_tangent -= raw_bounding_box_center * distance_from_tangent_plane;
+				auto distance_from_tangent_plane = glm::dot(grid_center, raw_tangent);
+				raw_tangent -= grid_center * distance_from_tangent_plane;
 				raw_tangent /= glm::length(raw_tangent);
 
-				sphere_R3::tangent grid_direction { {raw_bounding_box_center}, {raw_tangent} };
+				sphere_R3::tangent grid_direction_x { {grid_center}, {raw_tangent} };
 
-				grid_direction = sphere_R3::rotate(grid_direction, angle);
+				auto grid_direction_y = sphere_R3::rotate(grid_direction_x);
 
-				sphere_R3::point current_point = {raw_bounding_box_center + grid_direction.data * radius};
+				sphere_R3::point current_point = { grid_center + grid_direction_x.data * x + grid_direction_y.data * y};
 				current_point.data /= glm::length(current_point.data);
 
 				square::point sq_grid = sphere_R3::to_square (current_point);
@@ -1822,11 +1855,60 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 
 				float weight = check_point(result.x, result.y);
 				grid.push_back(glm::vec3{ result.x, result.y, weight });
-				original_weights.push_back(weight);
-				decay_multiplier.push_back(weight_decay(result.x, result.y));
-				weights_buffer.push_back(0.f);
+				//draw_small_square(state, state.map_state.map_data, { { result.x / (float)map_data.size_x, result.y / (float)map_data.size_y } }, 0.0001f);
 			}
 		}
+
+		/*
+		while(0 > 0) {
+			if(grid_centers.empty()) {
+				grid_layers--;
+				grid_centers = accumulated_centers;
+				accumulated_centers.clear();
+				base_grid_radius *= 0.25f;
+				grid_radius_steps /= 2;
+				continue;
+			}
+
+			auto grid_center = grid_centers.back();
+			grid_centers.pop_back();
+			
+			for(int i = 0; i <= grid_radius_steps; i++) {
+				float radius = (float)i / (float) grid_radius_steps * base_grid_radius;
+				for(int j = 0; j < circle_splits; j++) {
+					auto angle = 2.f * glm::pi<float>() * (float)j / circle_splits;
+
+					glm::vec3 raw_tangent { 0.f, 0.f, 1.f };
+
+					if(grid_center.z == 1.f) {
+						raw_tangent.y = 1.f;
+					}
+
+					auto distance_from_tangent_plane = glm::dot(grid_center, raw_tangent);
+					raw_tangent -= grid_center * distance_from_tangent_plane;
+					raw_tangent /= glm::length(raw_tangent);
+
+					sphere_R3::tangent grid_direction { {grid_center}, {raw_tangent} };
+
+					grid_direction = sphere_R3::rotate(grid_direction, angle);
+
+					sphere_R3::point current_point = { grid_center + grid_direction.data * radius};
+					current_point.data /= glm::length(current_point.data);
+
+					if((i > 1) && (i % 2 == 0) && (j % 5 == 0)) {
+						accumulated_centers.push_back(current_point.data);
+					}
+
+					square::point sq_grid = sphere_R3::to_square (current_point);
+					auto result = equirectangular::from_square (sq_grid, (float)map_data.size_x, (float)map_data.size_y).data;
+
+					float weight = check_point(result.x, result.y);
+					grid.push_back(glm::vec3{ result.x, result.y, weight });
+					draw_small_square(state, state.map_state.map_data, { { result.x / (float)map_data.size_x, result.y / (float)map_data.size_y } }, 0.0001f);
+				}
+			}
+		}
+		*/
 
 		glm::vec2 grid_center = { 0.f, 0.f };
 		float total_weight = 0.f;
@@ -1834,7 +1916,7 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 		for(size_t i = 0; i < grid.size(); i++) {
 			auto x = grid[i].x;
 			auto y = grid[i].y;
-			if(avoid_point(x, y)) {
+			if(!is_in_region(x, y)) {
 				continue;
 			}
 			auto weight = grid[i].z;
@@ -1845,6 +1927,61 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 			grid_center = grid_center + glm::vec2 ({x, y}) * weight;
 			//draw_small_square(state, state.map_state.map_data, { { x / (float)map_data.size_x, y / (float)map_data.size_y } }, 0.0001f); //* weight);
 		}
+
+
+		state.world.for_each_province([&](auto p1) {
+			bool visited = false;
+			for(auto visited_region : group_of_regions) {
+				if(state.world.province_get_connected_region_id(p1) == visited_region) {
+					visited = true;
+				}
+			}
+			if(!visited) {
+				return;
+			}
+
+			for(auto border_index : state.map_state.map_data.province_to_borders[p1.value]) {				
+				auto border = state.map_state.map_data.borders[border_index.first];
+				auto adj = border.adj;
+				if(!adj || border.count == 0) {
+					continue;
+				}
+				auto other = state.world.province_adjacency_get_connected_provinces(adj, 0);
+				if(other == p1) {
+					other = state.world.province_adjacency_get_connected_provinces(adj, 1);
+				}
+				bool visited_other = false;
+				if(!state.world.province_get_nation_from_province_ownership(other)) {
+					visited_other = true;
+				} else {
+					for(auto visited_region : group_of_regions) {
+						if(state.world.province_get_connected_region_id(p1) == visited_region) {
+							visited_other = true;
+						}
+					}
+				}
+				if(!visited_other) {
+					return;
+				}
+
+				auto vertex = state.map_state.map_data.border_vertices[border.start_index + border.count / 4].position;
+				square::point sq { vertex };
+				auto result = equirectangular::from_square(sq, (float)map_data.size_x, (float)map_data.size_y).data;
+
+				//float weight = check_point(result.x, result.y);
+				float weight = 100.f;
+
+				grid.push_back(glm::vec3{ result.x, result.y, weight });
+				//draw_small_square(state, state.map_state.map_data, { { result.x / (float)map_data.size_x, result.y / (float)map_data.size_y } }, 0.0001f);
+
+				points.push_back(glm::vec3{ result.x, result.y, weight });
+				points_R3.push_back(sphere_R3::from_square(sq));
+
+				total_weight = total_weight + weight;
+				grid_center = grid_center + glm::vec2({ result.x, result.y }) * weight;
+			}
+		});
+
 
 		grid_center = grid_center / total_weight;
 
@@ -1886,7 +2023,7 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 			continue;
 		}
 
-		size_t num_of_clusters = 20;
+		size_t num_of_clusters = 40;
 
 		std::vector<glm::vec2> centroids;
 		std::vector<float> centroid_weight;
@@ -1977,6 +2114,21 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 		}
 		average_weight /= (float)(points.size());
 
+		
+		//for(auto point : centroids) {
+			//draw_small_square(state, map_data, { {point.x / (float)map_data.size_x, point.y / (float)map_data.size_y} }, 0.0005f);
+		//}
+
+		std::vector<glm::vec2> next_centroids { };
+		std::vector<sphere_R3::point> next_centroids_R3{ };
+		for (size_t i = 0; i < centroids.size(); i++) {
+			if (centroid_weight[i] > 0.f) {
+				next_centroids.push_back(centroids[i]);
+				next_centroids_R3.push_back(centroids_R3[i]);
+			}
+		}
+		centroids = next_centroids;
+		centroids_R3 = next_centroids_R3;
 
 		if(!(state.user_settings.map_label == sys::map_label_mode::cubic || state.user_settings.map_label == sys::map_label_mode::quadratic)) {
 			size_t best_start = 0;
@@ -1984,16 +2136,10 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 			float best_length = 0.f;
 			std::vector<std::tuple<size_t, size_t>> candidates;
 
-			for (size_t i = 0; i < centroids.size(); i++) {
+			for (size_t i = 0; i < next_centroids.size(); i++) {
 				auto start = centroids[i];
-				if(avoid_point(start.x, start.y) || centroid_weight[i] == 0.f) {
-					continue;
-				}
-				for (size_t j = i +  1; j < centroids.size(); j++) {
-					auto end = centroids[j];
-					if(avoid_point(end.x, end.y) || centroid_weight[j] == 0.f) {
-						continue;
-					}
+				for (size_t j = i +  1; j < next_centroids.size(); j++) {
+					auto end = next_centroids[j];
 
 					auto diff = end - start;
 					auto dist = glm::length(diff);
@@ -2011,6 +2157,7 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 
 					bool good_enough = true;
 
+					/*
 					for (size_t grid_index = 0; grid_index < grid.size(); grid_index += 3) {
 						auto grid_data = grid[grid_index];
 						glm::vec2 item {grid_data.x, grid_data.y};
@@ -2032,24 +2179,39 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 							break;
 						}
 					}
+					*/
 
 					if(good_enough) {
 						auto dx = diff.x;
 						auto dy = diff.y;
 						auto dist_adjusted = (dx * dx + dy * dy);
-						float local_step_x = dx / 5.f;
-						float local_step_y = dy / 5.f;
 						auto x = start.x;
 						auto y = start.y;
 
 						auto score = 0.f;
-						auto area = letter_size * dist / 8.f;
-						for(int step_count = 0; step_count < 7; step_count++) {
-							if (avoid_point(x, y)) {
-								good_enough = false;
+						int segments = 32;
+
+						auto area = letter_size * dist / float(segments);
+						float local_step_x = dx / segments;
+						float local_step_y = dy / segments;
+
+						float nx = - dy / sqrtf(dx * dx + dy * dy) * letter_size / 2.f;
+						float ny = dx / sqrtf(dx * dx + dy * dy) * letter_size / 2.f;
+
+						for(int step_count = 1; step_count < segments; step_count++) {
+							float t = (float)step_count / (float)segments;
+							for (int n_step = -3; n_step < 4; n_step++) {
+								float s = (float)n_step / 3.f;
+								float tolerance = 0.1f + 10000000.f * std::max(t, 1.f - t);
+								if (avoid_point(x + nx * s, y + ny * s, tolerance)) {
+									good_enough = false;
+									break;
+								}
+							}
+							if(!good_enough) {
 								break;
 							}
-							score += (1.f + check_point(x, y)) * area;
+							score += area; //(1.f + check_point(x, y)) * area;
 							x += local_step_x;
 							y += local_step_y;
 						}
@@ -2067,8 +2229,8 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 				continue;
 			}
 
-			auto start = centroids[best_start];
-			auto end = centroids[best_end];
+			auto start = next_centroids[best_start];
+			auto end = next_centroids[best_end];
 			centroids.clear();
 			centroids.push_back(start);
 			centroids.push_back(end);
@@ -2079,19 +2241,8 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 			centroids_R3.push_back(startR3);
 			centroids_R3.push_back(endR3);
 		} else {
-			std::vector<glm::vec2> next_centroids { };
-			for (size_t i = 0; i < centroids.size(); i++) {
-				if (centroid_weight[i] > 0.f) {
-					next_centroids.push_back(centroids[i]);
-				}
-			}
 			centroids = next_centroids;
-		}
-		
-		//for(auto point : centroids) {
-		//	if (!avoid_point(point.x, point.y))
-		//		draw_small_square(state, map_data, { {point.x / (float)map_data.size_x, point.y / (float)map_data.size_y} }, 0.0005f);
-		//}
+		}		
 
 		//initial center:
 		glm::vec2 center = sum_points / (float)(points.size());		
