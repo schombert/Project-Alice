@@ -1596,7 +1596,7 @@ float estimate_win_probability(sys::state& state, std::vector<dcon::army_id> con
 	float probability = predictions::battle_win_probability(
 		attacker_str, defender_str,
 		dig_in,
-		(int)crossing,
+		(float)(crossing),
 		state.world.province_get_modifier_values(attack_toward, sys::provincial_mod_offsets::defense),
 		attacker_tactic,
 		defender_tactic,
