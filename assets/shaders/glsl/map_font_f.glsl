@@ -25,6 +25,7 @@ bool enableSuperSamplingAntiAliasing = false;
 
 in vec2 uv;
 flat in int bufferIndex;
+flat in float opacity;
 
 out vec4 result;
 
@@ -163,7 +164,7 @@ void main() {
 		alpha *= 0.5;
 	}
 
-	alpha = clamp(alpha, 0.0, 1.0);
+	alpha = clamp(alpha * opacity, 0.0, 1.0);
 	result = color * alpha;
 	// float t = 1.0f;
 	// float k = 1.0f;
