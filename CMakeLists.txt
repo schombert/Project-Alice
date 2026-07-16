@@ -493,8 +493,12 @@ else()
 	target_link_libraries(AliceIncremental PRIVATE fmt::fmt)
 endif()
 
+
+if (WIN32)
 set(AllAliceTargets Alice AliceIncremental AliceExtra)
-set(GameAliceTargets Alice AliceIncremental)
+else()
+set(AllAliceTargets Alice AliceIncremental)
+endif()
 
 foreach( AliceTarget ${AllAliceTargets} )
 	target_precompile_headers(${AliceTarget}
@@ -605,18 +609,12 @@ add_custom_target(GENERATE_CONTAINERIFACE DEPENDS ${PROJECT_SOURCE_DIR}/src/game
 add_custom_target(GENERATE_CONTAINER_LUA DEPENDS ${PROJECT_SOURCE_DIR}/src/gamestate/lua_dcon_generated.hpp)
 add_custom_target(GENERATE_CONTAINER_OOS DEPENDS ${PROJECT_SOURCE_DIR}/src/gamestate/dcon_oos_reporter_generated.hpp)
 
-foreach( AliceTarget ${GameAliceTargets} )
+foreach( AliceTarget ${AllAliceTargets} )
 	add_dependencies(${AliceTarget} GENERATE_CONTAINER ParserGenerator)
 	add_dependencies(${AliceTarget} GENERATE_CONTAINERIFACE)
 	add_dependencies(${AliceTarget} GENERATE_CONTAINER_LUA)
 	add_dependencies(${AliceTarget} GENERATE_CONTAINER_OOS)
 endforeach()
-if(WIN32)
-	add_dependencies(AliceExtra GENERATE_CONTAINER ParserGenerator)
-	add_dependencies(AliceExtra GENERATE_CONTAINERIFACE)
-	add_dependencies(AliceExtra GENERATE_CONTAINER_LUA)
-	add_dependencies(AliceExtra GENERATE_CONTAINER_OOS)
-endif()
 
 # The command to build the generated parsers file
 add_custom_command(
