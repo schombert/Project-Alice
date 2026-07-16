@@ -145,6 +145,9 @@ void populate_armies(sys::state& state, text::columnar_layout& contents, dcon::p
 	uint32_t army_count = 0;
 	auto fat = dcon::fatten(state.world, prov);
 	auto armies_on_prov = fat.get_army_location();
+#ifndef NDEBUG
+	std::vector<dcon::army_id> armies;
+#endif // !NDEBUG
 	for(auto armyloc : armies_on_prov) {
 		// display a maximum of 10 units in tooltip to avoid wall of text
 		if(army_count >= ui::max_units_in_province_tooltip) {
@@ -159,8 +162,24 @@ void populate_armies(sys::state& state, text::columnar_layout& contents, dcon::p
 		}
 		auto army = armyloc.get_army();
 		single_unit_tooltip(state, contents, army);
+#ifndef NDEBUG
+		bool selected = false;
+		for(auto item : state.selected_armies) {
+			if (item == army.id) selected = true;
+		}
+		if (!selected) armies.push_back(army);
+#endif // !NDEBUG
 		army_count++;
 	}
+
+#ifndef NDEBUG
+	if(state.selected_armies.size() >= 1) {
+		auto probability = ai::estimate_win_probability(state, state.selected_armies, armies);
+		auto box = text::open_layout_box(contents);
+		text::add_to_layout_box(state,contents, box, text::format_percentage(probability));
+		text::close_layout_box(contents, box);
+	}
+#endif // !NDEBUG
 }
 
 void populate_navies(sys::state& state, text::columnar_layout& contents, dcon::province_id prov) {

@@ -256,7 +256,7 @@ add_executable(AliceIncremental WIN32 EXCLUDE_FROM_ALL
 	${ALICE_INCREMENTAL_SOURCES_LIST}
 	"${PROJECT_SOURCE_DIR}/src/alice.rc"
 	${ASSET_FILES})
-add_executable(AliceProfile WIN32 EXCLUDE_FROM_ALL
+add_executable(AliceExtra WIN32 EXCLUDE_FROM_ALL
 	${ALICE_SOURCE_BLOB}
 	${ALICE_INCREMENTAL_SOURCES_LIST}
 	"${PROJECT_SOURCE_DIR}/src/alice.rc"
@@ -280,14 +280,14 @@ set_target_properties(
 
 if(WIN32)
 set_target_properties(
-	AliceProfile
+	AliceExtra
 	PROPERTIES
 	UNITY_BUILD_MODE GROUP
 )
-target_compile_definitions(AliceProfile PRIVATE INCREMENTAL=1)
-target_compile_definitions(AliceProfile PRIVATE ALICE_NO_ENTRY_POINT=1)
-target_compile_definitions(AliceProfile PRIVATE ALICE_PROFILE_ENTRY_POINT=1)
-target_compile_definitions(AliceProfile PRIVATE DO_NOT_USE_LLVM=1)
+target_compile_definitions(AliceExtra PRIVATE INCREMENTAL=1)
+target_compile_definitions(AliceExtra PRIVATE ALICE_NO_ENTRY_POINT=1)
+target_compile_definitions(AliceExtra PRIVATE ALICE_EXTRA_ENTRY_POINT=1)
+target_compile_definitions(AliceExtra PRIVATE DO_NOT_USE_LLVM=1)
 endif()
 
 target_compile_definitions(AliceIncremental PRIVATE INCREMENTAL=1)
@@ -484,140 +484,89 @@ target_link_libraries(Alice PRIVATE AliceCommon)
 target_link_libraries(AliceIncremental PRIVATE AliceCommon)
 
 if (WIN32)
-	target_link_libraries(AliceProfile PRIVATE AliceCommon)
+	target_link_libraries(AliceExtra PRIVATE AliceCommon)
 	target_link_libraries(Alice PRIVATE ${PROJECT_SOURCE_DIR}/libs/LLVM-C.lib)
 	target_link_libraries(AliceIncremental PRIVATE ${PROJECT_SOURCE_DIR}/libs/LLVM-C.lib)
-	target_link_libraries(AliceProfile PRIVATE ${PROJECT_SOURCE_DIR}/libs/LLVM-C.lib)
+	target_link_libraries(AliceExtra PRIVATE ${PROJECT_SOURCE_DIR}/libs/LLVM-C.lib)
 else()
 	target_link_libraries(Alice PRIVATE fmt::fmt)
 	target_link_libraries(AliceIncremental PRIVATE fmt::fmt)
 endif()
 
-# System headers
-target_precompile_headers(Alice
-	PRIVATE <stddef.h>
-	PRIVATE <stdint.h>
-	PRIVATE <assert.h>
-	PRIVATE <stdarg.h>
-	PRIVATE <stdlib.h>
-	PRIVATE <math.h>
-	PRIVATE <signal.h>
-	PRIVATE <ctype.h>
-)
-target_precompile_headers(AliceIncremental
-	PRIVATE <stddef.h>
-	PRIVATE <stdint.h>
-	PRIVATE <assert.h>
-	PRIVATE <stdarg.h>
-	PRIVATE <stdlib.h>
-	PRIVATE <math.h>
-	PRIVATE <signal.h>
-	PRIVATE <ctype.h>
-)
-# Standard C++ library headers
-target_precompile_headers(Alice
-	PRIVATE <vector>
-	PRIVATE <queue>	
-	PRIVATE <array>
-	PRIVATE <optional>
-	PRIVATE <memory>
-	PRIVATE <variant>
-	PRIVATE <string>
-	PRIVATE <string_view>
-	PRIVATE <charconv>
-	PRIVATE <algorithm>
-	PRIVATE <iterator>
-	PRIVATE <functional>
-	PRIVATE <atomic>
-	PRIVATE <chrono>
-	PRIVATE <tuple>
-	PRIVATE <type_traits>
-	PRIVATE <new>
-	PRIVATE <limits>
-	PRIVATE <iterator>
-	PRIVATE <utility>
-	PRIVATE <any>
-	PRIVATE <shared_mutex>
-)
-target_precompile_headers(AliceIncremental
-	PRIVATE <vector>
-	PRIVATE <queue>		
-	PRIVATE <array>
-	PRIVATE <optional>
-	PRIVATE <memory>
-	PRIVATE <variant>
-	PRIVATE <string>
-	PRIVATE <string_view>
-	PRIVATE <charconv>
-	PRIVATE <algorithm>
-	PRIVATE <iterator>
-	PRIVATE <functional>
-	PRIVATE <atomic>
-	PRIVATE <chrono>
-	PRIVATE <tuple>
-	PRIVATE <type_traits>
-	PRIVATE <new>
-	PRIVATE <limits>
-	PRIVATE <iterator>
-	PRIVATE <utility>
-	PRIVATE <shared_mutex>
-)
 
-# Aliases for C library
-target_precompile_headers(Alice
-	PRIVATE <cstdlib>
-	PRIVATE <cstddef>
-	PRIVATE <cstdint>
-	PRIVATE <cassert>
-	PRIVATE <cstdarg>
-	PRIVATE <cmath>
-)
-target_precompile_headers(AliceIncremental
-	PRIVATE <cstdlib>
-	PRIVATE <cstddef>
-	PRIVATE <cstdint>
-	PRIVATE <cassert>
-	PRIVATE <cstdarg>
-	PRIVATE <cmath>
-)
-# Alice provided headers
-target_precompile_headers(Alice
-	PRIVATE [["simple_fs.hpp"]]
-	PRIVATE [["constants.hpp"]]
-	PRIVATE [["unordered_dense.h"]]
-	PRIVATE [["dcon_generated.hpp"]]
-	PRIVATE [["container_types.hpp"]]
-	PRIVATE [["parsers_declarations.hpp"]]
-	PRIVATE [["cyto_any.hpp"]]
-	PRIVATE [["date_interface.hpp"]]
-	PRIVATE [["stb_image.h"]]
-)
-target_precompile_headers(AliceIncremental
-	PRIVATE [["simple_fs.hpp"]]
-	PRIVATE [["constants_dcon.hpp"]]
-	PRIVATE [["unordered_dense.h"]]
-	PRIVATE [["dcon_generated.hpp"]]
-	PRIVATE [["dcon_generated_ids.hpp"]]
-	PRIVATE [["container_types_dcon.hpp"]]
-	PRIVATE [["container_types.hpp"]]
-#	PRIVATE [["parsers_declarations.hpp"]]
-	PRIVATE [["cyto_any.hpp"]]
-#	PRIVATE [["gui_lookup.hpp"]]
-#	PRIVATE [["gui_templates.hpp"]]
-	PRIVATE [["date_interface.hpp"]]
-	PRIVATE [["stb_image.h"]]
-	PRIVATE [["glm/glm.hpp"]]
-#	PRIVATE [["script_constants.hpp"]]
-)
-
-if(WIN32)
-target_precompile_headers(AliceProfile REUSE_FROM AliceIncremental)
+if (WIN32)
+set(AllAliceTargets Alice AliceIncremental AliceExtra)
 else()
-	target_precompile_headers(Alice
-		PRIVATE [["miniaudio.h"]])
-	target_precompile_headers(AliceIncremental
-		PRIVATE [["miniaudio.h"]])
+set(AllAliceTargets Alice AliceIncremental)
 endif()
+
+foreach( AliceTarget ${AllAliceTargets} )
+	target_precompile_headers(${AliceTarget}
+		PRIVATE <stddef.h>
+		PRIVATE <stdint.h>
+		PRIVATE <assert.h>
+		PRIVATE <stdarg.h>
+		PRIVATE <stdlib.h>
+		PRIVATE <math.h>
+		PRIVATE <signal.h>
+		PRIVATE <ctype.h>
+	)
+	# Standard C++ library headers
+	target_precompile_headers(${AliceTarget}
+		PRIVATE <vector>
+		PRIVATE <queue>	
+		PRIVATE <array>
+		PRIVATE <optional>
+		PRIVATE <memory>
+		PRIVATE <variant>
+		PRIVATE <string>
+		PRIVATE <string_view>
+		PRIVATE <charconv>
+		PRIVATE <algorithm>
+		PRIVATE <iterator>
+		PRIVATE <functional>
+		PRIVATE <atomic>
+		PRIVATE <chrono>
+		PRIVATE <tuple>
+		PRIVATE <type_traits>
+		PRIVATE <new>
+		PRIVATE <limits>
+		PRIVATE <iterator>
+		PRIVATE <utility>
+		PRIVATE <any>
+		PRIVATE <shared_mutex>
+	)
+	# Aliases for C library
+	target_precompile_headers(${AliceTarget}
+		PRIVATE <cstdlib>
+		PRIVATE <cstddef>
+		PRIVATE <cstdint>
+		PRIVATE <cassert>
+		PRIVATE <cstdarg>
+		PRIVATE <cmath>
+	)
+	# Alice provided headers
+	target_precompile_headers(${AliceTarget}
+		PRIVATE [["simple_fs.hpp"]]
+		PRIVATE [["constants.hpp"]]
+		PRIVATE [["unordered_dense.h"]]
+		PRIVATE [["dcon_generated.hpp"]]
+		PRIVATE [["dcon_generated_ids.hpp"]]
+		PRIVATE [["container_types.hpp"]]
+		PRIVATE [["parsers_declarations.hpp"]]
+		PRIVATE [["cyto_any.hpp"]]
+		PRIVATE [["date_interface.hpp"]]
+		PRIVATE [["stb_image.h"]]
+		PRIVATE [["glm/glm.hpp"]]
+	)
+
+	if(WIN32)
+	else()
+		target_precompile_headers(${AliceTarget}
+			PRIVATE [["miniaudio.h"]])
+	endif()
+endforeach()
+
 
 
 # GENERATE CONTAINER
@@ -653,29 +602,19 @@ add_custom_command(
 )
 
 # Sets a dependency on the generated file
+
+
 add_custom_target(GENERATE_CONTAINER DEPENDS ${CONTAINER_PATH}.hpp)
-add_dependencies(Alice GENERATE_CONTAINER ParserGenerator)
-add_dependencies(AliceIncremental GENERATE_CONTAINER ParserGenerator)
-
 add_custom_target(GENERATE_CONTAINERIFACE DEPENDS ${PROJECT_SOURCE_DIR}/src/gamestate/fif_dcon_generated.hpp)
-add_dependencies(Alice GENERATE_CONTAINERIFACE)
-add_dependencies(AliceIncremental GENERATE_CONTAINERIFACE)
-
 add_custom_target(GENERATE_CONTAINER_LUA DEPENDS ${PROJECT_SOURCE_DIR}/src/gamestate/lua_dcon_generated.hpp)
-add_dependencies(Alice GENERATE_CONTAINER_LUA)
-add_dependencies(AliceIncremental GENERATE_CONTAINER_LUA)
-
-
 add_custom_target(GENERATE_CONTAINER_OOS DEPENDS ${PROJECT_SOURCE_DIR}/src/gamestate/dcon_oos_reporter_generated.hpp)
-add_dependencies(Alice GENERATE_CONTAINER_OOS)
-add_dependencies(AliceIncremental GENERATE_CONTAINER_OOS)
 
-if(WIN32)
-add_dependencies(AliceProfile GENERATE_CONTAINER ParserGenerator)
-add_dependencies(AliceProfile GENERATE_CONTAINERIFACE)
-add_dependencies(AliceProfile GENERATE_CONTAINER_LUA)
-add_dependencies(AliceProfile GENERATE_CONTAINER_OOS)
-endif()
+foreach( AliceTarget ${AllAliceTargets} )
+	add_dependencies(${AliceTarget} GENERATE_CONTAINER ParserGenerator)
+	add_dependencies(${AliceTarget} GENERATE_CONTAINERIFACE)
+	add_dependencies(${AliceTarget} GENERATE_CONTAINER_LUA)
+	add_dependencies(${AliceTarget} GENERATE_CONTAINER_OOS)
+endforeach()
 
 # The command to build the generated parsers file
 add_custom_command(
@@ -743,15 +682,15 @@ add_custom_target(GENERATE_PARSERS DEPENDS
 	${PROJECT_SOURCE_DIR}/src/parsing/trigger_parser_defs_generated.hpp
 	${PROJECT_SOURCE_DIR}/src/text/bmfont_defs_generated.hpp
 	${PROJECT_SOURCE_DIR}/src/text/font_defs_generated.hpp)
+
 add_dependencies(Alice GENERATE_PARSERS)
 add_dependencies(AliceIncremental GENERATE_PARSERS)
-
 if(WIN32)
-add_dependencies(AliceProfile GENERATE_PARSERS)
+	add_dependencies(AliceExtra GENERATE_PARSERS)
 endif()
 
 if (BUILD_TESTING)
-    enable_testing()
+	enable_testing()
 	add_subdirectory(tests EXCLUDE_FROM_ALL)
 endif()
 
