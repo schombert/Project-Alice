@@ -17,7 +17,7 @@
 #include "triggers.hpp"
 #include "province.hpp"
 #include "commands.hpp"
-
+#include "battle_prediction.hpp"
 
 namespace ai {
 
@@ -1307,11 +1307,7 @@ bool army_ready_for_battle(sys::state& state, dcon::nation_id n, dcon::army_id a
 		return false;
 	}
 
-
-	auto spending_level = state.world.nation_get_effective_land_spending(n);
-	auto max_org = 0.25f + 0.75f * spending_level;
-
-	return state.world.regiment_get_org(sample_reg) > 0.7f * max_org;
+	return state.world.regiment_get_org(sample_reg) > 0.7f;
 }
 
 // MP compliant
@@ -1481,6 +1477,138 @@ float estimate_army_offensive_strength(sys::state& state, dcon::army_id a) {
 	return std::max(0.1f, strength * scale);
 }
 
+float estimate_win_probability(sys::state& state, std::vector<dcon::army_id> const& attacker, std::vector<dcon::army_id> const& defender) {
+	if(attacker.size() == 0) {
+		return 0.f;
+	}
+	if(defender.size() == 0) {
+		return 1.f;
+	}
+	float attacker_str = 0.f;
+	float attacker_tactic = 0.f;
+	for (auto a : attacker) {
+		auto nation = state.world.army_control_get_controller(state.world.army_get_army_control(a));
+		float a_str = 0.f;
+		for(const auto reg : state.world.army_get_army_membership(a)) {
+			auto type = reg.get_regiment().get_type();
+			auto stats = state.world.nation_get_unit_stats(nation, type);
+			auto& atk = (stats.discipline_or_evasion > 0.0f) ? stats.attack_or_gun_power : state.military_definitions.unit_base_definitions[type].attack_or_gun_power;
+			auto& def = (stats.discipline_or_evasion > 0.0f) ? stats.defence_or_hull : state.military_definitions.unit_base_definitions[type].defence_or_hull;
+			auto& sup = (stats.discipline_or_evasion > 0.0f) ? stats.support : state.military_definitions.unit_base_definitions[type].support;
+			a_str += (atk + def) * reg.get_regiment().get_strength() * reg.get_regiment().get_org();
+		}
+		attacker_str += a_str;
+		attacker_tactic += a_str * state.world.nation_get_modifier_values(nation, sys::national_mod_offsets::military_tactics);
+	}
+
+	if(attacker_str > 0.f) {
+		attacker_tactic = attacker_tactic / attacker_str;
+	} else {
+		attacker_tactic = 0.f;
+	}
+
+	float dig_in = 0.f;
+	float defender_str = 0.f;
+	float defender_tactic = 0.f;
+	for (auto a : defender) {
+		auto nation = state.world.army_control_get_controller(state.world.army_get_army_control(a));
+		float a_str = 0.f;
+		for(const auto reg : state.world.army_get_army_membership(a)) {
+			auto type = reg.get_regiment().get_type();
+			auto stats = state.world.nation_get_unit_stats(nation, type);
+			auto& atk = (stats.discipline_or_evasion > 0.0f) ? stats.attack_or_gun_power : state.military_definitions.unit_base_definitions[type].attack_or_gun_power;
+			auto& def = (stats.discipline_or_evasion > 0.0f) ? stats.defence_or_hull : state.military_definitions.unit_base_definitions[type].defence_or_hull;
+			auto& sup = (stats.discipline_or_evasion > 0.0f) ? stats.support : state.military_definitions.unit_base_definitions[type].support;
+			a_str += (atk + def) * reg.get_regiment().get_strength() * reg.get_regiment().get_org();
+		}
+		defender_str += a_str;
+		defender_tactic += a_str * state.world.nation_get_modifier_values(nation, sys::national_mod_offsets::military_tactics);
+		dig_in += state.world.army_get_dig_in(a) * a_str;
+	}
+
+	if(defender_str > 0.f) {
+		defender_tactic = defender_tactic / defender_str;
+		dig_in = dig_in / defender_str;
+	} else {
+		defender_tactic = 0.f;
+		dig_in = 0.f;
+	}
+
+
+	auto attack_from = state.world.army_get_location_from_army_location(attacker[0]);
+	auto attack_toward = state.world.army_get_location_from_army_location(defender[0]);
+	auto adj = state.world.get_province_adjacency_by_province_pair(attack_toward, attack_from);
+	auto crossing = military::crossing_type::none;
+	if(adj) {
+		crossing = military::get_crossing_type(state, adj);
+	}
+
+	dcon::leader_id a_lid;
+	float a_score = -999.f;
+	for(const auto a : attacker) {
+		auto candidate = state.world.army_get_general_from_army_leadership(a);
+		// if its no leader, skip
+		if(!candidate) {
+			continue;
+		}
+		auto score = military::get_leader_select_score(state, candidate, true);
+		if(score > a_score) {
+			a_lid = candidate;
+			a_score = score;
+		}
+	}
+
+	dcon::leader_id d_lid;
+	float d_score = -999.f;
+	for(const auto a : attacker) {
+		auto candidate = state.world.army_get_general_from_army_leadership(a);
+		// if its no leader, skip
+		if(!candidate) {
+			continue;
+		}
+		auto score = military::get_leader_select_score(state, candidate, false);
+		if(score > d_score) {
+			d_lid = candidate;
+			d_score = score;
+		}
+	}
+
+	auto attacker_leader_str = 0.f;
+	auto attacker_general = a_lid;
+	if (attacker_general) {
+		auto back = military::get_leader_background_wrapper(state, attacker_general);
+		auto pers = military::get_leader_personality_wrapper(state, attacker_general);
+		attacker_leader_str = state.world.leader_trait_get_attack(back) + state.world.leader_trait_get_attack(pers);
+	} else {
+		attacker_leader_str = -2;
+	}
+
+	auto defender_leader_str = 0.f;
+	auto defender_general = d_lid;
+	if(defender_general) {
+		auto back = military::get_leader_background_wrapper(state, defender_general);
+		auto pers = military::get_leader_personality_wrapper(state, defender_general);
+		defender_leader_str = state.world.leader_trait_get_defense(back) + state.world.leader_trait_get_defense(pers);
+	} else {
+		defender_leader_str = -1;
+	}
+
+	float probability = predictions::battle_win_probability(
+		attacker_str, defender_str,
+		dig_in,
+		(int)crossing,
+		state.world.province_get_modifier_values(attack_toward, sys::provincial_mod_offsets::defense),
+		attacker_tactic,
+		defender_tactic,
+		attacker_leader_str,
+		defender_leader_str,
+		state.world.leader_get_prestige(attacker_general),
+		state.world.leader_get_prestige(defender_general)
+	);
+
+	return probability;
+}
+
 float estimate_enemy_defensive_force(sys::state& state, dcon::province_id target, dcon::nation_id by) {
 	if(state.cheat_data.disable_ai) {
 		return 0.0f;
@@ -1510,6 +1638,37 @@ float estimate_enemy_defensive_force(sys::state& state, dcon::province_id target
 		}
 	}
 	return state.defines.alice_ai_offensive_strength_overestimate * strength_total;
+}
+
+void get_enemy_defensive_force(sys::state& state, dcon::province_id target, dcon::nation_id by, std::vector<dcon::army_id>& result) {
+	if(state.cheat_data.disable_ai) {
+		return;
+	}
+	float strength_total = 0.f;
+	if(state.world.nation_get_is_at_war(by)) {
+		for(auto ar : state.world.in_army) {
+			if(ar.get_is_retreating()
+			|| ar.get_battle_from_army_battle_participation()
+			|| ar.get_controller_from_army_control() == by)
+				continue;
+			auto loc = ar.get_location_from_army_location();
+			auto sdist = province::sorting_distance(state, loc, target);
+			if(sdist < state.defines.alice_ai_threat_radius) {
+				auto other_nation = ar.get_controller_from_army_control();
+				if(!other_nation || military::are_at_war(state, other_nation, by)) {
+					result.push_back(ar);
+				}
+			}
+		}
+	} else { // not at war -- rebel fighting
+		for(auto ar : state.world.province_get_army_location(target)) {
+			auto other_nation = ar.get_army().get_controller_from_army_control();
+			if(!other_nation) {
+				result.push_back(ar.get_army());
+			}
+		}
+	}
+	return;
 }
 
 void assign_targets(sys::state& state, dcon::nation_id n) {
@@ -1644,21 +1803,21 @@ void assign_targets(sys::state& state, dcon::nation_id n) {
 		int32_t k = int32_t(ready_armies.size());
 		for(; k-- > 0 && a_force_str <= target_attack_force;) {
 			if(ready_armies[k].str == 0.0f) {
-				for(auto ar : state.world.province_get_army_location(ready_armies[k].p)) {
-					if(ar.get_army().get_battle_from_army_battle_participation()
-						|| n != ar.get_army().get_controller_from_army_control()
-						|| ar.get_army().get_navy_from_army_transport()
-						|| ar.get_army().get_black_flag()
-						|| ar.get_army().get_arrival_time()
-						|| army_activity(ar.get_army().get_ai_activity()) != army_activity::on_guard
-						|| !army_ready_for_battle(state, n, ar.get_army())) {
+			for(auto ar : state.world.province_get_army_location(ready_armies[k].p)) {
+				if(ar.get_army().get_battle_from_army_battle_participation()
+					|| n != ar.get_army().get_controller_from_army_control()
+					|| ar.get_army().get_navy_from_army_transport()
+					|| ar.get_army().get_black_flag()
+					|| ar.get_army().get_arrival_time()
+					|| army_activity(ar.get_army().get_ai_activity()) != army_activity::on_guard
+					|| !army_ready_for_battle(state, n, ar.get_army())) {
 
-						continue;
-					}
-
-					ready_armies[k].str += estimate_army_offensive_strength(state, ar.get_army());
+					continue;
 				}
-				ready_armies[k].str += 0.00001f;
+
+				ready_armies[k].str += estimate_army_offensive_strength(state, ar.get_army());
+			}
+			ready_armies[k].str += 0.00001f;
 			}
 			a_force_str += ready_armies[k].str;
 		}

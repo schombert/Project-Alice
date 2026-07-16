@@ -172,6 +172,7 @@ struct ai_path_length {
 
 };
 
+crossing_type get_crossing_type(const sys::state& state, dcon::province_adjacency_id adj);
 void reset_unit_stats(sys::state& state);
 void apply_base_unit_stat_modifiers(sys::state& state);
 void restore_unsaved_values(sys::state& state); // must run after determining connectivity
@@ -412,6 +413,11 @@ float calculate_army_combined_reinforce(sys::state& state, dcon::army_id a);
 // reduces strength of regiment by value and handles if value is greater than the total strength. Returns the actual reduction performed
 float reduce_regiment_strength_safe(sys::state& state, dcon::regiment_id reg, float value);
 float reduce_ship_strength_safe(sys::state& state, dcon::ship_id reg, float value);
+
+void land_battle_process_line_damage(sys::state& state, dcon::land_battle_id battle);
+void land_battle_clear_dead_regiments_from_battle_slots(sys::state& state, dcon::land_battle_id battle);
+void land_battle_compact_battle_slots(sys::state& state, dcon::land_battle_id battle);
+void land_battle_deploy_reserves_to_battle_slots(sys::state& state, dcon::land_battle_id battle);
 
 // Applies damage to a regiment. Returns the actual amount of strength subtracted from it
 template<regiment_dmg_source damage_source>
