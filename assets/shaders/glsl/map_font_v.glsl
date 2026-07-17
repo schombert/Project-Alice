@@ -24,20 +24,18 @@ vec4 calc_gl_position(vec2 position) {
 
 
 void main() {
-	vec2 normal_dir = rotate_left(int(subroutines_index), vertex_position, direction, map_size);
-	vec4 center_point = calc_gl_position(vertex_position);
-	float scale = 100000.f;
-	vec4 right_point = thickness * scale * (calc_gl_position(vertex_position + direction / scale) - center_point);
-	vec4 top_point = thickness * scale * (calc_gl_position(vertex_position + normal_dir / scale) - center_point);
-	vec4 temp_result = center_point + (corner_direction.x * right_point + corner_direction.y * top_point);
-	float adj_thickness = thickness * 100000.f;
+	vec4 temp_result = calc_gl_position(vertex_position);
 
-	float pixels_thickness = thickness * map_size.x * zoom;
-	float min_thickness = 0.5f;
-	float max_thickness = 2000.f;
-	opacity = clamp((1.f - min_thickness / pixels_thickness) * (pixels_thickness / max_thickness - 1.f), 0.f, 1.f);
+	float pixels_thickness = thickness * zoom;
+	float min_thickness = 0.01f;
+	float max_thickness = 1.f;
+	opacity = clamp((min_thickness / pixels_thickness - 1.f) * (pixels_thickness / max_thickness - 1.f), 0.f, 1.f);
+	//opacity = clamp((pixels_thickness / min_thickness - 1.f), 0.f, 1.f);
+	//opacity = clamp((1.f - min_thickness / pixels_thickness), 0.f, 1.f);
 
-	temp_result.z = 0.01f / (1.f * adj_thickness * zoom);
+	//opacity = 1.f;
+
+	temp_result.z = 0.01f / (1.f * thickness * 100000.f * zoom);
 	gl_Position = temp_result;
 	uv = vertexUV;
 	bufferIndex = vertexIndex;

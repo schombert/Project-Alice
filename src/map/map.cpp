@@ -1495,6 +1495,10 @@ void display_data::render(
 		glBlendEquation(GL_FUNC_ADD);
 		glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 
+		//glDisable(GL_CULL_FACE);
+		//glDisable(GL_DEPTH_TEST);
+		//glDisable(GL_BLEND);
+
 		auto location = shader_uniforms[shader_text_line][uniform_color];
 		if(state.user_settings.black_map_font)
 			glUniform4f(location, 0.0f, 0.0f, 0.0f, 1.0f);
@@ -3059,6 +3063,15 @@ void display_data::set_text_lines(sys::state& state) {
 			return position / glm::length(position);
 			};
 
+		auto sphere_shift = [&](glm::vec3 position, glm::vec3 direction, float distance) -> glm::vec3 {
+			auto away = position / glm::length(position);
+			auto coordinate_away = glm::dot(direction, away);
+			direction -= away * coordinate_away;
+			direction /= glm::length(direction);
+			position += direction * tanf(distance);
+			return position / glm::length(position);
+		};
+
 		// Spherical tangent computation
 		auto sphere_tangent = [&](glm::vec3 position, glm::vec3 direction) -> sphere_R3::tangent {
 			auto away = position / glm::length(position);
@@ -3177,7 +3190,10 @@ void display_data::set_text_lines(sys::state& state) {
 		if(font_size_index > 5.f) font_size_index = 5.f * std::round(font_size_index / 5.f);
 		size = std::pow(1.618034f, font_size_index / 5.f);
 
-		auto real_text_half_size = size / size_x / 2.f;
+		auto real_text_half_size = size  / 2.f;
+		if(!is_spherical) {
+			real_text_half_size = real_text_half_size / size_x * 4.f;
+		}
 
 		float letter_spacing_map = 0.f;
 		if(!state.world.locale_get_prevent_letterspace(state.font_collection.get_current_locale()) && e.text.glyph_info.size() > 1) {
@@ -3227,22 +3243,7 @@ void display_data::set_text_lines(sys::state& state) {
 			//assert(diff < 0.04f);
 		} else {
 			// Clean margin advance on sphere (restart from start)
-			float accumulated = 0.f;
-			int safety = 1000000;
-			sph_placement_runner = sph_start.data;
-			sph_placement_prev = sph_start.data;
-			for(; --safety > 0; ) {
-				sph_placement_runner = sphere_step(sph_placement_runner, sph_direction, sph_step_unit);
-				float added = glm::distance(sph_placement_runner, sph_placement_prev);
-				sph_placement_prev = sph_placement_runner;
-				if(added <= 1e-8f || accumulated + added >= margin) {
-					if(added > 1e-8f) {
-						sph_placement_runner = sphere_step(sph_placement_runner, sph_direction, sph_step_unit * (margin - accumulated) / added);
-					}
-					break;
-				}
-				accumulated += added;
-			}
+			sph_placement_runner = sphere_shift(sph_placement_runner, sph_direction, margin);
 		}
 
 		auto letter_scale = 1.f / (1.0f * text::dr_size);
@@ -3272,7 +3273,12 @@ void display_data::set_text_lines(sys::state& state) {
 				glm::vec2 actual_center;
 				glm::vec2 final_direction;
 				if(is_spherical) {
+					// do multiple steps for giant letters:
+					int steps = 1 + (int)font_size_index / 15;
+
 					auto forward_sphere = sphere_tangent(sph_placement_runner, sph_direction);
+					auto up_sphere = sphere_R3::rotate(forward_sphere);
+
 					auto forward_square = sphere_R3::to_square(forward_sphere);
 					auto up_square = sphere_R3::rotate_left(forward_square);
 					auto central_point = sphere_R3::to_square(sphere_R3::point{ sph_placement_runner });
@@ -3285,6 +3291,44 @@ void display_data::set_text_lines(sys::state& state) {
 					auto new_tangent = sphere_tangent(sphere_R3::from_square(square::point{ actual_center }).data, sph_direction);
 					auto new_tangent_square = sphere_R3::to_square(new_tangent);
 					final_direction = new_tangent_square.data * (float)size_x;
+
+					float u0 = float(gi.ft_x_bearing) / (64.0f * text::dr_size);
+					float v0 = float(gi.ft_y_bearing - gi.ft_height) / (64.0f * text::dr_size);
+					float u1 = float(gi.ft_x_bearing + gi.ft_width) / (64.0f * text::dr_size);
+					float v1 = float(gi.ft_y_bearing) / (64.0f * text::dr_size);
+
+					float height_scale = float(gi.ft_height) / (64.0f * text::dr_size);
+					float width_scale = float(gi.ft_width) / (64.0f * text::dr_size);
+
+					auto left_base = sph_placement_runner;
+					auto right_base = sphere_shift(left_base, sph_direction, size / 64.f * glyph_width);
+
+					/*
+					We want our great circle to be a central line -> we shift the bottom line by half of max glyph height "down".
+					We want to top points to be at glyph height distance from the bottom line -> we shift it by half of max height down and add max height.
+					Both lines have to be offset by y bearing (letter specific) and y offset (kerning specific)
+					*/
+
+					auto shift_up = (-max_glyph_height / 2.f + y_bearing - y_offset) * size / 64.f;
+					auto shift_down = (-max_glyph_height / 2.f - y_offset) * size / 64.f;
+
+					sphere_R3::point left_up_point = {sphere_shift(left_base, up_sphere.data, shift_up)};
+					sphere_R3::point left_bottom_point = {sphere_shift(left_base, up_sphere.data, shift_down)};
+					sphere_R3::point right_up_point = {sphere_shift(right_base, up_sphere.data, shift_up)};
+					sphere_R3::point right_bottom_point ={sphere_shift(right_base, up_sphere.data, shift_down)};
+
+					auto p01 = sphere_R3::to_square(left_up_point).data;
+					auto p00 = sphere_R3::to_square(left_bottom_point).data;
+					auto p10 = sphere_R3::to_square(right_bottom_point).data;
+					auto p11 = sphere_R3::to_square(right_up_point).data;
+
+					text_line_vertices.emplace_back(p01, glm::vec2(-width_scale, height_scale), final_direction, glm::vec2(u0, v1), real_text_half_size, gi.bufferIndex);
+					text_line_vertices.emplace_back(p00, glm::vec2(-width_scale, -height_scale), final_direction, glm::vec2(u0, v0), real_text_half_size, gi.bufferIndex);
+					text_line_vertices.emplace_back(p10, glm::vec2(width_scale, -height_scale), final_direction, glm::vec2(u1, v0), real_text_half_size, gi.bufferIndex);
+
+					text_line_vertices.emplace_back(p10, glm::vec2(width_scale, -height_scale), final_direction, glm::vec2(u1, v0), real_text_half_size, gi.bufferIndex);
+					text_line_vertices.emplace_back(p11, glm::vec2(width_scale, height_scale), final_direction, glm::vec2(u1, v1), real_text_half_size, gi.bufferIndex);
+					text_line_vertices.emplace_back(p01, glm::vec2(-width_scale, height_scale), final_direction, glm::vec2(u0, v1), real_text_half_size, gi.bufferIndex);
 				} else {
 					// rectangle
 					equirectangular::tangent forward_rect { { { 0.f, 0.f } } , { ratio.x, ratio.y * dpoly_fn(cur_x) } };
@@ -3306,32 +3350,33 @@ void display_data::set_text_lines(sys::state& state) {
 
 					final_direction = forward.data * (float)size_x;
 
-					/*
-					glm::vec2 up = equirectangular::rotate_left({ {{0.f,0.f}}, forward }, (float)size_x, (float)size_y).data;
-					auto raw_center = glm::vec2(cur_x, poly_fn(cur_x)) * ratio + basis;
-					auto center = raw_center / glm::vec2(size_x, size_y);
-					actual_center = center
-						+ (-0.5f * max_glyph_height + 0.5f * glyph_height + y_offset - (glyph_height - y_bearing)) * up * real_text_half_size / 64.f
-						+ (glyph_width + x_offset) * forward * real_text_half_size / 64.f;
-					final_direction = forward;
-					*/
+					auto shift_up = (-max_glyph_height / 2.f + y_bearing - y_offset) * size / 64.f;
+					auto shift_down = (-max_glyph_height / 2.f - y_offset) * size / 64.f;
+
+					auto left_base = center.data;
+					auto right_base = left_base + forward.data * size / 64.f * glyph_width;
+
+					auto p00 = left_base + up.data * shift_down;
+					auto p01 = left_base + up.data * shift_up;
+					auto p10 = right_base + up.data * shift_down;
+					auto p11 = right_base + up.data * shift_up;
+
+					float u0 = float(gi.ft_x_bearing) / (64.0f * text::dr_size);
+					float v0 = float(gi.ft_y_bearing - gi.ft_height) / (64.0f * text::dr_size);
+					float u1 = float(gi.ft_x_bearing + gi.ft_width) / (64.0f * text::dr_size);
+					float v1 = float(gi.ft_y_bearing) / (64.0f * text::dr_size);
+
+					float height_scale = float(gi.ft_height) / (64.0f * text::dr_size);
+					float width_scale = float(gi.ft_width) / (64.0f * text::dr_size);
+
+					text_line_vertices.emplace_back(p01, glm::vec2(-width_scale, height_scale), final_direction, glm::vec2(u0, v1), real_text_half_size, gi.bufferIndex);
+					text_line_vertices.emplace_back(p00, glm::vec2(-width_scale, -height_scale), final_direction, glm::vec2(u0, v0), real_text_half_size, gi.bufferIndex);
+					text_line_vertices.emplace_back(p10, glm::vec2(width_scale, -height_scale), final_direction, glm::vec2(u1, v0), real_text_half_size, gi.bufferIndex);
+
+					text_line_vertices.emplace_back(p10, glm::vec2(width_scale, -height_scale), final_direction, glm::vec2(u1, v0), real_text_half_size, gi.bufferIndex);
+					text_line_vertices.emplace_back(p11, glm::vec2(width_scale, height_scale), final_direction, glm::vec2(u1, v1), real_text_half_size, gi.bufferIndex);
+					text_line_vertices.emplace_back(p01, glm::vec2(-width_scale, height_scale), final_direction, glm::vec2(u0, v1), real_text_half_size, gi.bufferIndex);
 				}
-
-				float u0 = float(gi.ft_x_bearing) / (64.0f * text::dr_size);
-				float v0 = float(gi.ft_y_bearing - gi.ft_height) / (64.0f * text::dr_size);
-				float u1 = float(gi.ft_x_bearing + gi.ft_width) / (64.0f * text::dr_size);
-				float v1 = float(gi.ft_y_bearing) / (64.0f * text::dr_size);
-
-				float height_scale = float(gi.ft_height) / (64.0f * text::dr_size);
-				float width_scale = float(gi.ft_width) / (64.0f * text::dr_size);
-
-				text_line_vertices.emplace_back(actual_center, glm::vec2(-width_scale, height_scale), final_direction, glm::vec2(u0, v1), real_text_half_size, gi.bufferIndex);
-				text_line_vertices.emplace_back(actual_center, glm::vec2(-width_scale, -height_scale), final_direction, glm::vec2(u0, v0), real_text_half_size, gi.bufferIndex);
-				text_line_vertices.emplace_back(actual_center, glm::vec2(width_scale, -height_scale), final_direction, glm::vec2(u1, v0), real_text_half_size, gi.bufferIndex);
-
-				text_line_vertices.emplace_back(actual_center, glm::vec2(width_scale, -height_scale), final_direction, glm::vec2(u1, v0), real_text_half_size, gi.bufferIndex);
-				text_line_vertices.emplace_back(actual_center, glm::vec2(width_scale, height_scale), final_direction, glm::vec2(u1, v1), real_text_half_size, gi.bufferIndex);
-				text_line_vertices.emplace_back(actual_center, glm::vec2(-width_scale, height_scale), final_direction, glm::vec2(u0, v1), real_text_half_size, gi.bufferIndex);
 			}
 
 			auto current_spacing = (i == glyph_count - 1) ? 0.f : letter_spacing_map;
@@ -3339,21 +3384,7 @@ void display_data::set_text_lines(sys::state& state) {
 			float D = glyph_advance + current_spacing;
 
 			if(is_spherical) {
-				sph_placement_prev = sph_placement_runner;
-				float glyph_length = 0.f;
-				int safety = 1000000;
-				for(; --safety > 0; ) {
-					sph_placement_runner = sphere_step(sph_placement_runner, sph_direction, sph_step_unit);
-					float added = glm::distance(sph_placement_runner, sph_placement_prev);
-					sph_placement_prev = sph_placement_runner;
-					if(added <= 1e-8f || glyph_length + added >= D) {
-						if(added > 1e-8f) {
-							sph_placement_runner = sphere_step(sph_placement_runner, sph_direction, sph_step_unit * (D - glyph_length) / added);
-						}
-						break;
-					}
-					glyph_length += added;
-				}
+				sph_placement_runner = sphere_shift(sph_placement_runner, sph_direction, D);
 			} else {
 				cur_S += D;
 				cur_x = find_x_for_target_S(cur_S);
@@ -3998,22 +4029,42 @@ void display_data::load_map(sys::state& state) {
 
 
 	textures[texture_water_normal] = load_dds_texture(map_terrain_dir, NATIVE("sea_normal.dds"));
-	if(!textures[texture_water_normal]) textures[texture_water_normal] = ogl::make_gl_texture(map_items_dir, NATIVE("sea_normal.png"));
+	if(!textures[texture_water_normal]) textures[texture_water_normal] = ogl::make_gl_texture(map_terrain_dir, NATIVE("sea_normal.png"));
 
 	textures[texture_colormap_water] = load_dds_texture(map_terrain_dir, NATIVE("colormap_water.dds"));
-	if(!textures[texture_colormap_water]) textures[texture_colormap_water] = ogl::make_gl_texture(map_items_dir, NATIVE("colormap_water.png"));
+	if(!textures[texture_colormap_water]) textures[texture_colormap_water] = ogl::make_gl_texture(map_terrain_dir, NATIVE("colormap_water.png"));
+	glBindTexture(GL_TEXTURE_2D, textures[texture_colormap_water]);
+	glGenerateMipmap(GL_TEXTURE_2D);
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 	textures[texture_colormap_terrain] = load_dds_texture(map_terrain_dir, NATIVE("colormap.dds"));
-	if(!textures[texture_colormap_terrain]) textures[texture_colormap_terrain] = ogl::make_gl_texture(map_items_dir, NATIVE("colormap.png"));
+	if(!textures[texture_colormap_terrain]) textures[texture_colormap_terrain] = ogl::make_gl_texture(map_terrain_dir, NATIVE("colormap.png"));
+	glBindTexture(GL_TEXTURE_2D, textures[texture_colormap_terrain]);
+	glGenerateMipmap(GL_TEXTURE_2D);
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 	textures[texture_colormap_political] = load_dds_texture(map_terrain_dir, NATIVE("colormap_political.dds"));
-	if(!textures[texture_colormap_political]) textures[texture_colormap_political] = ogl::make_gl_texture(map_items_dir, NATIVE("colormap_political.png"));
+	if(!textures[texture_colormap_political]) textures[texture_colormap_political] = ogl::make_gl_texture(map_terrain_dir, NATIVE("colormap_political.png"));
+	glBindTexture(GL_TEXTURE_2D, textures[texture_colormap_political]);
+	glGenerateMipmap(GL_TEXTURE_2D);
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-	textures[texture_overlay] = load_dds_texture(map_terrain_dir, NATIVE("map_overlay_tile.dds"));
-	if(!textures[texture_overlay]) textures[texture_overlay] = ogl::make_gl_texture(map_items_dir, NATIVE("map_overlay_tile.png"));
+	textures[texture_overlay] = ogl::make_gl_texture(map_terrain_dir, NATIVE("map_overlay_tile.png"));
+	if(!textures[texture_overlay]) textures[texture_overlay] = load_dds_texture(map_terrain_dir, NATIVE("map_overlay_tile.dds"));
+	glBindTexture(GL_TEXTURE_2D, textures[texture_overlay]);
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glGenerateMipmap(GL_TEXTURE_2D);
 
 	textures[texture_stripes] = load_dds_texture(map_terrain_dir, NATIVE("stripes.dds"));
-	if(!textures[texture_stripes]) textures[texture_stripes] = ogl::make_gl_texture(map_items_dir, NATIVE("stripes.png"));
+	if(!textures[texture_stripes]) textures[texture_stripes] = ogl::make_gl_texture(map_terrain_dir, NATIVE("stripes.png"));
+	glBindTexture(GL_TEXTURE_2D, textures[texture_stripes]);
+	glGenerateMipmap(GL_TEXTURE_2D);
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 	textures[texture_river_body] = load_dds_texture(assets_dir, NATIVE("river.dds"));
 	ogl::set_gltex_parameters(textures[texture_river_body], GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_REPEAT);
