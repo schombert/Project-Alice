@@ -3172,8 +3172,6 @@ void push_polynomial_text_to_vertex_array(sys::state& state, display_data& displ
 		float y_bearing = float(gi.ft_y_bearing) * letter_scale;
 
 		if(gi.curveCount > 0) {
-			glm::vec2 actual_center;
-			glm::vec2 final_direction;
 			// rectangle
 			equirectangular::tangent forward_rect { { { 0.f, 0.f } } , { ratio.x, ratio.y * dpoly_fn(cur_x) } };
 			square::tangent forward = equirectangular::to_square(forward_rect, (float)size_x, (float)size_y);
