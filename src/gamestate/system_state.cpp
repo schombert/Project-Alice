@@ -869,10 +869,10 @@ void state::render() { // called to render the frame may (and should) delay retu
 
 
 					auto available_length = best_distance * (float)(map_state.map_data.size_x);
-					auto base_text_extent = font_collection.mfont.text_extent(*this, temp, 0, temp.glyph_info.size());
+					auto base_text_extent = font_collection.mfont.text_extent(*this, temp, (uint32_t)0, (uint32_t)temp.glyph_info.size());
 					bool requires_ellipsis = base_text_extent > available_length * 32.f;
 					auto initial_size = name.size();
-					while(requires_ellipsis && name.size() > 0.f && font_collection.mfont.text_extent(*this, temp, 0, temp.glyph_info.size()) > available_length * 32.f) {
+					while(requires_ellipsis && name.size() > 0.f && font_collection.mfont.text_extent(*this, temp, (uint32_t)0, (uint32_t)temp.glyph_info.size()) > available_length * 32.f) {
 						name.pop_back();
 						font_collection.mfont.remake_map_cache(*this, temp, name);
 						requires_ellipsis = true;
