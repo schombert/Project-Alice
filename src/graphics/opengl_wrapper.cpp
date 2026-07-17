@@ -1373,7 +1373,7 @@ GLuint make_gl_texture(uint8_t* data, uint32_t size_x, uint32_t size_y, uint32_t
 	const GLuint formats[] = { GL_RED, GL_RG, GL_RGB, GL_RGBA };
 	if(texture_handle) {
 		glBindTexture(GL_TEXTURE_2D, texture_handle);
-		glTexStorage2D(GL_TEXTURE_2D, 1, internalformats[channels - 1], size_x, size_y);
+		glTexStorage2D(GL_TEXTURE_2D, int(log2f((float)(std::max(size_x, size_y)))), internalformats[channels - 1], size_x, size_y);
 		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, size_x, size_y, formats[channels - 1], GL_UNSIGNED_BYTE, data);
 		glBindTexture(GL_TEXTURE_2D, 0);
 	}
