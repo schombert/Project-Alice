@@ -1392,6 +1392,7 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 	std::vector<bool> visited_sea_provinces(65536, false);
 	std::vector<bool> friendly_sea_provinces(65536, false);
 	std::vector<uint16_t> group_of_regions;
+	group_of_regions.resize(state.world.province_size());
 
 	std::unordered_map<uint16_t, std::set<uint16_t>> regions_graph;
 
@@ -1482,6 +1483,7 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 		}
 	}
 
+
 	for(auto p : state.world.in_province) {
 		if(p.id.index() >= state.province_definitions.first_sea_province.index())
 			break;
@@ -1495,16 +1497,19 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 		n = get_top_overlord(state, n.id);
 
 		//flood fill regions
-		group_of_regions.clear();
-		group_of_regions.push_back(rid);
+		group_of_regions[rid] = rid;
+
+		std::vector<uint16_t> queue {rid};
+
 		int first_index = 0;
 		int vacant_index = 1;
 		while(first_index < vacant_index) {
-			auto current_region = group_of_regions[first_index];
+			auto current_region = queue[first_index];
 			first_index++;
 			for(auto neighbour_region : regions_graph[current_region]) {
 				if(!visited[neighbour_region]) {
-					group_of_regions.push_back(neighbour_region);
+					group_of_regions[neighbour_region] = rid;
+					queue.push_back(neighbour_region);
 					visited[neighbour_region] = true;
 					vacant_index++;
 				}
@@ -1527,10 +1532,8 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 
 		std::string name = nation_name;
 		bool connected_to_capital = false;
-		for(auto visited_region : group_of_regions) {
-			if(n.get_capital().get_connected_region_id() == visited_region) {
-				connected_to_capital = true;
-			}
+		if(group_of_regions[n.get_capital().get_connected_region_id()] == rid) {
+			connected_to_capital = true;
 		}
 		text::substitution_map sub{};
 		text::add_to_substitution_map(sub, text::variable_type::adj, text::get_adjective(state, n));
@@ -1547,11 +1550,10 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 			uint32_t total_provinces = 0;
 			dcon::province_id last_province;
 			bool in_same_state = true;
-			for(auto visited_region : group_of_regions) {
 			for(auto candidate : state.world.in_province) {
-					if(candidate.get_connected_region_id() == visited_region) {
-						if(candidate.get_state_membership() != p.get_state_membership())
-							in_same_state = false;
+				if(group_of_regions[candidate.get_connected_region_id()] == rid) {
+					if(candidate.get_state_membership() != p.get_state_membership())
+						in_same_state = false;
 					++total_provinces;
 					for(const auto core : candidate.get_core_as_province()) {
 						uint32_t v = 1;
@@ -1561,7 +1563,6 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 						map.insert_or_assign(core.get_identity().id.index(), v);
 					}
 				}
-			}
 			}
 			if(in_same_state == true) {
 				name = text::resolve_string_substitution(state, "map_label_adj_state", sub);
@@ -1625,34 +1626,32 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 		float raw_bounding_box_y_max = -1.f;
 		float raw_bounding_box_z_max = -1.f;
 
-		for(auto visited_region : group_of_regions) {
-			for(auto candidate : state.world.in_province) {
-				if(candidate.get_connected_region_id() == visited_region) {
-					glm::vec2 mid_point = candidate.get_mid_point();
+		for(auto candidate : state.world.in_province) {
+			if(group_of_regions[candidate.get_connected_region_id()] == rid) {
+				glm::vec2 mid_point = candidate.get_mid_point();
 
-					square::point sq_mp = { {mid_point.x / (float)map_data.size_x, mid_point.y / (float) map_data.size_y } };
-					sphere_R3::point sphere_mp = sphere_R3::from_square(sq_mp);
+				square::point sq_mp = { {mid_point.x / (float)map_data.size_x, mid_point.y / (float) map_data.size_y } };
+				sphere_R3::point sphere_mp = sphere_R3::from_square(sq_mp);
 
-					if(sphere_mp.data.x < raw_bounding_box_x_min) {
-						raw_bounding_box_x_min = sphere_mp.data.x;
-					}
-					if(sphere_mp.data.x > raw_bounding_box_x_max) {
-						raw_bounding_box_x_max = sphere_mp.data.x;
-					}
+				if(sphere_mp.data.x < raw_bounding_box_x_min) {
+					raw_bounding_box_x_min = sphere_mp.data.x;
+				}
+				if(sphere_mp.data.x > raw_bounding_box_x_max) {
+					raw_bounding_box_x_max = sphere_mp.data.x;
+				}
 
-					if(sphere_mp.data.y < raw_bounding_box_y_min) {
-						raw_bounding_box_y_min = sphere_mp.data.y;
-					}
-					if(sphere_mp.data.y > raw_bounding_box_y_max) {
-						raw_bounding_box_y_max = sphere_mp.data.y;
-					}
+				if(sphere_mp.data.y < raw_bounding_box_y_min) {
+					raw_bounding_box_y_min = sphere_mp.data.y;
+				}
+				if(sphere_mp.data.y > raw_bounding_box_y_max) {
+					raw_bounding_box_y_max = sphere_mp.data.y;
+				}
 
-					if(sphere_mp.data.z < raw_bounding_box_z_min) {
-						raw_bounding_box_z_min = sphere_mp.data.z;
-					}
-					if(sphere_mp.data.z > raw_bounding_box_z_max) {
-						raw_bounding_box_z_max = sphere_mp.data.z;
-					}
+				if(sphere_mp.data.z < raw_bounding_box_z_min) {
+					raw_bounding_box_z_min = sphere_mp.data.z;
+				}
+				if(sphere_mp.data.z > raw_bounding_box_z_max) {
+					raw_bounding_box_z_max = sphere_mp.data.z;
 				}
 			}
 		}
@@ -1732,13 +1731,11 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 				}
 				return 0.f;
 			}
-			for(auto visited_region : group_of_regions) {
-				if(state.world.province_get_connected_region_id(pid) == visited_region) {
-					return
-						10.f + state.world.province_get_demographics(pid, demographics::total)
-						/ (1.f + state.map_state.map_data.province_area_km2[province::to_map_id(pid)]);
-						//* (1.f / (1.f + glm::distance(capital_mp, {x, y })));
-				}
+			if(group_of_regions[state.world.province_get_connected_region_id(pid)] == rid) {
+				return
+					10.f + state.world.province_get_demographics(pid, demographics::total)
+					/ (1.f + state.map_state.map_data.province_area_km2[province::to_map_id(pid)]);
+					//* (1.f / (1.f + glm::distance(capital_mp, {x, y })));
 			}
 			return 0.f;
 		};
@@ -1752,10 +1749,8 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 			if(!owner) {
 				return false;
 			}
-			for(auto visited_region : group_of_regions) {
-				if(state.world.province_get_connected_region_id(pid) == visited_region) {
-					return true;
-				}
+			if(group_of_regions[state.world.province_get_connected_region_id(pid)] == rid) {
+				return true;
 			}
 			return false;
 		};
@@ -1782,10 +1777,8 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 				return true;
 				*/
 			}
-			for(auto visited_region : group_of_regions) {
-				if(state.world.province_get_connected_region_id(pid) == visited_region) {
-					return false;
-				}
+			if(group_of_regions[state.world.province_get_connected_region_id(pid)] == rid) {
+				return false;
 			}
 			return true;
 		};
@@ -1810,10 +1803,8 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 				}
 				return 0.7f;
 			}
-			for(auto visited_region : group_of_regions) {
-				if(state.world.province_get_connected_region_id(pid) == visited_region) {
-					return 0.99f;
-				}
+			if(group_of_regions[state.world.province_get_connected_region_id(pid)] == rid) {
+				return 0.99f;
 			}
 			return 0.f;
 		};
@@ -1930,13 +1921,7 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 
 
 		state.world.for_each_province([&](auto p1) {
-			bool visited = false;
-			for(auto visited_region : group_of_regions) {
-				if(state.world.province_get_connected_region_id(p1) == visited_region) {
-					visited = true;
-				}
-			}
-			if(!visited) {
+			if(group_of_regions[state.world.province_get_connected_region_id(p1)] != rid) {
 				return;
 			}
 
@@ -1950,17 +1935,7 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 				if(other == p1) {
 					other = state.world.province_adjacency_get_connected_provinces(adj, 1);
 				}
-				bool visited_other = false;
-				if(!state.world.province_get_nation_from_province_ownership(other)) {
-					visited_other = true;
-				} else {
-					for(auto visited_region : group_of_regions) {
-						if(state.world.province_get_connected_region_id(p1) == visited_region) {
-							visited_other = true;
-						}
-					}
-				}
-				if(!visited_other) {
+				if(group_of_regions[state.world.province_get_connected_region_id(other)] != rid) {
 					return;
 				}
 
@@ -2189,7 +2164,7 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 						auto y = start.y;
 
 						auto score = 0.f;
-						int segments = 32;
+						int segments = 16;
 
 						auto area = letter_size * dist / float(segments);
 						float local_step_x = dx / segments;
