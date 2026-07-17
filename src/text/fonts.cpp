@@ -1022,6 +1022,7 @@ void map_font::remake_map_cache(sys::state& state, stored_glyphs& txt, std::stri
 	if(s.length() == 0)
 		return;
 
+	cache_mtx.lock();
 	auto locale = state.font_collection.get_current_locale();
 	if(state.world.locale_get_native_rtl(locale) == false) {
 		hb_buffer_clear_contents(hb_buf);
@@ -1126,6 +1127,7 @@ void map_font::remake_map_cache(sys::state& state, stored_glyphs& txt, std::stri
 
 		ubidi_close(para);
 	}
+	cache_mtx.unlock();
 }
 
 float font_at_size::text_extent(sys::state& state, stored_glyphs const& txt, uint32_t starting_offset, uint32_t count) {
@@ -1280,7 +1282,7 @@ void map_font::make_glyph(uint32_t glyph_id) {
 
 	upload_buffers();
 }
-float map_font::text_extent(sys::state& state, stored_glyphs const& txt, uint32_t starting_offset, uint32_t count) {
+float map_font::text_extent(sys::state const& state, stored_glyphs const& txt, uint32_t starting_offset, uint32_t count) {
 	float x_total = 0.0f;
 	for(uint32_t i = starting_offset; i < starting_offset + count; i++) {
 		hb_codepoint_t glyphid = txt.glyph_info[i].codepoint;

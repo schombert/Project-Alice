@@ -2867,6 +2867,7 @@ void main_menu_misc_language_dropdown_t::on_selection(sys::state& state, int32_t
 
 	state.province_ownership_changed.store(true, std::memory_order::release); //update map
 	state.game_state_updated.store(true, std::memory_order::release); //update ui
+	state.map_state.province_labels_require_text_changes = true;
 
 	state.user_setting_changed = true;
 	window::change_cursor(state, window::cursor_type::normal_cancel_busy);

@@ -1,10 +1,8 @@
 // Goes from 0 to 1
 layout (location = 0) in vec2 vertex_position;
-layout (location = 1) in vec2 corner_direction;
-layout (location = 2) in vec2 direction;
-layout (location = 3) in vec2 vertexUV;
-layout (location = 4) in float thickness;
-layout (location = 5) in int vertexIndex;
+layout (location = 1) in vec2 vertexUV;
+layout (location = 2) in float thickness;
+layout (location = 3) in int vertexIndex;
 
 out vec2 uv;
 flat out int bufferIndex;

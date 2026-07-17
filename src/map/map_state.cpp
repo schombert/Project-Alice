@@ -1078,7 +1078,7 @@ void update_trade_flow_arrows(sys::state& state, display_data& map_data) {
 	}
 }
 
-void clear_drawing(sys::state& state, display_data& map_data) {
+void clear_drawing(sys::state const& state, display_data& map_data) {
 	map_data.map_drawing_mutex.lock();
 	map_data.arbitrary_map_triangles_counts.clear();
 	map_data.arbitrary_map_triangles_starts.clear();
@@ -1339,7 +1339,7 @@ void update_bbox_negative(std::array<glm::vec2, 5>& bbox, glm::vec2 p) {
 	//	bbox[3].x = mp.x * 0.1f + bbox[3].x * 0.9f;
 }
 
-dcon::nation_id get_top_overlord(sys::state& state, dcon::nation_id n) {
+dcon::nation_id get_top_overlord(sys::state const& state, dcon::nation_id n) {
 	auto olr = state.world.nation_get_overlord_as_subject(n);
 	auto ol = state.world.overlord_get_ruler(olr);
 	auto ol_temp = n;
@@ -1355,6 +1355,16 @@ dcon::nation_id get_top_overlord(sys::state& state, dcon::nation_id n) {
 
 void load_map_text_glyphs(sys::state& state) {
 	for(auto& item: state.map_state.map_data.text_data) {		
+		unsigned int glyph_count = static_cast<unsigned int>(item.text.glyph_info.size());
+		for(unsigned int i = 0; i < glyph_count; i++) {
+			hb_codepoint_t glyphid = item.text.glyph_info[i].codepoint;
+			state.font_collection.mfont.make_glyph(glyphid);
+		}
+	}
+}
+
+void load_map_province_text_glyphs(sys::state& state) {
+	for(auto& item: state.map_state.map_data.province_text_data) {		
 		unsigned int glyph_count = static_cast<unsigned int>(item.text.glyph_info.size());
 		for(unsigned int i = 0; i < glyph_count; i++) {
 			hb_codepoint_t glyphid = item.text.glyph_info[i].codepoint;
@@ -1384,6 +1394,8 @@ void commit_text_lines(sys::state& state, display_data& map_data) {
 void update_text_lines(sys::state& state, display_data& map_data) {
 
 	clear_drawing(state, state.map_state.map_data);
+
+	
 
 	// retroscipt
 	std::vector<text_line_generator_data>& text_data = map_data.text_data;
@@ -2631,19 +2643,6 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 				}
 			}
 		}
-	}
-
-	if(state.cheat_data.province_names) {
-		std::vector<text_line_generator_data> p_text_data;
-		for(auto p : state.world.in_province) {
-			if(p.get_name()) {
-				std::string name = text::produce_simple_string(state, p.get_name());
-				text::stored_glyphs temp;
-				state.font_collection.mfont.remake_map_cache(state, temp, name);
-				p_text_data.emplace_back(std::move(temp), glm::vec4(0.f, 0.f, 0.f, 0.f), p.get_mid_point() - glm::vec2(5.f, 0.f), glm::vec2(10.f, 10.f), 0.f, 1.f);
-			}
-		}
-		map_data.set_province_text_lines(state, p_text_data);
 	}
 }
 

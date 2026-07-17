@@ -392,28 +392,18 @@ void create_text_line_vbo(GLuint vbo) {
 	glBindVertexBuffer(0, vbo, 0, sizeof(text_line_vertex));
 	// Set up vertex attribute format for the position
 	glVertexAttribFormat(0, 2, GL_FLOAT, GL_FALSE, offsetof(text_line_vertex, position_));
-	// Set up vertex attribute format for the normal direction
-	glVertexAttribFormat(1, 2, GL_FLOAT, GL_FALSE, offsetof(text_line_vertex, normal_direction_));
-	// Set up vertex attribute format for the direction
-	glVertexAttribFormat(2, 2, GL_FLOAT, GL_FALSE, offsetof(text_line_vertex, direction_));
 	// Set up vertex attribute format for the texture coordinates
-	glVertexAttribFormat(3, 2, GL_FLOAT, GL_FALSE, offsetof(text_line_vertex, texture_coord_));
-	glVertexAttribFormat(4, 1, GL_FLOAT, GL_FALSE, offsetof(text_line_vertex, thickness_));
-	glVertexAttribIFormat(5, 1, GL_INT, offsetof(text_line_vertex, buffer_index_));
+	glVertexAttribFormat(1, 2, GL_FLOAT, GL_FALSE, offsetof(text_line_vertex, texture_coord_));
+	glVertexAttribFormat(2, 1, GL_FLOAT, GL_FALSE, offsetof(text_line_vertex, thickness_));
+	glVertexAttribIFormat(3, 1, GL_INT, offsetof(text_line_vertex, buffer_index_));
 	glEnableVertexAttribArray(0);
 	glEnableVertexAttribArray(1);
 	glEnableVertexAttribArray(2);
 	glEnableVertexAttribArray(3);
-	glEnableVertexAttribArray(4);
-	glEnableVertexAttribArray(5);
-	//glEnableVertexAttribArray(6);
 	glVertexAttribBinding(0, 0);
 	glVertexAttribBinding(1, 0);
 	glVertexAttribBinding(2, 0);
 	glVertexAttribBinding(3, 0);
-	glVertexAttribBinding(4, 0);
-	glVertexAttribBinding(5, 0);
-	//glVertexAttribBinding(6, 0);
 }
 
 void create_drag_box_vbo(GLuint vbo) {
@@ -557,8 +547,8 @@ void display_data::create_meshes() {
 	create_unit_arrow_vbo(vbo_array[vo_other_objective_unit_arrow], other_objective_unit_arrow_vertices);
 	glBindVertexArray(vao_array[vo_text_line]);
 	create_text_line_vbo(vbo_array[vo_text_line]);
-	//glBindVertexArray(vao_array[vo_province_text_line]);
-	//create_text_line_vbo(vbo_array[vo_province_text_line]);
+	glBindVertexArray(vao_array[vo_province_text_line]);
+	create_text_line_vbo(vbo_array[vo_province_text_line]);
 	glBindVertexArray(vao_array[vo_drag_box]);
 	create_drag_box_vbo(vbo_array[vo_drag_box]);
 	glBindVertexArray(vao_array[vo_square]);
@@ -1519,6 +1509,12 @@ void display_data::render(
 
 		glActiveTexture(GL_TEXTURE0);
 
+		//if (zoom < map::zoom_very_close) {
+			glBindVertexArray(vao_array[vo_province_text_line]);
+			glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_province_text_line]);
+			glDrawArrays(GL_TRIANGLES, 0, (GLsizei)province_text_line_vertices.size());
+		//}
+
 		if((!state.cheat_data.province_names || zoom < map::zoom_very_close) && !text_line_vertices.empty()) {
 			glBindVertexArray(vao_array[vo_text_line]);
 			glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_text_line]);
@@ -1527,15 +1523,6 @@ void display_data::render(
 
 		glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE);
 	}
-
-	/*
-		else if(state.cheat_data.province_names) {
-			glUniform1f(15, 1.f);
-			glBindVertexArray(vao_array[vo_province_text_line]);
-			glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_province_text_line]);
-			glDrawArrays(GL_TRIANGLES, 0, (GLsizei)province_text_line_vertices.size());
-		}
-	}*/
 
 #if 0
 	if(zoom > map::zoom_very_close && state.user_settings.render_models) {
@@ -3018,19 +3005,401 @@ void display_data::update_sprawl(sys::state& state) {
 	}
 }
 
+float desired_font_size_index(float curve_length, float text_extent) {
+	float size = (curve_length / text_extent) * 0.8f;
+	float font_size_index = std::round(5.f * log(size) / log(1.618034f));
+	if(font_size_index > 45.f) font_size_index = 45.f;
+	if(font_size_index > 5.f) font_size_index = 5.f * std::round(font_size_index / 5.f);
+	return font_size_index;
+}
 
+inline float font_size_from_font_size_index(float font_size_index) {
+	return std::pow(1.618034f, font_size_index / 5.f);
+}
+
+float get_max_glyph_height(sys::state& state, text_line_generator_data const& e) {
+	auto letter_scale = 1.f / (1.0f * text::dr_size);
+
+	unsigned int glyph_count = static_cast<unsigned int>(e.text.glyph_info.size());
+	float max_glyph_height = 0.f;
+	for(unsigned int i = 0; i < glyph_count; i++) {
+		hb_codepoint_t glyphid = e.text.glyph_info[i].codepoint;
+		float h = state.font_collection.mfont.glyphs[glyphid].ft_height * letter_scale;
+		if(h > max_glyph_height) max_glyph_height = h;
+	}
+
+	return max_glyph_height;
+}
+
+void push_polynomial_text_to_vertex_array(sys::state& state, display_data& display_data, text_line_generator_data const& e, std::vector<text_line_vertex>& out) {
+	float size_x = (float)display_data.size_x;
+	float size_y = (float)display_data.size_y;
+
+	bool is_linear = (e.coeff[2] == 0.f && e.coeff[3] == 0.f);
+
+	
+	// Polynomial function y(x)
+	auto poly_fn = [&](float x) -> float {
+		return e.coeff[0] + e.coeff[1] * x + e.coeff[2] * x * x + e.coeff[3] * x * x * x;
+	};
+
+	// Derivative dy/dx for tangent
+	auto dpoly_fn = [&](float x) -> float {
+		return e.coeff[1] + 2.f * e.coeff[2] * x + 3.f * e.coeff[3] * x * x;
+	};	
+
+	
+	// Clip parameter range to visible map
+	float left = 0.f;
+	float right = 1.f;
+
+	if(is_linear) {
+		if(e.coeff[1] > 0.01f) {
+			left = (-e.coeff[0]) / e.coeff[1];
+			right = (1.f - e.coeff[0]) / e.coeff[1];
+		} else if(e.coeff[1] < -0.01f) {
+			left = (1.f - e.coeff[0]) / e.coeff[1];
+			right = (-e.coeff[0]) / e.coeff[1];
+		}
+	} else {
+		while(((poly_fn(left) < 0.f) || (poly_fn(left) > 1.f)) && (left < 1.f)) {
+			left += 1.f / 300.f;
+		}
+		while(((poly_fn(right) < 0.f) || (poly_fn(right) > 1.f)) && (right > 0.f)) {
+			right -= 1.f / 300.f;
+		}
+	}
+	left = std::clamp(left, e.offset_left, 1.f);
+	right = std::clamp(right, 0.f, e.offset_right);
+	if(right <= left) return;
+
+	glm::vec2 ratio = e.ratio;
+	glm::vec2 basis = e.basis;
+
+
+	// Increased table resolution to ensure <0.1% error even on high-curvature paths
+	constexpr int TABLE_STEPS = 20000;
+	std::vector<float> arc_length_table;
+	float curve_length = 0.f;
+
+	if(is_linear) {
+		float dx = (right - left) * ratio.x;
+		float dy = (poly_fn(right) - poly_fn(left)) * ratio.y;
+		curve_length = glm::length(glm::vec2(dx, dy));
+	} else {
+		arc_length_table.reserve(TABLE_STEPS + 1);
+		arc_length_table.push_back(0.f);
+
+		float step = (right - left) / float(TABLE_STEPS);
+		float prev_x = left;
+		float prev_y = poly_fn(left);
+		for(int i = 1; i <= TABLE_STEPS; ++i) {
+			float curr_x = prev_x + step;
+			float curr_y = poly_fn(curr_x);
+			float seg_len = glm::length(glm::vec2(step * ratio.x, (curr_y - prev_y) * ratio.y));
+			arc_length_table.push_back(arc_length_table.back() + seg_len);
+			prev_x = curr_x;
+			prev_y = curr_y;
+		}
+		curve_length = arc_length_table.back();
+	}
+
+	if(curve_length <= 0.f) return;
+
+	float text_length = state.font_collection.mfont.text_extent(state, e.text, 0, uint32_t(e.text.glyph_info.size())) / (1.0f * text::dr_size);
+	assert(std::isfinite(text_length) && text_length != 0.f);
+	auto font_size_index = desired_font_size_index(curve_length, text_length);
+	auto size = font_size_from_font_size_index(font_size_index);
+
+	auto real_text_half_size = size  / 2.f / size_x * 4.f;
+
+	float letter_spacing_map = 0.f;
+	if(!state.world.locale_get_prevent_letterspace(state.font_collection.get_current_locale()) && e.text.glyph_info.size() > 1) {
+		//letter_spacing_map = std::clamp((0.8f * curve_length - text_length * size) / (e.text.glyph_info.size() - 1) / 2.f, 0.f, size * 2.f);
+	}
+
+	float margin = (curve_length - text_length * size - (e.text.glyph_info.size() - 1) * letter_spacing_map) / 2.0f;
+	if(margin < 0.f) margin = 0.f;
+
+	// Precise lookup for planar paths
+	auto find_x_for_target_S = [&](float target_S) -> float {
+		if(is_linear) {
+			return left + (right - left) * (target_S / curve_length);
+		}
+
+		if(target_S <= 0.f) return left;
+		if(target_S >= curve_length) return right;
+
+		auto it = std::lower_bound(arc_length_table.begin(), arc_length_table.end(), target_S);
+		if(it == arc_length_table.end()) return right;
+		if(it == arc_length_table.begin()) return left;
+
+		size_t idx = std::distance(arc_length_table.begin(), it);
+		float S_prev = arc_length_table[idx - 1];
+		float S_curr = arc_length_table[idx];
+		float frac = (target_S - S_prev) / (S_curr - S_prev);
+		return left + (right - left) * (float(idx - 1 + frac) / float(TABLE_STEPS));
+	};
+
+	// Planar state
+	float cur_x = left;
+	float cur_S = 0.f;
+
+	cur_S = margin;
+	cur_x = find_x_for_target_S(cur_S);
+
+	// Margin accuracy assertion
+	float expected_ratio = margin / curve_length;
+	float param_range = right - left;
+	float actual_ratio = (cur_x - left) / param_range;
+	float diff = std::abs(actual_ratio - expected_ratio);
+	//assert(diff < 0.04f);
+
+	auto letter_scale = 1.f / (1.0f * text::dr_size);
+	auto max_glyph_height = get_max_glyph_height(state, e);
+	unsigned int glyph_count = static_cast<unsigned int>(e.text.glyph_info.size());
+
+	for(unsigned int i = 0; i < glyph_count; i++) {
+		hb_codepoint_t glyphid = e.text.glyph_info[i].codepoint;
+		auto& gi = state.font_collection.mfont.glyphs[glyphid];
+
+		float glyph_width = gi.ft_width * letter_scale;
+		float glyph_height = gi.ft_height * letter_scale;
+		float x_advance = float(e.text.glyph_info[i].x_advance) * letter_scale;
+		float x_offset = float(e.text.glyph_info[i].x_offset) * letter_scale;
+		float y_offset = float(e.text.glyph_info[i].y_offset) * letter_scale;
+		float x_bearing = float(gi.ft_x_bearing) * letter_scale;
+		float y_bearing = float(gi.ft_y_bearing) * letter_scale;
+
+		if(gi.curveCount > 0) {
+			glm::vec2 actual_center;
+			glm::vec2 final_direction;
+			// rectangle
+			equirectangular::tangent forward_rect { { { 0.f, 0.f } } , { ratio.x, ratio.y * dpoly_fn(cur_x) } };
+			square::tangent forward = equirectangular::to_square(forward_rect, (float)size_x, (float)size_y);
+			float norm = sqrt(equirectangular::dot(forward, forward, (float)size_x, (float)size_y));
+			if(norm <= 0.f) norm = 1.f;
+			forward.data /= norm;					
+			square::tangent up = equirectangular::rotate_left(forward, (float)size_x, (float)size_y);
+
+			equirectangular::point center_rect { glm::vec2(cur_x, poly_fn(cur_x)) * ratio + basis };
+			square::point center = equirectangular::to_square(center_rect, (float)size_x, (float)size_y);
+
+			auto shift_up = (-max_glyph_height / 2.f + y_bearing - y_offset) * size / 64.f;
+			auto shift_down = (-max_glyph_height / 2.f - y_offset) * size / 64.f;
+
+			auto left_base = center.data;
+			auto right_base = left_base + forward.data * size / 64.f * glyph_width;
+
+			auto p00 = left_base + up.data * shift_down;
+			auto p01 = left_base + up.data * shift_up;
+			auto p10 = right_base + up.data * shift_down;
+			auto p11 = right_base + up.data * shift_up;
+
+			float u0 = float(gi.ft_x_bearing) / (64.0f * text::dr_size);
+			float v0 = float(gi.ft_y_bearing - gi.ft_height) / (64.0f * text::dr_size);
+			float u1 = float(gi.ft_x_bearing + gi.ft_width) / (64.0f * text::dr_size);
+			float v1 = float(gi.ft_y_bearing) / (64.0f * text::dr_size);
+
+			float height_scale = float(gi.ft_height) / (64.0f * text::dr_size);
+			float width_scale = float(gi.ft_width) / (64.0f * text::dr_size);
+
+			out.emplace_back(p01, glm::vec2(u0, v1), real_text_half_size, gi.bufferIndex);
+			out.emplace_back(p00, glm::vec2(u0, v0), real_text_half_size, gi.bufferIndex);
+			out.emplace_back(p10, glm::vec2(u1, v0), real_text_half_size, gi.bufferIndex);
+
+			out.emplace_back(p10, glm::vec2(u1, v0), real_text_half_size, gi.bufferIndex);
+			out.emplace_back(p11, glm::vec2(u1, v1), real_text_half_size, gi.bufferIndex);
+			out.emplace_back(p01, glm::vec2(u0, v1), real_text_half_size, gi.bufferIndex);
+		}
+
+		auto current_spacing = (i == glyph_count - 1) ? 0.f : letter_spacing_map;
+		float glyph_advance = x_advance * size / 64.f;
+		float D = glyph_advance + current_spacing;
+
+		cur_S += D;
+		cur_x = find_x_for_target_S(cur_S);
+	}
+
+	// End-of-label accuracy assertion for planar paths
+	/*
+	float expected_end_S = curve_length - margin;
+	float expected_ratio = expected_end_S / curve_length;
+	float param_range = right - left;
+	float actual_ratio = (cur_x - left) / param_range;
+	float diff = std::abs(actual_ratio - expected_ratio);
+	assert(diff < 0.04f);
+	*/
+}
+
+void push_spherical_text_to_vertex_array(sys::state& state, display_data& display_data, text_line_generator_data const& e, std::vector<text_line_vertex>& out, int size_limit, int min_size_cutoff, float opacity_mult) {
+	float size_x = (float)display_data.size_x;
+	float size_y = (float)display_data.size_y;
+
+	// Spherical great-circle stepping
+	auto sphere_step = [&](glm::vec3 position, glm::vec3 direction, float step) -> glm::vec3 {
+		auto away = position / glm::length(position);
+		auto coordinate_away = glm::dot(direction, away);
+		direction -= away * coordinate_away;
+		direction /= glm::length(direction);
+		position += direction * step;
+		return position / glm::length(position);
+	};
+
+	auto sphere_shift = [&](glm::vec3 position, glm::vec3 direction, float distance) -> glm::vec3 {
+		auto away = position / glm::length(position);
+		auto coordinate_away = glm::dot(direction, away);
+		direction -= away * coordinate_away;
+		direction /= glm::length(direction);
+		position += direction * tanf(distance);
+		return position / glm::length(position);
+	};
+
+	// Spherical tangent computation
+	auto sphere_tangent = [&](glm::vec3 position, glm::vec3 direction) -> sphere_R3::tangent {
+		auto away = position / glm::length(position);
+		auto coordinate_away = glm::dot(direction, away);
+		direction -= away * coordinate_away;
+		direction /= glm::length(direction);
+		return sphere_R3::tangent{ { position }, direction };
+	};
+
+
+	float left = 0.f;
+	float right = 1.f;
+	glm::vec2 ratio = e.ratio;
+	glm::vec2 basis = e.basis;
+
+
+	// Spherical state (independent runner for clean margin/glyph advance)
+	glm::vec3 sph_direction{};
+	float sph_direct_distance = 0.f;
+	float sph_step_unit = 0.f;
+	glm::vec3 sph_runner{};
+	glm::vec3 sph_runner_prev{};
+	sphere_R3::point sph_start{};
+	sphere_R3::point sph_end{};
+
+	float curve_length = 0.f;
+
+	// Project endpoints to sphere
+	square::point sq_start{ (glm::vec2(e.coeff[0], e.coeff[1]) * ratio + basis) / glm::vec2(size_x, size_y) };
+	square::point sq_end{ (glm::vec2(e.coeff[2], e.coeff[3]) * ratio + basis) / glm::vec2(size_x, size_y) };
+	sph_start = sphere_R3::from_square(sq_start);
+	sph_end = sphere_R3::from_square(sq_end);
+
+	sph_direction = sph_end.data - sph_start.data;
+	sph_direct_distance = glm::distance(sph_start.data, sph_end.data);
+	if(sph_direct_distance < 1e-6f) return;
+
+	sph_step_unit = sph_direct_distance / std::max(1.f, float(e.text.glyph_info.size() * 32.f));
+
+	// Compute curve length (original rough stepping)
+	sph_runner_prev = sph_start.data;
+	sph_runner = sph_start.data;
+	int safety = 1000000;
+	while(glm::distance(sph_runner, sph_end.data) > sph_direct_distance * 0.05f && curve_length < sph_direct_distance * 2.f && --safety > 0) {
+		sph_runner = sphere_step(sph_runner, sph_direction, sph_step_unit);
+		curve_length += glm::distance(sph_runner, sph_runner_prev);
+		sph_runner_prev = sph_runner;
+	}
+
+	if(curve_length <= 0.f) return;
+
+	float text_length = state.font_collection.mfont.text_extent(state, e.text, 0, uint32_t(e.text.glyph_info.size())) / (1.0f * text::dr_size);
+	assert(std::isfinite(text_length) && text_length != 0.f);
+	auto font_size_index = std::min((float)size_limit, desired_font_size_index(curve_length, text_length));
+	if(font_size_index < min_size_cutoff) {
+		return;
+	}
+	auto size = font_size_from_font_size_index(font_size_index);
+
+	if(curve_length < text_length * size) return;
+
+	auto real_text_half_size = size / 2.f * opacity_mult;
+
+	float letter_spacing_map = 0.f;
+	if(!state.world.locale_get_prevent_letterspace(state.font_collection.get_current_locale()) && e.text.glyph_info.size() > 1) {
+		//letter_spacing_map = std::clamp((0.8f * curve_length - text_length * size) / (e.text.glyph_info.size() - 1) / 2.f, 0.f, size * 2.f);
+	}
+
+	float margin = (curve_length - text_length * size - (e.text.glyph_info.size() - 1) * letter_spacing_map) / 2.0f;
+	if(margin < 0.f) margin = 0.f;
+
+	// Separate runner for spherical placement (clean restart for margin + glyphs)
+	glm::vec3 sph_placement_runner = sph_start.data;
+
+	// Clean margin advance on sphere (restart from start)
+	sph_placement_runner = sphere_shift(sph_placement_runner, sph_direction, margin);
+
+	auto letter_scale = 1.f / (1.0f * text::dr_size);
+	auto max_glyph_height = get_max_glyph_height(state, e);
+	unsigned int glyph_count = static_cast<unsigned int>(e.text.glyph_info.size());
+
+	for(unsigned int i = 0; i < glyph_count; i++) {
+		hb_codepoint_t glyphid = e.text.glyph_info[i].codepoint;
+		auto& gi = state.font_collection.mfont.glyphs[glyphid];
+
+		float glyph_width = gi.ft_width * letter_scale;
+		float glyph_height = gi.ft_height * letter_scale;
+		float x_advance = float(e.text.glyph_info[i].x_advance) * letter_scale;
+		float x_offset = float(e.text.glyph_info[i].x_offset) * letter_scale;
+		float y_offset = float(e.text.glyph_info[i].y_offset) * letter_scale;
+		float x_bearing = float(gi.ft_x_bearing) * letter_scale;
+		float y_bearing = float(gi.ft_y_bearing) * letter_scale;
+
+		if(gi.curveCount > 0) {
+			auto forward_sphere = sphere_tangent(sph_placement_runner, sph_direction);
+			auto up_sphere = sphere_R3::rotate(forward_sphere);
+
+			float u0 = float(gi.ft_x_bearing) / (64.0f * text::dr_size);
+			float v0 = float(gi.ft_y_bearing - gi.ft_height) / (64.0f * text::dr_size);
+			float u1 = float(gi.ft_x_bearing + gi.ft_width) / (64.0f * text::dr_size);
+			float v1 = float(gi.ft_y_bearing) / (64.0f * text::dr_size);
+
+			auto left_base = sph_placement_runner;
+			auto right_base = sphere_shift(left_base, sph_direction, size / 64.f * glyph_width);
+
+			/*
+			We want our great circle to be a central line -> we shift the bottom line by half of max glyph height "down".
+			We want to top points to be at glyph height distance from the bottom line -> we shift it by half of max height down and add max height.
+			Both lines have to be offset by y bearing (letter specific) and y offset (kerning specific)
+			*/
+
+			auto shift_up = (-max_glyph_height / 2.f + y_bearing - y_offset) * size / 64.f;
+			auto shift_down = (-max_glyph_height / 2.f - y_offset) * size / 64.f;
+
+			sphere_R3::point left_up_point = {sphere_shift(left_base, up_sphere.data, shift_up)};
+			sphere_R3::point left_bottom_point = {sphere_shift(left_base, up_sphere.data, shift_down)};
+			sphere_R3::point right_up_point = {sphere_shift(right_base, up_sphere.data, shift_up)};
+			sphere_R3::point right_bottom_point ={sphere_shift(right_base, up_sphere.data, shift_down)};
+
+			auto p01 = sphere_R3::to_square(left_up_point).data;
+			auto p00 = sphere_R3::to_square(left_bottom_point).data;
+			auto p10 = sphere_R3::to_square(right_bottom_point).data;
+			auto p11 = sphere_R3::to_square(right_up_point).data;
+
+			out.emplace_back(p01, glm::vec2(u0, v1), real_text_half_size, gi.bufferIndex);
+			out.emplace_back(p00, glm::vec2(u0, v0), real_text_half_size, gi.bufferIndex);
+			out.emplace_back(p10,  glm::vec2(u1, v0), real_text_half_size, gi.bufferIndex);
+
+			out.emplace_back(p10, glm::vec2(u1, v0), real_text_half_size, gi.bufferIndex);
+			out.emplace_back(p11, glm::vec2(u1, v1), real_text_half_size, gi.bufferIndex);
+			out.emplace_back(p01, glm::vec2(u0, v1), real_text_half_size, gi.bufferIndex);
+		}
+
+		auto current_spacing = (i == glyph_count - 1) ? 0.f : letter_spacing_map;
+		float glyph_advance = x_advance * size / 64.f;
+		float D = glyph_advance + current_spacing;
+		sph_placement_runner = sphere_shift(sph_placement_runner, sph_direction, D);
+	}
+}
 
 void display_data::set_text_lines(sys::state& state) {
-	std::vector<text_line_generator_data> const& data = text_data;
-
 	// Clear previous text line vertices
 	text_line_vertices.clear();
-
-	// Map aspect ratio scaling factor
-	const auto map_x_scaling = float(size_x) / float(size_y);
-
-	for(const auto& e : data) {
-		// Skip invalid polynomial coefficients
+	for(const auto& e : text_data) {
+		// Skip invalid coefficients
 		if(!std::isfinite(e.coeff[0]) || !std::isfinite(e.coeff[1]) || !std::isfinite(e.coeff[2]) || !std::isfinite(e.coeff[3]))
 			continue;
 
@@ -3039,469 +3408,39 @@ void display_data::set_text_lines(sys::state& state) {
 			continue;
 
 		// Detect linear path (no quadratic or cubic terms)
-		bool is_linear = (e.coeff[2] == 0.f && e.coeff[3] == 0.f);
 		// Spherical mode uses 3D projection; planar uses 2D polynomial
 		bool is_spherical = state.user_settings.map_label == sys::map_label_mode::spherical;
 
-		// Polynomial function y(x)
-		auto poly_fn = [&](float x) -> float {
-			return e.coeff[0] + e.coeff[1] * x + e.coeff[2] * x * x + e.coeff[3] * x * x * x;
-			};
-
-		// Derivative dy/dx for tangent
-		auto dpoly_fn = [&](float x) -> float {
-			return e.coeff[1] + 2.f * e.coeff[2] * x + 3.f * e.coeff[3] * x * x;
-			};
-
-		// Spherical great-circle stepping
-		auto sphere_step = [&](glm::vec3 position, glm::vec3 direction, float step) -> glm::vec3 {
-			auto away = position / glm::length(position);
-			auto coordinate_away = glm::dot(direction, away);
-			direction -= away * coordinate_away;
-			direction /= glm::length(direction);
-			position += direction * step;
-			return position / glm::length(position);
-			};
-
-		auto sphere_shift = [&](glm::vec3 position, glm::vec3 direction, float distance) -> glm::vec3 {
-			auto away = position / glm::length(position);
-			auto coordinate_away = glm::dot(direction, away);
-			direction -= away * coordinate_away;
-			direction /= glm::length(direction);
-			position += direction * tanf(distance);
-			return position / glm::length(position);
-		};
-
-		// Spherical tangent computation
-		auto sphere_tangent = [&](glm::vec3 position, glm::vec3 direction) -> sphere_R3::tangent {
-			auto away = position / glm::length(position);
-			auto coordinate_away = glm::dot(direction, away);
-			direction -= away * coordinate_away;
-			direction /= glm::length(direction);
-			return sphere_R3::tangent{ { position }, direction };
-			};
-
-		// Clip parameter range to visible map
-		float left = 0.f;
-		float right = 1.f;
-
-		if(!is_spherical) {
-			if(is_linear) {
-				if(e.coeff[1] > 0.01f) {
-					left = (-e.coeff[0]) / e.coeff[1];
-					right = (1.f - e.coeff[0]) / e.coeff[1];
-				} else if(e.coeff[1] < -0.01f) {
-					left = (1.f - e.coeff[0]) / e.coeff[1];
-					right = (-e.coeff[0]) / e.coeff[1];
-				}
-			} else {
-				while(((poly_fn(left) < 0.f) || (poly_fn(left) > 1.f)) && (left < 1.f)) {
-					left += 1.f / 300.f;
-				}
-				while(((poly_fn(right) < 0.f) || (poly_fn(right) > 1.f)) && (right > 0.f)) {
-					right -= 1.f / 300.f;
-				}
-			}
-		}
-
-		if(!is_spherical) {
-			left = std::clamp(left, e.offset_left, 1.f);
-			right = std::clamp(right, 0.f, e.offset_right);
-		} else {			
-			left = std::clamp(left, 0.f, 1.f);
-			right = std::clamp(right, 0.f, 1.f);
-		}
-
-		if(right <= left) continue;
-
-		glm::vec2 ratio = e.ratio;
-		glm::vec2 basis = e.basis;
-
-		// Increased table resolution to ensure <0.1% error even on high-curvature paths
-		constexpr int TABLE_STEPS = 20000;
-		std::vector<float> arc_length_table;
-		float curve_length = 0.f;
-
-		// Spherical state (independent runner for clean margin/glyph advance)
-		glm::vec3 sph_direction{};
-		float sph_direct_distance = 0.f;
-		float sph_step_unit = 0.f;
-		glm::vec3 sph_runner{};
-		glm::vec3 sph_runner_prev{};
-		sphere_R3::point sph_start{};
-		sphere_R3::point sph_end{};
-
 		if(is_spherical) {
-			// Project endpoints to sphere
-			square::point sq_start{ (glm::vec2(e.coeff[0], e.coeff[1]) * ratio + basis) / glm::vec2(size_x, size_y) };
-			square::point sq_end{ (glm::vec2(e.coeff[2], e.coeff[3]) * ratio + basis) / glm::vec2(size_x, size_y) };
-			sph_start = sphere_R3::from_square(sq_start);
-			sph_end = sphere_R3::from_square(sq_end);
-
-			sph_direction = sph_end.data - sph_start.data;
-			sph_direct_distance = glm::distance(sph_start.data, sph_end.data);
-			if(sph_direct_distance < 1e-6f) continue;
-
-			sph_step_unit = sph_direct_distance / std::max(1.f, float(e.text.glyph_info.size() * 32.f));
-
-			// Compute curve length (original rough stepping)
-			sph_runner_prev = sph_start.data;
-			sph_runner = sph_start.data;
-			int safety = 1000000;
-			while(glm::distance(sph_runner, sph_end.data) > sph_direct_distance * 0.05f && curve_length < sph_direct_distance * 2.f && --safety > 0) {
-				sph_runner = sphere_step(sph_runner, sph_direction, sph_step_unit);
-				curve_length += glm::distance(sph_runner, sph_runner_prev);
-				sph_runner_prev = sph_runner;
-			}
+			push_spherical_text_to_vertex_array(state, *this, e, text_line_vertices, 70, -60, 1.f);
 		} else {
-			if(is_linear) {
-				float dx = (right - left) * ratio.x;
-				float dy = (poly_fn(right) - poly_fn(left)) * ratio.y;
-				curve_length = glm::length(glm::vec2(dx, dy));
-			} else {
-				arc_length_table.reserve(TABLE_STEPS + 1);
-				arc_length_table.push_back(0.f);
-
-				float step = (right - left) / float(TABLE_STEPS);
-				float prev_x = left;
-				float prev_y = poly_fn(left);
-				for(int i = 1; i <= TABLE_STEPS; ++i) {
-					float curr_x = prev_x + step;
-					float curr_y = poly_fn(curr_x);
-					float seg_len = glm::length(glm::vec2(step * ratio.x, (curr_y - prev_y) * ratio.y));
-					arc_length_table.push_back(arc_length_table.back() + seg_len);
-					prev_x = curr_x;
-					prev_y = curr_y;
-				}
-				curve_length = arc_length_table.back();
-			}
-		}
-
-		if(curve_length <= 0.f) continue;
-
-		float text_length = state.font_collection.mfont.text_extent(state, e.text, 0, uint32_t(e.text.glyph_info.size())) / (1.0f * text::dr_size);
-		assert(std::isfinite(text_length) && text_length != 0.f);
-
-		float size = (curve_length / text_length) * 0.8f;
-		//if(!is_spherical) size /= 2.f;
-
-		float font_size_index = std::round(5.f * log(size) / log(1.618034f));
-		if(font_size_index > 45.f) font_size_index = 45.f;
-		if(font_size_index > 5.f) font_size_index = 5.f * std::round(font_size_index / 5.f);
-		size = std::pow(1.618034f, font_size_index / 5.f);
-
-		auto real_text_half_size = size  / 2.f;
-		if(!is_spherical) {
-			real_text_half_size = real_text_half_size / size_x * 4.f;
-		}
-
-		float letter_spacing_map = 0.f;
-		if(!state.world.locale_get_prevent_letterspace(state.font_collection.get_current_locale()) && e.text.glyph_info.size() > 1) {
-			//letter_spacing_map = std::clamp((0.8f * curve_length - text_length * size) / (e.text.glyph_info.size() - 1) / 2.f, 0.f, size * 2.f);
-		}
-
-		float margin = (curve_length - text_length * size - (e.text.glyph_info.size() - 1) * letter_spacing_map) / 2.0f;
-		if(margin < 0.f) margin = 0.f;
-
-		// Precise lookup for planar paths
-		auto find_x_for_target_S = [&](float target_S) -> float {
-			if(is_linear) {
-				return left + (right - left) * (target_S / curve_length);
-			}
-
-			if(target_S <= 0.f) return left;
-			if(target_S >= curve_length) return right;
-
-			auto it = std::lower_bound(arc_length_table.begin(), arc_length_table.end(), target_S);
-			if(it == arc_length_table.end()) return right;
-			if(it == arc_length_table.begin()) return left;
-
-			size_t idx = std::distance(arc_length_table.begin(), it);
-			float S_prev = arc_length_table[idx - 1];
-			float S_curr = arc_length_table[idx];
-			float frac = (target_S - S_prev) / (S_curr - S_prev);
-			return left + (right - left) * (float(idx - 1 + frac) / float(TABLE_STEPS));
-			};
-
-		// Planar state
-		float cur_x = left;
-		float cur_S = 0.f;
-
-		// Separate runner for spherical placement (clean restart for margin + glyphs)
-		glm::vec3 sph_placement_runner = sph_start.data;
-		glm::vec3 sph_placement_prev = sph_start.data;
-
-		if(!is_spherical) {
-			cur_S = margin;
-			cur_x = find_x_for_target_S(cur_S);
-
-			// Margin accuracy assertion
-			float expected_ratio = margin / curve_length;
-			float param_range = right - left;
-			float actual_ratio = (cur_x - left) / param_range;
-			float diff = std::abs(actual_ratio - expected_ratio);
-			//assert(diff < 0.04f);
-		} else {
-			// Clean margin advance on sphere (restart from start)
-			sph_placement_runner = sphere_shift(sph_placement_runner, sph_direction, margin);
-		}
-
-		auto letter_scale = 1.f / (1.0f * text::dr_size);
-
-		unsigned int glyph_count = static_cast<unsigned int>(e.text.glyph_info.size());
-		float max_glyph_height = 0.f;
-		for(unsigned int i = 0; i < glyph_count; i++) {
-			hb_codepoint_t glyphid = e.text.glyph_info[i].codepoint;
-			auto& gi = state.font_collection.mfont.glyphs[glyphid];
-			float h = gi.ft_height * letter_scale;
-			if(h > max_glyph_height) max_glyph_height = h;
-		}
-
-		for(unsigned int i = 0; i < glyph_count; i++) {
-			hb_codepoint_t glyphid = e.text.glyph_info[i].codepoint;
-			auto& gi = state.font_collection.mfont.glyphs[glyphid];
-
-			float glyph_width = gi.ft_width * letter_scale;
-			float glyph_height = gi.ft_height * letter_scale;
-			float x_advance = float(e.text.glyph_info[i].x_advance) * letter_scale;
-			float x_offset = float(e.text.glyph_info[i].x_offset) * letter_scale;
-			float y_offset = float(e.text.glyph_info[i].y_offset) * letter_scale;
-			float x_bearing = float(gi.ft_x_bearing) * letter_scale;
-			float y_bearing = float(gi.ft_y_bearing) * letter_scale;
-
-			if(gi.curveCount > 0) {
-				glm::vec2 actual_center;
-				glm::vec2 final_direction;
-				if(is_spherical) {
-					// do multiple steps for giant letters:
-					int steps = 1 + (int)font_size_index / 15;
-
-					auto forward_sphere = sphere_tangent(sph_placement_runner, sph_direction);
-					auto up_sphere = sphere_R3::rotate(forward_sphere);
-
-					auto forward_square = sphere_R3::to_square(forward_sphere);
-					auto up_square = sphere_R3::rotate_left(forward_square);
-					auto central_point = sphere_R3::to_square(sphere_R3::point{ sph_placement_runner });
-					actual_center = central_point.data;
-					actual_center -= up_square.data / 2.f * size / 64.f * glyph_height;
-					actual_center -= up_square.data / 2.f * size / 64.f * max_glyph_height;
-					actual_center += up_square.data / 1.f * size / 64.f * y_bearing;
-					actual_center += up_square.data / 1.f * size / 64.f * y_offset;
-					actual_center += forward_square.data * size / 64.f * glyph_width / 2.f;
-					auto new_tangent = sphere_tangent(sphere_R3::from_square(square::point{ actual_center }).data, sph_direction);
-					auto new_tangent_square = sphere_R3::to_square(new_tangent);
-					final_direction = new_tangent_square.data * (float)size_x;
-
-					float u0 = float(gi.ft_x_bearing) / (64.0f * text::dr_size);
-					float v0 = float(gi.ft_y_bearing - gi.ft_height) / (64.0f * text::dr_size);
-					float u1 = float(gi.ft_x_bearing + gi.ft_width) / (64.0f * text::dr_size);
-					float v1 = float(gi.ft_y_bearing) / (64.0f * text::dr_size);
-
-					float height_scale = float(gi.ft_height) / (64.0f * text::dr_size);
-					float width_scale = float(gi.ft_width) / (64.0f * text::dr_size);
-
-					auto left_base = sph_placement_runner;
-					auto right_base = sphere_shift(left_base, sph_direction, size / 64.f * glyph_width);
-
-					/*
-					We want our great circle to be a central line -> we shift the bottom line by half of max glyph height "down".
-					We want to top points to be at glyph height distance from the bottom line -> we shift it by half of max height down and add max height.
-					Both lines have to be offset by y bearing (letter specific) and y offset (kerning specific)
-					*/
-
-					auto shift_up = (-max_glyph_height / 2.f + y_bearing - y_offset) * size / 64.f;
-					auto shift_down = (-max_glyph_height / 2.f - y_offset) * size / 64.f;
-
-					sphere_R3::point left_up_point = {sphere_shift(left_base, up_sphere.data, shift_up)};
-					sphere_R3::point left_bottom_point = {sphere_shift(left_base, up_sphere.data, shift_down)};
-					sphere_R3::point right_up_point = {sphere_shift(right_base, up_sphere.data, shift_up)};
-					sphere_R3::point right_bottom_point ={sphere_shift(right_base, up_sphere.data, shift_down)};
-
-					auto p01 = sphere_R3::to_square(left_up_point).data;
-					auto p00 = sphere_R3::to_square(left_bottom_point).data;
-					auto p10 = sphere_R3::to_square(right_bottom_point).data;
-					auto p11 = sphere_R3::to_square(right_up_point).data;
-
-					text_line_vertices.emplace_back(p01, glm::vec2(-width_scale, height_scale), final_direction, glm::vec2(u0, v1), real_text_half_size, gi.bufferIndex);
-					text_line_vertices.emplace_back(p00, glm::vec2(-width_scale, -height_scale), final_direction, glm::vec2(u0, v0), real_text_half_size, gi.bufferIndex);
-					text_line_vertices.emplace_back(p10, glm::vec2(width_scale, -height_scale), final_direction, glm::vec2(u1, v0), real_text_half_size, gi.bufferIndex);
-
-					text_line_vertices.emplace_back(p10, glm::vec2(width_scale, -height_scale), final_direction, glm::vec2(u1, v0), real_text_half_size, gi.bufferIndex);
-					text_line_vertices.emplace_back(p11, glm::vec2(width_scale, height_scale), final_direction, glm::vec2(u1, v1), real_text_half_size, gi.bufferIndex);
-					text_line_vertices.emplace_back(p01, glm::vec2(-width_scale, height_scale), final_direction, glm::vec2(u0, v1), real_text_half_size, gi.bufferIndex);
-				} else {
-					// rectangle
-					equirectangular::tangent forward_rect { { { 0.f, 0.f } } , { ratio.x, ratio.y * dpoly_fn(cur_x) } };
-					square::tangent forward = equirectangular::to_square(forward_rect, (float)size_x, (float)size_y);
-					float norm = sqrt(equirectangular::dot(forward, forward, (float)size_x, (float)size_y));
-					if(norm <= 0.f) norm = 1.f;
-					forward.data /= norm;					
-					square::tangent up = equirectangular::rotate_left(forward, (float)size_x, (float)size_y);
-
-					equirectangular::point center_rect { glm::vec2(cur_x, poly_fn(cur_x)) * ratio + basis };
-					square::point center = equirectangular::to_square(center_rect, (float)size_x, (float)size_y);
-
-					actual_center = center.data;
-					actual_center -= up.data / 2.f * size / 64.f * glyph_height;
-					actual_center -= up.data / 2.f * size / 64.f * max_glyph_height;
-					actual_center += up.data / 1.f * size / 64.f * y_bearing;
-					actual_center += up.data / 1.f * size / 64.f * y_offset;
-					actual_center += forward.data * size / 64.f * glyph_width / 2.f;
-
-					final_direction = forward.data * (float)size_x;
-
-					auto shift_up = (-max_glyph_height / 2.f + y_bearing - y_offset) * size / 64.f;
-					auto shift_down = (-max_glyph_height / 2.f - y_offset) * size / 64.f;
-
-					auto left_base = center.data;
-					auto right_base = left_base + forward.data * size / 64.f * glyph_width;
-
-					auto p00 = left_base + up.data * shift_down;
-					auto p01 = left_base + up.data * shift_up;
-					auto p10 = right_base + up.data * shift_down;
-					auto p11 = right_base + up.data * shift_up;
-
-					float u0 = float(gi.ft_x_bearing) / (64.0f * text::dr_size);
-					float v0 = float(gi.ft_y_bearing - gi.ft_height) / (64.0f * text::dr_size);
-					float u1 = float(gi.ft_x_bearing + gi.ft_width) / (64.0f * text::dr_size);
-					float v1 = float(gi.ft_y_bearing) / (64.0f * text::dr_size);
-
-					float height_scale = float(gi.ft_height) / (64.0f * text::dr_size);
-					float width_scale = float(gi.ft_width) / (64.0f * text::dr_size);
-
-					text_line_vertices.emplace_back(p01, glm::vec2(-width_scale, height_scale), final_direction, glm::vec2(u0, v1), real_text_half_size, gi.bufferIndex);
-					text_line_vertices.emplace_back(p00, glm::vec2(-width_scale, -height_scale), final_direction, glm::vec2(u0, v0), real_text_half_size, gi.bufferIndex);
-					text_line_vertices.emplace_back(p10, glm::vec2(width_scale, -height_scale), final_direction, glm::vec2(u1, v0), real_text_half_size, gi.bufferIndex);
-
-					text_line_vertices.emplace_back(p10, glm::vec2(width_scale, -height_scale), final_direction, glm::vec2(u1, v0), real_text_half_size, gi.bufferIndex);
-					text_line_vertices.emplace_back(p11, glm::vec2(width_scale, height_scale), final_direction, glm::vec2(u1, v1), real_text_half_size, gi.bufferIndex);
-					text_line_vertices.emplace_back(p01, glm::vec2(-width_scale, height_scale), final_direction, glm::vec2(u0, v1), real_text_half_size, gi.bufferIndex);
-				}
-			}
-
-			auto current_spacing = (i == glyph_count - 1) ? 0.f : letter_spacing_map;
-			float glyph_advance = x_advance * size / 64.f;
-			float D = glyph_advance + current_spacing;
-
-			if(is_spherical) {
-				sph_placement_runner = sphere_shift(sph_placement_runner, sph_direction, D);
-			} else {
-				cur_S += D;
-				cur_x = find_x_for_target_S(cur_S);
-			}
-		}
-
-		// End-of-label accuracy assertion for planar paths
-		if(!is_spherical) {
-			float expected_end_S = curve_length - margin;
-			float expected_ratio = expected_end_S / curve_length;
-			float param_range = right - left;
-			float actual_ratio = (cur_x - left) / param_range;
-			float diff = std::abs(actual_ratio - expected_ratio);
-			//assert(diff < 0.04f);
+			push_polynomial_text_to_vertex_array(state, *this, e, text_line_vertices);
 		}
 	}
-
 }
 
-void display_data::set_province_text_lines(sys::state& state, std::vector<text_line_generator_data> const& data) {
-	/*
+// For now assume that province labels are spherical
+void display_data::set_province_text_lines(sys::state& state) {
+	// Clear previous text line vertices
 	province_text_line_vertices.clear();
-	const auto map_x_scaling = float(size_x) / float(size_y);
-	auto& f = state.font_collection.get_font(state, text::font_selection::map_font);
-
-	for(const auto& e : data) {
-		// omit invalid, nan or infinite coefficients
+	for(const auto& e : province_text_data) {
+		// Skip invalid coefficients
 		if(!std::isfinite(e.coeff[0]) || !std::isfinite(e.coeff[1]) || !std::isfinite(e.coeff[2]) || !std::isfinite(e.coeff[3]))
 			continue;
 
-		auto effective_ratio = e.ratio.x * map_x_scaling / e.ratio.y;
+		// Skip empty text to prevent invalid operations
+		if(e.text.glyph_info.empty())
+			continue;
 
-		float text_length = f.text_extent(state, e.text, 0, uint32_t(e.text.glyph_info.size()), 1);
-		assert(std::isfinite(text_length) && text_length != 0.f);
-		// y = a + bx + cx^2 + dx^3
-		// y = mo[0] + mo[1] * x + mo[2] * x * x + mo[3] * x * x * x
-		auto poly_fn = [&](float x) {
-			return e.coeff[0] + e.coeff[1] * x + e.coeff[2] * x * x + e.coeff[3] * x * x * x;
-			};
-		float x_step = (1.f / float(e.text.glyph_info.size() * 32.f));
-		float curve_length = 0.f; //width of whole string polynomial
-		for(float x = 0.f; x <= 1.f; x += x_step)
-			curve_length += 2.0f * glm::length(glm::vec2(x_step * e.ratio.x, (poly_fn(x) - poly_fn(x + x_step)) * e.ratio.y));
-
-		float size = (curve_length / text_length) * 0.85f;
-		if(size > 200.0f) {
-			size = 200.0f + (size - 200.0f) * 0.5f;
-		}
-		auto real_text_size = size / (size_x * 2.0f);
-		float margin = (curve_length - text_length * size) / 2.0f;
-		float x = 0.f;
-		for(float accumulated_length = 0.f; ; x += x_step) {
-			auto added_distance = 2.0f * glm::length(glm::vec2(x_step * e.ratio.x, (poly_fn(x) - poly_fn(x + x_step)) * e.ratio.y));
-			if(accumulated_length + added_distance >= margin) {
-				x += x_step * (margin - accumulated_length) / added_distance;
-				break;
-			}
-			accumulated_length += added_distance;
-		}
-
-		unsigned int glyph_count = uint32_t(e.text.glyph_info.size());
-		for(unsigned int i = 0; i < glyph_count; i++) {
-			hb_codepoint_t glyphid = e.text.glyph_info[i].codepoint;
-			auto gso = f.glyph_positions[glyphid];
-			float x_advance = float(gso.x_advance);
-			float x_offset = float(e.text.glyph_info[i].x_offset) / 4.f + float(gso.x);
-			float y_offset = float(gso.y) - float(e.text.glyph_info[i].y_offset) / 4.f;
-			if(glyphid != FT_Get_Char_Index(f.font_face, ' ')) {
-				// Add up baseline and kerning offsets
-				glm::vec2 glyph_positions{ x_offset / 64.f, -y_offset / 64.f };
-				auto dpoly_fn = [&](float x) {
-					// y = a + 1bx^1 + 1cx^2 + 1dx^3
-					// y = 0 + 1bx^0 + 2cx^1 + 3dx^2
-					return e.coeff[1] + 2.f * e.coeff[2] * x + 3.f * e.coeff[3] * x * x;
-					};
-				glm::vec2 curr_dir = glm::normalize(glm::vec2(effective_ratio, dpoly_fn(x)));
-				glm::vec2 curr_normal_dir = glm::vec2(-curr_dir.y, curr_dir.x);
-				curr_dir.x *= 0.5f;
-				curr_normal_dir.x *= 0.5f;
-
-				glm::vec2 shader_direction = glm::normalize(glm::vec2(e.ratio.x, dpoly_fn(x) * e.ratio.y));
-
-				auto p0 = glm::vec2(x, poly_fn(x)) * e.ratio + e.basis;
-				p0 /= glm::vec2(size_x, size_y); // Rescale the coordinate to 0-1
-				p0 -= (1.5f - 2.f * glyph_positions.y) * curr_normal_dir * real_text_size;
-				p0 += (1.0f + 2.f * glyph_positions.x) * curr_dir * real_text_size;
-
-				float type = float((gso.texture_slot >> 6) % text::max_texture_layers);
-				float step = 1.f / 8.f;
-				float tx = float(gso.texture_slot & 7) * step;
-				float ty = float((gso.texture_slot & 63) >> 3) * step;
-
-				province_text_line_vertices.emplace_back(p0, glm::vec2(-1, 1), shader_direction, glm::vec3(tx, ty, type), real_text_size);
-				province_text_line_vertices.emplace_back(p0, glm::vec2(-1, -1), shader_direction, glm::vec3(tx, ty + step, type), real_text_size);
-				province_text_line_vertices.emplace_back(p0, glm::vec2(1, -1), shader_direction, glm::vec3(tx + step, ty + step, type), real_text_size);
-
-				province_text_line_vertices.emplace_back(p0, glm::vec2(1, -1), shader_direction, glm::vec3(tx + step, ty + step, type), real_text_size);
-				province_text_line_vertices.emplace_back(p0, glm::vec2(1, 1), shader_direction, glm::vec3(tx + step, ty, type), real_text_size);
-				province_text_line_vertices.emplace_back(p0, glm::vec2(-1, 1), shader_direction, glm::vec3(tx, ty, type), real_text_size);
-			}
-			float glyph_advance = x_advance * size / 64.f;
-			for(float glyph_length = 0.f; ; x += x_step) {
-				auto added_distance = 2.0f * glm::length(glm::vec2(x_step * e.ratio.x, (poly_fn(x) - poly_fn(x + x_step)) * e.ratio.y));
-				if(glyph_length + added_distance >= glyph_advance) {
-					x += x_step * (glyph_advance - glyph_length) / added_distance;
-					break;
-				}
-				glyph_length += added_distance;
-			}
-		}
+		push_spherical_text_to_vertex_array(state, *this, e, province_text_line_vertices, -65, -90, 0.25f);
+		//push_spherical_text_to_vertex_array(state, *this, e, province_text_line_vertices, -40, -90, 0.25f);
 	}
+
 	if(province_text_line_vertices.size() > 0) {
 		glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_province_text_line]);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(text_line_vertex) * province_text_line_vertices.size(), &province_text_line_vertices[0], GL_STATIC_DRAW);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 	}
-	*/
 }
 
 GLuint load_dds_texture(simple_fs::directory const& dir, native_string_view file_name, uint32_t& size_x, uint32_t& size_y, int soil_flags = ogl::SOIL_FLAG_TEXTURE_REPEATS) {
