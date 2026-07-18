@@ -3458,6 +3458,9 @@ GLuint load_dds_texture(simple_fs::directory const& dir, native_string_view file
 	return ogl::SOIL_direct_load_DDS_from_memory(data, content.file_size, size_x, size_y, soil_flags);
 }
 
+static native_string dds_extension = NATIVE(".dds");
+static native_string png_extension = NATIVE(".png");
+
 GLuint load_dds_texture(simple_fs::directory const& dir, native_string_view file_name, int soil_flags = ogl::SOIL_FLAG_TEXTURE_REPEATS) {
 	auto file = simple_fs::open_file(dir, file_name);
 	if(!bool(file)) {
@@ -3473,6 +3476,34 @@ GLuint load_dds_texture(simple_fs::directory const& dir, native_string_view file
 	uint32_t size_x, size_y;
 	uint8_t const* data = (uint8_t const*)(content.data);
 	return ogl::SOIL_direct_load_DDS_from_memory(data, content.file_size, size_x, size_y, soil_flags);
+}
+
+GLuint load_dds_or_png(simple_fs::directory const& dir, native_string_view file_name, int soil_flags = ogl::SOIL_FLAG_TEXTURE_REPEATS) {
+	native_string base { file_name };
+	auto dds_name = base + dds_extension;
+	auto png_name = base + png_extension;
+	auto file = simple_fs::open_file(dir, { png_name, dds_name });
+	if(!file) {
+		auto full_message = std::string("Can't load DDS/PNG file ") + simple_fs::native_to_utf8(file_name) + "\n";
+#ifdef _WIN64
+		OutputDebugStringA(full_message.c_str());
+#else
+		std::fprintf(stderr, "%s", full_message.c_str());
+#endif
+		return 0;
+	}
+	if(simple_fs::get_full_name(*file).ends_with(NATIVE("dds"))) {
+		return load_dds_texture(dir, dds_name);
+	} else {
+		auto result = ogl::make_gl_texture(dir, png_name);
+
+		glBindTexture(GL_TEXTURE_2D, result);
+		glGenerateMipmap(GL_TEXTURE_2D);
+		glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+		return result;
+	}
 }
 
 emfx::xac_pp_actor_material_layer get_diffuse_layer(emfx::xac_pp_actor_material const& mat) {
@@ -3965,43 +3996,12 @@ void display_data::load_map(sys::state& state) {
 	}
 
 
-	textures[texture_water_normal] = load_dds_texture(map_terrain_dir, NATIVE("sea_normal.dds"));
-	if(!textures[texture_water_normal]) textures[texture_water_normal] = ogl::make_gl_texture(map_terrain_dir, NATIVE("sea_normal.png"));
-
-	textures[texture_colormap_water] = load_dds_texture(map_terrain_dir, NATIVE("colormap_water.dds"));
-	if(!textures[texture_colormap_water]) textures[texture_colormap_water] = ogl::make_gl_texture(map_terrain_dir, NATIVE("colormap_water.png"));
-	glBindTexture(GL_TEXTURE_2D, textures[texture_colormap_water]);
-	glGenerateMipmap(GL_TEXTURE_2D);
-	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-	textures[texture_colormap_terrain] = load_dds_texture(map_terrain_dir, NATIVE("colormap.dds"));
-	if(!textures[texture_colormap_terrain]) textures[texture_colormap_terrain] = ogl::make_gl_texture(map_terrain_dir, NATIVE("colormap.png"));
-	glBindTexture(GL_TEXTURE_2D, textures[texture_colormap_terrain]);
-	glGenerateMipmap(GL_TEXTURE_2D);
-	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-	textures[texture_colormap_political] = load_dds_texture(map_terrain_dir, NATIVE("colormap_political.dds"));
-	if(!textures[texture_colormap_political]) textures[texture_colormap_political] = ogl::make_gl_texture(map_terrain_dir, NATIVE("colormap_political.png"));
-	glBindTexture(GL_TEXTURE_2D, textures[texture_colormap_political]);
-	glGenerateMipmap(GL_TEXTURE_2D);
-	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-	textures[texture_overlay] = ogl::make_gl_texture(map_terrain_dir, NATIVE("map_overlay_tile.png"));
-	if(!textures[texture_overlay]) textures[texture_overlay] = load_dds_texture(map_terrain_dir, NATIVE("map_overlay_tile.dds"));
-	glBindTexture(GL_TEXTURE_2D, textures[texture_overlay]);
-	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glGenerateMipmap(GL_TEXTURE_2D);
-
-	textures[texture_stripes] = load_dds_texture(map_terrain_dir, NATIVE("stripes.dds"));
-	if(!textures[texture_stripes]) textures[texture_stripes] = ogl::make_gl_texture(map_terrain_dir, NATIVE("stripes.png"));
-	glBindTexture(GL_TEXTURE_2D, textures[texture_stripes]);
-	glGenerateMipmap(GL_TEXTURE_2D);
-	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	textures[texture_water_normal] = load_dds_or_png(map_terrain_dir, NATIVE("sea_normal"));
+	textures[texture_colormap_water] = load_dds_or_png(map_terrain_dir, NATIVE("colormap_water"));
+	textures[texture_colormap_terrain] = load_dds_or_png(map_terrain_dir, NATIVE("colormap"));
+	textures[texture_colormap_political] = load_dds_or_png(map_terrain_dir, NATIVE("colormap_political"));
+	textures[texture_overlay] = load_dds_or_png(map_terrain_dir, NATIVE("map_overlay_tile"));
+	textures[texture_stripes] = load_dds_or_png(map_terrain_dir, NATIVE("stripes"));
 
 	textures[texture_river_body] = load_dds_texture(assets_dir, NATIVE("river.dds"));
 	ogl::set_gltex_parameters(textures[texture_river_body], GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_REPEAT);
