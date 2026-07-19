@@ -757,6 +757,154 @@ void state::render() { // called to render the frame may (and should) delay retu
 			map::load_map_text_glyphs(*this);
 			map_state.map_labels_current_state = map::map_labels_state::update;
 		}
+
+		if(map_state.province_labels_require_lines) {
+			//auto glyphid = FT_Get_Char_Index(font_collection.mfont.face, 0x2026);
+			//bool ellipsis_valid = true;
+			//font_collection.mfont.make_glyph(uint16_t(glyphid));
+			//auto& gso = font_collection.mfont.glyphs[uint16_t(glyphid)];
+			//auto width_of_ellipsis = float(gso.ft_width);
+
+			// TODO: figure out how to use actual ellpsis with map fonts.
+			/*
+			std::string ellipsis = "...";
+			text::stored_glyphs ellipsis_glyphs;
+			font_collection.mfont.remake_map_cache(*this, ellipsis_glyphs, ellipsis);
+			auto dot_g = FT_Get_Char_Index(font_collection.mfont.face, '.');
+			font_collection.mfont.make_glyph(uint16_t(dot_g));
+			auto& gso2 = font_collection.mfont.glyphs[uint16_t(dot_g)];
+			auto width_of_ellipsis = font_collection.mfont.text_extent(*this, ellipsis_glyphs, 0, ellipsis_glyphs.glyph_info.size());
+			*/
+
+			auto sample_province = [&](float x, float y) {
+				x = fmod(x, (float)map_state.map_data.size_x);
+				if (x < 0.f) {
+					x += (float)map_state.map_data.size_x;
+				}
+				if(y < 0.f) return dcon::province_id{};
+				if((uint32_t)y >= map_state.map_data.size_y) return dcon::province_id{};
+				glm::vec2 candidate = { x, y };
+				auto idx = int32_t(y) * int32_t(map_state.map_data.size_x) + int32_t(x);
+				if(!(0 <= idx && size_t(idx) < map_state.map_data.province_id_map.size())) return dcon::province_id{};
+				auto pid = province::from_map_id(map_state.map_data.province_id_map[idx]);
+				return pid;
+			};
+
+			for(auto candidate : world.in_province) {
+				auto avoid_point = [&](float x, float y) {
+					return sample_province(x, y) != candidate.id;
+				};
+
+				auto expected_letter_size = 0.01f;
+				if(auto n = candidate.get_name(); n) {
+					std::string name = text::produce_simple_string(*this, n);
+					std::string adjusted_name = name;
+					text::stored_glyphs temp;
+					font_collection.mfont.remake_map_cache(*this, temp, name);
+
+					auto grid_sphere = std::vector<sphere_R3::point> { };
+					auto grid_rect = std::vector<equirectangular::point>{ };
+					auto grid_square = std::vector<square::point>{ };
+
+					for(auto border_index : map_state.map_data.province_to_borders[candidate.id.value]) {				
+						auto border = map_state.map_data.borders[border_index.first];
+						auto adj = border.adj;
+						if(!adj || border.count == 0) {
+							continue;
+						}
+						int quarter = border.count / 8;
+						for(int segment = 0; segment < 4; segment++) {
+							square::point node_square {map_state.map_data.border_vertices[border.start_index + quarter * segment].position};
+							grid_square.push_back(node_square);
+							grid_sphere.push_back(sphere_R3::from_square(node_square));
+							grid_rect.push_back(equirectangular::from_square(node_square, (float)map_state.map_data.size_x, (float)map_state.map_data.size_y));
+						}
+					}
+
+					float best_distance = 0.f;
+					int best_start = -1;
+					int best_end = -1;
+
+					float letter_size = 0.001f;
+
+					for(int start_node = 0; start_node < (int)grid_rect.size(); start_node++) {	
+						auto start = grid_sphere[start_node];
+						for(int end_node = start_node + 1; end_node < (int)grid_rect.size(); end_node++) {
+							auto end = grid_sphere[end_node];
+							auto direction = end.data - start.data;
+							auto dist = glm::distance(grid_sphere[start_node].data, grid_sphere[end_node].data);
+							if (dist <= best_distance) continue;
+
+							bool failed = false;
+							for(int step_forward = 2; step_forward < 8; step_forward++) {
+								float s = (float)step_forward / 9.f;
+								sphere_R3::point current {start.data * s + end.data * (1.f - s)};
+								current.data /= glm::length(current.data);
+								auto away = current.data;
+								auto forward = direction - glm::dot(direction, away);
+								forward /= glm::length(forward);
+								auto aside = glm::cross(forward, away);
+
+								for(int step_aside = -3; step_aside < 4; step_aside++) {
+									float t = (float)step_aside / 3.f;
+									sphere_R3::point next_point {current.data + aside * t * letter_size};
+
+									auto sq = sphere_R3::to_square(next_point);
+									auto rct = equirectangular::from_square(sq, (float)map_state.map_data.size_x, (float)map_state.map_data.size_y);
+									if(avoid_point(rct.data.x, rct.data.y)) {
+										failed = true;
+										break;
+									}
+								}
+								if (failed) break;
+							}
+
+							if (failed) continue;
+
+							best_distance = dist;
+							best_start = start_node;
+							best_end = end_node;
+						}
+					}
+
+
+					auto available_length = best_distance * (float)(map_state.map_data.size_x);
+					auto base_text_extent = font_collection.mfont.text_extent(*this, temp, (uint32_t)0, (uint32_t)temp.glyph_info.size());
+					bool requires_ellipsis = base_text_extent > available_length * 32.f;
+					auto initial_size = name.size();
+					while(requires_ellipsis && name.size() > 0.f && font_collection.mfont.text_extent(*this, temp, (uint32_t)0, (uint32_t)temp.glyph_info.size()) > available_length * 32.f) {
+						name.pop_back();
+						font_collection.mfont.remake_map_cache(*this, temp, name);
+						requires_ellipsis = true;
+					}
+					if (name.size() * 2 <= initial_size) continue;
+
+					//map_state.map_data.province_text_data.emplace_back(std::move(temp), glm::vec4(0.f, 0.f, 0.f, 0.f), candidate.get_mid_point() - glm::vec2(5.f, 0.f), glm::vec2(10.f, 10.f), 0.f, 1.f);
+
+					if (best_start == -1) continue;
+					if(best_end == -1) continue;
+					auto A = grid_rect[best_start].data;
+					auto B = grid_rect[best_end].data;
+
+					if(A.x < B.x) {
+						map_state.map_data.province_text_data.emplace_back(std::move(temp), glm::vec4(0.f, 0.f, 1.f, 1.f), A, B - A, 0.f, 1.f);
+					} else {
+						map_state.map_data.province_text_data.emplace_back(std::move(temp), glm::vec4(0.f, 0.f, 1.f, 1.f), B, A - B, 0.f, 1.f);
+					}
+				}
+			}
+			map_state.province_labels_require_lines = false;
+		}
+
+		if(
+			map_state.map_labels_current_state != map::map_labels_state::load_glyphs
+			&& !map_state.province_labels_require_lines
+			&& map_state.province_labels_require_text_changes
+		) {
+			map::load_map_province_text_glyphs(*this);
+			map_state.map_data.set_province_text_lines(*this);
+			map_state.province_labels_require_text_changes = false;
+		}
 	}
 
 	if(game_state_was_updated) {

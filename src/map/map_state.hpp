@@ -85,6 +85,8 @@ public:
 	bool request_fresh_border_index  = true;
 
 	map_labels_state map_labels_current_state = map_labels_state::update;
+	bool province_labels_require_lines = true;
+	bool province_labels_require_text_changes = true;
 	bool scheduled_map_labels_update = false;
 
 	std::array<std::vector<size_t>, 2> smoothing_borders_index {};
@@ -126,6 +128,7 @@ public:
 };
 
 void load_map_text_glyphs(sys::state& state);
+void load_map_province_text_glyphs(sys::state& state);
 void update_text_lines(sys::state& state, display_data& map_data);
 void commit_text_lines(sys::state& state, display_data& map_data);
 void draw_small_square(sys::state& state, display_data& map_data, square::point x, float size);

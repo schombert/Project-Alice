@@ -185,7 +185,8 @@ public:
 	void load_font(FT_Library& ft_library, char const* file_data, uint32_t file_size);
 	void ready_textures();
 	void remake_map_cache(sys::state& state, stored_glyphs& txt, std::string const& source);
-	float text_extent(sys::state& state, stored_glyphs const& txt, uint32_t starting_offset, uint32_t count);
+	float text_extent(sys::state const& state, stored_glyphs const& txt, uint32_t starting_offset, uint32_t count);
+	std::mutex cache_mtx{};
 };
 
 class font_at_size {

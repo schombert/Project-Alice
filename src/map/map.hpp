@@ -105,11 +105,9 @@ static_assert(sizeof(textured_line_vertex_b_enriched_with_province_index) ==
 
 struct text_line_vertex {
 	text_line_vertex() { };
-	text_line_vertex(glm::vec2 position, glm::vec2 normal_direction, glm::vec2 direction, glm::vec2 texture_coord, float thickness, int32_t buffer_index)
-		: position_(position), normal_direction_(normal_direction), direction_(direction), texture_coord_(texture_coord), thickness_{ thickness }, buffer_index_(buffer_index) { };
+	text_line_vertex(glm::vec2 position, glm::vec2 texture_coord, float thickness, int32_t buffer_index)
+		: position_(position), texture_coord_(texture_coord), thickness_{ thickness }, buffer_index_(buffer_index) { };
 	glm::vec2 position_;
-	glm::vec2 normal_direction_;
-	glm::vec2 direction_;
 	glm::vec2 texture_coord_;
 	float thickness_ = 0.f;
 	int32_t buffer_index_ = 0;
@@ -163,8 +161,9 @@ public:
 
 	// MAP TEXT
 	std::vector<text_line_generator_data> text_data;
+	std::vector<text_line_generator_data> province_text_data;
 	void set_text_lines(sys::state& state);
-	void set_province_text_lines(sys::state& state, std::vector<text_line_generator_data> const& data);
+	void set_province_text_lines(sys::state& state);
 
 	ankerl::unordered_dense::map<dcon::province_id::value_base_t, std::vector<std::pair<size_t, size_t>>> province_to_borders;
 	std::vector<border> borders;
