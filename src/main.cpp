@@ -41,6 +41,7 @@
 #include "rebels.cpp"
 #include "politics.cpp"
 #include "events.cpp"
+#include "gui.cpp"
 #include "gui_graphics.cpp"
 #include "gui_common_elements.cpp"
 #include "widgets/table.cpp"

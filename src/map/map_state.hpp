@@ -4,6 +4,8 @@
 #include "map_modes.hpp"
 #include <glm/vec2.hpp>
 #include <glm/mat4x4.hpp>
+#include <glm/gtc/quaternion.hpp>
+//#include <glm/ext/quaternion_float.hpp>
 #include "map.hpp"
 #include "constants.hpp"
 
@@ -77,6 +79,8 @@ public:
 	glm::vec2 pos_velocity = glm::vec2(0.f);
 	map_space::point_normalized_inverted_y last_camera_drag_pos = {glm::vec2(0.5f, 0.5f)};
 	glm::mat4 globe_rotation = glm::mat4(1.0f);
+	glm::vec3 camera_over_sphere_point = { 0.f, 0.f, 1.f };
+	glm::vec3 camera_corner_over_sphere_point = { 0.f, 0.f, 1.f };
 	glm::vec2 last_unit_box_drag_pos = glm::vec2(0, 0);
 	std::chrono::steady_clock::time_point last_map_movement = std::chrono::steady_clock::now();
 	bool last_map_movement_handled = true;

@@ -934,23 +934,12 @@ void state::render() { // called to render the frame may (and should) delay retu
 	auto tooltip_probe = root_elm->impl_probe_mouse(*this, int32_t(mouse_x_position / user_settings.ui_scale),
 		int32_t(mouse_y_position / user_settings.ui_scale), ui::mouse_probe_type::tooltip);
 
-	if(!mouse_probe.under_mouse && map_state.get_zoom() > map::zoom_close) {
+	bool recalculate_probes = !mouse_probe.under_mouse && map_state.get_zoom() > map::zoom_close;
+	if(recalculate_probes) {
 		mouse_probe = current_scene.recalculate_mouse_probe(*this, mouse_probe, tooltip_probe);
-		tooltip_probe = current_scene.recalculate_tooltip_probe(*this, mouse_probe, tooltip_probe);
 	}
-
-	ui::urect tooltip_bounds;
-	int32_t tooltip_sub_index = -1;
-	if(tooltip_probe.under_mouse) {
-		tooltip_probe.under_mouse->tooltip_position(
-			*this,
-			tooltip_probe.relative_location.x,
-			tooltip_probe.relative_location.y,
-			tooltip_sub_index,
-			tooltip_bounds
-		);
-	}
-
+	
+	bool update_tooltip = false;
 	if(game_state_was_updated) {
 		if(!ui_state.tech_queue.empty()) {
 			if(!world.nation_get_current_research(local_player_nation)) {
@@ -988,10 +977,27 @@ void state::render() { // called to render the frame may (and should) delay retu
 
 		current_scene.on_game_state_update_update_ui(*this);
 
-		ui_state.update_tooltip(*this, tooltip_probe, tooltip_sub_index, int16_t(root_elm->base_data.size.y - 20));
-		
+		update_tooltip = true;
 	} // END game state was updated
 
+
+	ui::urect tooltip_bounds;
+	int32_t tooltip_sub_index = -1;
+	if(recalculate_probes) {
+		tooltip_probe = current_scene.recalculate_tooltip_probe(*this, mouse_probe, tooltip_probe);
+	}
+	if(tooltip_probe.under_mouse) {
+		tooltip_probe.under_mouse->tooltip_position(
+			*this,
+			tooltip_probe.relative_location.x,
+			tooltip_probe.relative_location.y,
+			tooltip_sub_index,
+			tooltip_bounds
+		);
+	}
+	if(update_tooltip) {
+		ui_state.update_tooltip(*this, tooltip_probe, tooltip_sub_index, int16_t(root_elm->base_data.size.y - 20));
+	}
 	ui_state.populate_tooltip(*this, tooltip_probe, tooltip_sub_index, int16_t(root_elm->base_data.size.y - 20));
 	ui_state.reposition_tooltip(tooltip_bounds, root_elm->base_data.size.y, root_elm->base_data.size.x);
 

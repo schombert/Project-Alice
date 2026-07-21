@@ -20,7 +20,7 @@ namespace ui {
 
 void render_text_chunk(
 	sys::state& state,
-	text::text_chunk t,
+	text::text_chunk& t,
 	float x,
 	float baseline_y,
 	uint16_t font_id,
@@ -261,6 +261,19 @@ public:
 	std::string_view get_text(sys::state& state) const {
 		return cached_text;
 	}
+
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
+		if(has_tooltip(state) == tooltip_behavior::no_tooltip)
+			return message_result::unseen;
+		return type == mouse_probe_type::tooltip ? message_result::consumed : message_result::unseen;
+	}
+};
+
+class remote_text_element_base : public element_base {
+public:
+	text::layout* external_layout = nullptr;
+	bool black_text = true;
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
 
 	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
 		if(has_tooltip(state) == tooltip_behavior::no_tooltip)
@@ -618,6 +631,22 @@ public:
 
 	void button_action(sys::state& state) noexcept override;
 	void on_update(sys::state& state) noexcept override;
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override;
+};
+
+class external_flag_button : public button_element_base{
+public:
+	GLuint flag_texture_handle = 0;
+	dcon::nation_id related_nation;
+	dcon::nation_id nation;
+	dcon::national_identity_id identity;
+	dcon::rebel_faction_id rebel_faction;
+
+	void button_action(sys::state& state) noexcept override;
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
@@ -996,7 +1025,7 @@ void populate_shortcut_tooltip(sys::state& state, ui::element_base& elm, text::c
 
 void render_text_chunk(
 	sys::state& state,
-	text::text_chunk t,
+	text::text_chunk& t,
 	float x,
 	float baseline_y,
 	uint16_t font_id,

@@ -31,7 +31,7 @@ struct state;
 namespace ui {
 void render_text_chunk(
 	sys::state& state,
-	text::text_chunk t,
+	text::text_chunk& t,
 	float x,
 	float baseline_y,
 	uint16_t font_id,

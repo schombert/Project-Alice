@@ -54,6 +54,8 @@ struct state {
 
 	xy_pair relative_mouse_location = xy_pair{ 0, 0 };
 	std::unique_ptr<element_base> units_root;
+	std::unique_ptr<element_base> unit_counter_box;
+	std::unique_ptr<element_base> colonization_icons_root;
 
 	std::unique_ptr<element_base> rgos_root;
 	std::unique_ptr<element_base> province_details_root;

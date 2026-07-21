@@ -26,6 +26,8 @@ void on_mouse_wheel(sys::state& state, int32_t x, int32_t y, key_modifiers mod, 
 				return true;
 			if(b == state.ui_state.unit_details_box.get())
 				return true;
+			if(b == state.ui_state.unit_counter_box.get())
+				return true;
 			b = b->parent;
 		}
 		return false;

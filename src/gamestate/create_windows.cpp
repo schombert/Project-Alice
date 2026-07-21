@@ -176,16 +176,14 @@ void create_in_game_windows(sys::state& state) {
 		state.ui_state.root->add_child_to_front(std::move(window));
 	}
 
-
 	state.world.for_each_state_definition([&](dcon::state_definition_id id) {
 		// A max of 10 icons may be displayed at a time
 		for(uint32_t i = 0; i < 10; i++) {
 			auto ptr = ui::make_element_by_type<ui::map_colonization_icon>(state, "colonization_mapicon");
 			static_cast<ui::map_colonization_icon*>(ptr.get())->set_state_def(state, id);
 			static_cast<ui::map_colonization_icon*>(ptr.get())->colonization_index = i;
-			state.ui_state.units_root->add_child_to_front(std::move(ptr));
+			state.ui_state.colonization_icons_root->add_child_to_front(std::move(ptr));
 		}
-
 	});
 
 	state.world.for_each_province([&](dcon::province_id id) {
@@ -196,11 +194,12 @@ void create_in_game_windows(sys::state& state) {
 		}
 	});
 
-	state.world.for_each_province([&](dcon::province_id id) {
-		auto ptr = ui::make_element_by_type<ui::unit_counter_window>(state, "alice_map_unit");
-		static_cast<ui::unit_counter_window*>(ptr.get())->prov = id;
-		state.ui_state.units_root->add_child_to_front(std::move(ptr));
-	});
+	{
+		//auto ptr = ;
+		//state.ui_state.unit_counter = ptr.get();
+		state.ui_state.unit_counter_box = ui::make_element_by_type<ui::unit_counter_window>(state, "alice_map_unit");
+	}
+
 	state.world.for_each_province([&](dcon::province_id id) {
 		auto ptr = ui::make_element_by_type<ui::rgo_icon>(state, "alice_rgo_mapicon");
 		static_cast<ui::rgo_icon*>(ptr.get())->content = id;
@@ -370,6 +369,8 @@ void create_in_game_windows(sys::state& state) {
 	}
 	state.ui_state.rgos_root->impl_on_update(state);
 	state.ui_state.units_root->impl_on_update(state);
+	state.ui_state.colonization_icons_root->impl_on_update(state);
+	state.ui_state.unit_counter_box->impl_on_update(state);
 }
 
 

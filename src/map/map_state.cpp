@@ -2843,7 +2843,10 @@ void map_state::update(sys::state& state) {
 
 	screen_space::point_ui mouse_pos{ {(float)(state.mouse_x_position), (float)(state.mouse_y_position)} };
 	glm::vec2 screen_size{ state.x_size, state.y_size };
+
 	screen_space::point_ui screen_center = {{screen_size / 2.f}};
+	screen_space::point_ui screen_corner = { {0.f, 0.f} };
+
 	auto view_mode = current_view(state);
 	map_space::point_normalized_inverted_y pos_before_zoom;
 	bool valid_pos = screen_to_map(mouse_pos, screen_size, view_mode, pos_before_zoom);
@@ -2925,7 +2928,16 @@ void map_state::update(sys::state& state) {
 	axis.y = 0;
 	axis = glm::normalize(axis);
 	globe_rotation = glm::rotate(globe_rotation, (0.5f + pos.data.y) * glm::pi<float>(), axis);
+	camera_over_sphere_point = glm::vec3(0.f, 0.f, 1.f) * glm::mat3(globe_rotation);
+	camera_corner_over_sphere_point = -camera_over_sphere_point;
 
+	map_space::point_normalized_inverted_y corner_projection;
+	if(screen_to_map(screen_corner, screen_size, view_mode, corner_projection)) {
+		auto sq_corner = map_space::to_square(corner_projection);
+		auto sph_corner = sphere_R3::from_square(sq_corner);
+		camera_corner_over_sphere_point = sph_corner.data;
+	}
+	
 
 	if(unhandled_province_selection) {
 		map_mode::update_map_mode(state);
@@ -3302,6 +3314,11 @@ bool map_state::map_to_screen(map_space::point_normalized_inverted_y map_pos, gl
 		{
 			auto sphere_point = sphere_R3::from_square(square_point).data;
 			auto sphere_adjusted = glm::vec3 { sphere_point.y, sphere_point.x, sphere_point.z };
+
+			if(glm::dot(sphere_adjusted, camera_over_sphere_point) < 0.f) {
+				return false;
+			}
+
 			auto visible_point = glm::mat3(globe_rotation) * sphere_adjusted / glm::pi<float>();
 
 			auto x = 2. * visible_point.x / aspect_ratio * zoom;
@@ -3320,6 +3337,11 @@ bool map_state::map_to_screen(map_space::point_normalized_inverted_y map_pos, gl
 		{
 			auto sphere_point = sphere_R3::from_square(square_point).data;
 			auto sphere_adjusted = glm::vec3 { sphere_point.y, sphere_point.x, sphere_point.z };
+
+			if(glm::dot(sphere_adjusted, camera_over_sphere_point) < glm::dot(camera_corner_over_sphere_point, camera_over_sphere_point) - 0.1f) {
+				return false;
+			}
+
 			auto visible_point = glm::mat3(globe_rotation) * sphere_adjusted / glm::pi<float>();
 
 			// shift the globe away from camera

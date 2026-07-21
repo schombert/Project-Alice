@@ -499,8 +499,10 @@ void color_blind_left::button_action(sys::state& state) noexcept {
 		state.user_settings.color_blind_mode = sys::color_blind_mode(index - 1);
 		map_mode::update_map_mode(state);
 		state.ui_state.units_root->impl_on_update(state);
+		state.ui_state.colonization_icons_root->impl_on_update(state);
 		state.ui_state.rgos_root->impl_on_update(state);
 		state.ui_state.root->impl_on_update(state);
+		state.ui_state.unit_counter_box->impl_on_update(state);
 		send(state, parent, notify_setting_update{});
 	}
 }
@@ -513,6 +515,8 @@ void color_blind_right::button_action(sys::state& state) noexcept {
 		state.user_settings.color_blind_mode = sys::color_blind_mode(index + 1);
 		map_mode::update_map_mode(state);
 		state.ui_state.units_root->impl_on_update(state);
+		state.ui_state.colonization_icons_root->impl_on_update(state);
+		state.ui_state.unit_counter_box->impl_on_update(state);
 		state.ui_state.rgos_root->impl_on_update(state);
 		state.ui_state.root->impl_on_update(state);
 		send(state, parent, notify_setting_update{});

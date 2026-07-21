@@ -137,6 +137,8 @@ bool belongs_on_map(sys::state& state, ui::element_base* checked_element) {
 	while(checked_element != nullptr) {
 		if(checked_element == state.ui_state.units_root.get())
 			return true;
+		if(checked_element == state.ui_state.unit_counter_box.get())
+			return true;
 		if(checked_element == state.ui_state.unit_details_box.get())
 			return true;
 		checked_element = checked_element->parent;
@@ -884,6 +886,12 @@ void render_units(sys::state& state) {
 	if(state.ui_state.units_root) {
 		state.ui_state.units_root->impl_render(state, 0, 0);
 	}
+	if(state.ui_state.colonization_icons_root) {
+		state.ui_state.colonization_icons_root->impl_render(state, 0, 0);
+	}
+
+	auto counter = (static_cast<ui::unit_counter_window*>(state.ui_state.unit_counter_box.get()));
+	counter->impl_render(state, 0, 0);
 }
 
 void render_units_info_box(sys::state& state) {
@@ -1039,12 +1047,25 @@ ui::mouse_probe recalculate_mouse_probe_units(sys::state& state, ui::mouse_probe
 	float scaled_mouse_x = state.mouse_x_position / state.user_settings.ui_scale;
 	float scaled_mouse_y = state.mouse_y_position / state.user_settings.ui_scale;
 
-	return state.ui_state.units_root->impl_probe_mouse(
+	if(!mouse_probe.under_mouse) {
+		mouse_probe =  state.ui_state.unit_counter_box->impl_probe_mouse(
+				state,
+				int32_t(scaled_mouse_x),
+				int32_t(scaled_mouse_y),
+				ui::mouse_probe_type::click
+		);
+	}
+
+	if(!mouse_probe.under_mouse && state.ui_state.units_root) {
+		mouse_probe =  state.ui_state.units_root->impl_probe_mouse(
 			state,
 			int32_t(scaled_mouse_x),
 			int32_t(scaled_mouse_y),
 			ui::mouse_probe_type::click
-	);
+		);
+	}
+
+	return mouse_probe;
 }
 
 ui::mouse_probe recalculate_mouse_probe_units_and_details(sys::state& state, ui::mouse_probe mouse_probe, ui::mouse_probe tooltip_probe) {
@@ -1115,6 +1136,17 @@ ui::mouse_probe recalculate_tooltip_probe_units_and_details(sys::state& state, u
 			int32_t(scaled_mouse_x),
 			int32_t(scaled_mouse_y),
 			ui::mouse_probe_type::tooltip);
+	}
+	if(!tooltip_probe.under_mouse) {
+		auto counter = (static_cast<ui::unit_counter_window*>(state.ui_state.unit_counter_box.get()));
+		tooltip_probe = counter->impl_probe_mouse(
+			state,
+			int32_t(scaled_mouse_x),
+			int32_t(scaled_mouse_y),
+			ui::mouse_probe_type::tooltip);
+		if(tooltip_probe.under_mouse) {
+			return tooltip_probe;
+		}
 	}
 
 	return tooltip_probe;
@@ -1235,6 +1267,8 @@ void update_ui_unit_details(sys::state& state) {
 	}
 	if(state.ui_state.units_root) {
 		state.ui_state.units_root->impl_on_update(state);
+		state.ui_state.colonization_icons_root->impl_on_update(state);
+		state.ui_state.unit_counter_box->impl_on_update(state);
 	}
 }
 
