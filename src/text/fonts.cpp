@@ -649,7 +649,7 @@ std::reference_wrapper<glyph_sub_offset> font_at_size::insert_or_find_glyph(uint
 		auto const it = glyph_positions.insert_or_assign((uint32_t(glyph_in) << 2) | uint32_t(subpixel & 3), gso);
 		return it.first->second;
 	}
-	return std::nullopt;
+	std::abort(); //<-- should NOT call here ffs
 }
 
 stored_glyphs::stored_glyphs(sys::state& state, int32_t size, font_selection type, std::span<uint16_t> s, uint32_t details_offset, layout_details* d, uint16_t font_handle) {
