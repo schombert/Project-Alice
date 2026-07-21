@@ -1484,13 +1484,13 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, st
 				auto glyphid = FT_Get_Char_Index(font_inst.font_face, 0x2026);
 
 				bool ellipsis_valid = true;
-				auto& gso = font_inst.insert_or_find_glyph(uint16_t(glyphid), 0)->get();
+				auto& gso = font_inst.insert_or_find_glyph(uint16_t(glyphid), 0).get();
 				auto width_of_ellipsis = float(gso.bitmap_left + gso.width) / state.user_settings.ui_scale;
 
 				if(width_of_ellipsis <= 0 || glyphid == 0) {
 					ellipsis_valid = false;
 					auto dot_g = FT_Get_Char_Index(font_inst.font_face, '.');
-					auto& gso2 = font_inst.insert_or_find_glyph(uint16_t(dot_g), 0)->get();
+					auto& gso2 = font_inst.insert_or_find_glyph(uint16_t(dot_g), 0).get();
 					width_of_ellipsis = float(gso2.bitmap_left + gso2.width) * 3.0f / state.user_settings.ui_scale;
 				}
 				if(state.user_settings.use_classic_fonts) {
@@ -1610,13 +1610,13 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, st
 				auto glyphid = FT_Get_Char_Index(font_inst.font_face, 0x2026);
 
 				bool ellipsis_valid = true;
-				auto& gso = font_inst.insert_or_find_glyph(uint16_t(glyphid), 0)->get();
+				auto& gso = font_inst.insert_or_find_glyph(uint16_t(glyphid), 0).get();
 				auto width_of_ellipsis = float(gso.bitmap_left + gso.width) / state.user_settings.ui_scale;
 
 				if(width_of_ellipsis <= 0 || glyphid == 0) {
 					ellipsis_valid = false;
 					auto dot_g = FT_Get_Char_Index(font_inst.font_face, '.');
-					auto& gso2 = font_inst.insert_or_find_glyph(uint16_t(dot_g), 0)->get();
+					auto& gso2 = font_inst.insert_or_find_glyph(uint16_t(dot_g), 0).get();
 					width_of_ellipsis = float(gso2.bitmap_left + gso2.width) * 3.0f / state.user_settings.ui_scale;
 				}
 				if(state.user_settings.use_classic_fonts) {

@@ -1358,7 +1358,7 @@ void load_map_text_glyphs(sys::state& state) {
 		unsigned int glyph_count = static_cast<unsigned int>(item.text.glyph_info.size());
 		for(unsigned int i = 0; i < glyph_count; i++) {
 			hb_codepoint_t glyphid = item.text.glyph_info[i].codepoint;
-			state.font_collection.mfont.insert_or_find_glyph(glyphid);
+			state.font_collection.mfont.make_glyph(glyphid);
 		}
 	}
 }
@@ -1368,7 +1368,7 @@ void load_map_province_text_glyphs(sys::state& state) {
 		unsigned int glyph_count = static_cast<unsigned int>(item.text.glyph_info.size());
 		for(unsigned int i = 0; i < glyph_count; i++) {
 			hb_codepoint_t glyphid = item.text.glyph_info[i].codepoint;
-			state.font_collection.mfont.insert_or_find_glyph(glyphid);
+			state.font_collection.mfont.make_glyph(glyphid);
 		}
 	}
 }

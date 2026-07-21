@@ -561,7 +561,7 @@ bool font::can_display(char32_t ch_in) const {
 	return FT_Get_Char_Index(sized_fonts.begin()->second.font_face, ch_in) != 0;
 }
 
-std::optional<std::reference_wrapper<glyph_sub_offset>> font_at_size::insert_or_find_glyph(uint16_t glyph_in, int32_t subpixel) {
+std::reference_wrapper<glyph_sub_offset> font_at_size::insert_or_find_glyph(uint16_t glyph_in, int32_t subpixel) {
 	if(auto const it = glyph_positions.find((uint32_t(glyph_in) << 2) | uint32_t(subpixel & 3)); it != glyph_positions.end())
 		return it->second;
 
@@ -583,8 +583,8 @@ std::optional<std::reference_wrapper<glyph_sub_offset>> font_at_size::insert_or_
 		FT_Glyph g_result;
 		auto err = FT_Get_Glyph(font_face->glyph, &g_result);
 		if(err != 0) {
-			glyph_positions.insert_or_assign((uint32_t(glyph_in) << 2) | uint32_t(subpixel & 3), gso);
-			return std::nullopt;
+			auto const it = glyph_positions.insert_or_assign((uint32_t(glyph_in) << 2) | uint32_t(subpixel & 3), gso);
+			return it.first->second;
 		}
 		
 		FT_Bitmap const& bitmap = ((FT_BitmapGlyphRec*)g_result)->bitmap;
@@ -592,8 +592,8 @@ std::optional<std::reference_wrapper<glyph_sub_offset>> font_at_size::insert_or_
 		assert(bitmap.rows <= 1024 && bitmap.width <= 1024);
 		if(bitmap.rows > 1024 || bitmap.width > 1024) { // too large to render
 			FT_Done_Glyph(g_result);
-			glyph_positions.insert_or_assign((uint32_t(glyph_in) << 2) | uint32_t(subpixel & 3), gso);
-			return std::nullopt;
+			auto const it = glyph_positions.insert_or_assign((uint32_t(glyph_in) << 2) | uint32_t(subpixel & 3), gso);
+			return it.first->second;
 		}
 		if(bitmap.width + internal_tx_line_xpos >= 1024) { // new line
 			internal_tx_line_xpos = 0;

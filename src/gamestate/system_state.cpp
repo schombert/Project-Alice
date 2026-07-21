@@ -761,7 +761,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 		if(map_state.province_labels_require_lines) {
 			//auto glyphid = FT_Get_Char_Index(font_collection.mfont.face, 0x2026);
 			//bool ellipsis_valid = true;
-			//font_collection.mfont.insert_or_find_glyph(uint16_t(glyphid));
+			//font_collection.mfont.make_glyph(uint16_t(glyphid));
 			//auto& gso = font_collection.mfont.glyphs[uint16_t(glyphid)];
 			//auto width_of_ellipsis = float(gso.ft_width);
 
@@ -771,7 +771,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 			text::stored_glyphs ellipsis_glyphs;
 			font_collection.mfont.remake_map_cache(*this, ellipsis_glyphs, ellipsis);
 			auto dot_g = FT_Get_Char_Index(font_collection.mfont.face, '.');
-			font_collection.mfont.insert_or_find_glyph(uint16_t(dot_g));
+			font_collection.mfont.make_glyph(uint16_t(dot_g));
 			auto& gso2 = font_collection.mfont.glyphs[uint16_t(dot_g)];
 			auto width_of_ellipsis = font_collection.mfont.text_extent(*this, ellipsis_glyphs, 0, ellipsis_glyphs.glyph_info.size());
 			*/
