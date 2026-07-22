@@ -1322,7 +1322,6 @@ void unit_counter_window::on_update(sys::state& state) noexcept {
 
 	// update flags here for efficiency: no need to send payloads
 	state.world.for_each_province([&](auto prov) {
-		GLuint flag_texture_handle;
 		auto& params = display_cache[prov.index()];
 		auto rebel_faction = params.top_left_rebel;
 		auto nation = params.top_left_nation;
@@ -1339,7 +1338,6 @@ void unit_counter_window::on_update(sys::state& state) noexcept {
 	});
 
 	state.world.for_each_province([&](auto prov) {
-		GLuint flag_texture_handle;
 		auto& params = display_cache[prov.index()];
 		auto rebel_faction = params.top_right_rebel;
 		auto nation = params.top_right_nation;
