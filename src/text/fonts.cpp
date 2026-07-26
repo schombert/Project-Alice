@@ -1,5 +1,7 @@
 #include <cmath>
 #include <bit>
+#include <cstdio>
+#include <filesystem>
 
 #include "hb.h"
 #include "hb-ft.h"
@@ -619,7 +621,12 @@ void font_at_size::make_glyph(uint16_t glyph_in, int32_t subpixel) {
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
 			textures.push_back(texid);
 			uint32_t clearvalue = 0;
+#ifdef __APPLE__
+			std::vector<uint8_t> clear_bitmap(1024 * 1024, uint8_t(clearvalue));
+			glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 1024, 1024, GL_RED, GL_UNSIGNED_BYTE, clear_bitmap.data());
+#else
 			glClearTexImage(texid, 0, GL_RED, GL_UNSIGNED_BYTE, &clearvalue);
+#endif
 		} else {
 			texid = textures.back();
 			glBindTexture(GL_TEXTURE_2D, texid);
@@ -1420,4 +1427,3 @@ void map_font::convert_contour(const FT_Outline* outline, int32_t firstIndex, in
 }
 
 } // namespace text
-

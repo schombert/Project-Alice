@@ -6,6 +6,9 @@
 #include "gui_listbox_templates.hpp"
 #include "gui_templates.hpp"
 #include "politics.hpp"
+#include "gamerule.hpp"
+#include "policy_execution.hpp"
+#include "transformation_politics.hpp"
 
 namespace ui {
 
@@ -121,6 +124,22 @@ void reform_description(sys::state& state, text::columnar_layout& contents, dcon
 	auto support = state.world.nation_get_demographics(state.local_player_nation, demographics::to_key(state, ref));
 	if(total > 0) {
 		text::add_line(state, contents, "there_are_backing", text::variable_type::val, text::fp_percentage{ support / total });
+	}
+	if(gamerule::age_of_transformation_enabled(state)) {
+		auto const political = politics::transformation::evaluate_issue_support(
+			state, state.local_player_nation, ref);
+		auto const execution = nations::policy_execution::average_effective_policy(
+			state, state.local_player_nation,
+			nations::policy_execution::policy_kind::reform_implementation);
+		text::add_line(state, contents, "alice_aot_reform_header");
+		text::add_line(state, contents, "alice_aot_reform_popular",
+			text::variable_type::x, text::fp_percentage{political.popular_support});
+		text::add_line(state, contents, "alice_aot_reform_power",
+			text::variable_type::x, text::fp_percentage{political.political_power_support});
+		text::add_line(state, contents, "alice_aot_reform_coalition",
+			text::variable_type::x, text::fp_percentage{political.coalition_support});
+		text::add_line(state, contents, "alice_aot_reform_execution",
+			text::variable_type::x, text::fp_percentage{execution});
 	}
 
 	auto mod_id = reform.get_modifier();

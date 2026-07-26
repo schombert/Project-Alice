@@ -5,6 +5,7 @@
 #include "container_types.hpp"
 #include "modifiers.hpp"
 #include "military_constants.hpp"
+#include "military_supply.hpp"
 #include "constants_dcon.hpp"
 #include <commands_constants.hpp>
 
@@ -400,6 +401,10 @@ float local_army_weight_max(sys::state& state, dcon::province_id prov);
 float local_enemy_army_weight_max(sys::state& state, dcon::province_id prov, dcon::nation_id nation);
 float attrition_amount(sys::state& state, dcon::navy_id a);
 float attrition_amount(sys::state& state, dcon::army_id a);
+// One scheduled land-attrition pulse. This is expressed in people removed
+// from the backing POPs, not regiment strength, so population forecasts can
+// account for troops standing above supply or at sea.
+float estimated_monthly_army_pop_attrition_loss(sys::state& state, dcon::nation_id n);
 float peacetime_attrition_limit(sys::state& state, dcon::nation_id n, dcon::province_id prov);
 
 enum class reinforcement_estimation_type {
@@ -500,6 +505,33 @@ void apply_attrition(sys::state& state);
 void increase_dig_in(sys::state& state);
 economy::commodity_set get_required_supply(sys::state& state, dcon::nation_id owner, dcon::army_id army);
 economy::commodity_set get_required_supply(sys::state& state, dcon::nation_id owner, dcon::navy_id navy);
+
+army_supply_access_data calculate_army_supply_access(sys::state& state, dcon::nation_id owner, dcon::province_id location);
+army_supply_access_data calculate_army_supply_access(sys::state& state, dcon::army_id army);
+// Reads the last explicitly rebuilt batch; intended for loops over many armies.
+army_supply_access_data calculate_army_supply_access_cached(sys::state& state, dcon::army_id army);
+void update_army_supply_cache(sys::state& state);
+void invalidate_army_supply_cache(sys::state& state);
+float regiment_logistics_weight(sys::state& state, dcon::regiment_id regiment);
+float army_supply_movement_factor(float supply_reserve);
+float army_replacement_logistics_load(sys::state& state, dcon::army_id army);
+float calculate_army_supply_reserve_daily_change(sys::state& state, dcon::army_id army, army_supply_access_data const& access);
+void update_army_supply_reserves(sys::state& state);
+void update_supply_depots(sys::state& state);
+bool is_supply_depot(sys::state& state, dcon::province_id province);
+float supply_depot_capacity(sys::state& state, dcon::province_id province);
+float army_supply_reinforcement_factor(float supply_reserve);
+
+struct army_supply_diagnostics {
+	int32_t army_count = 0;
+	int32_t disconnected_armies = 0;
+	int32_t low_supply_armies = 0;
+	float average_effective_supply = 0.0f;
+	float minimum_effective_supply = 0.0f;
+	int64_t calculation_time_us = 0;
+};
+
+army_supply_diagnostics calculate_army_supply_diagnostics(sys::state& state, dcon::nation_id nation);
 void recover_org(sys::state& state);
 float calculate_location_reinforce_modifier_battle(sys::state& state, dcon::province_id location, dcon::nation_id in_nation);
 float unit_get_strength(sys::state& state, dcon::regiment_id regiment_id);

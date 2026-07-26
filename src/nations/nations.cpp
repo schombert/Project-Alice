@@ -66,23 +66,31 @@ std::vector<dcon::nation_id> nation_get_subjects(sys::state& state, dcon::nation
 	return subjects;
 }
 
-int64_t get_monthly_pop_increase_of_nation(sys::state& state, dcon::nation_id n) {
-	/* TODO -
-	 * This should return the differance of the population of a nation between this month and next month, or this month and last
-	 * month, depending which one is better to implement Used in gui/topbar_subwindows/gui_population_window.hpp - Return value is
-	 * divided by 30
-	 */
-	int64_t estimated_change = 0;
-	for(auto p : state.world.nation_get_province_ownership(n)) {
-		for(auto pl : state.world.province_get_pop_location(p.get_province())) {
-			auto growth = int64_t(demographics::get_monthly_pop_increase(state, pl.get_pop()));
-			auto colonial_migration = -int64_t(demographics::get_estimated_colonial_migration(state, pl.get_pop()));
-			auto emigration = -int64_t(demographics::get_estimated_emigration(state, pl.get_pop()));
-			auto total = int64_t(growth) + colonial_migration + emigration;
-			estimated_change += total;
-		}
+int64_t get_monthly_net_external_migration(sys::state& state, dcon::nation_id n) {
+	if(!n || !state.world.nation_is_valid(n))
+		return 0;
+
+	// estimate_directed_immigration stores the bilateral flows from n's point
+	// of view: outgoing flows are negative, arrivals positive. Summing them is
+	// the only migration component that changes a country's total population.
+	std::vector<float> bilateral_flows;
+	demographics::estimate_directed_immigration(state, n, bilateral_flows);
+	double net = 0.0;
+	for(auto const amount : bilateral_flows) {
+		if(std::isfinite(amount))
+			net += double(amount);
 	}
-	return estimated_change;
+	return int64_t(std::llround(net));
+}
+
+int64_t get_monthly_pop_increase_of_nation(sys::state& state, dcon::nation_id n) {
+	if(!n || !state.world.nation_is_valid(n))
+		return 0;
+	// Colonial and internal migration only relocate POPs inside the country;
+	// subtracting them here made the forecast falsely pessimistic. Use natural
+	// growth plus the directed cross-border balance instead.
+	return demographics::get_monthly_pop_increase(state, n)
+		+ get_monthly_net_external_migration(state, n);
 }
 
 dcon::nation_id get_nth_great_power(sys::state const& state, uint16_t n) {
@@ -1337,19 +1345,22 @@ void update_industrial_scores(sys::state& state) {
 	*/
 
 	state.world.for_each_nation([&, iweight = state.defines.investment_score_factor](dcon::nation_id n) {
-		float sum = 0;
+		double sum = 0.0;
 		if(state.world.nation_get_owned_province_count(n) != 0) {
 			for(auto si : state.world.nation_get_state_ownership(n)) {
 				province::for_each_province_in_state_instance(state, si.get_state(), [&](dcon::province_id p) {
 					for(auto f : state.world.province_get_factory_location(p)) {
-						sum += 4.f * economy::get_factory_level(state, f.get_factory()) * economy::factory_total_employment_score(state, f.get_factory());
+						auto const component = 4.0 * double(economy::get_factory_level(state, f.get_factory()))
+							* double(economy::factory_total_employment_score(state, f.get_factory()));
+						if(std::isfinite(component) && component > 0.0)
+							sum += component;
 					}
 				});
 			}
 			sum += nations::get_foreign_investment_as_gp(state, n) * iweight; /* investment factor is already multiplied by 0.05f on scenario creation */
 		}
 
-		state.world.nation_set_industrial_score(n, uint16_t(sum));
+		state.world.nation_set_industrial_score(n, saturated_industrial_score(sum));
 	});
 }
 
@@ -2047,8 +2058,7 @@ float get_bank_funds(sys::state& state, dcon::nation_id n) {
 }
 
 float get_debt(sys::state& state, dcon::nation_id n) {
-	auto v = state.world.nation_get_stockpiles(n, economy::money);
-	return v < 0.0f ? -v : 0.0f;
+	return std::max(0.f, state.world.nation_get_local_loan(n));
 }
 
 // estimates rate of tariffs collected in a market
@@ -2056,7 +2066,10 @@ float tariff_efficiency(sys::state const& state, dcon::nation_id n, dcon::market
 	auto sid = state.world.market_get_zone_from_local_market(m);
 	auto pid = state.world.state_instance_get_capital(sid);
 	auto eff_mod = state.world.nation_get_modifier_values(n, sys::national_mod_offsets::tariff_efficiency_modifier);
-	auto adm_eff = state.world.province_get_control_scale(pid);
+	// control_scale is an unbounded stock of bureaucratic work used to derive
+	// control_ratio. Applying it directly made almost every non-zero province
+	// jump to 100% tariff execution and mixed incompatible units.
+	auto adm_eff = std::clamp(state.world.province_get_control_ratio(pid), 0.f, 1.f);
 	return std::clamp((state.defines.base_tariff_efficiency + eff_mod) * adm_eff, 0.f, 1.f);
 }
 

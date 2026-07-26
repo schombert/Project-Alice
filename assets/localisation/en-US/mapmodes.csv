@@ -43,6 +43,7 @@ mapmode_41;Crime
 mapmode_42;Rally points
 mapmode_43;Workforce
 mapmode_44;Mobilization
+mapmode_45;Army logistics
 legend_min_mapmode_8;Low admin
 legend_min_mapmode_19;Uncivilized
 legend_min_mapmode_7;Uncolonized
@@ -91,6 +92,14 @@ legend_max_mapmode_38;High amount
 legend_max_mapmode_39;Rich CTC ratio
 legend_max_mapmode_40;High life rating
 legend_max_mapmode_44;High regiment count
+legend_min_mapmode_45;No effective supply
+legend_max_mapmode_45;Full effective supply
+mapmode_army_supply_no_armies;No player armies in this province
+mapmode_army_supply_armies;Player armies: $x$
+mapmode_army_supply_worst;Worst effective supply: $value$
+mapmode_army_supply_average;Average effective supply: $value$
+mapmode_army_supply_summary;All armies: $x$, disconnected: $y$, average supply: $value$
+mapmode_army_supply_profile;Supply diagnostics: $x$ us
 mapmode_tooltip_34;Player: $x$ 
 mapmode_tooltip_34_you_sp;This is you! 
 mapmode_tooltip_34_you;Player: $x$ (This is you!) 

@@ -3914,6 +3914,7 @@ void stop_army_movement(sys::state& state, dcon::nation_id source, dcon::army_id
 }
 
 bool can_stop_army_movement(sys::state& state, dcon::nation_id source, dcon::army_id army) {
+	if(!state.world.army_is_valid(army)) return false;
 	if(!state.current_scene.game_in_progress) {
 		return false;
 	}
@@ -3926,6 +3927,7 @@ bool can_stop_army_movement(sys::state& state, dcon::nation_id source, dcon::arm
 }
 
 void execute_stop_army_movement(sys::state& state, dcon::nation_id source, dcon::army_id army) {
+	if(!state.world.army_is_valid(army)) return;
 	military::stop_army_movement(state, army);
 }
 
@@ -3940,6 +3942,7 @@ void stop_navy_movement(sys::state& state, dcon::nation_id source, dcon::navy_id
 }
 
 bool can_stop_navy_movement(sys::state& state, dcon::nation_id source, dcon::navy_id navy) {
+	if(!state.world.navy_is_valid(navy)) return false;
 	if(!state.current_scene.game_in_progress) {
 		return false;
 	}
@@ -3952,6 +3955,7 @@ bool can_stop_navy_movement(sys::state& state, dcon::nation_id source, dcon::nav
 }
 
 void execute_stop_navy_movement(sys::state& state, dcon::nation_id source, dcon::navy_id navy) {
+	if(!state.world.navy_is_valid(navy)) return;
 	military::stop_navy_movement(state, navy);
 }
 
@@ -4032,6 +4036,7 @@ void move_retreat_or_stop_navy(sys::state& state, dcon::nation_id source, dcon::
 }
 
 std::vector<dcon::province_id> can_move_army(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::province_id dest, bool reset) {
+	if(!state.world.army_is_valid(a)) return {};
 	if(!state.current_scene.game_in_progress) {
 		return std::vector<dcon::province_id>{};
 	}
@@ -4097,6 +4102,7 @@ std::vector<dcon::province_id> can_move_army(sys::state& state, dcon::nation_id 
 
 
 void execute_move_army(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::province_id dest, bool reset, military::special_army_order special_order) {
+	if(!state.world.army_is_valid(a)) return;
 	auto army_owner = state.world.army_get_controller_from_army_control(a);
 
 	state.world.army_set_special_order(a, (uint8_t)special_order);
@@ -4109,14 +4115,12 @@ void execute_move_army(sys::state& state, dcon::nation_id source, dcon::army_id 
 
 		// US9AC1 Command army to pursue the target
 		if(special_order == military::special_army_order::pursue_to_engage) {
-			// Target the first army in the target province
-			auto al = (*state.world.province_get_army_location(dest).begin());
-			if(al) {
-				state.world.force_create_army_pursuit(a, al.get_army());
-			}
-			else {
-				state.world.force_create_army_pursuit(a, dcon::army_id{});
-			}
+			// The target can leave or be destroyed between command validation
+			// and deterministic execution. Never dereference an empty relation.
+			auto armies = state.world.province_get_army_location(dest);
+			auto target = armies.begin();
+			state.world.force_create_army_pursuit(a,
+				target != armies.end() ? (*target).get_army().id : dcon::army_id{});
 		}
 	} else if(reset) {
 		military::stop_army_movement(state, a);
@@ -4134,6 +4138,7 @@ void move_navy(sys::state& state, dcon::nation_id source, dcon::navy_id n, dcon:
 	add_to_command_queue(state, p);
 }
 std::vector<dcon::province_id> can_move_navy(sys::state& state, dcon::nation_id source, dcon::navy_id n, dcon::province_id dest, bool reset) {
+	if(!state.world.navy_is_valid(n)) return {};
 	if(!state.current_scene.game_in_progress) {
 		return std::vector<dcon::province_id>{};
 	}
@@ -4174,6 +4179,7 @@ std::vector<dcon::province_id> can_move_navy(sys::state& state, dcon::nation_id 
 
 
 void execute_move_navy(sys::state& state, dcon::nation_id source, dcon::navy_id n, dcon::province_id dest, bool reset) {
+	if(!state.world.navy_is_valid(n)) return;
 
 	auto navy_owner = state.world.navy_get_controller_from_navy_control(n);
 
@@ -4196,6 +4202,7 @@ void embark_army(sys::state& state, dcon::nation_id source, dcon::army_id a) {
 }
 
 bool can_embark_army(sys::state& state, dcon::nation_id source, dcon::army_id a) {
+	if(!state.world.army_is_valid(a)) return false;
 	if(!state.current_scene.game_in_progress) {
 		return false;
 	}
@@ -4220,6 +4227,7 @@ bool can_embark_army(sys::state& state, dcon::nation_id source, dcon::army_id a)
 }
 
 void execute_embark_army(sys::state& state, dcon::nation_id source, dcon::army_id a) {
+	if(!state.world.army_is_valid(a)) return;
 	auto army_owner = state.world.army_get_controller_from_army_control(a);
 	if(source != military::get_effective_unit_commander(state, a))
 		return;
@@ -4255,6 +4263,7 @@ void merge_armies(sys::state& state, dcon::nation_id source, dcon::army_id a, dc
 	add_to_command_queue(state, p);
 }
 bool can_merge_armies(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::army_id b) {
+	if(!state.world.army_is_valid(a) || !state.world.army_is_valid(b) || a == b) return false;
 	if(!state.current_scene.game_in_progress) {
 		return false;
 	}
@@ -4284,6 +4293,25 @@ bool can_merge_armies(sys::state& state, dcon::nation_id source, dcon::army_id a
 }
 
 void execute_merge_armies(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::army_id b) {
+	if(!can_merge_armies(state, source, a, b)) return;
+	// Preserve the material represented by each reserve. Keeping only army A's
+	// percentage made merge results depend on argument order and allowed an
+	// almost-empty army to inherit a full reserve for free.
+	float a_logistics_demand = 0.f;
+	float b_logistics_demand = 0.f;
+	for(auto membership : state.world.army_get_army_membership(a))
+		a_logistics_demand += military::regiment_logistics_weight(state, membership.get_regiment());
+	for(auto membership : state.world.army_get_army_membership(b))
+		b_logistics_demand += military::regiment_logistics_weight(state, membership.get_regiment());
+	auto total_logistics_demand = a_logistics_demand + b_logistics_demand;
+	auto merged_reserve = total_logistics_demand > 0.f
+		? (std::clamp(state.world.army_get_supply_reserve(a), 0.f, 1.f) * a_logistics_demand
+			+ std::clamp(state.world.army_get_supply_reserve(b), 0.f, 1.f) * b_logistics_demand)
+			/ total_logistics_demand
+		: 0.5f * (std::clamp(state.world.army_get_supply_reserve(a), 0.f, 1.f)
+			+ std::clamp(state.world.army_get_supply_reserve(b), 0.f, 1.f));
+	auto merged_priority = std::max(
+		state.world.army_get_supply_priority(a), state.world.army_get_supply_priority(b));
 	// take leader
 	auto a_leader = state.world.army_get_general_from_army_leadership(a);
 	auto b_leader = state.world.army_get_general_from_army_leadership(b);
@@ -4305,6 +4333,9 @@ void execute_merge_armies(sys::state& state, dcon::nation_id source, dcon::army_
 		auto reg = (*regs.begin()).get_regiment();
 		reg.set_army_from_army_membership(a);
 	}
+	state.world.army_set_supply_reserve(a, std::clamp(merged_reserve, 0.f, 1.f));
+	state.world.army_set_supply_priority(a, merged_priority);
+	military::invalidate_army_supply_cache(state);
 
 	if(source == state.local_player_nation) {
 		state.ui_state.invoke_on_ui_thread([](sys::state& state, ui::ui_function_argument arg) {
@@ -4322,6 +4353,7 @@ void merge_navies(sys::state& state, dcon::nation_id source, dcon::navy_id a, dc
 	add_to_command_queue(state, p);
 }
 bool can_merge_navies(sys::state& state, dcon::nation_id source, dcon::navy_id a, dcon::navy_id b) {
+	if(!state.world.navy_is_valid(a) || !state.world.navy_is_valid(b) || a == b) return false;
 	if(!state.current_scene.game_in_progress) {
 		return false;
 	}
@@ -4348,6 +4380,7 @@ bool can_merge_navies(sys::state& state, dcon::nation_id source, dcon::navy_id a
 }
 
 void execute_merge_navies(sys::state& state, dcon::nation_id source, dcon::navy_id a, dcon::navy_id b) {
+	if(!can_merge_navies(state, source, a, b)) return;
 
 	military::stop_navy_movement(state, a);
 
@@ -4372,6 +4405,7 @@ void disband_undermanned_regiments(sys::state& state, dcon::nation_id source, dc
 	add_to_command_queue(state, p);
 }
 bool can_disband_undermanned_regiments(sys::state& state, dcon::nation_id source, dcon::army_id a) {
+	if(!state.world.army_is_valid(a)) return false;
 	if(!state.current_scene.game_in_progress) {
 		return false;
 	}
@@ -4379,6 +4413,7 @@ bool can_disband_undermanned_regiments(sys::state& state, dcon::nation_id source
 		!bool(state.world.army_get_battle_from_army_battle_participation(a));
 }
 void execute_disband_undermanned_regiments(sys::state& state, dcon::nation_id source, dcon::army_id a) {
+	if(!state.world.army_is_valid(a)) return;
 	std::vector<dcon::regiment_id> regs;
 	for(auto r : state.world.army_get_army_membership(a)) {
 		auto pop = r.get_regiment().get_pop_from_regiment_source();
@@ -4398,6 +4433,7 @@ void toggle_rebel_hunting(sys::state& state, dcon::nation_id source, dcon::army_
 	add_to_command_queue(state, p);
 }
 void execute_toggle_rebel_hunting(sys::state& state, dcon::nation_id source, dcon::army_id a) {
+	if(!state.world.army_is_valid(a)) return;
 	auto owner = state.world.army_get_controller_from_army_control(a);
 	if(owner != source)
 		return;
@@ -4430,6 +4466,7 @@ void toggle_unit_ai_control(sys::state& state, dcon::nation_id source, dcon::arm
 	add_to_command_queue(state, p);
 }
 void execute_toggle_unit_ai_control(sys::state& state, dcon::nation_id source, dcon::army_id a) {
+	if(!state.world.army_is_valid(a)) return;
 	auto owner = state.world.army_get_controller_from_army_control(a);
 	if(owner != source)
 		return;
@@ -4685,10 +4722,11 @@ bool can_split_army(sys::state& state, dcon::nation_id source, command_data& com
 		assert(false && "Variable command with a inconsistent size recieved!");
 		return false;
 	}
-	return military::can_split_army<command::actor::player>(state, source, payload.army, std::span<const dcon::regiment_id>(payload.regiments(), payload.regiment_count));
+	return state.world.army_is_valid(payload.army) && military::can_split_army<command::actor::player>(state, source, payload.army, std::span<const dcon::regiment_id>(payload.regiments(), payload.regiment_count));
 }
 void execute_split_army(sys::state& state, dcon::nation_id source, command_data& command) {
 	const auto& payload = command.get_payload< split_army_data>();
+	if(!state.world.army_is_valid(payload.army)) return;
 	military::split_army<command::actor::player>(state, source, payload.army, std::span<const dcon::regiment_id>(payload.regiments(), payload.regiment_count), payload.select_both_armies);
 }
 
@@ -4713,10 +4751,11 @@ bool can_split_navy(sys::state& state, dcon::nation_id source, command_data& com
 		assert(false && "Variable command with a inconsistent size recieved!");
 		return false;
 	}
-	return military::can_split_navy<command::actor::player>(state, source, payload.navy, std::span<const dcon::ship_id>(payload.ships(), payload.ship_count));
+	return state.world.navy_is_valid(payload.navy) && military::can_split_navy<command::actor::player>(state, source, payload.navy, std::span<const dcon::ship_id>(payload.ships(), payload.ship_count));
 }
 void execute_split_navy(sys::state& state, dcon::nation_id source, command_data& command) {
 	const auto& payload = command.get_payload< split_navy_data>();
+	if(!state.world.navy_is_valid(payload.navy)) return;
 	return military::split_navy<command::actor::player>(state, source, payload.navy, std::span<const dcon::ship_id>(payload.ships(), payload.ship_count), payload.select_both_navies);
 }
 
@@ -4729,6 +4768,7 @@ void delete_army(sys::state& state, dcon::nation_id source, dcon::army_id a) {
 
 }
 bool can_delete_army(sys::state& state, dcon::nation_id source, dcon::army_id a) {
+	if(!state.world.army_is_valid(a)) return false;
 	if(!state.current_scene.game_in_progress) {
 		return false;
 	}
@@ -4745,6 +4785,7 @@ bool can_delete_army(sys::state& state, dcon::nation_id source, dcon::army_id a)
 		);
 }
 void execute_delete_army(sys::state& state, dcon::nation_id source, dcon::army_id a) {
+	if(!state.world.army_is_valid(a)) return;
 	if(source == state.local_player_nation) {
 		state.ui_state.invoke_on_ui_thread([](sys::state& state, ui::ui_function_argument arg) {
 			state.deselect(arg.army);
@@ -4765,6 +4806,7 @@ void delete_navy(sys::state& state, dcon::nation_id source, dcon::navy_id a) {
 }
 
 bool can_delete_navy(sys::state& state, dcon::nation_id source, dcon::navy_id a) {
+	if(!state.world.navy_is_valid(a)) return false;
 	if(!state.current_scene.game_in_progress) {
 		return false;
 	}
@@ -4774,6 +4816,7 @@ bool can_delete_navy(sys::state& state, dcon::nation_id source, dcon::navy_id a)
 		province::has_naval_access_to_province(state, source, state.world.navy_get_location_from_navy_location(a));
 }
 void execute_delete_navy(sys::state& state, dcon::nation_id source, dcon::navy_id a) {
+	if(!state.world.navy_is_valid(a)) return;
 	if(source == state.local_player_nation) {
 		state.ui_state.invoke_on_ui_thread([](sys::state& state, ui::ui_function_argument arg) {
 			state.deselect(arg.navy);
@@ -4791,6 +4834,7 @@ void change_general(sys::state& state, dcon::nation_id source, dcon::army_id a, 
 	add_to_command_queue(state, p);
 }
 bool can_change_general(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::leader_id l) {
+	if(!state.world.army_is_valid(a)) return false;
 	if(!state.current_scene.game_in_progress) {
 		return false;
 	}
@@ -4800,6 +4844,7 @@ bool can_change_general(sys::state& state, dcon::nation_id source, dcon::army_id
 		(!l || state.world.leader_get_nation_from_leader_loyalty(l) == source);
 }
 void execute_change_general(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::leader_id l) {
+	if(!state.world.army_is_valid(a)) return;
 	state.world.army_set_general_from_army_leadership(a, l);
 }
 
@@ -4812,6 +4857,7 @@ void change_admiral(sys::state& state, dcon::nation_id source, dcon::navy_id a, 
 	add_to_command_queue(state, p);
 }
 bool can_change_admiral(sys::state& state, dcon::nation_id source, dcon::navy_id a, dcon::leader_id l) {
+	if(!state.world.navy_is_valid(a)) return false;
 	if(!state.current_scene.game_in_progress) {
 		return false;
 	}
@@ -4821,6 +4867,7 @@ bool can_change_admiral(sys::state& state, dcon::nation_id source, dcon::navy_id
 		(!l || state.world.leader_get_nation_from_leader_loyalty(l) == source);
 }
 void execute_change_admiral(sys::state& state, dcon::nation_id source, dcon::navy_id a, dcon::leader_id l) {
+	if(!state.world.navy_is_valid(a)) return;
 	state.world.navy_set_admiral_from_navy_leadership(a, l);
 }
 
@@ -5243,6 +5290,46 @@ void execute_toggle_local_administration(sys::state& state, dcon::nation_id sour
 		state.world.administration_set_capital(admin, p);
 		state.world.force_create_nation_administration(admin, source);
 	}
+}
+
+void toggle_supply_depot(sys::state& state, dcon::nation_id, dcon::province_id prov) {
+	command_data command{ command_type::toggle_supply_depot, state.local_player_id };
+	auto data = generic_location_data{ prov };
+	command << data;
+	add_to_command_queue(state, command);
+}
+
+bool can_toggle_supply_depot(sys::state& state, dcon::nation_id source, dcon::province_id prov) {
+	return state.current_scene.game_in_progress && source && prov
+		&& prov.index() < state.province_definitions.first_sea_province.index()
+		&& state.world.province_get_nation_from_province_ownership(prov) == source
+		&& state.world.province_get_nation_from_province_control(prov) == source;
+}
+
+void execute_toggle_supply_depot(sys::state& state, dcon::nation_id source, dcon::province_id prov) {
+	auto enabled = !state.world.province_get_is_supply_depot(prov);
+	state.world.province_set_is_supply_depot(prov, enabled);
+	state.world.province_set_supply_depot_owner(prov, enabled ? source : dcon::nation_id{});
+	if(!enabled) state.world.province_set_supply_depot_stockpile(prov, 0.0f);
+	military::invalidate_army_supply_cache(state);
+}
+
+void set_army_supply_priority(sys::state& state, dcon::nation_id, dcon::army_id army, uint8_t priority) {
+	command_data command{ command_type::set_army_supply_priority, state.local_player_id };
+	auto data = army_supply_priority_data{ army, uint8_t(std::min<uint8_t>(priority, 2)) };
+	command << data;
+	add_to_command_queue(state, command);
+}
+
+bool can_set_army_supply_priority(sys::state& state, dcon::nation_id source, dcon::army_id army, uint8_t priority) {
+	return state.current_scene.game_in_progress && source && state.world.army_is_valid(army) && priority <= 2
+		&& state.world.army_get_controller_from_army_control(army) == source;
+}
+
+void execute_set_army_supply_priority(sys::state& state, dcon::army_id army, uint8_t priority) {
+	if(!state.world.army_is_valid(army) || priority > 2) return;
+	state.world.army_set_supply_priority(army, priority);
+	military::invalidate_army_supply_cache(state);
 }
 
 void toggle_production_directive(sys::state& state, dcon::nation_id source, dcon::state_instance_id for_state, dcon::production_directive_id directive) {
@@ -6941,6 +7028,16 @@ bool can_perform_command(sys::state& state, command_data& c) {
 		auto& data = c.get_payload<command::generic_location_data>();
 		return can_toggle_local_administration(state, source, data.prov);
 	}
+	case command_type::toggle_supply_depot:
+	{
+		auto& data = c.get_payload<command::generic_location_data>();
+		return can_toggle_supply_depot(state, source, data.prov);
+	}
+	case command_type::set_army_supply_priority:
+	{
+		auto& data = c.get_payload<command::army_supply_priority_data>();
+		return can_set_army_supply_priority(state, source, data.army, data.priority);
+	}
 
 	case command_type::take_province:
 	{
@@ -7714,6 +7811,18 @@ void execute_command(sys::state& state, command_data& c) {
 	{
 		auto& data = c.get_payload<generic_location_data>();
 		execute_toggle_local_administration(state, source_nation, data.prov);
+		break;
+	}
+	case command_type::toggle_supply_depot:
+	{
+		auto& data = c.get_payload<generic_location_data>();
+		execute_toggle_supply_depot(state, source_nation, data.prov);
+		break;
+	}
+	case command_type::set_army_supply_priority:
+	{
+		auto& data = c.get_payload<army_supply_priority_data>();
+		execute_set_army_supply_priority(state, data.army, data.priority);
 		break;
 	}
 	case command_type::take_province:

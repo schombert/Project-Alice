@@ -24,6 +24,7 @@
 #include "lua_alice_api.hpp"
 #include "demographics.hpp"
 #include "economy_pops.hpp"
+#include "human_development.hpp"
 #include "advanced_province_buildings.hpp"
 #include "gamerules.cpp"
 #include "macrobuilder2.cpp"
@@ -3671,6 +3672,28 @@ void describe_growth(sys::state& state, text::columnar_layout& contents, dcon::p
 	text::add_line(state, contents, "pop_growth_10", text::variable_type::x, text::fp_percentage_two_places{ state.defines.alice_max_starvation_degrowth }, text::variable_type::y, text::fp_percentage_two_places{ ln_penalty_scale }, text::variable_type::val, text::fp_percentage_two_places{modifiers });
 	text::add_line(state, contents, "pop_growth_11", text::variable_type::x, text::fp_percentage{ state.defines.life_need_starvation_limit }, text::variable_type::y, text::fp_one_place{ ln_factor });
 	text::add_line(state, contents, "pop_growth_12", text::variable_type::x, text::fp_one_place{ ln_factor }, text::variable_type::y, text::fp_percentage_two_places{ln_penalty_scale }, text::variable_type::val, text::fp_percentage_two_places{ln_penalty });
+
+	auto const development = economy::human_development::evaluate_pop(state, ids);
+	if(development.enabled) {
+		text::add_line(state, contents, "pop_growth_13",
+			text::variable_type::x, text::fp_percentage{development.factors.housing_access},
+			text::variable_type::y, text::fp_percentage{development.factors.urbanization},
+			text::variable_type::val, text::fp_percentage{development.overcrowding});
+		text::add_line(state, contents, "pop_growth_14",
+			text::variable_type::x, text::fp_percentage_two_places{
+				-development.monthly_overcrowding_growth_penalty},
+			text::variable_type::y, text::fp_two_places{
+				development.monthly_militancy_adjustment});
+		text::add_line(state, contents, "pop_growth_15",
+			text::variable_type::x, text::fp_percentage{development.demographic_transition},
+			text::variable_type::y, text::fp_percentage{development.factors.literacy},
+			text::variable_type::val, text::fp_percentage{development.factors.education_access},
+			text::variable_type::value, text::fp_percentage_two_places{
+				-development.monthly_transition_growth_reduction});
+		text::add_line(state, contents, "pop_growth_16",
+			text::variable_type::x, text::fp_percentage{
+				development.human_development_index});
+	}
 }
 
 void describe_assimilation(sys::state& state, text::columnar_layout& contents, dcon::pop_id ids) {

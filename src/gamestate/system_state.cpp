@@ -1081,6 +1081,16 @@ void state::on_create() {
 
 	ui::adjust_in_game_windows(*this);
 	map_mode::set_map_mode(*this, map_mode::mode::political);
+
+	// Opt-in visual QA hook for native UI work. It is intentionally controlled
+	// by the environment so normal players always keep the nation picker flow,
+	// while screenshots and release smoke tests can open this dashboard without
+	// requiring macOS Accessibility permissions for synthetic clicks.
+	if(auto const* preview = std::getenv("ALICE_TRADE_DASHBOARD_PREVIEW"); preview && preview[0] == '1') {
+		game_scene::switch_scene(*this, game_scene::scene_id::in_game_basic);
+		if(ui_state.trade_subwindow)
+			ui_state.trade_subwindow->set_visible(*this, true);
+	}
 }
 //
 // string pool functions
@@ -1729,7 +1739,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 			auto opened_file = open_file(province_file);
 			if(opened_file) {
 				auto content = view_contents(*opened_file);
-				lua_combined_script += content.data;
+				lua_combined_script.append(content.data, content.file_size);
 				simple_fs::standardize_newlines(lua_combined_script);
 				lua_combined_script += "\n";
 			}
@@ -1738,7 +1748,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 		auto hand_written_wrappers = open_file(assets_lua, NATIVE("custom_ffi.lua"));
 		if(hand_written_wrappers) {
 			auto content = view_contents(*hand_written_wrappers);
-			lua_combined_script += content.data;
+			lua_combined_script.append(content.data, content.file_size);
 			simple_fs::standardize_newlines(lua_combined_script);
 			lua_combined_script += "\n";
 		}
@@ -1748,7 +1758,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 		auto game_loop = open_file(assets_lua, NATIVE("loader_game_loop.lua"));
 		if(game_loop) {
 			auto content = view_contents(*game_loop);
-			lua_game_loop_script += content.data;
+			lua_game_loop_script.append(content.data, content.file_size);
 			simple_fs::standardize_newlines(lua_game_loop_script);
 			lua_game_loop_script += "\n";
 		}
@@ -1758,7 +1768,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 		auto ui_script = open_file(assets_lua, NATIVE("loader_ui.lua"));
 		if(ui_script) {
 			auto content = view_contents(*ui_script);
-			lua_ui_script += content.data;
+			lua_ui_script.append(content.data, content.file_size);
 			simple_fs::standardize_newlines(lua_ui_script);
 			lua_ui_script += "\n";
 		}
@@ -1769,7 +1779,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 			auto opened_file = open_file(lua_file);
 			if(opened_file) {
 				auto content = view_contents(*opened_file);
-				lua_combined_script += content.data;
+				lua_combined_script.append(content.data, content.file_size);
 				simple_fs::standardize_newlines(lua_combined_script);
 				lua_combined_script += "\n";
 			}
@@ -1781,7 +1791,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 			auto opened_file = open_file(lua_file);
 			if(opened_file) {
 				auto content = view_contents(*opened_file);
-				lua_combined_script += content.data;
+				lua_combined_script.append(content.data, content.file_size);
 				simple_fs::standardize_newlines(lua_combined_script);
 				lua_combined_script += "\n";
 			}
@@ -3511,7 +3521,25 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	current_scene.game_in_progress = old_game_in_prog;
 }
 
+void state::clear_army_supply_derived_data() {
+	army_supply_access_cache.clear();
+	army_supply_capacity_factor_cache.clear();
+	army_supply_route_capacity_cache.clear();
+	army_supply_route_demand_cache.clear();
+	army_supply_army_demand_cache.clear();
+	army_supply_depot_delivery_cache.clear();
+	army_supply_depot_draw_cache.clear();
+	army_supply_source_cache.clear();
+	army_supply_source_is_depot_cache.clear();
+	supply_depot_incoming_cache.clear();
+	supply_depot_served_armies_cache.clear();
+	supply_depot_connected_cache.clear();
+	army_supply_cache_valid = false;
+}
+
 void state::clear_unsaved_data() {
+	clear_army_supply_derived_data();
+	politics::transformation::invalidate_cache(*this);
 
 	/*unit_names.clear();
 	unit_names_indices.clear();
@@ -3944,6 +3972,8 @@ void state::on_scenario_load() {
 }
 
 void state::fill_unsaved_data() { // reconstructs derived values that are not directly saved after a save has been loaded
+	clear_army_supply_derived_data();
+	politics::transformation::invalidate_cache(*this);
 	// reset ui gamerule settings to match the actual setting of the save
 	gamerule::restore_gamerule_ui_settings(*this);
 	great_nations.reserve(int32_t(defines.great_nations_count));
@@ -4022,6 +4052,23 @@ void state::fill_unsaved_data() { // reconstructs derived values that are not di
 
 	province::update_connected_regions(*this);
 	province::restore_unsaved_values(*this);
+
+	// Saves produced by the ARM64 null-tag bug may contain a controller relation
+	// pointing past the end of the nation/rebel tables.  Repair those provinces
+	// while loading so an affected save does not reopen as a world-wide revolt.
+	world.for_each_province([&](dcon::province_id prov) {
+		auto const owner = world.province_get_nation_from_province_ownership(prov);
+		auto const controller = world.province_get_nation_from_province_control(prov);
+		auto const rebel_controller =
+			world.province_get_rebel_faction_from_province_rebel_control(prov);
+		auto const invalid_controller = controller
+			&& uint32_t(controller.index()) >= world.nation_size();
+		auto const invalid_rebel_controller = rebel_controller
+			&& uint32_t(rebel_controller.index()) >= world.rebel_faction_size();
+		if(owner && (invalid_controller || invalid_rebel_controller)) {
+			province::set_province_controller(*this, prov, owner);
+		}
+	});
 
 	culture::update_all_nations_issue_rules(*this);
 	culture::restore_unsaved_values(*this);
@@ -4367,14 +4414,21 @@ void state::single_game_tick() {
 
 	int64_t pc_difference = 0;
 
-	if(network_mode != network_mode_type::single_player)
+	if(network_mode != network_mode_type::single_player) {
 		demographics::regenerate_from_pop_data_daily(*this);
+	} else {
+		// Build the alternate aggregates from one coherent pre-economy POP
+		// snapshot. Running this alongside the gameplay branch allowed it to
+		// observe a schedule-dependent mix of old and new employment, literacy
+		// and satisfaction values before the buffers were swapped.
+		demographics::alt_regenerate_from_pop_data_daily(*this);
+	}
 
 	//
 	// ALTERNATE PAR DEMO START POINT A
 	//
 
-	concurrency::parallel_invoke([&]() {
+	{
 		// values updates pass 1 (mostly trivial things, can be done in parallel)
 		concurrency::parallel_for(0, 15, [&](int32_t index) {
 			switch(index) {
@@ -4449,6 +4503,7 @@ void state::single_game_tick() {
 		military::update_land_battles(*this);
 
 		military::advance_mobilizations(*this);
+		military::update_army_supply_reserves(*this);
 
 		province::update_colonization(*this);
 		military::update_cbs(*this); // may add/remove cbs to a nation
@@ -4536,6 +4591,7 @@ void state::single_game_tick() {
 			break;
 		case 15:
 			culture::discover_inventions(*this);
+			politics::transformation::refresh_all_nations(*this);
 			break;
 		case 16:
 			ai::build_ships(*this);
@@ -4687,12 +4743,7 @@ void state::single_game_tick() {
 		province::update_cached_values(*this);
 		nations::update_cached_values(*this);
 
-	},
-	[&]() {
-		if(network_mode == network_mode_type::single_player)
-			demographics::alt_regenerate_from_pop_data_daily(*this);
 	}
-	);
 
 	if(network_mode == network_mode_type::single_player) {
 		world.nation_swap_demographics_demographics_alt();

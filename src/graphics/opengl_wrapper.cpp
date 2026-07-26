@@ -10,6 +10,9 @@
 #undef STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
+#include <cstdio>
+#include <cstdlib>
+
 namespace ogl {
 
 std::string_view opengl_get_error_name(GLenum t) {
@@ -43,9 +46,93 @@ void notify_user_of_fatal_opengl_error(std::string message) {
 }
 
 static std::string shader_prefix = "";
+static std::string shader_prefix_apple_ui = "";
+static std::string shader_prefix_apple_geometry = "";
 
 void set_shader_prefix(std::string_view source) {
 	shader_prefix = std::string(source);
+}
+
+void set_shader_prefix_apple_ui(std::string_view source) {
+	shader_prefix_apple_ui = std::string(source);
+}
+
+void set_shader_prefix_apple_geometry(std::string_view source) {
+	shader_prefix_apple_geometry = std::string(source);
+}
+
+static std::string_view active_shader_prefix(std::string_view source) {
+#ifdef __APPLE__
+	if(source.find("point_to_ogl_space") != std::string_view::npos
+		|| source.find("point_to_sphere") != std::string_view::npos
+		|| source.find("smootherstep") != std::string_view::npos
+		|| source.find("square_tangent") != std::string_view::npos
+		|| source.find("get_land_") != std::string_view::npos
+		|| source.find("get_terrain_mix") != std::string_view::npos
+		|| source.find("province_highlight") != std::string_view::npos
+		|| source.find("graphics_mode") != std::string_view::npos) {
+		return shader_prefix_apple_geometry;
+	}
+	return shader_prefix_apple_ui;
+#endif
+	return shader_prefix;
+}
+
+#ifdef __APPLE__
+static std::string normalize_apple_geometry_shader_source(std::string_view source) {
+	std::string normalized;
+	normalized.reserve(source.size());
+	size_t start = 0;
+	while(start <= source.size()) {
+		size_t end = source.find('\n', start);
+		if(end == std::string_view::npos) {
+			end = source.size();
+		}
+		auto line = std::string_view(source.data() + start, end - start);
+		if(line.ends_with("};") && !line.starts_with("struct ")) {
+			normalized.append(line.data(), line.size() - 1);
+		} else {
+			normalized.append(line.data(), line.size());
+		}
+		if(end == source.size()) {
+			break;
+		}
+		normalized.push_back('\n');
+		start = end + 1;
+	}
+	return normalized;
+}
+#endif
+
+static bool dump_shaders_enabled() {
+	static bool enabled = [] {
+		auto const* value = std::getenv("ALICE_DUMP_SHADERS");
+		return value && value[0] == '1';
+	}();
+	return enabled;
+}
+
+static void dump_numbered_source(char const* label, std::string_view source) {
+	if(!dump_shaders_enabled()) {
+		return;
+	}
+	std::fprintf(stderr, "SHADER_DUMP_BEGIN %s\n", label);
+	size_t line_no = 1;
+	size_t start = 0;
+	while(start <= source.size()) {
+		size_t end = source.find('\n', start);
+		if(end == std::string_view::npos) {
+			end = source.size();
+		}
+		auto line = std::string_view(source.data() + start, end - start);
+		std::fprintf(stderr, "%4zu|%.*s\n", line_no++, int(line.size()), line.data());
+		if(end == source.size()) {
+			break;
+		}
+		start = end + 1;
+	}
+	std::fprintf(stderr, "SHADER_DUMP_END %s\n", label);
+	std::fflush(stderr);
 }
 
 GLint compile_shader(std::string_view source, GLenum type) {
@@ -56,10 +143,18 @@ GLint compile_shader(std::string_view source, GLenum type) {
 	}
 
 	std::string s_source(source);
-	GLchar const* texts[] = {
-		shader_prefix.c_str(),
-		s_source.c_str()
-	};
+	auto const prefix = active_shader_prefix(source);
+	std::string combined_source;
+	if(!prefix.empty()) {
+		combined_source.append(prefix.data(), prefix.size());
+	}
+#ifdef __APPLE__
+	if(prefix.data() == shader_prefix_apple_geometry.data() && prefix.size() == shader_prefix_apple_geometry.size()) {
+		s_source = normalize_apple_geometry_shader_source(s_source);
+	}
+#endif
+	dump_numbered_source(type == GL_VERTEX_SHADER ? "vertex" : "fragment", combined_source + s_source);
+	GLchar const* texts[] = { combined_source.c_str(), s_source.c_str() };
 	glShaderSource(return_value, 2, texts, nullptr);
 	glCompileShader(return_value);
 
@@ -242,6 +337,13 @@ void deinitialize_framebuffer_for_province_indices(sys::state& state) {
 }
 
 void initialize_msaa(sys::state& state, int32_t size_x, int32_t size_y) {
+#ifdef __APPLE__
+	// The legacy OpenGL implementation on macOS becomes unreliable when this
+	// multisample/post-process framebuffer is recreated during window resizing.
+	// Render directly to the default framebuffer instead.
+	state.open_gl.msaa_enabled = false;
+	return;
+#endif
 	if(state.user_settings.antialias_level == 0)
 		return;
 	if(!size_x || !size_y)
@@ -350,8 +452,10 @@ void deinitialize_msaa(sys::state& state) {
 void initialize_opengl(sys::state& state) {
 	create_opengl_context(state);
 
+#ifndef __APPLE__
 	glProvokingVertex(GL_FIRST_VERTEX_CONVENTION);
 	glEnable(GL_LINE_SMOOTH);
+#endif
 
 	load_shaders(state); // create shaders
 	load_global_squares(state); // create various squares to drive the shaders with
@@ -453,7 +557,30 @@ void load_shaders(sys::state& state) {
 	auto prefix_shader = simple_fs::open_file(root, NATIVE("assets/shaders/glsl/_geometry.glsl"));
 	auto prefix_content = simple_fs::view_contents(prefix_shader.value());
 	auto prefix_view = std::string_view(prefix_content.data, prefix_content.file_size);
+#ifdef __APPLE__
+	static std::string apple_geometry_prefix_source;
+	apple_geometry_prefix_source.assign("#version 410 core\n#define ALICE_OPENGL_41 1\n#define M_PI 3.1415926535897932384626433832795\n#define PI 3.1415926535897932384626433832795\n");
+	size_t start = 0;
+	for(int line_index = 0; start < prefix_view.size(); ++line_index) {
+		size_t end = prefix_view.find('\n', start);
+		if(end == std::string_view::npos)
+			end = prefix_view.size();
+		std::string_view line(prefix_view.data() + start, end - start);
+		if(line_index >= 12) {
+			if(line == "};") {
+				apple_geometry_prefix_source.push_back('}');
+			} else {
+				apple_geometry_prefix_source.append(line.data(), line.size());
+			}
+			apple_geometry_prefix_source.push_back('\n');
+		}
+		start = end + 1;
+	}
+	ogl::set_shader_prefix_apple_geometry(apple_geometry_prefix_source);
+	ogl::set_shader_prefix_apple_ui("#version 410 core\n#define M_PI 3.1415926535897932384626433832795\n#define PI 3.1415926535897932384626433832795\n");
+#else
 	ogl::set_shader_prefix(prefix_view);
+#endif
 
 	auto ui_fshader = open_file(root, NATIVE("assets/shaders/glsl/ui_f_shader.glsl"));
 	auto ui_vshader = open_file(root, NATIVE("assets/shaders/glsl/ui_v_shader.glsl"));
@@ -492,13 +619,17 @@ void load_global_squares(sys::state& state) {
 	glBindVertexArray(state.open_gl.global_square_vao);
 	glEnableVertexAttribArray(0); // position
 	glEnableVertexAttribArray(1); // texture coordinates
-
+#ifdef __APPLE__
+	glBindBuffer(GL_ARRAY_BUFFER, state.open_gl.global_square_buffer);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 4, (void*)0);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 4, (void*)(sizeof(GLfloat) * 2));
+#else
 	glBindVertexBuffer(0, state.open_gl.global_square_buffer, 0, sizeof(GLfloat) * 4);
-
 	glVertexAttribFormat(0, 2, GL_FLOAT, GL_FALSE, 0);									 // position
 	glVertexAttribFormat(1, 2, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 2); // texture coordinates
 	glVertexAttribBinding(0, 0);																				 // position -> to array zero
 	glVertexAttribBinding(1, 0);																				 // texture coordinates -> to array zero
+#endif
 
 	glGenBuffers(1, &state.open_gl.global_square_left_buffer);
 	glBindBuffer(GL_ARRAY_BUFFER, state.open_gl.global_square_left_buffer);
@@ -555,25 +686,40 @@ void load_global_squares(sys::state& state) {
 	}
 }
 
+// macOS exposes OpenGL 4.1. The vertex-attrib-binding API used by
+// glBindVertexBuffer is only core in 4.3, so Apple's driver needs the classic
+// GL_ARRAY_BUFFER + glVertexAttribPointer path whenever a UI mesh changes its
+// vertex buffer. Keeping this in one helper also covers charts and generated
+// meshes, not just the global textured quad.
+static void bind_ui_vertex_buffer(GLuint buffer_handle) {
+#ifdef __APPLE__
+	glBindBuffer(GL_ARRAY_BUFFER, buffer_handle);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 4, (void*)0);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 4, (void*)(sizeof(GLfloat) * 2));
+#else
+	glBindVertexBuffer(0, buffer_handle, 0, sizeof(GLfloat) * 4);
+#endif
+}
+
 void bind_vertices_by_rotation(sys::state const& state, ui::rotation r, bool flipped, bool rtl) {
 	switch(r) {
 	case ui::rotation::upright:
 		if(!flipped)
-			glBindVertexBuffer(0, rtl ? state.open_gl.global_rtl_square_buffer : state.open_gl.global_square_buffer, 0, sizeof(GLfloat) * 4);
+			bind_ui_vertex_buffer(rtl ? state.open_gl.global_rtl_square_buffer : state.open_gl.global_square_buffer);
 		else
-			glBindVertexBuffer(0, rtl ? state.open_gl.global_rtl_square_flipped_buffer : state.open_gl.global_square_flipped_buffer, 0, sizeof(GLfloat) * 4);
+			bind_ui_vertex_buffer(rtl ? state.open_gl.global_rtl_square_flipped_buffer : state.open_gl.global_square_flipped_buffer);
 		break;
 	case ui::rotation::r90_left:
 		if(!flipped)
-			glBindVertexBuffer(0, rtl ? state.open_gl.global_rtl_square_left_buffer: state.open_gl.global_square_left_buffer, 0, sizeof(GLfloat) * 4);
+			bind_ui_vertex_buffer(rtl ? state.open_gl.global_rtl_square_left_buffer: state.open_gl.global_square_left_buffer);
 		else
-			glBindVertexBuffer(0, rtl ? state.open_gl.global_rtl_square_left_flipped_buffer : state.open_gl.global_square_left_flipped_buffer, 0, sizeof(GLfloat) * 4);
+			bind_ui_vertex_buffer(rtl ? state.open_gl.global_rtl_square_left_flipped_buffer : state.open_gl.global_square_left_flipped_buffer);
 		break;
 	case ui::rotation::r90_right:
 		if(!flipped)
-			glBindVertexBuffer(0, rtl ? state.open_gl.global_rtl_square_right_buffer : state.open_gl.global_square_right_buffer, 0, sizeof(GLfloat) * 4);
+			bind_ui_vertex_buffer(rtl ? state.open_gl.global_rtl_square_right_buffer : state.open_gl.global_square_right_buffer);
 		else
-			glBindVertexBuffer(0, rtl ? state.open_gl.global_rtl_square_right_flipped_buffer : state.open_gl.global_square_right_flipped_buffer, 0, sizeof(GLfloat) * 4);
+			bind_ui_vertex_buffer(rtl ? state.open_gl.global_rtl_square_right_flipped_buffer : state.open_gl.global_square_right_flipped_buffer);
 		break;
 	}
 }
@@ -601,7 +747,7 @@ void render_alpha_colored_rect(
 	float red, float green, float blue, float alpha
 ) {
 	glBindVertexArray(state.open_gl.global_square_vao);
-	glBindVertexBuffer(0, state.open_gl.global_square_buffer, 0, sizeof(GLfloat) * 4);
+	bind_ui_vertex_buffer(state.open_gl.global_square_buffer);
 	glUniform4f(state.open_gl.ui_shader_d_rect_uniform, x, y, width, height);
 	GLuint subroutines[2] = { map_color_modification_to_index(color_modification::none), parameters::alpha_color };
 	glUniform2ui(state.open_gl.ui_shader_subroutines_index_uniform, subroutines[0], subroutines[1]);
@@ -640,7 +786,7 @@ void render_textured_rect(sys::state const& state, color_modification enabled, f
 void render_textured_rect_direct(sys::state const& state, float x, float y, float width, float height, uint32_t handle) {
 	glBindVertexArray(state.open_gl.global_square_vao);
 
-	glBindVertexBuffer(0, state.open_gl.global_square_buffer, 0, sizeof(GLfloat) * 4);
+	bind_ui_vertex_buffer(state.open_gl.global_square_buffer);
 
 	glUniform4f(state.open_gl.ui_shader_d_rect_uniform, x, y, width, height);
 
@@ -672,6 +818,23 @@ void render_ui_mesh(
 	glUniform4f(state.open_gl.ui_shader_d_rect_uniform, x, y, width, height);
 	GLuint subroutines[2] = { map_color_modification_to_index(enabled), parameters::triangle_strip };
 	glUniform2ui(state.open_gl.ui_shader_subroutines_index_uniform, subroutines[0], subroutines[1]);
+
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, static_cast<GLsizei>(mesh.count));
+}
+
+void render_colored_ui_mesh(
+	sys::state const& state,
+	float x, float y,
+	float width, float height,
+	generic_ui_mesh_triangle_strip& mesh,
+	float red, float green, float blue
+) {
+	glBindVertexArray(state.open_gl.global_square_vao);
+	mesh.bind_buffer();
+
+	glUniform4f(state.open_gl.ui_shader_d_rect_uniform, x, y, width, height);
+	glUniform2ui(state.open_gl.ui_shader_subroutines_index_uniform, parameters::enabled, parameters::solid_color);
+	glUniform3f(state.open_gl.ui_shader_inner_color_uniform, red, green, blue);
 
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, static_cast<GLsizei>(mesh.count));
 }
@@ -772,7 +935,7 @@ void render_barchart(sys::state const& state, color_modification enabled, float 
 void render_piechart(sys::state const& state, color_modification enabled, float x, float y, float size, data_texture& t) {
 	glBindVertexArray(state.open_gl.global_square_vao);
 
-	glBindVertexBuffer(0, state.open_gl.global_square_buffer, 0, sizeof(GLfloat) * 4);
+	bind_ui_vertex_buffer(state.open_gl.global_square_buffer);
 
 	glUniform4f(state.open_gl.ui_shader_d_rect_uniform, x, y, size, size);
 
@@ -788,7 +951,7 @@ void render_piechart(sys::state const& state, color_modification enabled, float 
 void render_stripchart(sys::state const& state, color_modification enabled, float x, float y, float sizex, float sizey, data_texture& t) {
 	glBindVertexArray(state.open_gl.global_square_vao);
 
-	glBindVertexBuffer(0, state.open_gl.global_square_buffer, 0, sizeof(GLfloat) * 4);
+	bind_ui_vertex_buffer(state.open_gl.global_square_buffer);
 
 	glUniform4f(state.open_gl.ui_shader_d_rect_uniform, x, y, sizex, sizey);
 
@@ -1279,19 +1442,31 @@ void lines::set_default_y() {
 }
 
 void lines::bind_buffer() {
+	if(count == 0 || buffer == nullptr) {
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		return;
+	}
 	if(buffer_handle == 0) {
 		glGenBuffers(1, &buffer_handle);
 
 		glBindBuffer(GL_ARRAY_BUFFER, buffer_handle);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * count * 4, nullptr, GL_DYNAMIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * count * 4, buffer, GL_DYNAMIC_DRAW);
+		pending_data_update = false;
 	}
 	if(buffer && pending_data_update) {
 		glBindBuffer(GL_ARRAY_BUFFER, buffer_handle);
+#ifdef __APPLE__
+		// Apple's AGX OpenGL shim can crash in its blit path when
+		// glBufferSubData follows a newly allocated or zero-sized dynamic
+		// buffer. Re-specifying the small graph buffer is safe and atomic.
+		glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * count * 4, buffer, GL_DYNAMIC_DRAW);
+#else
 		glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(GLfloat) * count * 4, buffer);
+#endif
 		pending_data_update = false;
 	}
 
-	glBindVertexBuffer(0, buffer_handle, 0, sizeof(GLfloat) * 4);
+	bind_ui_vertex_buffer(buffer_handle);
 }
 
 void generic_ui_mesh_triangle_strip::set_coords(float* v) {
@@ -1338,19 +1513,28 @@ void generic_ui_mesh_triangle_strip::set_default() {
 }
 
 void generic_ui_mesh_triangle_strip::bind_buffer() {
+	if(count == 0 || buffer == nullptr) {
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		return;
+	}
 	if(buffer_handle == 0) {
 		glGenBuffers(1, &buffer_handle);
 
 		glBindBuffer(GL_ARRAY_BUFFER, buffer_handle);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * count * 4, nullptr, GL_DYNAMIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * count * 4, buffer, GL_DYNAMIC_DRAW);
+		pending_data_update = false;
 	}
 	if(buffer && pending_data_update) {
 		glBindBuffer(GL_ARRAY_BUFFER, buffer_handle);
+#ifdef __APPLE__
+		glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * count * 4, buffer, GL_DYNAMIC_DRAW);
+#else
 		glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(GLfloat) * count * 4, buffer);
+#endif
 		pending_data_update = false;
 	}
 
-	glBindVertexBuffer(0, buffer_handle, 0, sizeof(GLfloat) * 4);
+	bind_ui_vertex_buffer(buffer_handle);
 }
 
 bool msaa_enabled(sys::state const& state) {

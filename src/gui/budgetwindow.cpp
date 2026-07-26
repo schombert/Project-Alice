@@ -1122,7 +1122,13 @@ void  budgetwindow_main_espenses_table_t::update(sys::state& state, layout_windo
 		auto aristocrats = state.world.nation_get_demographics(state.local_player_nation, aristocracy_key);
 		auto investors = capitalists + aristocrats;
 		if(investors > 0) {
-			auto total_budget = state.world.nation_get_stockpiles(state.local_player_nation, economy::money)
+			auto const treasury = state.world.nation_get_stockpiles(
+				state.local_player_nation, economy::money);
+			auto const daily_budget = gamerule::age_of_transformation_enabled(state)
+				? economy::national_budget::estimate_sustainable_daily_budget(
+					state, state.local_player_nation, treasury)
+				: treasury;
+			auto total_budget = daily_budget
 				* float(state.world.nation_get_domestic_investment_spending(state.local_player_nation)) / 100.f;
 			cap_total += capitalists / investors * total_budget;
 			aristo_total += aristocrats / investors * total_budget;
@@ -1364,7 +1370,11 @@ void budgetwindow_main_expenses_amount_t::on_update(sys::state& state) noexcept 
 	budgetwindow_main_t& main = *((budgetwindow_main_t*)(parent)); 
 // BEGIN main::expenses_amount::update
 	auto n = state.local_player_nation;
-	auto spending_details = economy::national_budget::estimate_budget_detailed(state, n, economy::estimate_next_budget(state, n));
+	auto const treasury = economy::estimate_next_budget(state, n);
+	auto const display_budget = gamerule::age_of_transformation_enabled(state)
+		? economy::national_budget::estimate_sustainable_daily_budget(state, n, treasury)
+		: std::max(treasury, state.world.nation_get_last_base_budget(n));
+	auto spending_details = economy::national_budget::estimate_budget_detailed(state, n, display_budget);
 	set_text(state, text::prettify_currency(spending_details.total_actual_spending));
 // END
 }
@@ -3068,7 +3078,11 @@ void budgetwindow_section_header_expand_button_t::on_update(sys::state& state) n
 	static auto closed_icon = template_project::icon_by_name(state.ui_templates, "list_closed.svg");
 
 	auto n = state.local_player_nation;
-	auto spending_details = economy::national_budget::estimate_budget_detailed(state, n, economy::estimate_next_budget(state, n));
+	auto const treasury = economy::estimate_next_budget(state, n);
+	auto const display_budget = gamerule::age_of_transformation_enabled(state)
+		? economy::national_budget::estimate_sustainable_daily_budget(state, n, treasury)
+		: std::max(treasury, state.world.nation_get_last_base_budget(n));
+	auto spending_details = economy::national_budget::estimate_budget_detailed(state, n, display_budget);
 
 	switch(section_header.section_type) {
 	case budget_categories::diplomatic_income: disabled = (spending_details.diplomacy.actual_spending <= 0); break;
@@ -3113,7 +3127,11 @@ void budgetwindow_section_header_total_amount_t::on_update(sys::state& state) no
 	auto info = economy::explain_tax_income(state, state.local_player_nation);
 
 	auto n = state.local_player_nation;
-	auto spending_details = economy::national_budget::estimate_budget_detailed(state, n, economy::estimate_next_budget(state, n));
+	auto const treasury = economy::estimate_next_budget(state, n);
+	auto const display_budget = gamerule::age_of_transformation_enabled(state)
+		? economy::national_budget::estimate_sustainable_daily_budget(state, n, treasury)
+		: std::max(treasury, state.world.nation_get_last_base_budget(n));
+	auto spending_details = economy::national_budget::estimate_budget_detailed(state, n, display_budget);
 
 	auto adjust_income_value = [&](float value) {
 		return text::prettify_currency(value);

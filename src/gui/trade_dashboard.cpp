@@ -59,6 +59,83 @@ struct trade_dashboard_commodity_selector_t;
 struct trade_dashboard_nation_selector_flag_t;
 struct trade_dashboard_nation_selector_name_t;
 struct trade_dashboard_nation_selector_t;
+
+template<typename GraphEntry>
+void render_dashboard_segmented_ring(
+	sys::state& state,
+	int32_t x,
+	int32_t y,
+	int32_t width,
+	int32_t height,
+	ogl::generic_ui_mesh_triangle_strip& mesh,
+	std::vector<GraphEntry> const& entries,
+	ogl::color3f fallback_color
+) {
+	float total = 0.0f;
+	for(auto const& entry : entries) {
+		total += std::max(0.0f, entry.amount);
+	}
+
+	std::vector<float> coordinates(mesh.count * 2u);
+	auto draw_arc = [&](float begin, float end, ogl::color3f color) {
+		if(end <= begin) {
+			return;
+		}
+
+		auto const pairs = mesh.count / 2u;
+		for(uint32_t pair = 0; pair < pairs; ++pair) {
+			auto const progress = pairs > 1u ? float(pair) / float(pairs - 1u) : 0.0f;
+			auto const angle = -std::numbers::pi_v<float> * 0.5f
+				+ (begin + (end - begin) * progress) * std::numbers::pi_v<float> * 2.0f;
+			auto const cosine = std::cos(angle);
+			auto const sine = std::sin(angle);
+			auto const inner_vertex = pair * 4u;
+			auto const outer_vertex = inner_vertex + 2u;
+
+			coordinates[inner_vertex] = cosine * 0.72f;
+			coordinates[inner_vertex + 1u] = sine * 0.72f;
+			coordinates[outer_vertex] = cosine * 0.96f;
+			coordinates[outer_vertex + 1u] = sine * 0.96f;
+		}
+
+		mesh.set_coords(coordinates.data());
+		// Very dark country colours disappear against the dashboard frame. The
+		// small lift preserves their hue while keeping every segment legible.
+		ogl::render_colored_ui_mesh(
+			state, float(x), float(y), float(width), float(height), mesh,
+			0.16f + color.r * 0.84f,
+			0.16f + color.g * 0.84f,
+			0.16f + color.b * 0.84f
+		);
+	};
+
+	if(total <= 0.0f) {
+		draw_arc(0.0f, 1.0f, fallback_color);
+		return;
+	}
+
+	// Country lists can contain hundreds of tiny slices. Grouping the tail
+	// keeps the chart readable and avoids hundreds of draw calls per frame.
+	constexpr size_t max_visible_segments = 18u;
+	auto const visible_count = std::min(entries.size(), max_visible_segments);
+	float offset = 0.0f;
+	for(size_t index = 0; index < visible_count; ++index) {
+		auto const amount = std::max(0.0f, entries[index].amount);
+		if(amount <= 0.0f) {
+			continue;
+		}
+		auto const begin = offset / total;
+		offset += amount;
+		auto const end = offset / total;
+		auto const gap = std::min(0.0025f, (end - begin) * 0.16f);
+		draw_arc(begin + gap, end - gap, entries[index].color);
+	}
+	if(offset < total) {
+		auto const begin = offset / total;
+		draw_arc(begin + 0.0025f, 0.9975f, ogl::color3f{ 0.46f, 0.42f, 0.36f });
+	}
+}
+
 struct trade_dashboard_main_per_commodity_details_t : public ui::element_base {
 // BEGIN main::per_commodity_details::variables
 // END
@@ -1459,6 +1536,127 @@ struct trade_dashboard_nation_selector_name_t : public ui::element_base {
 	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
 	void on_update(sys::state& state) noexcept override;
 };
+
+// Lightweight, code-owned pieces used by the responsive dashboard.  The AUI
+// file still owns the detailed interactive controls, while these elements give
+// the window a clear hierarchy without baking another fixed 800x600 layout.
+struct trade_dashboard_modern_text_t : public ui::element_base {
+	text::layout internal_layout;
+	std::string cached_text;
+	text::text_color color = text::text_color::black;
+	text::alignment alignment = text::alignment::left;
+	float scale = 1.0f;
+	bool header = false;
+	int16_t layout_width = -1;
+	int16_t layout_height = -1;
+
+	void rebuild(sys::state& state) {
+		internal_layout.contents.clear();
+		internal_layout.number_of_lines = 0;
+		layout_width = base_data.size.x;
+		layout_height = base_data.size.y;
+		text::single_line_layout line{
+			internal_layout,
+			text::layout_parameters{0, 0, base_data.size.x, base_data.size.y,
+				text::make_font_id(state, header, scale * 20.0f), 0, alignment,
+				color, true, true},
+			state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr
+		};
+		line.add_text(state, cached_text);
+	}
+
+	void set_text(sys::state& state, std::string value) {
+		if(value != cached_text || layout_width != base_data.size.x || layout_height != base_data.size.y) {
+			cached_text = std::move(value);
+			rebuild(state);
+		}
+	}
+
+	void on_create(sys::state&) noexcept override { }
+	void on_update(sys::state& state) noexcept override {
+		if(layout_width != base_data.size.x || layout_height != base_data.size.y)
+			rebuild(state);
+	}
+	ui::message_result test_mouse(sys::state&, int32_t, int32_t, ui::mouse_probe_type) noexcept override {
+		return ui::message_result::unseen;
+	}
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		auto font = text::make_font_id(state, header, scale * 20.0f);
+		auto line_height = state.font_collection.line_height(state, font);
+		if(line_height == 0.0f) return;
+		auto y_centered = (base_data.size.y - line_height) / 2.0f;
+		auto cmod = ui::get_color_modification(false, false, false);
+		for(auto& chunk : internal_layout.contents) {
+			ui::render_text_chunk(state, chunk, float(x) + chunk.x,
+				float(y) + y_centered, font, ui::get_text_color(state, color), cmod);
+		}
+	}
+};
+
+struct trade_dashboard_metric_card_t : public ui::element_base {
+	text::layout label_layout;
+	text::layout value_layout;
+	std::string label;
+	std::string value;
+	text::text_color value_color = text::text_color::black;
+	int16_t layout_width = -1;
+
+	void rebuild(sys::state& state) {
+		layout_width = base_data.size.x;
+		label_layout.contents.clear();
+		label_layout.number_of_lines = 0;
+		value_layout.contents.clear();
+		value_layout.number_of_lines = 0;
+		text::single_line_layout label_line{
+			label_layout,
+			text::layout_parameters{0, 0, int16_t(std::max(0, int(base_data.size.x) - 24)), 20,
+				text::make_font_id(state, false, 14.0f), 0, text::alignment::left,
+				text::text_color::brown, true, true},
+			state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr
+		};
+		label_line.add_text(state, label);
+		text::single_line_layout value_line{
+			value_layout,
+			text::layout_parameters{0, 0, int16_t(std::max(0, int(base_data.size.x) - 24)), 32,
+				text::make_font_id(state, true, 20.0f), 0, text::alignment::left,
+				value_color, true, true},
+			state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr
+		};
+		value_line.add_text(state, value);
+	}
+
+	void set_value(sys::state& state, std::string new_value, text::text_color new_color = text::text_color::black) {
+		if(value != new_value || value_color != new_color || layout_width != base_data.size.x) {
+			value = std::move(new_value);
+			value_color = new_color;
+			rebuild(state);
+		}
+	}
+
+	void on_create(sys::state& state) noexcept override { rebuild(state); }
+	void on_update(sys::state& state) noexcept override {
+		if(layout_width != base_data.size.x) rebuild(state);
+	}
+	ui::message_result test_mouse(sys::state&, int32_t, int32_t, ui::mouse_probe_type) noexcept override {
+		return ui::message_result::unseen;
+	}
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		// Warm paper cards keep the historical character while the strong spacing
+		// and burgundy accent establish a modern visual hierarchy.
+		ogl::render_alpha_colored_rect(state, float(x), float(y), float(base_data.size.x), float(base_data.size.y), 0.94f, 0.91f, 0.83f, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x), float(y), float(base_data.size.x), 3.0f, 0.55f, 0.16f, 0.12f, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x), float(y), 1.0f, float(base_data.size.y), 0.45f, 0.36f, 0.24f, 0.8f);
+		ogl::render_alpha_colored_rect(state, float(x + base_data.size.x - 1), float(y), 1.0f, float(base_data.size.y), 0.45f, 0.36f, 0.24f, 0.8f);
+		auto cmod = ui::get_color_modification(false, false, false);
+		auto label_font = text::make_font_id(state, false, 14.0f);
+		auto value_font = text::make_font_id(state, true, 20.0f);
+		for(auto& chunk : label_layout.contents)
+			ui::render_text_chunk(state, chunk, float(x + 12) + chunk.x, float(y + 8) + chunk.y, label_font, ui::get_text_color(state, text::text_color::brown), cmod);
+		for(auto& chunk : value_layout.contents)
+			ui::render_text_chunk(state, chunk, float(x + 12) + chunk.x, float(y + 32) + chunk.y, value_font, ui::get_text_color(state, value_color), cmod);
+	}
+};
+
 struct trade_dashboard_main_t : public layout_window_element {
 // BEGIN main::variables
 	dcon::nation_id nation_pov;
@@ -1504,6 +1702,25 @@ struct trade_dashboard_main_t : public layout_window_element {
 	trade_dashboard_main_top_gdp_t top_gdp;
 	trade_dashboard_main_top_gdp_capita_t top_gdp_capita;
 	std::vector<std::unique_ptr<ui::element_base>> gui_inserts;
+	trade_dashboard_modern_text_t* dashboard_title = nullptr;
+	trade_dashboard_modern_text_t* dashboard_context = nullptr;
+	trade_dashboard_modern_text_t* goods_title = nullptr;
+	trade_dashboard_modern_text_t* flows_title = nullptr;
+	trade_dashboard_modern_text_t* imports_title = nullptr;
+	trade_dashboard_modern_text_t* exports_title = nullptr;
+	trade_dashboard_modern_text_t* world_gdp_title = nullptr;
+	std::array<trade_dashboard_modern_text_t*, 3> world_gdp_legend{};
+	trade_dashboard_modern_text_t* production_title = nullptr;
+	trade_dashboard_modern_text_t* consumption_title = nullptr;
+	trade_dashboard_modern_text_t* ranking_gdp_title = nullptr;
+	trade_dashboard_modern_text_t* ranking_capita_title = nullptr;
+	trade_dashboard_modern_text_t* close_label = nullptr;
+	std::array<trade_dashboard_metric_card_t*, 6> metric_cards{};
+	std::array<trade_dashboard_modern_text_t*, 4> ranking_empty_labels{};
+	float cached_imports = 0.0f;
+	float cached_exports = 0.0f;
+	int32_t last_ui_width = -1;
+	int32_t last_ui_height = -1;
 	std::string_view texture_key;
 	dcon::texture_id background_texture;
 	void create_layout_level(sys::state& state, layout_level& lvl, char const* ldata, size_t sz);
@@ -2034,9 +2251,9 @@ void trade_dashboard_main_nation_import_per_commodity_t::update_chart(sys::state
 	for(auto& e : graph_content) { total += e.amount; }
 	if(total <= 0.0f) {
 		for(int32_t k = 0; k < 100; k++) {
-			data_texture.data[k * 3] = uint8_t(0);
-			data_texture.data[k * 3 + 1] = uint8_t(0);
-			data_texture.data[k * 3 + 2] = uint8_t(0);
+			data_texture.data[k * 3] = uint8_t(112);
+			data_texture.data[k * 3 + 1] = uint8_t(103);
+			data_texture.data[k * 3 + 2] = uint8_t(88);
 		}
 		data_texture.data_updated = true;
 		return;
@@ -2118,9 +2335,9 @@ void trade_dashboard_main_nation_export_per_commodity_t::update_chart(sys::state
 	for(auto& e : graph_content) { total += e.amount; }
 	if(total <= 0.0f) {
 		for(int32_t k = 0; k < 100; k++) {
-			data_texture.data[k * 3] = uint8_t(0);
-			data_texture.data[k * 3 + 1] = uint8_t(0);
-			data_texture.data[k * 3 + 2] = uint8_t(0);
+			data_texture.data[k * 3] = uint8_t(112);
+			data_texture.data[k * 3 + 1] = uint8_t(103);
+			data_texture.data[k * 3 + 2] = uint8_t(88);
 		}
 		data_texture.data_updated = true;
 		return;
@@ -2199,9 +2416,9 @@ void trade_dashboard_main_nation_import_per_nation_t::update_chart(sys::state& s
 	for(auto& e : graph_content) { total += e.amount; }
 	if(total <= 0.0f) {
 		for(int32_t k = 0; k < 100; k++) {
-			data_texture.data[k * 3] = uint8_t(0);
-			data_texture.data[k * 3 + 1] = uint8_t(0);
-			data_texture.data[k * 3 + 2] = uint8_t(0);
+			data_texture.data[k * 3] = uint8_t(112);
+			data_texture.data[k * 3 + 1] = uint8_t(103);
+			data_texture.data[k * 3 + 2] = uint8_t(88);
 		}
 		data_texture.data_updated = true;
 		return;
@@ -2276,9 +2493,9 @@ void trade_dashboard_main_nation_export_per_nation_t::update_chart(sys::state& s
 	for(auto& e : graph_content) { total += e.amount; }
 	if(total <= 0.0f) {
 		for(int32_t k = 0; k < 100; k++) {
-			data_texture.data[k * 3] = uint8_t(0);
-			data_texture.data[k * 3 + 1] = uint8_t(0);
-			data_texture.data[k * 3 + 2] = uint8_t(0);
+			data_texture.data[k * 3] = uint8_t(112);
+			data_texture.data[k * 3 + 1] = uint8_t(103);
+			data_texture.data[k * 3 + 2] = uint8_t(88);
 		}
 		data_texture.data_updated = true;
 		return;
@@ -2463,9 +2680,9 @@ void trade_dashboard_main_commodity_import_per_nation_t::update_chart(sys::state
 	for(auto& e : graph_content) { total += e.amount; }
 	if(total <= 0.0f) {
 		for(int32_t k = 0; k < 100; k++) {
-			data_texture.data[k * 3] = uint8_t(0);
-			data_texture.data[k * 3 + 1] = uint8_t(0);
-			data_texture.data[k * 3 + 2] = uint8_t(0);
+			data_texture.data[k * 3] = uint8_t(112);
+			data_texture.data[k * 3 + 1] = uint8_t(103);
+			data_texture.data[k * 3 + 2] = uint8_t(88);
 		}
 		data_texture.data_updated = true;
 		return;
@@ -2539,9 +2756,9 @@ void trade_dashboard_main_commodity_export_per_nation_t::update_chart(sys::state
 	for(auto& e : graph_content) { total += e.amount; }
 	if(total <= 0.0f) {
 		for(int32_t k = 0; k < 100; k++) {
-			data_texture.data[k * 3] = uint8_t(0);
-			data_texture.data[k * 3 + 1] = uint8_t(0);
-			data_texture.data[k * 3 + 2] = uint8_t(0);
+			data_texture.data[k * 3] = uint8_t(112);
+			data_texture.data[k * 3 + 1] = uint8_t(103);
+			data_texture.data[k * 3 + 2] = uint8_t(88);
 		}
 		data_texture.data_updated = true;
 		return;
@@ -2618,9 +2835,9 @@ void trade_dashboard_main_commodity_production_per_nation_t::update_chart(sys::s
 	for(auto& e : graph_content) { total += e.amount; }
 	if(total <= 0.0f) {
 		for(int32_t k = 0; k < 100; k++) {
-			data_texture.data[k * 3] = uint8_t(0);
-			data_texture.data[k * 3 + 1] = uint8_t(0);
-			data_texture.data[k * 3 + 2] = uint8_t(0);
+			data_texture.data[k * 3] = uint8_t(112);
+			data_texture.data[k * 3 + 1] = uint8_t(103);
+			data_texture.data[k * 3 + 2] = uint8_t(88);
 		}
 		data_texture.data_updated = true;
 		return;
@@ -2697,9 +2914,9 @@ void trade_dashboard_main_commodity_consumption_per_nation_t::update_chart(sys::
 	for(auto& e : graph_content) { total += e.amount; }
 	if(total <= 0.0f) {
 		for(int32_t k = 0; k < 100; k++) {
-			data_texture.data[k * 3] = uint8_t(0);
-			data_texture.data[k * 3 + 1] = uint8_t(0);
-			data_texture.data[k * 3 + 2] = uint8_t(0);
+			data_texture.data[k * 3] = uint8_t(112);
+			data_texture.data[k * 3 + 1] = uint8_t(103);
+			data_texture.data[k * 3 + 2] = uint8_t(88);
 		}
 		data_texture.data_updated = true;
 		return;
@@ -2849,9 +3066,9 @@ void trade_dashboard_main_gdp_per_sector_t::update_chart(sys::state& state) {
 	for(auto& e : graph_content) { total += e.amount; }
 	if(total <= 0.0f) {
 		for(int32_t k = 0; k < 100; k++) {
-			data_texture.data[k * 3] = uint8_t(0);
-			data_texture.data[k * 3 + 1] = uint8_t(0);
-			data_texture.data[k * 3 + 2] = uint8_t(0);
+			data_texture.data[k * 3] = uint8_t(112);
+			data_texture.data[k * 3 + 1] = uint8_t(103);
+			data_texture.data[k * 3 + 2] = uint8_t(88);
 		}
 		data_texture.data_updated = true;
 		return;
@@ -2901,7 +3118,7 @@ void trade_dashboard_main_gdp_per_sector_t::update_tooltip(sys::state& state, in
 	}
 }
 void trade_dashboard_main_gdp_per_sector_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	ogl::render_ui_mesh(state, ogl::color_modification::none, float(x), float(y), base_data.size.x, base_data.size.y, mesh, data_texture);
+	render_dashboard_segmented_ring(state, x, y, base_data.size.x, base_data.size.y, mesh, graph_content, ogl::color3f{ 0.16f, 0.46f, 0.49f });
 }
 void trade_dashboard_main_gdp_per_sector_t::on_update(sys::state& state) noexcept {
 	trade_dashboard_main_t& main = *((trade_dashboard_main_t*)(parent)); 
@@ -2969,9 +3186,9 @@ void trade_dashboard_main_gdp_sphere_t::update_chart(sys::state& state) {
 	for(auto& e : graph_content) { total += e.amount; }
 	if(total <= 0.0f) {
 		for(int32_t k = 0; k < 300; k++) {
-			data_texture.data[k * 3] = uint8_t(0);
-			data_texture.data[k * 3 + 1] = uint8_t(0);
-			data_texture.data[k * 3 + 2] = uint8_t(0);
+			data_texture.data[k * 3] = uint8_t(112);
+			data_texture.data[k * 3 + 1] = uint8_t(103);
+			data_texture.data[k * 3 + 2] = uint8_t(88);
 		}
 		data_texture.data_updated = true;
 		return;
@@ -3029,9 +3246,7 @@ void trade_dashboard_main_gdp_sphere_t::update_tooltip(sys::state& state, int32_
 	}
 }
 void trade_dashboard_main_gdp_sphere_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	ogl::render_ui_mesh(state, ogl::color_modification::none, float(x), float(y), base_data.size.x, base_data.size.y, mesh, data_texture);
-	auto time = std::chrono::steady_clock::now();
-
+	render_dashboard_segmented_ring(state, x, y, base_data.size.x, base_data.size.y, mesh, graph_content, ogl::color3f{ 0.69f, 0.43f, 0.13f });
 }
 void trade_dashboard_main_gdp_sphere_t::on_update(sys::state& state) noexcept {
 	trade_dashboard_main_t& main = *((trade_dashboard_main_t*)(parent));
@@ -3076,9 +3291,9 @@ void trade_dashboard_main_gdp_nations_t::update_chart(sys::state& state) {
 	for(auto& e : graph_content) { total += e.amount; }
 	if(total <= 0.0f) {
 		for(int32_t k = 0; k < 300; k++) {
-			data_texture.data[k * 3] = uint8_t(0);
-			data_texture.data[k * 3 + 1] = uint8_t(0);
-			data_texture.data[k * 3 + 2] = uint8_t(0);
+			data_texture.data[k * 3] = uint8_t(112);
+			data_texture.data[k * 3 + 1] = uint8_t(103);
+			data_texture.data[k * 3 + 2] = uint8_t(88);
 		}
 		data_texture.data_updated = true;
 		return;
@@ -3136,7 +3351,7 @@ void trade_dashboard_main_gdp_nations_t::update_tooltip(sys::state& state, int32
 	}
 }
 void trade_dashboard_main_gdp_nations_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	ogl::render_ui_mesh(state, ogl::color_modification::none, float(x), float(y), base_data.size.x, base_data.size.y, mesh, data_texture);
+	render_dashboard_segmented_ring(state, x, y, base_data.size.x, base_data.size.y, mesh, graph_content, ogl::color3f{ 0.43f, 0.12f, 0.13f });
 }
 void trade_dashboard_main_gdp_nations_t::on_update(sys::state& state) noexcept {
 	trade_dashboard_main_t& main = *((trade_dashboard_main_t*)(parent)); 
@@ -3627,27 +3842,248 @@ ui::message_result trade_dashboard_main_t::on_rbutton_down(sys::state& state, in
 	return ui::message_result::consumed;
 }
 void trade_dashboard_main_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state_is_rtl(state)); 
-	auto cmod = ui::get_color_modification(false, false,  false);
-	for (auto& _item : textures_to_render) {
-		if (_item.texture_type == background_type::texture)
-			ogl::render_textured_rect(state, cmod, float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
-		else if (_item.texture_type == background_type::border_texture_repeat)
-			ogl::render_rect_with_repeated_border(state, cmod, float(10), float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
-		else if (_item.texture_type == background_type::textured_corners)
-			ogl::render_rect_with_repeated_corner(state, cmod, float(10), float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
-	}
+	auto const width = int32_t(base_data.size.x);
+	auto const height = int32_t(base_data.size.y);
+	auto const padding = 24;
+	auto const content_y = 176;
+	auto const content_h = 248;
+	auto const left_w = 290;
+	auto const right_w = 250;
+	auto const middle_x = padding + left_w + 12;
+	auto const right_x = width - padding - right_w;
+	auto const middle_w = std::max(220, right_x - middle_x - 12);
+	auto const ranking_y = 442;
+	auto const ranking_gap = 10;
+	auto const ranking_w = (width - padding * 2 - ranking_gap * 3) / 4;
+	auto const ranking_h = std::max(120, height - ranking_y - 20);
+
+	// Drop shadow, outer shell and a restrained burgundy header.  The rest is
+	// deliberately quiet so flags, goods and charts carry the visual emphasis.
+	ogl::render_alpha_colored_rect(state, float(x + 7), float(y + 9), float(width), float(height), 0.0f, 0.0f, 0.0f, 0.38f);
+	ogl::render_alpha_colored_rect(state, float(x), float(y), float(width), float(height), 0.12f, 0.09f, 0.065f, 0.985f);
+	ogl::render_alpha_colored_rect(state, float(x), float(y), float(width), 72.0f, 0.27f, 0.075f, 0.065f, 1.0f);
+	ogl::render_alpha_colored_rect(state, float(x), float(y + 70), float(width), 2.0f, 0.75f, 0.55f, 0.22f, 1.0f);
+
+	auto draw_panel = [&](int32_t px, int32_t py, int32_t pw, int32_t ph) {
+		ogl::render_alpha_colored_rect(state, float(x + px), float(y + py), float(pw), float(ph), 0.92f, 0.89f, 0.81f, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + px), float(y + py), float(pw), 2.0f, 0.64f, 0.42f, 0.16f, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + px), float(y + py), 1.0f, float(ph), 0.43f, 0.34f, 0.22f, 0.8f);
+		ogl::render_alpha_colored_rect(state, float(x + px + pw - 1), float(y + py), 1.0f, float(ph), 0.43f, 0.34f, 0.22f, 0.8f);
+	};
+	draw_panel(padding, content_y, left_w, content_h);
+	draw_panel(middle_x, content_y, middle_w, content_h);
+	draw_panel(right_x, content_y, right_w, content_h);
+	for(int32_t i = 0; i < 4; ++i)
+		draw_panel(padding + i * (ranking_w + ranking_gap), ranking_y, ranking_w, ranking_h);
+
+	// Two calm comparison bars communicate direction and scale immediately.
+	// This remains useful while the per-good cache is warming up and avoids the
+	// former opaque black strip charts on macOS.
+	auto const bar_x = middle_x + 16;
+	auto const bar_w = middle_w - 32;
+	auto const bar_h = 46;
+	auto const largest_flow = std::max(1.0f, std::max(cached_imports, cached_exports));
+	auto draw_flow_bar = [&](int32_t py, float amount, float r, float g, float b) {
+		ogl::render_alpha_colored_rect(state, float(x + bar_x), float(y + py), float(bar_w), float(bar_h), 0.24f, 0.21f, 0.17f, 1.0f);
+		auto fill_w = std::max(2.0f, float(bar_w) * std::clamp(amount / largest_flow, 0.0f, 1.0f));
+		ogl::render_alpha_colored_rect(state, float(x + bar_x), float(y + py), fill_w, float(bar_h), r, g, b, 1.0f);
+		for(int32_t tick = 1; tick < 4; ++tick)
+			ogl::render_alpha_colored_rect(state, float(x + bar_x + bar_w * tick / 4), float(y + py), 1.0f, float(bar_h), 0.92f, 0.89f, 0.81f, 0.35f);
+	};
+	draw_flow_bar(content_y + 67, cached_imports, 0.24f, 0.45f, 0.55f);
+	draw_flow_bar(content_y + 165, cached_exports, 0.32f, 0.52f, 0.34f);
+
+	// Fine outer frame; unlike the former repeated gold texture it remains
+	// crisp at every UI scale.
+	ogl::render_alpha_colored_rect(state, float(x), float(y), float(width), 1.0f, 0.77f, 0.58f, 0.25f, 1.0f);
+	ogl::render_alpha_colored_rect(state, float(x), float(y + height - 1), float(width), 1.0f, 0.77f, 0.58f, 0.25f, 1.0f);
+	ogl::render_alpha_colored_rect(state, float(x), float(y), 1.0f, float(height), 0.77f, 0.58f, 0.25f, 1.0f);
+	ogl::render_alpha_colored_rect(state, float(x + width - 1), float(y), 1.0f, float(height), 0.77f, 0.58f, 0.25f, 1.0f);
 }
 void trade_dashboard_main_t::on_update(sys::state& state) noexcept {
 // BEGIN main::update
 // END
+	if(!nation_pov)
+		nation_pov = state.local_player_nation;
+
+	auto const screen_w = ui::ui_width(state);
+	auto const screen_h = ui::ui_height(state);
+	// Leave room for the persistent army/navy outliner on wide layouts. At the
+	// old 1280 cap it could cover the close control and the rightmost ranking.
+	auto const wanted_w = std::max(760, std::min(1160, screen_w - 48));
+	auto const wanted_h = std::max(620, std::min(820, screen_h - 170));
+	if(last_ui_width != screen_w || last_ui_height != screen_h) {
+		base_data.size.x = int16_t(wanted_w);
+		base_data.size.y = int16_t(wanted_h);
+		auto const outliner_reserve = screen_w >= 1200 ? 240 : 0;
+		base_data.position.x = int16_t(std::max(0, (screen_w - outliner_reserve - wanted_w) / 2));
+		base_data.position.y = int16_t(std::max(165, (screen_h - wanted_h) / 2));
+		last_ui_width = screen_w;
+		last_ui_height = screen_h;
+	}
+
+	state.ui_cached_data.set_nation(state, nation_pov);
 	commodity_list.update(state, this);
 	top_production.update(state, this);
 	top_consumption.update(state, this);
 	nation_list.update(state, this);
 	top_gdp.update(state, this);
 	top_gdp_capita.update(state, this);
-	remake_layout(state, true);
+
+	children.clear();
+	commodity_list.reset_pools();
+	top_production.reset_pools();
+	top_consumption.reset_pools();
+	nation_list.reset_pools();
+	top_gdp.reset_pools();
+	top_gdp_capita.reset_pools();
+
+	auto place = [&](ui::element_base* ptr, int32_t x, int32_t y, int32_t w, int32_t h) {
+		if(!ptr) return;
+		ptr->parent = this;
+		ptr->base_data.position.x = int16_t(x);
+		ptr->base_data.position.y = int16_t(y);
+		ptr->base_data.size.x = int16_t(std::max(1, w));
+		ptr->base_data.size.y = int16_t(std::max(1, h));
+		children.push_back(ptr);
+	};
+
+	auto const width = int32_t(base_data.size.x);
+	auto const height = int32_t(base_data.size.y);
+	auto const padding = 24;
+	auto const content_y = 176;
+	auto const content_h = 248;
+	auto const left_w = 290;
+	auto const right_w = 250;
+	auto const middle_x = padding + left_w + 12;
+	auto const right_x = width - padding - right_w;
+	auto const middle_w = std::max(220, right_x - middle_x - 12);
+	auto const ranking_y = 442;
+	auto const ranking_gap = 10;
+	auto const ranking_w = (width - padding * 2 - ranking_gap * 3) / 4;
+	auto const ranking_h = std::max(120, height - ranking_y - 20);
+
+	// Header controls remain genuinely interactive: close, return to the old
+	// detailed trade screen, select the player nation and inspect the flag.
+	place(close_label, width - 34, 14, 20, 20);
+	place(close.get(), width - 34, 14, 20, 20);
+	place(select_self.get(), width - 152, 40, 78, 22);
+	place(selected_nation_breakdown.get(), width - 66, 39, 30, 20);
+	place(dashboard_title, 24, 8, std::max(260, width - 220), 30);
+	place(dashboard_context, 24, 37, std::max(260, width - 220), 24);
+
+	close_label->set_text(state, "X");
+	dashboard_title->set_text(state, "ECONOMIC OVERVIEW");
+	auto nation_name = text::produce_simple_string(state, text::get_name(state, nation_pov));
+	auto year = state.current_date.to_ymd(state.start_date).year;
+	dashboard_context->set_text(state, nation_name + "  /  National market  /  " + std::to_string(year));
+
+	float gdp = state.ui_cached_data.per_nation.national_gdp[nation_pov.index()].value_or(0.0f);
+	float population = state.world.nation_get_demographics(nation_pov, demographics::total) * 4.0f;
+	float treasury = state.world.nation_get_stockpiles(nation_pov, economy::money);
+	float imports = economy::import_value(state, nation_pov);
+	float exports = economy::export_value(state, nation_pov);
+	cached_imports = std::max(0.0f, imports);
+	cached_exports = std::max(0.0f, exports);
+	float balance = exports - imports;
+	std::array<std::string, 6> metric_values{
+		text::prettify_currency(gdp),
+		text::prettify_currency(treasury),
+		text::prettify(int64_t(std::max(0.0f, population))),
+		text::prettify_currency(imports),
+		text::prettify_currency(exports),
+		(balance > 0.0f ? "+" : "") + text::prettify_currency(balance)
+	};
+	auto const metric_gap = 10;
+	auto const metric_w = (width - padding * 2 - metric_gap * 5) / 6;
+	for(int32_t i = 0; i < 6; ++i) {
+		place(metric_cards[size_t(i)], padding + i * (metric_w + metric_gap), 84, metric_w, 70);
+		auto metric_color = i == 5 ? (balance >= 0.0f ? text::text_color::dark_green : text::text_color::dark_red) : text::text_color::black;
+		metric_cards[size_t(i)]->set_value(state, std::move(metric_values[size_t(i)]), metric_color);
+	}
+
+	place(goods_title, padding + 12, content_y + 8, left_w - 24, 24);
+	place(flows_title, middle_x + 12, content_y + 8, middle_w - 24, 24);
+	place(world_gdp_title, right_x + 12, content_y + 8, right_w - 24, 24);
+	place(imports_title, middle_x + 16, content_y + 39, middle_w - 32, 18);
+	place(exports_title, middle_x + 16, content_y + 137, middle_w - 32, 18);
+	goods_title->set_text(state, "GOODS");
+	flows_title->set_text(state, "TRADE FLOWS");
+	world_gdp_title->set_text(state, "GDP STRUCTURE");
+	imports_title->set_text(state, "IMPORT VALUE  /  " + text::prettify_currency(imports));
+	exports_title->set_text(state, "EXPORT VALUE  /  " + text::prettify_currency(exports));
+
+	// Goods form a compact, discoverable grid instead of an unlabelled icon
+	// cloud. The existing selector windows retain tooltips and click actions.
+	if(commodity_list.item_count() > 0) {
+		bool alternate = false;
+		auto item = commodity_list.place_item(state, nullptr, 0, 0, 0, true, alternate);
+		auto item_w = std::max(20, item.x_space);
+		auto item_h = std::max(20, item.y_space);
+		auto columns = std::max(1, (left_w - 24) / item_w);
+		auto rows = std::max(1, (content_h - 50) / item_h);
+		auto count = std::min(commodity_list.item_count(), size_t(columns * rows));
+		alternate = false;
+		for(size_t i = 0; i < count; ++i) {
+			auto col = int32_t(i) % columns;
+			auto row = int32_t(i) / columns;
+			commodity_list.place_item(state, this, i, padding + 12 + col * item_w,
+				content_y + 39 + row * item_h, i == 0, alternate);
+		}
+	}
+
+	// The three datasets are now explicitly concentric instead of occupying the
+	// same rectangle. This is also the path fixed for Apple's OpenGL 4.1 driver.
+	auto const ring_center_x = right_x + right_w / 2;
+	auto const ring_center_y = content_y + 116;
+	place(gdp_per_sector.get(), ring_center_x - 42, ring_center_y - 42, 84, 84);
+	place(gdp_sphere.get(), ring_center_x - 61, ring_center_y - 61, 122, 122);
+	place(gdp_nations.get(), ring_center_x - 80, ring_center_y - 80, 160, 160);
+	place(circle.get(), ring_center_x - 82, ring_center_y - 82, 164, 164);
+	for(int32_t index = 0; index < 3; ++index)
+		place(world_gdp_legend[size_t(index)], right_x + 16, content_y + 195 + index * 16, right_w - 32, 16);
+	world_gdp_legend[0]->set_text(state, "OUTER  Nations");
+	world_gdp_legend[1]->set_text(state, "MIDDLE  Economic blocs");
+	world_gdp_legend[2]->set_text(state, "INNER  Production sectors");
+
+	auto place_ranking = [&](layout_generator& generator, int32_t column) {
+		if(generator.item_count() == 0) return;
+		bool alternate = false;
+		auto item = generator.place_item(state, nullptr, 0, 0, 0, true, alternate);
+		auto row_h = std::max(18, item.y_space);
+		auto visible_rows = std::max(1, (ranking_h - 40) / row_h);
+		auto count = std::min(generator.item_count(), size_t(visible_rows));
+		auto x = padding + column * (ranking_w + ranking_gap) + 10;
+		alternate = false;
+		for(size_t i = 0; i < count; ++i) {
+			generator.place_item(state, this, i, x, ranking_y + 35 + int32_t(i) * row_h, i == 0, alternate);
+			if(!children.empty())
+				children.back()->base_data.size.x = int16_t(std::max(1, ranking_w - 20));
+		}
+	};
+
+	place(production_title, padding + 12, ranking_y + 7, ranking_w - 24, 24);
+	place(consumption_title, padding + ranking_w + ranking_gap + 12, ranking_y + 7, ranking_w - 24, 24);
+	place(ranking_gdp_title, padding + 2 * (ranking_w + ranking_gap) + 12, ranking_y + 7, ranking_w - 24, 24);
+	place(ranking_capita_title, padding + 3 * (ranking_w + ranking_gap) + 12, ranking_y + 7, ranking_w - 24, 24);
+	production_title->set_text(state, "TOP PRODUCTION");
+	consumption_title->set_text(state, "TOP CONSUMPTION");
+	ranking_gdp_title->set_text(state, "TOP GDP");
+	ranking_capita_title->set_text(state, "GDP PER 1K PEOPLE");
+	auto place_empty_state = [&](layout_generator& generator, int32_t column, std::string message) {
+		if(generator.item_count() != 0) return;
+		auto label = ranking_empty_labels[size_t(column)];
+		place(label, padding + column * (ranking_w + ranking_gap) + 14, ranking_y + 52, ranking_w - 28, 24);
+		label->set_text(state, std::move(message));
+	};
+	place_empty_state(top_production, 0, "Calculating selected good...");
+	place_empty_state(top_consumption, 1, "Calculating selected good...");
+	place_empty_state(top_gdp, 2, "Calculating province data...");
+	place_empty_state(top_gdp_capita, 3, "Calculating province data...");
+	place_ranking(top_production, 0);
+	place_ranking(top_consumption, 1);
+	place_ranking(top_gdp, 2);
+	place_ranking(top_gdp_capita, 3);
 }
 void trade_dashboard_main_t::create_layout_level(sys::state& state, layout_level& lvl, char const* ldata, size_t sz) {
 	serialization::in_buffer buffer(ldata, sz);
@@ -4341,6 +4777,71 @@ void trade_dashboard_main_t::on_create(sys::state& state) noexcept {
 	page_right_texture_key = win_data.page_right_texture;
 	page_text_color = win_data.page_text_color;
 	create_layout_level(state, layout, win_data.layout_data, win_data.layout_data_size);
+	auto make_modern_text = [&](text::text_color color, float scale, bool header) {
+		auto element = std::make_unique<trade_dashboard_modern_text_t>();
+		element->parent = this;
+		element->color = color;
+		element->scale = scale;
+		element->header = header;
+		auto raw = element.get();
+		raw->on_create(state);
+		gui_inserts.emplace_back(std::move(element));
+		return raw;
+	};
+
+	dashboard_title = make_modern_text(text::text_color::white, 1.15f, true);
+	dashboard_context = make_modern_text(text::text_color::white, 0.82f, false);
+	goods_title = make_modern_text(text::text_color::dark_red, 0.90f, true);
+	flows_title = make_modern_text(text::text_color::dark_red, 0.90f, true);
+	world_gdp_title = make_modern_text(text::text_color::dark_red, 0.82f, true);
+	for(auto& legend : world_gdp_legend)
+		legend = make_modern_text(text::text_color::brown, 0.62f, false);
+	imports_title = make_modern_text(text::text_color::brown, 0.68f, false);
+	exports_title = make_modern_text(text::text_color::brown, 0.68f, false);
+	production_title = make_modern_text(text::text_color::dark_red, 0.78f, true);
+	consumption_title = make_modern_text(text::text_color::dark_red, 0.78f, true);
+	ranking_gdp_title = make_modern_text(text::text_color::dark_red, 0.78f, true);
+	ranking_capita_title = make_modern_text(text::text_color::dark_red, 0.72f, true);
+	close_label = make_modern_text(text::text_color::white, 0.82f, true);
+	close_label->alignment = text::alignment::center;
+	for(size_t i = 0; i < ranking_empty_labels.size(); ++i)
+		ranking_empty_labels[i] = make_modern_text(text::text_color::brown, 0.72f, false);
+
+	std::array<std::string, 6> metric_labels{
+		"GDP", "TREASURY", "POPULATION", "IMPORTS", "EXPORTS", "TRADE BALANCE"
+	};
+	for(size_t i = 0; i < metric_cards.size(); ++i) {
+		auto element = std::make_unique<trade_dashboard_metric_card_t>();
+		element->parent = this;
+		element->label = std::move(metric_labels[i]);
+		auto raw = element.get();
+		raw->on_create(state);
+		metric_cards[i] = raw;
+		gui_inserts.emplace_back(std::move(element));
+	}
+
+	nation_pov = state.local_player_nation;
+	old_window_container = nullptr;
+	state.ui_cached_data.set_nation(state, nation_pov);
+	if(!state.selected_trade_good) {
+		state.world.for_each_province([&](auto province) {
+			if(!state.selected_trade_good
+				&& state.world.province_get_nation_from_province_ownership(province) == nation_pov) {
+				auto commodity = state.world.province_get_rgo(province);
+				if(commodity && commodity != economy::money)
+					state.selected_trade_good = commodity;
+			}
+		});
+		if(!state.selected_trade_good) {
+			state.world.for_each_commodity([&](auto commodity) {
+				if(!state.selected_trade_good && commodity != economy::money)
+					state.selected_trade_good = commodity;
+			});
+		}
+		state.ui_cached_data.set_commodity(state, state.selected_trade_good);
+		state.update_trade_flow.store(true, std::memory_order_release);
+	}
+	state.ui_cached_data.request_update();
 // BEGIN main::create
 	auto it = state.ui_state.defs_by_name.find(state.lookup_key("alice_country_trade"));
 	if(it != state.ui_state.defs_by_name.end()) {

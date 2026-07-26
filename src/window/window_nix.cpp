@@ -296,10 +296,24 @@ void create_window(sys::state& game_state, creation_parameters const& params) {
 		emit_error_message("Failed to init glfw\n", true);
 
 	glfwWindowHint(GLFW_RESIZABLE, GL_TRUE);
+	#ifdef __APPLE__
+	// Alice currently uses window coordinates for UI layout and mouse input.
+	// Keep the framebuffer at the same size on Retina displays so rendering,
+	// hit testing, and the configured UI scale all use one coordinate space.
+	glfwWindowHint(GLFW_COCOA_RETINA_FRAMEBUFFER, GLFW_FALSE);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
+	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+#else
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
+#endif
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); // 3.2+ only
+#ifndef NDEBUG
 	glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
+#else
+	glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_FALSE);
+#endif
 	//glfwWindowHint(GLFW_SAMPLES, game_state.user_settings.antialias_level);
 
 	// Create window with graphics context
@@ -332,7 +346,14 @@ void create_window(sys::state& game_state, creation_parameters const& params) {
 		game_state.win_ptr->in_fullscreen=true;
 	}
 
+	glfwMakeContextCurrent(window);
+
 	ogl::initialize_opengl(game_state);
+	if(!params.borderless_fullscreen && params.initial_state == window_state::maximized) {
+		glfwMaximizeWindow(window);
+	} else if(params.initial_state == window_state::minimized) {
+		glfwIconifyWindow(window);
+	}
 
 	sound::initialize_sound_system(game_state);
 	sound::start_music(game_state, game_state.user_settings.master_volume * game_state.user_settings.music_volume);

@@ -17,6 +17,13 @@
 #include "text.hpp"
 #include "gui_event.hpp"
 #include "gui_units.hpp"
+#include "economy.hpp"
+#include "national_budget.hpp"
+#include "gamerule.hpp"
+#include "military.hpp"
+
+#include <algorithm>
+#include <array>
 
 namespace ui {
 
@@ -319,8 +326,33 @@ public:
 			text::add_line(state, contents, "pop_growth_topbar", text::variable_type::x, text::pretty_integer{ int64_t(nations::get_monthly_pop_increase_of_nation(state, nation_id)) });
 			text::add_line(state, contents, "pop_growth_topbar_4", text::variable_type::val, text::pretty_integer{ int64_t(state.world.nation_get_demographics(nation_id, demographics::total) * 4) });
 
+			auto const population = state.world.nation_get_demographics(nation_id, demographics::total);
+			auto const employed = state.world.nation_get_demographics(nation_id, demographics::employed);
+			auto const life_needs = state.world.nation_get_demographics(nation_id, demographics::poor_life_needs)
+				+ state.world.nation_get_demographics(nation_id, demographics::middle_life_needs)
+				+ state.world.nation_get_demographics(nation_id, demographics::rich_life_needs);
+			text::add_line(state, contents, "pop_growth_topbar_employment",
+				text::variable_type::x, text::fp_percentage{ population > 0.f ? employed / population : 0.f });
+			text::add_line(state, contents, "pop_growth_topbar_life_needs",
+				text::variable_type::x, text::fp_percentage{ population > 0.f ? life_needs / population : 0.f });
+
 			text::add_line_break_to_layout(state, contents);
 		}
+
+		// Internal moves do not change the country's total. Show the two drivers
+		// that do, so a negative population number is actionable.
+		auto const natural_change = int64_t(demographics::get_monthly_pop_increase(state, nation_id));
+		auto const net_migration = nations::get_monthly_net_external_migration(state, nation_id);
+		auto const army_attrition = int64_t(military::estimated_monthly_army_pop_attrition_loss(state, nation_id));
+		text::add_line(state, contents, "alice_population_natural_monthly", text::variable_type::x,
+			text::pretty_integer{ natural_change });
+		text::add_line(state, contents, "alice_population_migration_monthly", text::variable_type::x,
+			text::pretty_integer{ net_migration });
+		text::add_line(state, contents, "alice_population_army_attrition_monthly", text::variable_type::x,
+			text::pretty_integer{ -army_attrition });
+		text::add_line(state, contents, "alice_population_expected_monthly", text::variable_type::x,
+			text::pretty_integer{ natural_change + net_migration - army_attrition });
+		text::add_line_break_to_layout(state, contents);
 
 		active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::pop_growth, true);
 	}
@@ -331,28 +363,41 @@ class topbar_treasury_text : public multiline_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto n = retrieve<dcon::nation_id>(state, parent);
+		auto const tax = economy::explain_tax_income(state, n);
+		auto const income = economy::estimate_diplomatic_income(state, n)
+			+ tax.poor + tax.mid + tax.rich
+			+ economy::estimate_tariff_import_income(state, n)
+			+ economy::estimate_tariff_export_income(state, n)
+			+ economy::estimate_gold_income(state, n);
+		auto const projected_treasury = economy::estimate_next_budget(state, n);
+		auto const available_budget = gamerule::age_of_transformation_enabled(state)
+			? economy::national_budget::estimate_sustainable_daily_budget(state, n, projected_treasury)
+			: std::max(projected_treasury, state.world.nation_get_last_base_budget(n));
+		auto const spending = economy::national_budget::estimate_budget_detailed(
+			state, n, available_budget).total_actual_spending;
+		auto const projected_change = income - spending;
 
 		auto layout = text::create_endless_layout(state, internal_layout,
-		text::layout_parameters{ 0, 0, int16_t(base_data.size.x), int16_t(base_data.size.y), base_data.data.text.font_handle, 0, text::alignment::center, text::text_color::black, false });
+		// Arial12 in the vanilla topbar is a light font.  Forcing black here made
+		// the number effectively invisible against the dark Budget panel.
+		text::layout_parameters{ 0, 0, int16_t(base_data.size.x), int16_t(base_data.size.y), base_data.data.text.font_handle, 0, text::alignment::center,
+			black_text ? text::text_color::black : text::text_color::white, false });
 		auto box = text::open_layout_box(layout, 0);
 
-		if(auto* cache = state.find_player_data_cache(state.local_player_nation)) {
-			auto current_day_record = (*cache).treasury_record[state.ui_date.value % 32];
-			auto previous_day_record = (*cache).treasury_record[(state.ui_date.value + 31) % 32];
-			auto change = current_day_record - previous_day_record;
-
-			text::add_to_layout_box(state, layout, box, text::prettify_currency(nations::get_treasury(state, n)));
-			text::add_to_layout_box(state, layout, box, std::string(" ("));
-			if(change > 0) {
-				text::add_to_layout_box(state, layout, box, std::string("+"), text::text_color::green);
-				text::add_to_layout_box(state, layout, box, text::prettify_currency(change), text::text_color::green);
-			} else if(change == 0) {
-				text::add_to_layout_box(state, layout, box, text::prettify_currency(change), text::text_color::white);
-			} else {
-				text::add_to_layout_box(state, layout, box, text::prettify_currency(change), text::text_color::red);
-			}
-			text::add_to_layout_box(state, layout, box, std::string(")"));
+		// A loaded scenario may not have player_data_cache yet.  The previous
+		// implementation then rendered nothing at all.  The accounting forecast
+		// is available every tick and is more useful than yesterday's cache delta.
+		text::add_to_layout_box(state, layout, box, text::prettify_currency(nations::get_treasury(state, n)));
+		text::add_to_layout_box(state, layout, box, std::string(" ("));
+		if(projected_change > 0.f) {
+			text::add_to_layout_box(state, layout, box, std::string("+"), text::text_color::green);
+			text::add_to_layout_box(state, layout, box, text::prettify_currency(projected_change), text::text_color::green);
+		} else if(projected_change < 0.f) {
+			text::add_to_layout_box(state, layout, box, text::prettify_currency(projected_change), text::text_color::red);
+		} else {
+			text::add_to_layout_box(state, layout, box, text::prettify_currency(projected_change), text::text_color::white);
 		}
+		text::add_to_layout_box(state, layout, box, std::string(")"));
 		text::close_layout_box(layout, box);
 
 	}
@@ -361,6 +406,58 @@ public:
 		return tooltip_behavior::variable_tooltip;
 	}
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		// The top-bar value is deliberately compact. This summary uses the exact
+		// same projected cash flow and scaled spending as the Budget window.
+		auto const nation_id = retrieve<dcon::nation_id>(state, parent);
+		auto const tax = economy::explain_tax_income(state, nation_id);
+		auto const income = economy::estimate_diplomatic_income(state, nation_id)
+			+ tax.poor + tax.mid + tax.rich
+			+ economy::estimate_tariff_import_income(state, nation_id)
+			+ economy::estimate_tariff_export_income(state, nation_id)
+			+ economy::estimate_gold_income(state, nation_id);
+		auto const projected_treasury = economy::estimate_next_budget(state, nation_id);
+		auto const available_budget = gamerule::age_of_transformation_enabled(state)
+			? economy::national_budget::estimate_sustainable_daily_budget(state, nation_id, projected_treasury)
+			: std::max(projected_treasury, state.world.nation_get_last_base_budget(nation_id));
+		auto const details = economy::national_budget::estimate_budget_detailed(state, nation_id, available_budget);
+		auto const net = income - details.total_actual_spending;
+
+		text::add_line(state, contents, "alice_finance_income_daily", text::variable_type::x, text::fp_currency{ income });
+		text::add_line(state, contents, "alice_finance_expenses_daily", text::variable_type::x, text::fp_currency{ details.total_actual_spending });
+		text::add_line(state, contents, "alice_finance_net_daily", text::variable_type::x, text::fp_currency{ net });
+		if(net < -0.01f) {
+			text::add_line(state, contents, "alice_finance_reserve_days", text::variable_type::x,
+				text::fp_one_place{ std::max(0.f, nations::get_treasury(state, nation_id)) / -net });
+		}
+
+		using cost_entry = std::pair<std::string_view, float>;
+		std::array<cost_entry, 13> costs{{
+			{ "alice_budget_debt_service", details.interest.actual_spending },
+			{ "alice_budget_diplo_expenses", details.diplomacy.actual_spending },
+			{ "alice_finance_administration", details.administration_wages.actual_spending },
+			{ "alice_budget_social_spending", details.social.actual_spending },
+			{ "alice_finance_military_wages", details.military_wages.actual_spending },
+			{ "alice_finance_education", details.education_wages.actual_spending },
+			{ "alice_budget_domestic_investment", details.domestic_investments.actual_spending },
+			{ "alice_finance_overseas", details.overseas_penalty.actual_spending },
+			{ "alice_finance_subsidies", details.subsidy.actual_spending },
+			{ "alice_budget_construction", details.construction_supplies.actual_spending },
+			{ "alice_budget_army_upkeep", details.military_supplies_land.actual_spending },
+			{ "alice_budget_navy_upkeep", details.military_supplies_navy.actual_spending },
+			{ "alice_finance_stockpile", details.stockpile.actual_spending },
+		}};
+		std::sort(costs.begin(), costs.end(), [](cost_entry const& a, cost_entry const& b) { return a.second > b.second; });
+		text::add_line_break_to_layout(state, contents);
+		text::add_line(state, contents, "alice_finance_largest_costs");
+		for(size_t i = 0; i < 3 && costs[i].second > 0.01f; ++i) {
+			auto box = text::open_layout_box(contents, 15);
+			text::localised_format_box(state, contents, box, costs[i].first);
+			text::add_to_layout_box(state, contents, box, std::string_view(": "));
+			text::add_to_layout_box(state, contents, box, text::fp_currency{ costs[i].second }, text::text_color::red);
+			text::close_layout_box(contents, box);
+		}
+		text::add_line_break_to_layout(state, contents);
+
 		/*
 		// SCHOMBERT: A good portion of this is wrong because it is showing maximum values for some of these expense categories
 		// rather than my scaling them to what the actual spending settings are
@@ -387,6 +484,31 @@ public:
 		text::add_to_substitution_map(sub, text::variable_type::yesterday,
 				text::fp_one_place{ nations::get_yesterday_income(state, nation_id) });
 		text::add_to_substitution_map(sub, text::variable_type::cash, text::fp_one_place{ nations::get_treasury(state, nation_id) });
+
+		// Keep the topbar and budget window on the same accounting basis.  The
+		// old tooltip showed only the private investment pool, leaving a player
+		// unable to explain a falling treasury after changing public sliders.
+		auto const nation_id = retrieve<dcon::nation_id>(state, parent);
+		auto const tax = economy::explain_tax_income(state, nation_id);
+		auto const income = economy::estimate_diplomatic_income(state, nation_id)
+			+ tax.poor + tax.mid + tax.rich
+			+ economy::estimate_tariff_import_income(state, nation_id)
+			+ economy::estimate_tariff_export_income(state, nation_id)
+			+ economy::estimate_gold_income(state, nation_id);
+		auto const projected_treasury = economy::estimate_next_budget(state, nation_id);
+		auto const available_budget = gamerule::age_of_transformation_enabled(state)
+			? economy::national_budget::estimate_sustainable_daily_budget(state, nation_id, projected_treasury)
+			: std::max(projected_treasury, state.world.nation_get_last_base_budget(nation_id));
+		auto const spending = economy::national_budget::estimate_budget_detailed(
+			state, nation_id, available_budget).total_actual_spending;
+
+		text::add_line(state, contents, "budget_total_income", text::variable_type::val,
+			text::fp_two_places{ income });
+		text::add_line(state, contents, "budget_total_expense", text::variable_type::val,
+			text::fp_two_places{ -spending });
+		text::add_line(state, contents, "budget_projected_balance", text::variable_type::val,
+			text::fp_two_places{ income - spending });
+		text::add_line_break_to_layout(state, contents);
 
 		{
 			auto box = text::open_layout_box(contents, 0);
@@ -2188,7 +2310,8 @@ public:
 
 			//auto tab = make_element_by_type<trade_window>(state, "alice_country_trade");
 			auto tab = alice_ui::make_trade_dashboard_main(state);
-			tab->set_visible(state, false);
+			auto const* preview = std::getenv("ALICE_TRADE_DASHBOARD_PREVIEW");
+			tab->set_visible(state, preview && preview[0] == '1');
 			btn->topbar_subwindow = tab.get();
 
 			state.ui_state.trade_subwindow = tab.get();

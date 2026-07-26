@@ -45,10 +45,17 @@ VALUE change(VALUE current_price, VALUE supply, VALUE demand) {
 
 namespace commodity {
 inline constexpr float min = 0.0001f;
-inline constexpr float max = 1'000'000'000'000.f;
+// A price must be able to signal scarcity, but an unbounded nominal price is
+// not a market-clearing mechanism.  Once it reaches a multiple of the base
+// value, budget-constrained consumers can no longer provide useful feedback
+// and construction can be locked out forever.
+inline constexpr float maximum_base_price_multiplier = 100.f;
 inline constexpr float epsilon = min * 0.1f;
 inline constexpr float speed_multiplier = 0.01f;
 inline constexpr float additive_smoothing = 0.0075f;
+inline float maximum(float base_price) {
+	return adaptive_ve::max(min, base_price * maximum_base_price_multiplier);
+}
 template<typename VALUE>
 VALUE change(VALUE current_price, VALUE supply, VALUE demand) {
 	return common::change<VALUE, min, speed_multiplier, additive_smoothing>(current_price, supply, demand);
@@ -80,4 +87,3 @@ VALUE change(VALUE current_price, VALUE supply, VALUE demand) {
 
 }
 }
-

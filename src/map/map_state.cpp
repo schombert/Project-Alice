@@ -7,6 +7,7 @@
 
 #include "system_state.hpp"
 #include "military.hpp"
+#include "commands.hpp"
 #include "parsers_declarations.hpp"
 #include "gui_graphics.hpp"
 #include "gui_element_base.hpp"
@@ -3005,7 +3006,22 @@ void map_state::on_lbutton_up(sys::state& state, int32_t x, int32_t y, int32_t s
 				state.user_settings.interface_volume * state.user_settings.master_volume);
 			auto fat_id = dcon::fatten(state.world, province::from_map_id(map_data.province_id_map[idx]));
 			if(map_data.province_id_map[idx] < province::to_map_id(state.province_definitions.first_sea_province)) {
-				state.set_selected_province(province::from_map_id(map_data.province_id_map[idx]));
+				auto selected = province::from_map_id(map_data.province_id_map[idx]);
+				if(state.map_state.active_map_mode == map_mode::mode::army_supply
+					&& (int32_t(mod) & int32_t(sys::key_modifiers::modifiers_ctrl)) != 0) {
+					for(auto location : state.world.province_get_army_location(selected)) {
+						auto army = location.get_army();
+						if(army.get_controller_from_army_control() == state.local_player_nation)
+							command::set_army_supply_priority(state, state.local_player_nation, army.id,
+								uint8_t((army.get_supply_priority() + 1) % 3));
+					}
+				} else if(state.map_state.active_map_mode == map_mode::mode::army_supply
+					&& (int32_t(mod) & int32_t(sys::key_modifiers::modifiers_shift)) != 0
+					&& command::can_toggle_supply_depot(state, state.local_player_nation, selected)) {
+					command::toggle_supply_depot(state, state.local_player_nation, selected);
+				} else {
+					state.set_selected_province(selected);
+				}
 				//state.current_scene.
 			} else {
 				state.set_selected_province(dcon::province_id{});

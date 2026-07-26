@@ -1361,6 +1361,8 @@ void update_production_investement_consumption(
 			auto factory_type = factory.get_building_type();
 			auto output_type = factory_type.get_output();
 			auto size = state.world.factory_get_size(factory);
+			if(!std::isfinite(size) || size < 1.f)
+				size = std::max(1.f, float(state.world.factory_type_get_base_workforce(factory_type)));
 			auto factory_tokens = factory_investment_tokens(state, nation, province, factory);
 
 			//auto time = state.world.factory_type_get_construction_time(factory_type);
@@ -1380,7 +1382,11 @@ void update_production_investement_consumption(
 				auto costs_data = get_inputs_data(state, market, costs);
 				// expansion is cheaper than new construction:
 				auto cost_per_unit = costs_data.total_cost / base_size / 2.f;
-				auto expansion_scale = std::min(100.f + size * 0.05f, investment / cost_per_unit);
+				auto affordable_workers = cost_per_unit > 0.f && std::isfinite(cost_per_unit)
+					? investment / cost_per_unit : 0.f;
+				auto upgrade_days = factory_building_construction_time(state, factory_type, true);
+				auto expansion_scale = stability::factory_daily_expansion(
+					affordable_workers, base_size, upgrade_days);
 
 				for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
 					auto cid = costs.commodity_type[i];
@@ -1389,7 +1395,7 @@ void update_production_investement_consumption(
 					economy::register_demand(state, market, costs.commodity_type[i], expansion_scale * amount);
 					actually_spent = actually_spent + expansion_scale * amount * price(state, market, cid) * state.world.market_get_actual_probability_to_buy(market, cid);
 				}
-				auto actual_expansion = expansion_scale * costs_data.min_available;
+				auto actual_expansion = expansion_scale * std::clamp(costs_data.min_available, 0.f, 1.f);
 				state.world.factory_set_size(factory, std::max(1.f, size * 0.99999f - 0.01f) + actual_expansion);
 			} else {
 				state.world.factory_set_size(factory, std::max(1.f, size * 0.99999f - 0.01f));
@@ -1539,7 +1545,12 @@ void update_production_investement_consumption(
 
 				auto expansion_cost = labor_to_expand_rgo * state.world.province_get_labor_price(province, economy::labor::basic_education);
 				auto available_labor = state.world.province_get_labor_demand_satisfaction(province, economy::labor::basic_education);
-				auto can_expand = std::max(0.f, std::min(500.f, investment_rgo_expansion / expansion_cost - 1.f));
+				auto affordable_expansion = expansion_cost > 0.f && std::isfinite(expansion_cost)
+					? investment_rgo_expansion / expansion_cost - 1.f : 0.f;
+				auto remaining_capacity = std::max(0.f, current_max_size - size);
+				auto local_skilled_labor = state.world.province_get_labor_supply(province, economy::labor::basic_education);
+				auto can_expand = stability::rgo_daily_expansion(
+					affordable_expansion, remaining_capacity, labor_to_expand_rgo, local_skilled_labor);
 				auto new_size = std::min(current_max_size, size * 0.9999f + can_expand * available_labor);
 				state.world.province_set_rgo_size(province, c, new_size);
 
@@ -1660,7 +1671,16 @@ void update_single_factory_consumption(
 		assert(state.world.factory_get_size(fac) > 0.f);
 	}
 
-	fac.set_unprofitable(actual_profit <= 0.0f);
+	// A one-day price or demand wobble must not make an employer flip between
+	// viable and unviable.  Use a small operating-cost deadband and preserve the
+	// previous state inside it; the final profit value remains exact for UI and
+	// accounting.
+	auto const operating_cost = std::max(0.f, data.direct_inputs_cost + actual_wages);
+	auto const profitability_deadband = std::max(0.0001f, operating_cost * 0.01f);
+	auto const was_unprofitable = fac.get_unprofitable();
+	fac.set_unprofitable(was_unprofitable
+		? actual_profit < profitability_deadband
+		: actual_profit <= -profitability_deadband);
 
 	fac.set_output(data.output);
 	fac.set_output_per_worker(data.output_per_employment_unit / float(fac_type.get_base_workforce()));
@@ -1673,6 +1693,43 @@ void set_initial_factory_values(sys::state& state, dcon::factory_id f) {
 	auto output = state.world.factory_type_get_output_amount(ftid);
 	auto base_workforce = state.world.factory_type_get_base_workforce(ftid);
 	state.world.factory_set_output_per_worker(f, output / base_workforce);
+}
+
+uint32_t repair_corrupted_factory_sizes(sys::state& state) {
+	uint32_t repaired = 0;
+	state.world.for_each_factory([&](dcon::factory_id factory) {
+		auto const type = state.world.factory_get_building_type(factory);
+		auto const province = state.world.factory_get_province_from_factory_location(factory);
+		auto const base_workforce = std::max(1.f, float(state.world.factory_type_get_base_workforce(type)));
+		auto const province_population = province
+			? std::max(0.f, state.world.province_get_demographics(province, demographics::total)) : 0.f;
+		// This is deliberately a very generous recovery ceiling.  Normal spare
+		// capacity is untouched; only values hundreds of times beyond even this
+		// ceiling (or non-finite values) identify saves hit by the old daily 5% loop.
+		auto const recovery_size = std::max(base_workforce, province_population * 10.f);
+		auto const corruption_threshold = recovery_size * 100.f;
+		auto size = state.world.factory_get_size(factory);
+		if(!std::isfinite(size) || size <= 0.f || size > corruption_threshold) {
+			size = recovery_size;
+			state.world.factory_set_size(factory, size);
+			++repaired;
+		}
+
+		auto unqualified = std::max(0.f, state.world.factory_get_unqualified_employment(factory));
+		auto primary = std::max(0.f, state.world.factory_get_primary_employment(factory));
+		auto secondary = std::max(0.f, state.world.factory_get_secondary_employment(factory));
+		if(!std::isfinite(unqualified)) unqualified = 0.f;
+		if(!std::isfinite(primary)) primary = 0.f;
+		if(!std::isfinite(secondary)) secondary = 0.f;
+		auto const total = unqualified + primary + secondary;
+		if(!std::isfinite(total) || total > size) {
+			auto const scale = std::isfinite(total) && total > 0.f ? size / total : 0.f;
+			state.world.factory_set_unqualified_employment(factory, unqualified * scale);
+			state.world.factory_set_primary_employment(factory, primary * scale);
+			state.world.factory_set_secondary_employment(factory, secondary * scale);
+		}
+	});
+	return repaired;
 }
 
 void update_artisan_production(sys::state& state) {

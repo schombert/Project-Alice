@@ -12,7 +12,11 @@
 #include "politics.hpp"
 #include "system_state.hpp"
 #include "text.hpp"
+#include "transformation_politics.hpp"
+#include <array>
+#include <cstddef>
 #include <cstdint>
+#include <string>
 #include <string_view>
 
 #include "gui_piechart_templates.hpp"
@@ -433,6 +437,36 @@ public:
 			text::add_space_to_layout_box(state, contents, box);
 			text::add_to_layout_box(state, contents, box, text::date_to_string(state, election_start_date), black_text ? text::text_color::black : text::text_color::white);
 			text::close_layout_box(contents, box);
+		}
+
+		if(auto const* transformation = politics::transformation::cached_nation_result(state, nation_id);
+			transformation && transformation->enabled) {
+			text::add_line(state, contents, "alice_aot_legitimacy", text::variable_type::x,
+				text::format_float(transformation->legitimacy.total, 1));
+
+			std::string coalition;
+			static constexpr std::array<std::string_view, politics::transformation::interest_group_count>
+				group_keys{{
+					"alice_aot_group_landed_elites",
+					"alice_aot_group_industrialists",
+					"alice_aot_group_intelligentsia",
+					"alice_aot_group_organized_labor",
+					"alice_aot_group_rural_communities",
+					"alice_aot_group_state_services",
+				}};
+			for(std::size_t index = 0; index < group_keys.size(); ++index) {
+				auto const id = politics::transformation::interest_group_id(index);
+				if((transformation->coalition.groups & politics::transformation::group_bit(id)) == 0)
+					continue;
+				if(!coalition.empty())
+					coalition += ", ";
+				coalition += text::produce_simple_string(state, group_keys[index]);
+			}
+			if(coalition.empty())
+				coalition = text::produce_simple_string(state, "alice_aot_no_coalition");
+			text::add_line(state, contents, "alice_aot_coalition", text::variable_type::x, coalition);
+			text::add_line(state, contents, "alice_aot_coalition_power", text::variable_type::x,
+				text::format_percentage(transformation->coalition.power_share, 1));
 		}
 	}
 };

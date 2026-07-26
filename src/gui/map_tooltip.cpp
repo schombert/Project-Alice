@@ -679,6 +679,52 @@ void supply_map_tt_box(sys::state& state, text::columnar_layout& contents, dcon:
 	}
 }
 
+void army_supply_map_tt_box(sys::state& state, text::columnar_layout& contents, dcon::province_id prov) {
+	country_name_box(state, contents, prov);
+	if(military::is_supply_depot(state, prov)) {
+		auto connected = prov.index() < state.supply_depot_connected_cache.size() && state.supply_depot_connected_cache[prov.index()];
+		auto incoming = prov.index() < state.supply_depot_incoming_cache.size() ? state.supply_depot_incoming_cache[prov.index()] : 0.0f;
+		auto served = prov.index() < state.supply_depot_served_armies_cache.size() ? state.supply_depot_served_armies_cache[prov.index()] : 0;
+		text::add_line(state, contents, connected ? "army_supply_depot_connected" : "army_supply_depot_disconnected");
+		text::add_line(state, contents, "army_supply_depot_stockpile", text::variable_type::value,
+			text::fp_one_place{ state.world.province_get_supply_depot_stockpile(prov) }, text::variable_type::x,
+			text::fp_one_place{ military::supply_depot_capacity(state, prov) });
+		text::add_line(state, contents, "army_supply_depot_flow", text::variable_type::value,
+			text::fp_one_place{ incoming }, text::variable_type::x, int64_t(served));
+	}
+	if(command::can_toggle_supply_depot(state, state.local_player_nation, prov))
+		text::add_line(state, contents, "army_supply_depot_toggle_hint");
+	text::add_line(state, contents, "army_supply_priority_toggle_hint");
+	int32_t army_count = 0;
+	float worst_supply = 1.0f;
+	float average_supply = 0.0f;
+	for(auto army_location : state.world.province_get_army_location(prov)) {
+		auto army = army_location.get_army();
+		if(army.get_controller_from_army_control() == state.local_player_nation) {
+			auto access = military::calculate_army_supply_access(state, army);
+			worst_supply = std::min(worst_supply, access.effective_supply);
+			average_supply += access.effective_supply;
+			++army_count;
+		}
+	}
+	if(army_count == 0) {
+		text::add_line(state, contents, "mapmode_army_supply_no_armies");
+	} else {
+		text::add_line(state, contents, "mapmode_army_supply_armies", text::variable_type::x, army_count);
+		text::add_line(state, contents, "mapmode_army_supply_worst", text::variable_type::value,
+			text::fp_percentage{ worst_supply });
+		text::add_line(state, contents, "mapmode_army_supply_average", text::variable_type::value,
+			text::fp_percentage{ average_supply / float(army_count) });
+	}
+	auto diagnostics = military::calculate_army_supply_diagnostics(state, state.local_player_nation);
+	text::add_line_break_to_layout(state, contents);
+	text::add_line(state, contents, "mapmode_army_supply_summary", text::variable_type::x, diagnostics.army_count,
+		text::variable_type::y, diagnostics.disconnected_armies, text::variable_type::value,
+		text::fp_percentage{ diagnostics.average_effective_supply });
+	text::add_line(state, contents, "mapmode_army_supply_profile", text::variable_type::x,
+		int64_t(diagnostics.calculation_time_us));
+}
+
 void party_loyalty_map_tt_box(sys::state& state, text::columnar_layout& contents, dcon::province_id prov) {    // Done
 	auto fat = dcon::fatten(state.world, prov);
 	country_name_box(state, contents, prov);
@@ -1619,6 +1665,9 @@ void populate_map_tooltip(sys::state& state, text::columnar_layout& contents, dc
 		break;
 	case map_mode::mode::supply:
 		supply_map_tt_box(state, contents, prov);
+		break;
+	case map_mode::mode::army_supply:
+		army_supply_map_tt_box(state, contents, prov);
 		break;
 	case map_mode::mode::party_loyalty:
 		party_loyalty_map_tt_box(state, contents, prov);

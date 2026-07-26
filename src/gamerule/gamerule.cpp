@@ -71,6 +71,25 @@ void load_hardcoded_gamerules(parsers::scenario_building_context& context, parse
 		};
 		context.state.hardcoded_gamerules.command_units = create_hardcoded_gamerule(context, base_name, options, uint8_t(context.state.defines.alice_command_units_default_setting), err);
 	}
+	{
+		std::string base_name = "alice_gamerule_age_of_transformation";
+		auto root = simple_fs::get_root(context.state.common_fs);
+		auto common = simple_fs::open_directory(root, NATIVE("common"));
+		auto alice = simple_fs::open_directory(common, NATIVE("alice"));
+		auto has_transformation_capability = bool(simple_fs::open_file(
+			alice, NATIVE("age_of_transformation.txt")));
+		std::vector<sys::gamerule_option> options =
+			{ {text::find_or_add_key(context.state, base_name + "_opt_disabled", false), text::find_or_add_key(context.state, base_name + "_opt_disabled_on_select", false), text::find_or_add_key(context.state, base_name + "_opt_disabled_on_deselect", false) },
+			{ text::find_or_add_key(context.state, base_name + "_opt_enabled", false), text::find_or_add_key(context.state, base_name + "_opt_enabled_on_select", false), text::find_or_add_key(context.state, base_name + "_opt_enabled_on_deselect", false) },
+		};
+		// Reuse the reserved slot to keep the positional handwritten scenario
+		// section binary-compatible with existing caches and saves.
+		context.state.hardcoded_gamerules.unused_gamerule = create_hardcoded_gamerule(
+			context, base_name, options,
+			has_transformation_capability ? uint8_t(age_of_transformation_settings::enabled)
+				: uint8_t(age_of_transformation_settings::disabled),
+			err);
+	}
 }
 
 void restore_gamerule_ui_settings(sys::state& state) {
@@ -83,6 +102,9 @@ void restore_gamerule_ui_settings(sys::state& state) {
 void set_gamerule_no_lua_exec(sys::state& state, dcon::gamerule_id gamerule, uint8_t new_setting) {
 	state.world.gamerule_set_current_setting(gamerule, new_setting);
 	state.ui_state.gamerule_ui_settings.insert_or_assign(gamerule, new_setting);
+	if(gamerule && gamerule == state.hardcoded_gamerules.unused_gamerule) {
+		politics::transformation::invalidate_cache(state);
+	}
 	// if its being called from somewhere not in a command, set new_game to false
 	state.network_state.is_new_game = false;
 }
@@ -129,6 +151,14 @@ uint8_t get_gamerule_option_id_by_name(const sys::state& state, std::string_view
 uint8_t get_active_gamerule_option(const sys::state& state, dcon::gamerule_id gamerule) {
 	assert(gamerule);
 	return state.world.gamerule_get_current_setting(gamerule);
+}
+
+bool age_of_transformation_enabled(sys::state const& state) {
+	if(state.force_age_of_transformation_ruleset)
+		return true;
+	auto rule = state.hardcoded_gamerules.unused_gamerule;
+	return rule && state.world.gamerule_get_current_setting(rule)
+		== uint8_t(age_of_transformation_settings::enabled);
 }
 
 

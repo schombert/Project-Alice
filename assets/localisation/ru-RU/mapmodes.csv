@@ -42,6 +42,7 @@ mapmode_41;Преступность
 mapmode_42;Ралли
 mapmode_43;Рабочая сила
 mapmode_44;Мобилизация
+mapmode_45;Армейская логистика
 legend_min_mapmode_8;Низкий уровень администратора
 legend_min_mapmode_19;Нецивилизованный
 legend_min_mapmode_7;Неколонизированный
@@ -90,6 +91,14 @@ legend_max_mapmode_38;Большое количество
 legend_max_mapmode_39;Большой коэффициент CTC
 legend_max_mapmode_40;Высокий рейтинг жизни
 legend_max_mapmode_44;Высокое количество полков
+legend_min_mapmode_45;Нет фактического снабжения
+legend_max_mapmode_45;Полное фактическое снабжение
+mapmode_army_supply_no_armies;В провинции нет армий игрока
+mapmode_army_supply_armies;Армии игрока: $x$
+mapmode_army_supply_worst;Худшая фактическая обеспеченность: $value$
+mapmode_army_supply_average;Средняя фактическая обеспеченность: $value$
+mapmode_army_supply_summary;Всего армий: $x$, отрезано: $y$, среднее снабжение: $value$
+mapmode_army_supply_profile;Диагностика снабжения: $x$ мкс
 mapmode_tooltip_34;Игрок: $x$
 mapmode_tooltip_34_you_sp;Это вы!
 mapmode_tooltip_34_you;Игрок: $x$ (Это ты!)

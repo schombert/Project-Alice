@@ -12,7 +12,18 @@ namespace pops {
 
 template<typename BOOL_VALUE, typename VALUE>
 VALUE safe_spending_ratio(BOOL_VALUE zero_required, VALUE spent, VALUE required, VALUE ratio_when_zero_required) {
-	return adaptive_ve::select<BOOL_VALUE, VALUE>(zero_required, ratio_when_zero_required, spent / required);
+	// A vector select does not short-circuit: forming `spent / required` first
+	// still raises an invalid/divide-by-zero exception in masked SIMD lanes.
+	// Replace the denominator before dividing, then select the requested
+	// fallback. This also keeps scalar and vector behavior identical.
+	auto safe_required = adaptive_ve::select<BOOL_VALUE, VALUE>(zero_required, VALUE{ 1.f }, required);
+	return adaptive_ve::select<BOOL_VALUE, VALUE>(zero_required, ratio_when_zero_required, spent / safe_required);
+}
+
+template<typename BOOL_VALUE, typename VALUE>
+VALUE safe_ratio_or_zero(BOOL_VALUE zero_denominator, VALUE numerator, VALUE denominator) {
+	auto safe_denominator = adaptive_ve::select<BOOL_VALUE, VALUE>(zero_denominator, VALUE{ 1.f }, denominator);
+	return adaptive_ve::select<BOOL_VALUE, VALUE>(zero_denominator, VALUE{ 0.f }, numerator / safe_denominator);
 }
 
 vectorized_pops_budget<float> prepare_pop_budget(const sys::state& state, dcon::pop_id ids);
@@ -37,6 +48,10 @@ void update_income_artisans(sys::state& state);
 void update_income_national_subsidy(sys::state& state);
 void update_income_wages(sys::state& state);
 void update_income_non_labor(sys::state& state);
+
+#ifndef NDEBUG
+void debug_check_pop_savings_phase(sys::state const& state, char const* phase_name);
+#endif
 
 struct labor_ratio_wage {
 	int32_t labor_type;

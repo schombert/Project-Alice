@@ -22,11 +22,31 @@
 #include "economy_factory_view.hpp"
 #include "events.hpp"
 #include "commands.hpp"
+#include "banking_stability.hpp"
+#include "land_ownership.hpp"
+#include "national_budget.hpp"
+#include "national_budget.hpp"
+#include "policy_execution.hpp"
+#include "gamerule.hpp"
 #include <vector>
 #include <algorithm>
+#include <cstdio>
+#include <cstdlib>
 #include "economy_pops_constants.hpp"
 
 namespace economy {
+
+#ifndef NDEBUG
+namespace {
+	bool labor_distribution_debug_enabled() {
+		static bool enabled = [] {
+			auto const* value = std::getenv("ALICE_DEBUG_LABOR_DISTRIBUTION");
+			return value && value[0] == '1';
+		}();
+		return enabled;
+	}
+}
+#endif
 
 float pop_min_wage_factor(sys::state& state, dcon::nation_id n) {
 	return state.world.nation_get_modifier_values(n, sys::national_mod_offsets::minimum_wage);
@@ -105,7 +125,8 @@ float interest_payment(sys::state& state, dcon::nation_id n) {
 	When a nation takes a loan, the interest-to-debt-holder-rate is set at nation-taking-the-loan-technology-loan-interest-modifier + define:LOAN_BASE_INTEREST, with a minimum of 0.01.
 	*/
 	auto debt = state.world.nation_get_local_loan(n);
-	return debt * std::max(0.01f, (state.world.nation_get_modifier_values(n, sys::national_mod_offsets::loan_interest) + 1.0f) * state.defines.loan_base_interest) / 30.0f;
+	auto const legacy_payment = debt * std::max(0.01f, (state.world.nation_get_modifier_values(n, sys::national_mod_offsets::loan_interest) + 1.0f) * state.defines.loan_base_interest) / 30.0f;
+	return legacy_payment * banking_stability::evaluate_nation(state, n).interest_cost_multiplier;
 }
 float max_loan(sys::state& state, dcon::nation_id n) {
 	/*
@@ -113,7 +134,12 @@ float max_loan(sys::state& state, dcon::nation_id n) {
 	*/
 	auto mod = (state.world.nation_get_modifier_values(n, sys::national_mod_offsets::max_loan_modifier) + 1.0f);
 	auto total_tax_base = state.world.nation_get_total_rich_income(n) + state.world.nation_get_total_middle_income(n) + state.world.nation_get_total_poor_income(n);
-	return std::max(0.0f, (total_tax_base + state.world.nation_get_national_bank(n)) * mod);
+	auto const legacy_limit = std::max(0.0f, (total_tax_base + state.world.nation_get_national_bank(n)) * mod);
+	// In the transformation ruleset the banking model is not merely a tooltip:
+	// credit health constrains new borrowing.  Classic games retain the exact
+	// legacy ceiling because evaluate_nation returns it unchanged when disabled.
+	return std::min(legacy_limit,
+		banking_stability::evaluate_nation(state, n).effective_credit_limit);
 }
 
 int32_t most_recent_price_record_index(sys::state& state) {
@@ -905,6 +931,14 @@ void initialize(sys::state& state) {
 			advanced_province_buildings::list::local_cities_and_towns,
 			starting_urban_population_proxy
 		);
+		// The initial city proxy is existing housing, not merely theoretical
+		// expansion capacity. Leaving private size at zero created a world with
+		// cities on the map but no homes in the service market.
+		state.world.province_set_advanced_province_building_private_size(
+			pid,
+			advanced_province_buildings::list::local_cities_and_towns,
+			starting_urban_population_proxy
+		);
 
 	});
 }
@@ -973,6 +1007,8 @@ void update_local_subsistence_factor(sys::state& state) {
 
 
 void update_land_ownership(sys::state& state) {
+	auto const dynamic_ownership =
+		gamerule::age_of_transformation_enabled(state);
 	province::ve_for_each_land_province(state, [&](auto ids) {
 		auto local_states = state.world.province_get_state_membership(ids);
 		auto weight_population =
@@ -983,9 +1019,38 @@ void update_land_ownership(sys::state& state) {
 		auto weight_aristocracy = weight_population / 50.f
 			+ state.world.state_instance_get_demographics(local_states, demographics::to_key(state, state.culture_definitions.aristocrat)) * 200.f
 			+ state.world.state_instance_get_demographics(local_states, demographics::to_key(state, state.culture_definitions.slaves));
-		auto total = weight_aristocracy + weight_capitalists + weight_population + 1.0f;
-		state.world.province_set_landowners_share(ids, weight_aristocracy / total);
-		state.world.province_set_capitalists_share(ids, weight_capitalists / total);
+		auto const total =
+			weight_aristocracy + weight_capitalists + weight_population + 1.0f;
+		auto const target_landowners = weight_aristocracy / total;
+		auto const target_capitalists = weight_capitalists / total;
+		if(!dynamic_ownership) {
+			state.world.province_set_landowners_share(ids, target_landowners);
+			state.world.province_set_capitalists_share(ids, target_capitalists);
+			return;
+		}
+
+		auto const current_landowners =
+			state.world.province_get_landowners_share(ids);
+		auto const current_capitalists =
+			state.world.province_get_capitalists_share(ids);
+		auto const next_landowners = ve::apply(
+			[](float current_landed, float current_capitalist,
+					float target_landed, float target_capitalist) {
+				return land_ownership::advance(
+					{current_landed, current_capitalist},
+					{target_landed, target_capitalist}).landed_elites;
+			}, current_landowners, current_capitalists,
+			target_landowners, target_capitalists);
+		auto const next_capitalists = ve::apply(
+			[](float current_landed, float current_capitalist,
+					float target_landed, float target_capitalist) {
+				return land_ownership::advance(
+					{current_landed, current_capitalist},
+					{target_landed, target_capitalist}).capitalists;
+			}, current_landowners, current_capitalists,
+			target_landowners, target_capitalists);
+		state.world.province_set_landowners_share(ids, next_landowners);
+		state.world.province_set_capitalists_share(ids, next_capitalists);
 	});
 }
 
@@ -1192,10 +1257,10 @@ void populate_army_consumption(sys::state& state) {
 				}
 			}
 			auto& build_cost = state.military_definitions.unit_base_definitions[type].build_cost;
+			auto reinforcement = military::unit_calculate_reinforcement<military::reinforcement_estimation_type::full_supplies>(state, reg);
 
 			for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
 				if(build_cost.commodity_type[i]) {
-					auto reinforcement = military::unit_calculate_reinforcement<military::reinforcement_estimation_type::full_supplies>(state, reg);
 					if(reinforcement > 0) {
 						// Regiment needs reinforcement - add extra consumption. Every 1% of reinforcement demands 1% of unit cost. Divide to spread the demand out over the month
 						auto& curr_demand = state.world.market_get_army_demand(market, build_cost.commodity_type[i]);
@@ -2926,6 +2991,9 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 		demand_paid_education,
 		satisfaction_from_subsistence
 	);
+#ifndef NDEBUG
+	pops::debug_check_pop_savings_phase(state, "after_update_consumption");
+#endif
 
 	set_profile_point(state, "pops_consumption");
 
@@ -3016,13 +3084,25 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 		} else {
 			float spending_scale = 1.0f;
 
-			// interest is paid and we are not bankrupt,
-			// now we can assume that money stockpile is equal to BASE_BUDGET
-			auto base_budget = state.world.nation_get_stockpiles(n, economy::money);
+			// Budget sliders are daily policies. Under the transformation ruleset,
+			// base them on expected daily revenue and retain accumulated cash as a
+			// reserve. Using the whole treasury here made a 10% policy spend 10% of
+			// the nation's savings every day.
+			auto treasury_budget = state.world.nation_get_stockpiles(n, economy::money);
+			auto base_budget = treasury_budget;
+			if(gamerule::age_of_transformation_enabled(state)) {
+				base_budget = national_budget::estimate_sustainable_daily_budget(
+					state, n, treasury_budget);
+			}
 			auto additional_funding = 0.f;
 			auto costs = full_spending_cost(state, n, base_budget);
-			auto admin = costs.administration;
-			auto required_additional_funding = std::max(0.f, costs.total - base_budget);
+			auto const admin_budget = costs.administration;
+			auto const actual_admin_spending = gamerule::age_of_transformation_enabled(state)
+				? estimate_spendings_administration(state, n, admin_budget)
+				: admin_budget;
+			auto const effective_total =
+				costs.total - admin_budget + actual_admin_spending;
+			auto required_additional_funding = std::max(0.f, effective_total - base_budget);
 			auto current_loan = state.world.nation_get_local_loan(n);
 
 			assert(costs.total >= 0.f);
@@ -3036,35 +3116,50 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 
 			// by definition, ADMIN must be lower or equal than BASE_BUDGET, so we can always pay for admin budget
 
-			if(base_budget + additional_funding >= costs.total) {
+			if(base_budget + additional_funding >= effective_total) {
 				spending_scale = 1.f;
 			} else {
 				spending_scale =
-					(costs.total - admin < 0.001f)
+					(costs.total - admin_budget < 0.001f)
 					? 1.f
-					: (base_budget + additional_funding - admin) / (costs.total - admin);
+					: (base_budget + additional_funding - actual_admin_spending)
+						/ (costs.total - admin_budget);
+			}
+
+			// Administration is prepaid at its target and the unfilled part is
+			// refunded after labor-market clearing. Never let that temporary prepay
+			// overdraw the cash actually available today.
+			auto const other_costs = costs.total - admin_budget;
+			auto const gross_cash_available = treasury_budget + additional_funding;
+			if(admin_budget + other_costs * spending_scale > gross_cash_available) {
+				auto const cash_limited_scale = other_costs < 0.001f
+					? 1.f
+					: (gross_cash_available - admin_budget) / other_costs;
+				spending_scale = std::min(spending_scale,
+					std::clamp(cash_limited_scale, 0.f, 1.f));
 			}
 
 			assert(spending_scale >= 0);
 			assert(std::isfinite(spending_scale));
 
 			// spend money
+			auto const cash_spending =
+				other_costs * spending_scale + admin_budget;
 			state.world.nation_set_stockpiles(
-				n, economy::money, base_budget - std::min(base_budget, (costs.total - admin) * spending_scale + admin)
-			);
+				n, economy::money,
+				treasury_budget + additional_funding - cash_spending);
 			state.world.nation_set_spending_level(n, spending_scale);
 			state.world.nation_set_last_base_budget(n, base_budget);
 
 			
 
 			if (additional_funding > 0.f) {
-				// take the loan
 				state.world.nation_set_local_loan(n, current_loan + additional_funding);
-				state.world.nation_set_stockpiles(n, economy::money, 0);
 			} else {
-				// repay the loan
+				// Repay debt only from cash above the sustainable daily envelope.
 				auto money_before = state.world.nation_get_stockpiles(n, economy::money);
-				auto paid_loan = std::min(money_before, current_loan);
+				auto paid_loan = std::min(
+					std::max(0.f, money_before - base_budget), current_loan);
 				auto remaining_loan_after = std::max(0.f, current_loan - paid_loan);
 				auto money_after = std::max(0.f, money_before - paid_loan);
 
@@ -3779,12 +3874,19 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			auto literacy_sat_paid = state.world.province_get_service_satisfaction(province, services::list::education);
 			auto literacy_sat_public = state.world.province_get_service_satisfaction_for_free(province, services::list::education);
 			auto housing_sat = state.world.province_get_service_satisfaction(province, services::list::urban_housing);
+			auto public_education_execution = ve::apply(
+				[&](dcon::nation_id nation, dcon::province_id local_province) {
+					return nations::policy_execution::effective_policy(
+						state, nation, local_province,
+						nations::policy_execution::policy_kind::education).effective_execution;
+				}, local_nation, province);
 
 			literacy =
 				literacy
 				+ (
 					potential_ratio_education_public.get(ids)
 					* literacy_sat_public
+					* public_education_execution
 					+ potential_ratio_education_private.get(ids)
 					* literacy_sat_paid
 					- 0.9f
@@ -4027,75 +4129,91 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			basic_education = basic_education * basic_education;
 			high_education = high_education * high_education;
 			high_education_and_accepted = high_education_and_accepted * high_education_and_accepted;
+			auto old_rgo = state.world.province_get_pop_labor_distribution(ids, pop_labor::rgo_worker_no_education);
+			auto old_primary_no = state.world.province_get_pop_labor_distribution(ids, pop_labor::primary_no_education);
+			auto old_primary_basic = state.world.province_get_pop_labor_distribution(ids, pop_labor::primary_basic_education);
+			auto old_ha_no = state.world.province_get_pop_labor_distribution(ids, pop_labor::high_education_accepted_no_education);
+			auto old_hna_no = state.world.province_get_pop_labor_distribution(ids, pop_labor::high_education_not_accepted_no_education);
+			auto old_ha_basic = state.world.province_get_pop_labor_distribution(ids, pop_labor::high_education_accepted_basic_education);
+			auto old_hna_basic = state.world.province_get_pop_labor_distribution(ids, pop_labor::high_education_not_accepted_basic_education);
+			auto old_ha_high = state.world.province_get_pop_labor_distribution(ids, pop_labor::high_education_accepted_high_education);
+			auto old_hna_high = state.world.province_get_pop_labor_distribution(ids, pop_labor::high_education_not_accepted_high_education);
+			auto old_ha_high_acc = state.world.province_get_pop_labor_distribution(ids, pop_labor::high_education_accepted_high_education_accepted);
+
+			auto rgo_denominator = no_education + target_wage;
+			auto primary_denominator = no_education + basic_education + target_wage;
+			auto hna_denominator = no_education + basic_education + high_education + target_wage;
+			auto ha_denominator = no_education + basic_education + high_education + high_education_and_accepted + target_wage;
+
+			auto next_rgo = pops::safe_ratio_or_zero(rgo_denominator == 0.f, no_education, rgo_denominator) * 0.1f + old_rgo * 0.9f;
+			auto next_primary_no = pops::safe_ratio_or_zero(primary_denominator == 0.f, no_education, primary_denominator) * 0.1f + old_primary_no * 0.9f;
+			auto next_ha_no = pops::safe_ratio_or_zero(ha_denominator == 0.f, no_education, ha_denominator) * 0.1f + old_ha_no * 0.9f;
+			auto next_hna_no = pops::safe_ratio_or_zero(hna_denominator == 0.f, no_education, hna_denominator) * 0.1f + old_hna_no * 0.9f;
+			auto next_primary_basic = pops::safe_ratio_or_zero(primary_denominator == 0.f, basic_education, primary_denominator) * 0.1f + old_primary_basic * 0.9f;
+			auto next_ha_basic = pops::safe_ratio_or_zero(ha_denominator == 0.f, basic_education, ha_denominator) * 0.1f + old_ha_basic * 0.9f;
+			auto next_hna_basic = pops::safe_ratio_or_zero(hna_denominator == 0.f, basic_education, hna_denominator) * 0.1f + old_hna_basic * 0.9f;
+			auto next_ha_high = pops::safe_ratio_or_zero(ha_denominator == 0.f, high_education, ha_denominator) * 0.1f + old_ha_high * 0.9f;
+			auto next_hna_high = pops::safe_ratio_or_zero(hna_denominator == 0.f, high_education, hna_denominator) * 0.1f + old_hna_high * 0.9f;
+			auto next_ha_high_acc = pops::safe_ratio_or_zero(ha_denominator == 0.f, high_education_and_accepted, ha_denominator) * 0.1f + old_ha_high_acc * 0.9f;
 
 			state.world.province_set_pop_labor_distribution(
 				ids,
 				pop_labor::rgo_worker_no_education,
-				no_education / (no_education + target_wage) * 0.1f
-				+ state.world.province_get_pop_labor_distribution(ids, pop_labor::rgo_worker_no_education) * 0.9f
+				next_rgo
 			);
 
 			state.world.province_set_pop_labor_distribution(
 				ids,
 				pop_labor::primary_no_education,
-				no_education / (no_education + basic_education + target_wage) * 0.1f
-				+ state.world.province_get_pop_labor_distribution(ids, pop_labor::primary_no_education) * 0.9f
+				next_primary_no
 			);
 
 			state.world.province_set_pop_labor_distribution(
 				ids,
 				pop_labor::high_education_accepted_no_education,
-				no_education / (no_education + basic_education + high_education + high_education_and_accepted + target_wage) * 0.1f
-				+ state.world.province_get_pop_labor_distribution(ids, pop_labor::high_education_accepted_no_education) * 0.9f
+				next_ha_no
 			);
 
 			state.world.province_set_pop_labor_distribution(
 				ids,
 				pop_labor::high_education_not_accepted_no_education,
-				no_education / (no_education + basic_education + high_education + target_wage) * 0.1f
-				+ state.world.province_get_pop_labor_distribution(ids, pop_labor::high_education_not_accepted_no_education) * 0.9f
+				next_hna_no
 			);
 
 			state.world.province_set_pop_labor_distribution(
 				ids,
 				pop_labor::primary_basic_education,
-				basic_education / (no_education + basic_education + target_wage) * 0.1f
-				+ state.world.province_get_pop_labor_distribution(ids, pop_labor::primary_basic_education) * 0.9f
+				next_primary_basic
 			);
 
 			state.world.province_set_pop_labor_distribution(
 				ids,
 				pop_labor::high_education_accepted_basic_education,
-				basic_education / (no_education + basic_education + high_education + high_education_and_accepted + target_wage) * 0.1f
-				+ state.world.province_get_pop_labor_distribution(ids, pop_labor::high_education_accepted_basic_education) * 0.9f
+				next_ha_basic
 			);
 
 			state.world.province_set_pop_labor_distribution(
 				ids,
 				pop_labor::high_education_not_accepted_basic_education,
-				basic_education / (no_education + basic_education + high_education + target_wage) * 0.1f
-				+ state.world.province_get_pop_labor_distribution(ids, pop_labor::high_education_not_accepted_basic_education) * 0.9f
+				next_hna_basic
 			);
 
 			state.world.province_set_pop_labor_distribution(
 				ids,
 				pop_labor::high_education_accepted_high_education,
-				high_education / (no_education + basic_education + high_education + high_education_and_accepted + target_wage) * 0.1f
-				+ state.world.province_get_pop_labor_distribution(ids, pop_labor::high_education_accepted_high_education) * 0.9f
+				next_ha_high
 			);
 
 			state.world.province_set_pop_labor_distribution(
 				ids,
 				pop_labor::high_education_not_accepted_high_education,
-				high_education / (no_education + basic_education + high_education + target_wage) * 0.1f
-				+ state.world.province_get_pop_labor_distribution(ids, pop_labor::high_education_not_accepted_high_education) * 0.9f
+				next_hna_high
 			);
 
 			state.world.province_set_pop_labor_distribution(
 				ids,
 				pop_labor::high_education_accepted_high_education_accepted,
-				high_education_and_accepted / (no_education + basic_education + high_education + high_education_and_accepted + target_wage) * 0.1f
-				+ state.world.province_get_pop_labor_distribution(ids, pop_labor::high_education_accepted_high_education_accepted) * 0.9f
+				next_ha_high_acc
 			);
 
 			auto n = state.world.province_get_nation_from_province_ownership(ids);
@@ -4264,20 +4382,32 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 	set_profile_point(state, "rgo/factory banks");
 
 	pops::update_income_national_subsidy(state);
+#ifndef NDEBUG
+	pops::debug_check_pop_savings_phase(state, "after_update_income_national_subsidy");
+#endif
 
 
 	set_profile_point(state, "pops subsidy");
 
 	pops::update_income_non_labor(state);
+#ifndef NDEBUG
+	pops::debug_check_pop_savings_phase(state, "after_update_income_non_labor");
+#endif
 
 	set_profile_point(state, "non labor income");
 
 	pops::update_income_artisans(state);
+#ifndef NDEBUG
+	pops::debug_check_pop_savings_phase(state, "after_update_income_artisans");
+#endif
 
 
 	set_profile_point(state, "artisans");
 
 	pops::update_income_wages(state);
+#ifndef NDEBUG
+	pops::debug_check_pop_savings_phase(state, "after_update_income_wages");
+#endif
 
 	set_profile_point(state, "wages");
 
@@ -4302,6 +4432,9 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 	});
 
 	collect_taxes(state, income_buffer);
+#ifndef NDEBUG
+	pops::debug_check_pop_savings_phase(state, "after_collect_taxes");
+#endif
 
 	/*
 	There is also a notion of "market tax"
@@ -4324,6 +4457,9 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 		auto tax = total * economy::pops::market_tax;
 		state.world.market_set_stockpile(mid, economy::money, current + tax);
 	});
+#ifndef NDEBUG
+	pops::debug_check_pop_savings_phase(state, "after_market_tax");
+#endif
 
 
 	set_profile_point(state, "taxes");
@@ -4448,7 +4584,8 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 #ifndef NDEBUG
 			ve::apply([&](auto value) { assert(std::isfinite(value)); }, current_price);
 #endif
-			current_price = ve::min(ve::max(current_price, price_properties::commodity::min), price_properties::commodity::max);
+			auto maximum_price = price_properties::commodity::maximum(float(state.world.commodity_get_cost(cid)));
+			current_price = ve::min(ve::max(current_price, price_properties::commodity::min), maximum_price);
 			state.world.market_set_price(ids, cid, current_price);
 		});
 	});
@@ -4545,7 +4682,17 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 		}
 	}
 
-	// essentially upper bound on wealth in the system
+	// Removing the unconditional POP income source did not remove every
+	// self-reinforcing money loop: national_bank/private_investment accrue
+	// pop contributions (update_income_national_subsidy) and are paid back out
+	// as dividends that are themselves partly re-contributed, and loan interest
+	// is credited straight back into national_bank. Measured with
+	// scripts/run_economy_experiment.py, national_bank alone grew ~32x in the
+	// first simulated year with zero government debt -- reinvested capital
+	// compounds geometrically with nothing bounding it. state.inflation is the
+	// one factor every one of those stocks (pop savings, market cash, this
+	// aggregate) is scaled by, so it remains the system's monetary depreciation
+	// valve, not a leftover of the removed income source.
 	state.inflation = 0.999f;
 
 	sanity_check(state);
@@ -4606,6 +4753,64 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 }
 
 void regenerate_unsaved_values(sys::state& state) {
+	// Saves made before factory expansion was tied to construction time can
+	// contain billion-sized factories. Repair those before any derived values
+	// (employment, output, prices and scores) are regenerated.
+	repair_corrupted_factory_sizes(state);
+
+	// Once the old runaway reached float overflow, invalid prices and money
+	// values were serialized too.  Replace only invalid values; legitimate large
+	// finite balances in established campaigns are intentionally preserved.
+	state.world.for_each_market([&](dcon::market_id market) {
+		state.world.for_each_commodity([&](dcon::commodity_id commodity) {
+			auto value = state.world.market_get_price(market, commodity);
+			if(!std::isfinite(value) || value <= 0.f) {
+				value = std::max(price_properties::commodity::min,
+					float(state.world.commodity_get_cost(commodity)));
+			}
+			state.world.market_set_price(market, commodity,
+				std::min(value, price_properties::commodity::maximum(float(state.world.commodity_get_cost(commodity)))));
+		});
+		auto const cash = state.world.market_get_stockpile(market, economy::money);
+		if(!std::isfinite(cash))
+			state.world.market_set_stockpile(market, economy::money, 0.f);
+	});
+	state.world.for_each_province([&](dcon::province_id province) {
+		for(int32_t labor_type = 0; labor_type < labor::total; ++labor_type) {
+			auto value = state.world.province_get_labor_price(province, labor_type);
+			if(!std::isfinite(value) || value <= 0.f)
+				value = price_properties::labor::min;
+			state.world.province_set_labor_price(province, labor_type,
+				std::min(value, price_properties::labor::max));
+		}
+		for(int32_t service = 0; service < services::list::total; ++service) {
+			auto value = state.world.province_get_service_price(province, service);
+			if(!std::isfinite(value) || value <= 0.f)
+				value = price_properties::service::min;
+			state.world.province_set_service_price(province, service,
+				std::min(value, price_properties::service::max));
+		}
+	});
+	state.world.for_each_nation([&](dcon::nation_id nation) {
+		auto treasury = state.world.nation_get_stockpiles(nation, economy::money);
+		if(!std::isfinite(treasury))
+			state.world.nation_set_stockpiles(nation, economy::money, 0.f);
+		auto private_investment = state.world.nation_get_private_investment(nation);
+		if(!std::isfinite(private_investment))
+			state.world.nation_set_private_investment(nation, 0.f);
+		auto bank = state.world.nation_get_national_bank(nation);
+		if(!std::isfinite(bank))
+			state.world.nation_set_national_bank(nation, 0.f);
+		auto loan = state.world.nation_get_local_loan(nation);
+		if(!std::isfinite(loan))
+			state.world.nation_set_local_loan(nation, 0.f);
+	});
+	state.world.for_each_pop([&](dcon::pop_id pop) {
+		auto savings = state.world.pop_get_savings(pop);
+		if(!std::isfinite(savings) || savings < 0.f)
+			state.world.pop_set_savings(pop, 0.f);
+	});
+
 	state.culture_definitions.rgo_workers.clear();
 	for(auto pt : state.world.in_pop_type) {
 		if(pt.get_is_paid_rgo_worker())
@@ -4643,6 +4848,28 @@ void regenerate_unsaved_values(sys::state& state) {
 	state.world.market_resize_satisfied_ratio_of_demanded_life_needs(state.world.pop_type_size());
 	state.world.market_resize_satisfied_ratio_of_demanded_everyday_needs(state.world.pop_type_size());
 	state.world.market_resize_satisfied_ratio_of_demanded_luxury_needs(state.world.pop_type_size());
+
+	// Compatibility migration for scenarios built before initial city capacity
+	// was mirrored into the actual housing stock. Only an entirely empty global
+	// housing stock is migrated, so established campaigns retain their state.
+	if(gamerule::age_of_transformation_enabled(state)) {
+		auto total_housing = 0.f;
+		state.world.for_each_province([&](auto province) {
+			total_housing += std::max(0.f,
+				state.world.province_get_advanced_province_building_private_size(
+					province, advanced_province_buildings::list::local_cities_and_towns));
+		});
+		if(total_housing <= 0.001f) {
+			state.world.for_each_province([&](auto province) {
+				auto const initial_housing = std::max(0.f,
+					state.world.province_get_advanced_province_building_max_private_size(
+						province, advanced_province_buildings::list::local_cities_and_towns));
+				state.world.province_set_advanced_province_building_private_size(
+					province, advanced_province_buildings::list::local_cities_and_towns,
+					initial_housing);
+			});
+		}
+	}
 }
 
 float government_consumption(sys::state& state, dcon::nation_id n, dcon::commodity_id c) {
@@ -5134,6 +5361,8 @@ void resolve_constructions(sys::state& state) {
 
 			auto new_reg = military::create_new_regiment(state, c.get_nation(), c.get_type());
 			auto a = fatten(state.world, state.world.create_army());
+			a.set_supply_reserve(1.0f);
+			a.set_supply_priority(1);
 
 			a.set_controller_from_army_control(c.get_nation());
 			state.world.try_create_army_membership(new_reg, a);
@@ -5668,7 +5897,7 @@ void go_bankrupt(sys::state& state, dcon::nation_id n) {
 				event::fire_fixed_event(state, state.national_definitions.on_debtor_default_second, trigger::to_generic(gn.nation), event::slot_type::nation, gn.nation, trigger::to_generic(n), event::slot_type::nation);
 			}
 		}
-	} else if(debt >= -state.defines.small_debt_limit) {
+	} else if(banking_stability::is_small_default(debt, state.defines.small_debt_limit)) {
 		for(auto gn : state.great_nations) {
 			if(gn.nation && gn.nation != n) {
 				event::fire_fixed_event(state, state.national_definitions.on_debtor_default_small, trigger::to_generic(gn.nation), event::slot_type::nation, gn.nation, trigger::to_generic(n), event::slot_type::nation);

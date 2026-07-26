@@ -1,7 +1,9 @@
 #include "military.hpp"
+#include "nations.hpp"
 #include "military_templates.hpp"
 #include "dcon_generated_ids.hpp"
 #include "prng.hpp"
+#include <chrono>
 #include "effects.hpp"
 #include "events.hpp"
 #include "ai.hpp"
@@ -20,6 +22,7 @@
 #include "commands.hpp"
 #include "commands_constants.hpp"
 #include "validation.hpp"
+#include "policy_execution.hpp"
 
 namespace military {
 
@@ -4885,7 +4888,8 @@ float effective_army_speed(sys::state& state, dcon::army_id a) {
 	auto special_order_mod = state.world.army_get_special_order(a) == military::special_army_order::strategic_redeployment ? (state.defines.strategic_redeployment_speed_modifier +
 		state.defines.strategic_redeployment_infrastructure_factor * state.world.province_get_building_level(state.world.army_get_location_from_army_location(a), uint8_t(economy::province_building_type::railroad)) *
 								state.economy_definitions.building_definitions[int32_t(economy::province_building_type::railroad)].infrastructure) : 1.f;
-	return min_speed * (state.world.army_get_is_retreating(a) ? 2.0f : 1.0f) * (leader_move + 1.0f) * special_order_mod * state.defines.land_speed_modifier;
+	return min_speed * (state.world.army_get_is_retreating(a) ? 2.0f : 1.0f) * (leader_move + 1.0f) * special_order_mod
+		* state.defines.land_speed_modifier * army_supply_movement_factor(state.world.army_get_supply_reserve(a));
 }
 float effective_navy_speed(sys::state& state, dcon::navy_id n) {
 	auto owner = state.world.navy_get_controller_from_navy_control(n);
@@ -6660,6 +6664,32 @@ float attrition_amount(sys::state& state, dcon::navy_id a) {
 }
 float attrition_amount(sys::state& state, dcon::army_id a) {
 	return relative_attrition_amount(state, a, state.world.army_get_location_from_army_location(a));
+}
+
+float estimated_monthly_army_pop_attrition_loss(sys::state& state, dcon::nation_id n) {
+	float result = 0.f;
+	for(auto control : state.world.nation_get_army_control(n)) {
+		auto const army = control.get_army();
+		if(!army || !state.world.army_is_valid(army))
+			continue;
+		auto const attrition = attrition_amount(state, army);
+		if(attrition <= 0.f)
+			continue;
+		for(auto membership : state.world.army_get_army_membership(army)) {
+			auto const regiment = membership.get_regiment();
+			if(!regiment || !state.world.regiment_is_valid(regiment))
+				continue;
+			auto const tech_nation = tech_nation_for_regiment(state, regiment);
+			auto const damage_modifier = std::max(
+				state.defines.soldier_to_pop_damage
+					- state.world.nation_get_modifier_values(tech_nation, sys::national_mod_offsets::soldier_to_pop_loss),
+				0.0f);
+			result += state.defines.pop_size_per_regiment
+				* state.world.regiment_get_strength(regiment)
+				* attrition * damage_modifier;
+		}
+	}
+	return std::isfinite(result) ? std::max(0.f, result) : 0.f;
 }
 
 void apply_attrition_to_army(sys::state& state, dcon::army_id army) {
@@ -9152,9 +9182,13 @@ bool siege_potential(sys::state& state, dcon::nation_id army_controller, dcon::n
 void update_siege_progress(sys::state& state) {
 	static auto new_nation_controller = ve::vectorizable_buffer<dcon::nation_id, dcon::province_id>(state.world.province_size());
 	static auto new_rebel_controller = ve::vectorizable_buffer<dcon::rebel_faction_id, dcon::province_id>(state.world.province_size());
-	province::ve_for_each_land_province(state, [&](auto ids) {
-		new_nation_controller.set(ids, dcon::nation_id{});
-		new_rebel_controller.set(ids, dcon::rebel_faction_id{});
+	// Do not vector-store null dcon ids here.  The ARM64 scalar VE backend turns
+	// a zero-is-null tag into the maximum underlying value, which is then treated
+	// as a real (invalid) rebel faction.  That made every province rebel-controlled
+	// on the first siege update.  Scalar stores preserve the actual null value.
+	province::for_each_land_province(state, [&](dcon::province_id prov) {
+		new_nation_controller.set(prov, dcon::nation_id{});
+		new_rebel_controller.set(prov, dcon::rebel_faction_id{});
 	});
 
 	concurrency::parallel_for(0, state.province_definitions.first_sea_province.index(), [&](int32_t id) {
@@ -9493,6 +9527,493 @@ economy::commodity_set get_required_supply(sys::state& state, dcon::nation_id ow
 	return commodities;
 }
 
+namespace {
+
+bool is_national_army_supply_source(sys::state& state, dcon::nation_id owner, dcon::province_id province) {
+	if(!province || state.world.province_get_nation_from_province_ownership(province) != owner
+		|| state.world.province_get_nation_from_province_control(province) != owner) {
+		return false;
+	}
+
+	auto state_instance = state.world.province_get_state_membership(province);
+	// Ports are intentionally not supply sources yet. Treating a port as a source
+	// before modelling a sea route and its capacity creates supplies out of thin air.
+	return state_instance && state.world.state_instance_get_capital(state_instance) == province;
+}
+
+bool is_operational_supply_depot(sys::state& state, dcon::nation_id owner, dcon::province_id province) {
+	return province && is_supply_depot(state, province)
+		&& state.world.province_get_supply_depot_owner(province) == owner
+		&& state.world.province_get_nation_from_province_ownership(province) == owner
+		&& state.world.province_get_nation_from_province_control(province) == owner
+		&& state.world.province_get_supply_depot_stockpile(province) > 0.0001f;
+}
+
+bool supply_route_has_friendly_control(sys::state& state, dcon::nation_id owner, dcon::province_id province) {
+	if(!province) {
+		return false;
+	}
+	if(province.index() >= state.province_definitions.first_sea_province.index()) {
+		return true;
+	}
+	auto controller = state.world.province_get_nation_from_province_control(province);
+	return controller == owner || (controller && nations::are_allied(state, owner, controller));
+}
+
+bool supply_port_is_usable(sys::state& state, dcon::nation_id owner, dcon::province_id land, dcon::province_id sea) {
+	return land && sea && land.index() < state.province_definitions.first_sea_province.index()
+		&& sea.index() >= state.province_definitions.first_sea_province.index()
+		&& state.world.province_get_is_coast(land) && state.world.province_get_port_to(land) == sea
+		&& !state.world.province_get_is_blockaded(land) && supply_route_has_friendly_control(state, owner, land);
+}
+
+float supply_infrastructure_factor(sys::state& state, dcon::province_id from, dcon::province_id to) {
+	auto from_railroad = state.world.province_get_building_level(from, uint8_t(economy::province_building_type::railroad));
+	auto to_railroad = state.world.province_get_building_level(to, uint8_t(economy::province_building_type::railroad));
+	auto continuous_railroad = std::min(from_railroad, to_railroad);
+	return std::min(1.0f, 0.6f + 0.08f * float(continuous_railroad));
+}
+
+} // namespace
+
+army_supply_access_data calculate_army_supply_route(sys::state& state, dcon::nation_id owner, dcon::province_id location,
+		std::vector<dcon::province_adjacency_id>* land_edges = nullptr, std::vector<dcon::province_id>* ports = nullptr,
+		bool allow_depots = true) {
+	army_supply_access_data result;
+	if(!owner || !location || location.index() >= state.province_definitions.first_sea_province.index()) {
+		return result;
+	}
+
+	result.military_goods_availability = std::clamp(state.world.nation_get_effective_land_spending(owner), 0.0f, 1.0f);
+	uint8_t railroad_bottleneck = state.world.province_get_building_level(
+		location, uint8_t(economy::province_building_type::railroad));
+
+	auto adjacency_func = [&](dcon::province_id to, dcon::province_id from, dcon::province_adjacency_id adjacency) {
+		auto type = state.world.province_adjacency_get_type(adjacency);
+		if((type & province::border::impassible_bit) != 0 || province::is_crossing_blocked(state, owner, adjacency)) {
+			return false;
+		}
+		auto to_is_land = to.index() < state.province_definitions.first_sea_province.index();
+		auto from_is_land = from.index() < state.province_definitions.first_sea_province.index();
+		if(to_is_land == from_is_land) {
+			return true;
+		}
+		return to_is_land ? supply_port_is_usable(state, owner, to, from)
+			: supply_port_is_usable(state, owner, from, to);
+	};
+	auto province_func = [&](dcon::province_id province) {
+		return supply_route_has_friendly_control(state, owner, province);
+	};
+	auto movement_cost_func = [&](dcon::province_id to, dcon::province_id from, dcon::province_adjacency_id adjacency, float) {
+		if(to.index() >= state.province_definitions.first_sea_province.index()
+			|| from.index() >= state.province_definitions.first_sea_province.index()) {
+			return province::distance_km(state, adjacency);
+		}
+		auto infrastructure = supply_infrastructure_factor(state, from, to);
+		auto control = std::max(0.25f, 0.5f * (state.world.province_get_control_ratio(from) + state.world.province_get_control_ratio(to)));
+		return province::distance_km(state, adjacency) / (infrastructure * control);
+	};
+	auto end_func = [&](dcon::province_id province) {
+		return is_national_army_supply_source(state, owner, province)
+			|| (allow_depots && is_operational_supply_depot(state, owner, province));
+	};
+
+	if(end_func(location)) {
+		result.source = location;
+	} else {
+		auto path = province::make_path_to_expression(state, location, adjacency_func, province_func, movement_cost_func, end_func);
+		if(path.empty()) {
+			return result;
+		}
+		result.source = path.front();
+
+		auto from = location;
+		float infrastructure_sum = 0.0f;
+		int32_t infrastructure_edges = 0;
+		float control_sum = state.world.province_get_control_ratio(location);
+		int32_t controlled_provinces = 1;
+		for(auto it = path.rbegin(); it != path.rend(); ++it) {
+			auto adjacency = state.world.get_province_adjacency_by_province_pair(from, *it);
+			auto edge_distance = province::distance_km(state, adjacency);
+			result.distance_km += edge_distance;
+			auto from_is_land = from.index() < state.province_definitions.first_sea_province.index();
+			auto to_is_land = it->index() < state.province_definitions.first_sea_province.index();
+			if(from_is_land && to_is_land) {
+				if(land_edges) land_edges->push_back(adjacency);
+				infrastructure_sum += supply_infrastructure_factor(state, from, *it);
+				++infrastructure_edges;
+				railroad_bottleneck = std::min(railroad_bottleneck, std::min(
+					state.world.province_get_building_level(from, uint8_t(economy::province_building_type::railroad)),
+					state.world.province_get_building_level(*it, uint8_t(economy::province_building_type::railroad))));
+			} else {
+				result.sea_distance_km += edge_distance;
+				if(from_is_land) {
+					if(ports) ports->push_back(from);
+					result.disembark_port = from;
+					result.uses_sea_route = true;
+				} else if(to_is_land) {
+					if(ports) ports->push_back(*it);
+					result.embark_port = *it;
+				}
+			}
+			if(to_is_land) {
+				control_sum += state.world.province_get_control_ratio(*it);
+				++controlled_provinces;
+			}
+			from = *it;
+		}
+		result.infrastructure_factor = infrastructure_edges > 0 ? infrastructure_sum / float(infrastructure_edges) : 1.0f;
+		result.control_factor = std::clamp(control_sum / float(controlled_provinces), 0.0f, 1.0f);
+	}
+
+	if(result.source == location) {
+		result.infrastructure_factor = std::min(1.0f, 0.6f + 0.08f * float(state.world.province_get_building_level(
+			location, uint8_t(economy::province_building_type::railroad))));
+		result.control_factor = std::clamp(state.world.province_get_control_ratio(location), 0.0f, 1.0f);
+	}
+
+	result.reachable = true;
+	result.source_is_depot = !is_national_army_supply_source(state, owner, result.source)
+		&& is_operational_supply_depot(state, owner, result.source);
+	if(result.source_is_depot) {
+		result.depot_stockpile = state.world.province_get_supply_depot_stockpile(result.source);
+		result.depot_capacity = supply_depot_capacity(state, result.source);
+	}
+	result.distance_factor = 1.0f / (1.0f + result.distance_km / 2000.0f);
+	result.spatial_access = std::clamp(result.distance_factor * result.infrastructure_factor * result.control_factor, 0.0f, 1.0f);
+	result.effective_supply = result.spatial_access * result.military_goods_availability;
+	result.effective_supply_before_capacity = result.effective_supply;
+	result.route_capacity = 10.0f * (1.0f + float(railroad_bottleneck));
+	if(result.uses_sea_route) {
+		auto embark_level = state.world.province_get_building_level(
+			result.embark_port, uint8_t(economy::province_building_type::naval_base));
+		auto disembark_level = state.world.province_get_building_level(
+			result.disembark_port, uint8_t(economy::province_building_type::naval_base));
+		result.route_capacity = std::min(result.route_capacity,
+			10.0f * (1.0f + float(std::min(embark_level, disembark_level))));
+	}
+	result.reinforcement_factor = army_supply_reinforcement_factor(result.effective_supply);
+	return result;
+}
+
+army_supply_access_data calculate_army_supply_access(sys::state& state, dcon::nation_id owner, dcon::province_id location) {
+	return calculate_army_supply_route(state, owner, location);
+}
+
+namespace {
+struct cached_supply_route {
+	std::vector<dcon::province_adjacency_id> land_edges;
+	std::vector<dcon::province_id> ports;
+	dcon::province_id destination;
+	float demand = 0.0f;
+};
+}
+
+float regiment_logistics_weight(sys::state& state, dcon::regiment_id regiment) {
+	auto type = state.world.regiment_get_type(regiment);
+	if(!type || type.index() >= state.military_definitions.unit_base_definitions.size()) return 1.0f;
+	// Base unit consumption represents the physical footprint. National modifiers
+	// and spending affect goods availability instead of changing route demand.
+	auto weight = std::max(0.25f, state.military_definitions.unit_base_definitions[type].supply_consumption);
+	auto pop = state.world.regiment_get_pop_from_regiment_source(regiment);
+	if(pop && state.world.pop_get_poptype(pop) != state.culture_definitions.soldiers) weight *= 0.75f;
+	return weight;
+}
+
+float supply_depot_capacity(sys::state& state, dcon::province_id province) {
+	if(!province) return 0.0f;
+	auto rail = state.world.province_get_building_level(province, uint8_t(economy::province_building_type::railroad));
+	auto port = state.world.province_get_is_coast(province)
+		? state.world.province_get_building_level(province, uint8_t(economy::province_building_type::naval_base)) : 0;
+	return 30.0f + 15.0f * float(rail) + 10.0f * float(port);
+}
+
+bool is_supply_depot(sys::state& state, dcon::province_id province) {
+	if(!province || province.index() >= state.province_definitions.first_sea_province.index()) return false;
+	auto rail = state.world.province_get_building_level(province, uint8_t(economy::province_building_type::railroad));
+	auto naval_base = state.world.province_get_is_coast(province)
+		? state.world.province_get_building_level(province, uint8_t(economy::province_building_type::naval_base)) : 0;
+	auto membership = state.world.province_get_state_membership(province);
+	auto is_rail_hub = rail >= 3 && membership && state.world.state_instance_get_capital(membership) == province;
+	return state.world.province_get_is_supply_depot(province) || is_rail_hub || naval_base > 0;
+}
+
+void update_supply_depots(sys::state& state) {
+	state.supply_depot_incoming_cache.assign(state.world.province_size(), 0.0f);
+	state.supply_depot_served_armies_cache.assign(state.world.province_size(), 0);
+	state.supply_depot_connected_cache.assign(state.world.province_size(), 0);
+	for(auto province : state.world.in_province) {
+		if(!is_supply_depot(state, province.id)) continue;
+		auto owner = province.get_nation_from_province_ownership();
+		auto controller = province.get_nation_from_province_control();
+		// Capture destroys the old distribution organization and prevents the
+		// conqueror from instantly using the former owner's stored supplies.
+		if(!owner || controller != owner) {
+			province.set_supply_depot_stockpile(0.0f);
+			province.set_supply_depot_owner(dcon::nation_id{});
+			continue;
+		}
+		if(province.get_supply_depot_owner() && province.get_supply_depot_owner() != owner) {
+			province.set_supply_depot_stockpile(0.0f);
+			province.set_supply_depot_owner(owner);
+			continue;
+		}
+		if(!province.get_supply_depot_owner()) province.set_supply_depot_owner(owner);
+		auto upstream = calculate_army_supply_route(state, owner, province.id, nullptr, nullptr, false);
+		if(!upstream.reachable) continue;
+		state.supply_depot_connected_cache[province.id.index()] = 1;
+		auto rail = province.get_building_level(uint8_t(economy::province_building_type::railroad));
+		auto port = province.get_is_coast()
+			? province.get_building_level(uint8_t(economy::province_building_type::naval_base)) : 0;
+		auto incoming = (1.5f + 0.5f * float(rail) + 0.35f * float(port)) * upstream.effective_supply;
+		state.supply_depot_incoming_cache[province.id.index()] = incoming;
+		province.set_supply_depot_stockpile(std::min(supply_depot_capacity(state, province.id),
+			province.get_supply_depot_stockpile() + incoming));
+	}
+	invalidate_army_supply_cache(state);
+}
+
+void update_army_supply_cache(sys::state& state) {
+	auto const army_count = state.world.army_size();
+	state.army_supply_access_cache.assign(army_count, army_supply_access_data{});
+	state.army_supply_capacity_factor_cache.assign(army_count, 1.0f);
+	state.army_supply_route_capacity_cache.assign(army_count, 0.0f);
+	state.army_supply_route_demand_cache.assign(army_count, 0.0f);
+	state.army_supply_army_demand_cache.assign(army_count, 0.0f);
+	state.army_supply_depot_delivery_cache.assign(army_count, 1.0f);
+	state.army_supply_depot_draw_cache.assign(army_count, 0.0f);
+	state.army_supply_source_cache.assign(army_count, dcon::province_id{});
+	state.army_supply_source_is_depot_cache.assign(army_count, 0);
+	state.supply_depot_served_armies_cache.assign(state.world.province_size(), 0);
+	std::vector<cached_supply_route> routes(army_count);
+	std::vector<float> edge_load(state.world.province_adjacency_size(), 0.0f);
+	std::vector<float> port_load(state.world.province_size(), 0.0f);
+	std::vector<float> destination_load(state.world.province_size(), 0.0f);
+
+	for(auto army : state.world.in_army) {
+		auto id = army.id.index();
+		auto owner = army.get_controller_from_army_control();
+		auto location = army.get_location_from_army_location();
+		if(!owner) continue;
+		auto& route = routes[id];
+		route.destination = location;
+		float replacement_load = 0.0f;
+		for(auto membership : army.get_army_membership()) {
+			auto regiment = membership.get_regiment();
+			auto weight = regiment_logistics_weight(state, regiment);
+			route.demand += weight;
+			replacement_load += weight * std::clamp(1.0f - regiment.get_strength(), 0.0f, 1.0f);
+		}
+		if(route.demand <= 0.0f) route.demand = 1.0f;
+		state.army_supply_army_demand_cache[id] = route.demand;
+		auto access = location
+			? calculate_army_supply_route(state, owner, location, &route.land_edges, &route.ports)
+			: army_supply_access_data{};
+		access.army_demand = route.demand;
+		access.supply_reserve = std::clamp(army.get_supply_reserve(), 0.0f, 1.0f);
+		access.replacement_load = replacement_load;
+		state.army_supply_access_cache[id] = access;
+		if(!access.reachable) continue;
+		state.army_supply_source_cache[id] = access.source;
+		state.army_supply_source_is_depot_cache[id] = access.source_is_depot ? 1 : 0;
+		destination_load[location.id.index()] += route.demand;
+		for(auto edge : route.land_edges) edge_load[edge.index()] += route.demand;
+		for(auto port : route.ports) port_load[port.index()] += route.demand;
+	}
+
+	for(auto army : state.world.in_army) {
+		auto id = army.id.index();
+		auto const& route = routes[id];
+		if(!route.destination || route.demand <= 0.0f) continue;
+		float factor = 1.0f;
+		float bottleneck_capacity = 10.0f * (1.0f + float(state.world.province_get_building_level(
+			route.destination, uint8_t(economy::province_building_type::railroad))));
+		float bottleneck_demand = destination_load[route.destination.index()];
+		auto consider = [&](float capacity, float demand) {
+			if(demand > 0.0f && capacity / demand <= factor) {
+				factor = capacity / demand;
+				bottleneck_capacity = capacity;
+				bottleneck_demand = demand;
+			}
+		};
+		consider(bottleneck_capacity, bottleneck_demand);
+		for(auto edge : route.land_edges) {
+			auto a = state.world.province_adjacency_get_connected_provinces(edge, 0);
+			auto b = state.world.province_adjacency_get_connected_provinces(edge, 1);
+			auto rail = std::min(state.world.province_get_building_level(a, uint8_t(economy::province_building_type::railroad)),
+				state.world.province_get_building_level(b, uint8_t(economy::province_building_type::railroad)));
+			consider(10.0f * (1.0f + float(rail)), edge_load[edge.index()]);
+		}
+		for(auto port : route.ports) {
+			auto level = state.world.province_get_building_level(port, uint8_t(economy::province_building_type::naval_base));
+			consider(10.0f * (1.0f + float(level)), port_load[port.index()]);
+		}
+		state.army_supply_capacity_factor_cache[id] = std::clamp(factor, 0.0f, 1.0f);
+		state.army_supply_route_capacity_cache[id] = bottleneck_capacity;
+		state.army_supply_route_demand_cache[id] = bottleneck_demand;
+	}
+
+	// Depots allocate a day's dispatch by priority tier. Armies within a tier
+	// receive the same fraction, so iteration order cannot influence outcomes.
+	for(auto depot : state.world.in_province) {
+		if(!is_supply_depot(state, depot.id)) continue;
+		auto available = std::max(0.0f, depot.get_supply_depot_stockpile());
+		for(int32_t priority = 2; priority >= 0; --priority) {
+			float requested = 0.0f;
+			for(auto army : state.world.in_army) {
+				auto id = army.id.index();
+				if(state.army_supply_source_is_depot_cache[id] && state.army_supply_source_cache[id] == depot.id
+					&& std::min<uint8_t>(2, army.get_supply_priority()) == priority)
+					requested += 0.075f * state.army_supply_army_demand_cache[id];
+			}
+			auto factor = requested > 0.0f ? std::clamp(available / requested, 0.0f, 1.0f) : 1.0f;
+			for(auto army : state.world.in_army) {
+				auto id = army.id.index();
+				if(state.army_supply_source_is_depot_cache[id] && state.army_supply_source_cache[id] == depot.id
+					&& std::min<uint8_t>(2, army.get_supply_priority()) == priority) {
+					state.army_supply_depot_delivery_cache[id] = factor;
+					state.army_supply_depot_draw_cache[id] = 0.075f * state.army_supply_army_demand_cache[id] * factor;
+					++state.supply_depot_served_armies_cache[depot.id.index()];
+				}
+			}
+			available = std::max(0.0f, available - requested * factor);
+		}
+	}
+
+	// Materialize a complete per-army snapshot once. Cached readers can then
+	// remain O(1), including replacement-load diagnostics.
+	for(auto army : state.world.in_army) {
+		if(!army.get_controller_from_army_control()) continue;
+		auto id = army.id.index();
+		auto& result = state.army_supply_access_cache[id];
+		result.army_demand = state.army_supply_army_demand_cache[id];
+		result.source = state.army_supply_source_cache[id];
+		result.source_is_depot = state.army_supply_source_is_depot_cache[id] != 0;
+		if(result.reachable) {
+			result.capacity_factor = state.army_supply_capacity_factor_cache[id];
+			result.route_capacity = state.army_supply_route_capacity_cache[id];
+			result.route_demand = state.army_supply_route_demand_cache[id];
+			result.effective_supply *= result.capacity_factor;
+			if(result.source_is_depot) {
+				result.depot_delivery_factor = state.army_supply_depot_delivery_cache[id];
+				result.depot_stockpile = state.world.province_get_supply_depot_stockpile(result.source);
+				result.depot_capacity = supply_depot_capacity(state, result.source);
+				result.effective_supply *= result.depot_delivery_factor;
+			}
+		}
+		result.supply_reserve = std::clamp(army.get_supply_reserve(), 0.0f, 1.0f);
+		result.reserve_daily_change = calculate_army_supply_reserve_daily_change(state, army.id, result);
+		result.reinforcement_factor = army_supply_reinforcement_factor(result.supply_reserve);
+	}
+	state.army_supply_cache_valid = true;
+}
+
+void invalidate_army_supply_cache(sys::state& state) { state.army_supply_cache_valid = false; }
+
+army_supply_access_data calculate_army_supply_access_cached(sys::state& state, dcon::army_id army) {
+	if(!state.world.army_is_valid(army)) return {};
+	if(!state.army_supply_cache_valid || state.army_supply_access_cache.size() != state.world.army_size())
+		update_army_supply_cache(state);
+	auto id = army.index();
+	if(id >= state.army_supply_access_cache.size()) return {};
+	auto result = state.army_supply_access_cache[id];
+	if(!state.world.army_get_controller_from_army_control(army)) return result;
+	// Reserve and activity can change between explicit batch rebuilds. Refreshing
+	// them is constant-time and does not traverse regiments or rebuild a route.
+	result.supply_reserve = std::clamp(state.world.army_get_supply_reserve(army), 0.0f, 1.0f);
+	result.reserve_daily_change = calculate_army_supply_reserve_daily_change(state, army, result);
+	result.reinforcement_factor = army_supply_reinforcement_factor(result.supply_reserve);
+	return result;
+}
+
+army_supply_access_data calculate_army_supply_access(sys::state& state, dcon::army_id army) {
+	// Public diagnostic calls reflect edits made during the current day immediately.
+	update_army_supply_cache(state);
+	return calculate_army_supply_access_cached(state, army);
+}
+
+float army_supply_reinforcement_factor(float supply_reserve) {
+	// Logistics is deliberately a soft constraint for its first gameplay use:
+	// an isolated army retains 25% of its old reinforcement rate, while full
+	// supply preserves the old formula exactly.
+	return 0.25f + 0.75f * std::clamp(supply_reserve, 0.0f, 1.0f);
+}
+
+float army_supply_movement_factor(float supply_reserve) {
+	// Movement remains possible at zero reserve; logistics only adds a bounded
+	// operational slowdown and full reserve preserves the previous formula.
+	return 0.75f + 0.25f * std::clamp(supply_reserve, 0.0f, 1.0f);
+}
+
+float army_replacement_logistics_load(sys::state& state, dcon::army_id army) {
+	float load = 0.0f;
+	for(auto membership : state.world.army_get_army_membership(army)) {
+		auto regiment = membership.get_regiment();
+		load += regiment_logistics_weight(state, regiment) *
+			std::clamp(1.0f - state.world.regiment_get_strength(regiment), 0.0f, 1.0f);
+	}
+	return load;
+}
+
+float calculate_army_supply_reserve_daily_change(sys::state& state, dcon::army_id army, army_supply_access_data const& access) {
+	if(!army) return 0.0f;
+	auto activity = 1.0f;
+	if(state.world.army_get_path(army).size() != 0) activity *= 1.25f;
+	if(state.world.army_get_battle_from_army_battle_participation(army)) activity *= 1.5f;
+	auto normalized_demand = std::max(0.1f, access.army_demand / 10.0f);
+	auto refill = 0.075f * access.effective_supply;
+	auto consumption = 0.025f * normalized_demand * activity;
+	auto replacement_consumption = 0.015f * (access.replacement_load / 10.0f);
+	return refill - consumption - replacement_consumption;
+}
+
+void update_army_supply_reserves(sys::state& state) {
+	update_supply_depots(state);
+	update_army_supply_cache(state);
+	for(auto army : state.world.in_army) {
+		if(!army.get_controller_from_army_control()) continue;
+		auto access = calculate_army_supply_access_cached(state, army.id);
+		auto reserve = std::clamp(army.get_supply_reserve() + access.reserve_daily_change, 0.0f, 1.0f);
+		army.set_supply_reserve(reserve);
+	}
+	for(auto army : state.world.in_army) {
+		auto id = army.id.index();
+		if(id >= state.army_supply_source_is_depot_cache.size() || !state.army_supply_source_is_depot_cache[id]) continue;
+		auto depot = state.army_supply_source_cache[id];
+		if(!depot) continue;
+		state.world.province_set_supply_depot_stockpile(depot, std::max(0.0f,
+			state.world.province_get_supply_depot_stockpile(depot) - state.army_supply_depot_draw_cache[id]));
+	}
+	invalidate_army_supply_cache(state);
+}
+
+army_supply_diagnostics calculate_army_supply_diagnostics(sys::state& state, dcon::nation_id nation) {
+	army_supply_diagnostics result;
+	update_army_supply_cache(state);
+	if(!nation) {
+		return result;
+	}
+	auto started = std::chrono::steady_clock::now();
+	float supply_sum = 0.0f;
+	result.minimum_effective_supply = 1.0f;
+	for(auto army_control : state.world.nation_get_army_control(nation)) {
+		auto access = calculate_army_supply_access_cached(state, army_control.get_army());
+		++result.army_count;
+		supply_sum += access.effective_supply;
+		result.minimum_effective_supply = std::min(result.minimum_effective_supply, access.effective_supply);
+		result.disconnected_armies += access.reachable ? 0 : 1;
+		result.low_supply_armies += access.effective_supply < 0.5f ? 1 : 0;
+	}
+	if(result.army_count > 0) {
+		result.average_effective_supply = supply_sum / float(result.army_count);
+	} else {
+		result.minimum_effective_supply = 0.0f;
+	}
+	result.calculation_time_us = std::chrono::duration_cast<std::chrono::microseconds>(
+		std::chrono::steady_clock::now() - started).count();
+	return result;
+}
+
 void recover_org(sys::state& state) {
 	/*
 	- Units that are not on the frontline of a battle, and not embarked recover organization daily at: (national-organization-regeneration-modifier
@@ -9807,6 +10328,9 @@ float calculate_army_combined_reinforce(sys::state& state, dcon::army_id a) {
 		location_modifier = calculate_location_reinforce_modifier_no_battle(state, ar.get_location_from_army_location(), in_nation);
 	}
 	auto combined = state.defines.reinforce_speed * reinf_fufillment * location_modifier * (1.0f + tech_nation.get_modifier_values(sys::national_mod_offsets::reinforce_speed) + tech_nation.get_modifier_values(sys::national_mod_offsets::reinforce_rate));
+	if(in_nation) {
+		combined *= army_supply_reinforcement_factor(ar.get_supply_reserve());
+	}
 
 	assert(std::isfinite(combined));
 	return std::clamp(combined, 0.f, 1.f);
@@ -10103,6 +10627,10 @@ void start_mobilization(sys::state& state, dcon::nation_id n) {
 		auto province_speed = state.defines.mobilization_speed_base *
 			float(1.0f + state.defines.mobilization_speed_rails_mult *
 											 (state.world.province_get_building_level(schedule_array[count].where, uint8_t(economy::province_building_type::railroad))) / 5.0f);
+		auto const execution = nations::policy_execution::effective_policy(
+			state, n, schedule_array[count].where,
+			nations::policy_execution::policy_kind::mobilization_logistics).effective_execution;
+		province_speed *= std::max(0.05f, execution);
 		auto days = std::max(1, int32_t(1.0f / province_speed));
 		delay += days;
 		schedule_array[count].when = state.current_date + delay;
@@ -10197,6 +10725,8 @@ void advance_mobilizations(sys::state& state) {
 												return ar.get_army().id;
 										}
 										auto new_army = fatten(state.world, state.world.create_army());
+										new_army.set_supply_reserve(1.0f);
+										new_army.set_supply_priority(1);
 										new_army.set_controller_from_army_control(n);
 										new_army.set_is_ai_controlled(n.get_mobilized_is_ai_controlled()); //toggle
 
@@ -10732,6 +11262,8 @@ void split_army(sys::state& state, dcon::nation_id source, dcon::army_id army, s
 
 	if(regiments_to_split.size() > 0) {
 		auto new_u = fatten(state.world, state.world.create_army());
+		new_u.set_supply_reserve(state.world.army_get_supply_reserve(army));
+		new_u.set_supply_priority(state.world.army_get_supply_priority(army));
 		new_u.set_controller_from_army_control(state.world.army_get_controller_from_army_control(army));
 		new_u.set_location_from_army_location(state.world.army_get_location_from_army_location(army));
 		new_u.set_black_flag(state.world.army_get_black_flag(army));

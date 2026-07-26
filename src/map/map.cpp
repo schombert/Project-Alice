@@ -496,6 +496,8 @@ void display_data::create_meshes() {
 
 	// Fill and bind the VAO
 	glBindVertexArray(vao_array[vo_land]);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, map_index_buffer);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(uint16_t) * map_indices.size(), map_indices.data(), GL_STATIC_DRAW);
 	// Create and populate the VBO
 	glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_land]);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(map_vertex) * land_vertices.size(), land_vertices.data(), GL_STATIC_DRAW);
@@ -578,6 +580,8 @@ display_data::~display_data() {
 		glDeleteVertexArrays(vo_count, vao_array);
 	if(vbo_array[0])
 		glDeleteBuffers(vo_count, vbo_array);
+	if(map_index_buffer)
+		glDeleteBuffers(1, &map_index_buffer);
 
 	/* Flags shader for deletion, but doesn't delete them until they're no longer in the rendering context */
 	for(const auto shader : shaders) {
@@ -799,7 +803,7 @@ void display_data::render(
 	glBindVertexArray(vao_array[vo_land]);
 
 	glDisable(GL_CULL_FACE);
-	glDrawElements(GL_TRIANGLE_STRIP, GLsizei(map_indices.size() - 1), GL_UNSIGNED_SHORT, map_indices.data());
+	glDrawElements(GL_TRIANGLE_STRIP, GLsizei(map_indices.size() - 1), GL_UNSIGNED_SHORT, nullptr);
 	glDisable(GL_PRIMITIVE_RESTART);
 
 	float pixel_size = (screen_size.y) / float(size_y) * zoom;
@@ -932,7 +936,7 @@ void display_data::render(
 	glEnable(GL_PRIMITIVE_RESTART);
 	glPrimitiveRestartIndex(std::numeric_limits<uint16_t>::max());
 	glBindVertexArray(vao_array[vo_land]);
-	glDrawElements(GL_TRIANGLE_STRIP, GLsizei(map_indices.size() - 1), GL_UNSIGNED_SHORT, map_indices.data());
+	glDrawElements(GL_TRIANGLE_STRIP, GLsizei(map_indices.size() - 1), GL_UNSIGNED_SHORT, nullptr);
 
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
@@ -3790,6 +3794,7 @@ void display_data::load_map(sys::state& state) {
 	auto root = simple_fs::get_root(state.common_fs);
 	glGenVertexArrays(vo_count, vao_array);
 	glGenBuffers(vo_count, vbo_array);
+	glGenBuffers(1, &map_index_buffer);
 	load_shaders(root);
 	load_static_meshes(state);
 	create_meshes();

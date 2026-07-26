@@ -36,6 +36,7 @@
 #include "modes/colonial.hpp"
 #include "modes/rgo_output.hpp"
 #include "modes/religion.hpp"
+#include "modes/army_supply.hpp"
 
 //
 // EXTRA MAP MODES
@@ -798,6 +799,7 @@ void set_map_mode(sys::state& state, mode mode) {
 		case map_mode::mode::relation:
 		case map_mode::mode::revolt:
 		case map_mode::mode::supply:
+		case map_mode::mode::army_supply:
 		case map_mode::mode::admin:
 		case map_mode::mode::crisis:
 		//New mapmodes
@@ -908,6 +910,9 @@ void set_map_mode(sys::state& state, mode mode) {
 		break;
 	case mode::supply:
 		prov_color = supply_map_from(state);
+		break;
+	case mode::army_supply:
+		prov_color = army_supply_map_from(state);
 		break;
 	case mode::relation:
 		prov_color = relation_map_from(state);

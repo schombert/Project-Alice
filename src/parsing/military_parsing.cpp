@@ -158,6 +158,8 @@ dcon::effect_key cb_on_po_accepted(token_generator& gen, error_handler& err, ind
 
 void make_oob_army(token_generator& gen, error_handler& err, oob_file_context& context) {
 	auto id = context.outer_context.state.world.create_army();
+	context.outer_context.state.world.army_set_supply_reserve(id, 1.0f);
+	context.outer_context.state.world.army_set_supply_priority(id, 1);
 	auto rebel_nid = context.outer_context.state.national_definitions.rebel_id;
 	auto rebel_nation = context.outer_context.state.world.national_identity_get_nation_from_identity_holder(rebel_nid);
 	dcon::nation_id army_controller;

@@ -292,6 +292,57 @@
         "CMAKE_BUILD_TYPE": "Release",
         "VECTOR_MODE": "AVX512"
       }
+    },
+    {
+      "name": "macos-arm64-base",
+      "hidden": true,
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "installDir": "${sourceDir}/out/install/${presetName}",
+      "architecture": {
+        "value": "arm64",
+        "strategy": "external"
+      },
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": "clang",
+        "CMAKE_CXX_COMPILER": "clang++",
+        "CMAKE_OSX_ARCHITECTURES": "arm64"
+      },
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Darwin"
+      }
+    },
+    {
+      "name": "macos-arm64-release",
+      "displayName": "macOS Apple Silicon Release",
+      "inherits": "macos-arm64-base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": "macos-arm64-debug",
+      "displayName": "macOS Apple Silicon Debug",
+      "inherits": "macos-arm64-base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "macos-arm64-release",
+      "displayName": "Build macOS Apple Silicon Release",
+      "configurePreset": "macos-arm64-release",
+      "targets": ["Alice"]
+    },
+    {
+      "name": "macos-arm64-debug",
+      "displayName": "Build macOS Apple Silicon Debug",
+      "configurePreset": "macos-arm64-debug",
+      "targets": ["Alice"]
     }
   ]
 }

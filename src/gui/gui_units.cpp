@@ -844,10 +844,18 @@ public:
 		// Check if the first regiment/ship would be allowed to be split off
 		if constexpr(std::is_same_v<T, dcon::army_id>) {
 			auto army_membership = state.world.army_get_army_membership(content);
+			if(!state.world.army_is_valid(content) || army_membership.begin() == army_membership.end()) {
+				disabled = true;
+				return;
+			}
 			auto first_reg = (*army_membership.begin()).get_regiment().id;
 			disabled = !military::can_split_army<command::actor::player>(state, state.local_player_nation, content, std::span<const dcon::regiment_id>{&first_reg, size_t(1)} );
 		} else if constexpr(std::is_same_v<T, dcon::navy_id>) {
 			auto navy_membership = state.world.navy_get_navy_membership(content);
+			if(!state.world.navy_is_valid(content) || navy_membership.begin() == navy_membership.end()) {
+				disabled = true;
+				return;
+			}
 			auto first_ship = (*navy_membership.begin()).get_ship().id;
 			disabled = !military::can_split_navy<command::actor::player>(state, state.local_player_nation, content, std::span<const dcon::ship_id>{ &first_ship, size_t(1)});
 		}

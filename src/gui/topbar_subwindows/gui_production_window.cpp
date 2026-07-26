@@ -1136,6 +1136,8 @@ void province_build_new_factory::update_tooltip(sys::state& state, int32_t x, in
 		text::localised_single_sub_box(state, contents, box, "factory_condition_4", text::variable_type::val, int64_t(state.defines.factories_per_state));
 		text::close_layout_box(contents, box);
 	}
+
+	add_factory_build_recommendations(state, contents, pid);
 }
 
 class production_build_new_factory : public button_element_base {
@@ -1204,6 +1206,8 @@ public:
 			text::localised_single_sub_box(state, contents, box, "factory_condition_4", text::variable_type::val, int64_t(state.defines.factories_per_state));
 			text::close_layout_box(contents, box);
 		}
+
+		add_factory_build_recommendations(state, contents, retrieve<dcon::province_id>(state, parent));
 	}
 };
 
@@ -2119,6 +2123,10 @@ message_result production_window::get(sys::state& state, Cyto::Any& payload) noe
 		return message_result::consumed;
 	} else if(payload.holds_type<element_selection_wrapper<bool>>()) {
 		show_empty_states = any_cast<element_selection_wrapper<bool>>(payload).data;
+		if(show_empty_states) {
+			state_listbox->sort_order = production_sort_order::primary_workers;
+			state_listbox_invest->sort_order = production_sort_order::primary_workers;
+		}
 		impl_on_update(state);
 		return message_result::consumed;
 	} else if(payload.holds_type<commodity_filter_query_data>()) {

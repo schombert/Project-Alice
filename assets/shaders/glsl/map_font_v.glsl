@@ -34,7 +34,7 @@ vec2 to_square(vec3 sph_point) {
 	}
 	return vec2(psi / PI / 2.f,	phi / PI + 0.5f);
 }
-vec3 tangent_from_square(vec2 square_point, vec2 square_tangent) {
+vec3 tangent_from_square(vec2 square_point, vec2 tangent_vec) {
 	float psi = square_point.x * 2.f * PI;
 	float phi = (square_point.y - 0.5f) * PI;
 
@@ -42,7 +42,8 @@ vec3 tangent_from_square(vec2 square_point, vec2 square_tangent) {
 	differential[0] = vec3(0.f, -cos(phi) * sin(psi), cos(phi) * cos(psi));
 	differential[1] = vec3(cos(phi), -sin(phi) * cos(psi), -sin(phi) * sin(psi));
 
-	return differential * (vec2(2.f * PI, PI) * square_tangent);
+	vec2 scaled_tangent = vec2(2.f * PI, PI) * tangent_vec;
+	return differential * scaled_tangent;
 }
 vec2 tangent_to_square(vec3 sphere_point, vec3 sph_tangent) {
 	float psi = atan(sphere_point.z, sphere_point.y);

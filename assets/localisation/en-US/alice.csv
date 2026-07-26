@@ -737,6 +737,23 @@ pop_growth_topbar;It's expected to grow by ?G$x$?W within the next month.
 pop_growth_topbar_2;population changed by ?G$x$?W in the last ?Y30?W days.
 pop_growth_topbar_3;Our Adult male population is ?Y$curr$?W. Our adult male
 pop_growth_topbar_4;Our total population is ?Y$val$?W.
+pop_growth_topbar_employment;Population employed: ?Y$x$?W.
+pop_growth_topbar_life_needs;Average life-needs fulfilment: ?Y$x$?W.
+alice_finance_income_daily;Daily income: ?G$x$?W
+alice_finance_expenses_daily;Daily expenses: ?R$x$?W
+alice_finance_net_daily;Net change per day: ?Y$x$?W
+alice_finance_reserve_days;Treasury lasts about ?Y$x$?W days at this deficit.
+alice_finance_largest_costs;Largest daily costs:
+alice_finance_administration;Administration
+alice_finance_military_wages;Military wages
+alice_finance_education;Education
+alice_finance_overseas;Colonial administration
+alice_finance_subsidies;Industrial subsidies
+alice_finance_stockpile;Stockpile purchases
+alice_population_natural_monthly;Natural population change per month: ?Y$x$?W
+alice_population_migration_monthly;Net external migration per month: ?Y$x$?W
+alice_population_army_attrition_monthly;Expected army attrition losses per month: ?Y$x$?W
+alice_population_expected_monthly;Expected total population change per month: ?Y$x$?W
 pop_growth_1;Monthly pop growth: 
 pop_growth_2;As this pop is a slave, its growth is divided by ?Y$val$?W.
 pop_growth_3;Pop growth is proportional to the size of the pop times the sum of:
@@ -749,6 +766,10 @@ pop_growth_9;A pop growth penalty of ?Y$x$?W is applied due to starvation. Starv
 pop_growth_10;The starvation penalty is computed by first taking the max starvation penalty (?Y$x$?W) and adding it to all growth modifiers (?Y$val$?W), giving the ?Ypenalty scale?W (?Y$y$?W), with a min possible result of of ?Y$x$?W
 pop_growth_11;Then, subtract the starvation limit (?Y$x$?W) from the pops life need fufillment, and divide it by the starvation limit (?Y$x$?W), with a max possible result of 0. This gives the ?Ystarvation factor?W (?Y$y$?W)
 pop_growth_12;Lastly, multiply the ?Ystarvation factor?W (?Y$x$?W) and ?Ypenalty scale?W (?Y$y$?W) to get the net pop growth penalty (?Y$val$?W), which is then added to the rest of the modifiers
+pop_growth_13;?CAge of Transformation:?W housing access is ?Y$x$?W, urbanization is ?Y$y$?W, producing ?Y$val$?W overcrowding pressure.
+pop_growth_14;Overcrowding changes monthly growth by ?R$x$?W and monthly militancy by ?R+$y$?W.
+pop_growth_15;Demographic transition is ?Y$x$?W (literacy ?Y$y$?W, education access ?Y$val$?W) and changes monthly growth by ?R$value$?W.
+pop_growth_16;Local human development index: ?Y$x$?W.
 pop_assim_1;Monthly pop assimilation: $x$
 pop_assim_2;Slaves do not assimilate
 pop_assim_3;Pops of an accepted culture do not assimilate
@@ -1139,6 +1160,30 @@ unit_arrival_time_text;(arrive on $date$)
 ol_unit_standing_text;$m$ $n$/$x$/$y$
 unit_moving_text;$m$ $n$/$x$/$y$ -> $prov$ by $date$ (ATK $attunit$ DEF $defunit$ Upkeep ?R$cost$?W)
 unit_standing_text;$m$ $n$/$x$/$y$ (ATK $attunit$ DEF $defunit$ Upkeep ?R$cost$?W)
+army_supply_spatial_access;Spatial supply access: $value$
+army_supply_effective;Effective supply availability: $value$
+army_supply_priority;Supply priority: $x$ (0 low, 1 normal, 2 high)
+army_supply_reserve;Supply reserve: $value$ (daily $x$)
+army_supply_movement_factor;Movement speed from logistics: $value$
+army_supply_replacement_load;Replacement logistics load: $value$
+army_supply_capacity;Route capacity: $value$ (demand $x$ / capacity $y$)
+army_supply_army_demand;Army logistics weight: $value$
+army_supply_reinforcement_factor;Reinforcement from logistics: $value$
+army_supply_source;Source: $prov$
+army_supply_depot_delivery;Depot dispatch: $value$ (stock $x$ / $y$)
+army_supply_depot_connected;Supply depot: connected to the national rear
+army_supply_depot_disconnected;Supply depot: cut off from the national rear
+army_supply_depot_stockpile;Depot stockpile: $value$ / $x$
+army_supply_depot_flow;Incoming per day: $value$; armies served: $x$
+army_supply_depot_toggle_hint;Shift-click to establish or remove a supply depot
+army_supply_priority_toggle_hint;Ctrl-click cycles supply priority for your armies here
+army_supply_distance;Distance: $value$ km ($x$)
+army_supply_infrastructure;Route infrastructure: $value$
+army_supply_control;Territorial control: $value$
+army_supply_goods;Military goods availability: $value$
+army_supply_no_route;No valid route to a supply source
+army_supply_sea_route;Sea route: $x$ to $y$
+army_supply_sea_distance;Sea distance: $value$ km
 disarmed_pop;a member of a disarmed nation
 cancel_fac_construction;Cancel factory construction
 cancel_fac_upgrade;Cancel factory upgrade
@@ -1324,6 +1369,14 @@ alice_spending_commodity_2;?R$cost$?W - Buying $need$ of $name$ (at $val$ x unit
 alice_building_id;Building ID: ?Y$val$?!
 alice_province_id;Province ID: ?Y$val$?!
 alice_recommended_build;?GThis factory is recommended to be built?W
+alice_factory_best_options;?GBest options for this state:?W
+alice_factory_best_option;?Y$name$?W — est. ?G$value$/day?W (?Y$x$?W margin)
+alice_factory_recommendation_positive;?GRecommended for this state?W
+alice_factory_recommendation_neutral;?YAlternative option — review the estimate below?W
+alice_factory_estimated_profit;Estimated operating result: ?Y$value$/day?W (?Y$x$?W margin)
+alice_factory_estimated_payback;Estimated payback: ?Y$x$ days?W
+alice_factory_workers_available;Available workers: ?Y$x$?W / ?Y$value$?W required
+alice_factory_input_availability;Worst input availability: ?Y$x$?W
 alice_factory_bonus;We will receive a ?Y$x$?W bonus if:
 alice_factory_inputs;Inputs required:
 alice_construction_cost;Construction cost:
@@ -1613,6 +1666,7 @@ investment_pool_income_3;Government domestic investment: ?G$x$?W
 investment_pool_spending_1;"Incentives" spending: ?R$x$?W
 investment_pool_spending_2;Construction spending: ?R$x$?W
 investment_pool_spending_3;Transfer to subjects: ?R$x$?W
+budget_projected_balance;Projected daily balance: ?Y$val$?W
 DIPLO_RUN_CONFERENCE;Run a conference
 unit_reinforcement_needs;Goods for reinforcement:
 unit_supply_needs;Daily supply:
@@ -1635,7 +1689,7 @@ alice_budget_gold;Gold Mines
 alice_budget_construction;Construction
 alice_budget_army_upkeep;Army Upkeep
 alice_budget_navy_upkeep;Navy Upkeep
-alice_budget_domestic_investment;Public Works
+alice_budget_domestic_investment;Investment Grants
 alice_budget_debt_service;Debt Service
 alice_budget_diplo_income;Diplomatic
 alice_budget_diplo_expenses;Diplomatic
@@ -1738,7 +1792,11 @@ pop_emigration_attraction_3;And the migration target factor: $x$
 pop_migration_attraction_1;Migration attraction is the product of:
 pop_migration_attraction_2;The provincial modifier to immigrant attraction: $x$
 pop_migration_attraction_3;The migration target factor: $x$
-pop_migration_attraction_wage_ratio;And the wage difference multipler: $x$
+pop_migration_attraction_opportunity_intro;Real opportunity compares how well expected income and subsistence can cover life needs:
+pop_migration_attraction_opportunity_origin;Origin life-needs coverage: $x$ (100% = one full daily basket)
+pop_migration_attraction_opportunity_target;Target life-needs coverage: $x$ (100% = one full daily basket)
+pop_migration_attraction_opportunity_multiplier;Real-opportunity multiplier: ×$x$
+pop_migration_attraction_opportunity_legacy_debug;Debug comparison — legacy wage multiplier: ×$x$. Legacy attraction weight: $y$. Current attraction weight: $val$.
 pop_migration_attraction_bureaucracy;Bureaucracy base attraction: $x$
 alice_toggle_administration;Establish or abolish local administration. Administrations outside your control will not work. Consult administrative map mode to check existing administrations.
 administration_tile;Local administration
@@ -2031,3 +2089,29 @@ factory_investments_header;Investments
 total_investments_label;Total
 investment_efficiency_tooltip;Tools, efficiency inputs and machines
 investment_expansion_tooltip;Expansion
+alice_gamerule_age_of_transformation;Alice: Age of Transformation
+alice_gamerule_age_of_transformation_desc;Enables the opt-in political economy ruleset: interest groups, wealth-based political power, coalitions, legitimacy and policy execution
+alice_gamerule_age_of_transformation_opt_disabled;Legacy-compatible rules
+alice_gamerule_age_of_transformation_opt_enabled;Age of Transformation
+alice_aot_legitimacy;Transformation legitimacy: $x$ / 100
+alice_aot_coalition;Governing coalition: $x$
+alice_aot_coalition_power;Coalition political power: $x$
+alice_aot_no_coalition;No viable coalition
+alice_aot_group_landed_elites;Landed elites
+alice_aot_group_industrialists;Industrialists
+alice_aot_group_intelligentsia;Intelligentsia
+alice_aot_group_organized_labor;Organized labor
+alice_aot_group_rural_communities;Rural communities
+alice_aot_group_state_services;State services
+alice_aot_reform_header;Age of Transformation political balance (50% required)
+alice_aot_reform_popular;Popular support: $x$
+alice_aot_reform_power;Political-power support: $x$
+alice_aot_reform_coalition;Governing-coalition support: $x$
+alice_aot_reform_execution;Expected implementation: $x$
+alice_aot_movement_header;Age of Transformation radicalism pressure
+alice_aot_movement_power;Political-power backing: $x$
+alice_aot_movement_coalition;Opposition to the coalition: $x$
+alice_aot_movement_legitimacy;Net legitimacy pressure: $x$
+alice_aot_movement_hardship;Economic hardship: $x$
+alice_aot_movement_implementation;Implementation gap: $x$
+alice_aot_movement_total;Total radicalism adjustment: $x$

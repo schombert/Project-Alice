@@ -89,6 +89,54 @@ void single_unit_tooltip(sys::state& state, text::columnar_layout& contents, dco
 		text::add_unparsed_text_to_layout_box(state, contents, box, resolved);
 		text::close_layout_box(contents, box);
 	}
+
+	auto supply_access = military::calculate_army_supply_access(state, a);
+	text::add_line(state, contents, "army_supply_spatial_access", text::variable_type::value,
+		text::fp_percentage{ supply_access.spatial_access });
+	text::add_line(state, contents, "army_supply_effective", text::variable_type::value,
+		text::fp_percentage{ supply_access.effective_supply });
+	text::add_line(state, contents, "army_supply_priority", text::variable_type::x,
+		int64_t(state.world.army_get_supply_priority(a)));
+	text::add_line(state, contents, "army_supply_reserve", text::variable_type::value,
+		text::fp_percentage{ supply_access.supply_reserve }, text::variable_type::x,
+		text::fp_percentage{ supply_access.reserve_daily_change }, 15);
+	text::add_line(state, contents, "army_supply_movement_factor", text::variable_type::value,
+		text::fp_percentage{ military::army_supply_movement_factor(supply_access.supply_reserve) }, 15);
+	text::add_line(state, contents, "army_supply_replacement_load", text::variable_type::value,
+		text::fp_one_place{ supply_access.replacement_load }, 15);
+	text::add_line(state, contents, "army_supply_reinforcement_factor", text::variable_type::value,
+		text::fp_percentage{ supply_access.reinforcement_factor }, 15);
+	if(supply_access.reachable) {
+		text::add_line(state, contents, "army_supply_army_demand", text::variable_type::value,
+			text::fp_one_place{ supply_access.army_demand }, 15);
+		text::add_line(state, contents, "army_supply_capacity", text::variable_type::value,
+			text::fp_percentage{ supply_access.capacity_factor }, text::variable_type::x,
+			text::fp_one_place{ supply_access.route_demand }, text::variable_type::y,
+			text::fp_one_place{ supply_access.route_capacity }, 15);
+		text::add_line(state, contents, "army_supply_source", text::variable_type::prov, supply_access.source, 15);
+		if(supply_access.source_is_depot) {
+			text::add_line(state, contents, "army_supply_depot_delivery", text::variable_type::value,
+				text::fp_percentage{ supply_access.depot_delivery_factor }, text::variable_type::x,
+				text::fp_one_place{ supply_access.depot_stockpile }, text::variable_type::y,
+				text::fp_one_place{ supply_access.depot_capacity }, 15);
+		}
+		text::add_line(state, contents, "army_supply_distance", text::variable_type::value, text::fp_one_place{ supply_access.distance_km },
+			text::variable_type::x, text::fp_percentage{ supply_access.distance_factor }, 15);
+		text::add_line(state, contents, "army_supply_infrastructure", text::variable_type::value,
+			text::fp_percentage{ supply_access.infrastructure_factor }, 15);
+		text::add_line(state, contents, "army_supply_control", text::variable_type::value,
+			text::fp_percentage{ supply_access.control_factor }, 15);
+		text::add_line(state, contents, "army_supply_goods", text::variable_type::value,
+			text::fp_percentage{ supply_access.military_goods_availability }, 15);
+		if(supply_access.uses_sea_route) {
+			text::add_line(state, contents, "army_supply_sea_route", text::variable_type::x, supply_access.embark_port,
+				text::variable_type::y, supply_access.disembark_port, 15);
+			text::add_line(state, contents, "army_supply_sea_distance", text::variable_type::value,
+				text::fp_one_place{ supply_access.sea_distance_km }, 15);
+		}
+	} else {
+		text::add_line(state, contents, "army_supply_no_route", 15);
+	}
 }
 
 void single_unit_tooltip(sys::state& state, text::columnar_layout& contents, dcon::navy_id n) {

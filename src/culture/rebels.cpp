@@ -5,10 +5,13 @@
 #include "effects.hpp"
 #include "demographics.hpp"
 #include "gui_event.hpp"
+#include "gamerule.hpp"
 #include "politics.hpp"
 #include "province_templates.hpp"
 #include "prng.hpp"
 #include "province.hpp"
+#include "policy_execution.hpp"
+#include "transformation_politics.hpp"
 
 namespace rebel {
 
@@ -246,10 +249,21 @@ void update_movement_values(sys::state& state) { // simply updates cached values
 		auto nat_effect = host_max_nationalism * state.defines.movement_radicalism_nationalism_factor;
 		auto mov_support = state.world.movement_get_pop_support(ids);
 		auto non_c_pop = state.world.nation_get_non_colonial_population(host_nations);
-		auto support_effect = state.defines.population_movement_radical_factor * mov_support / non_c_pop;
+		// SIMD select may still evaluate both branches, so protect the divisor
+		// before masking empty nations out. This prevents NaN radicalism from
+		// poisoning movement and rebel updates.
+		auto safe_population = ve::max(non_c_pop, 1.0f);
+		auto support_effect = ve::select(
+			non_c_pop > 0.0f,
+			state.defines.population_movement_radical_factor * mov_support / safe_population,
+			0.0f);
+		auto transformation_pressure = ve::apply(
+			[&](dcon::movement_id movement) {
+				return politics::transformation::movement_pressure_for(state, movement).total_adjustment;
+			}, ids);
 
 		auto new_radicalism = state.world.movement_get_transient_radicalism(ids) + state.defines.movement_radicalism_base
-			+ ref_effect + host_cradicalism + nat_effect + support_effect;
+			+ ref_effect + host_cradicalism + nat_effect + support_effect + transformation_pressure;
 		state.world.movement_set_radicalism(ids, ve::max(0.0f, new_radicalism));
 	});
 }
@@ -277,12 +291,34 @@ void suppress_movement(sys::state& state, dcon::nation_id n, dcon::movement_id m
 	Increase the transient radicalism of the movement by: define:SUPPRESSION_RADICALISM_HIT
 	Set the consciousness of all pops that were in the movement to 1 and remove them from it.
 	*/
-	state.world.movement_get_transient_radicalism(m) += state.defines.suppression_radicalisation_hit;
-	for(auto p : state.world.movement_get_pop_movement_membership(m)) {
-		//auto old_con = pop_demographics::get_consciousness(state, p.get_pop());
-		pop_demographics::set_consciousness(state, p.get_pop().id, 1.0f);
+	if(!gamerule::age_of_transformation_enabled(state)) {
+		state.world.movement_get_transient_radicalism(m) += state.defines.suppression_radicalisation_hit;
+		for(auto p : state.world.movement_get_pop_movement_membership(m))
+			pop_demographics::set_consciousness(state, p.get_pop().id, 1.0f);
+		state.world.movement_remove_all_pop_movement_membership(m);
+		return;
 	}
-	state.world.movement_remove_all_pop_movement_membership(m);
+
+	auto const execution = nations::policy_execution::average_effective_policy(
+		state, n, nations::policy_execution::policy_kind::crime_suppression);
+	state.world.movement_get_transient_radicalism(m) +=
+		state.defines.suppression_radicalisation_hit * (1.f + 1.5f * (1.f - execution));
+	std::vector<dcon::pop_id> members;
+	for(auto membership : state.world.movement_get_pop_movement_membership(m))
+		members.push_back(membership.get_pop().id);
+	for(auto pop : members) {
+		pop_demographics::set_consciousness(state, pop,
+			std::max(1.f, pop_demographics::get_consciousness(state, pop)));
+		auto const draw = float(uint32_t(rng::get_random(
+			state, uint32_t(state.current_date.value), uint32_t(pop.value ^ (m.value << 7))) & 0xFFFFu))
+			/ 65536.f;
+		if(draw < execution) {
+			remove_pop_from_movement(state, pop);
+		} else {
+			pop_demographics::set_militancy(state, pop, std::min(10.f,
+				pop_demographics::get_militancy(state, pop) + 0.5f * (1.f - execution)));
+		}
+	}
 }
 
 void turn_movement_into_rebels(sys::state& state, dcon::movement_id m) {
@@ -1078,6 +1114,8 @@ void rebel_risings_check(sys::state& state) {
 									return ar.get_army().id;
 							}
 							auto new_army = fatten(state.world, state.world.create_army());
+							new_army.set_supply_reserve(1.0f);
+							new_army.set_supply_priority(1);
 							new_army.set_controller_from_army_rebel_control(rf);
 							new_army.set_location_from_army_location(pop_location);
 							new_armies.push_back(new_army);

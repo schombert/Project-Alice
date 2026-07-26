@@ -103,10 +103,11 @@ bool extend_if_possible(uint32_t x, int32_t border_id, direction dir, std::vecto
 };
 
 void smooth_points(std::vector<glm::vec2>& vertices) {
+	if(vertices.size() < 2) return;
 	std::vector<glm::vec2> vertices_copy = vertices;
 
 	bool wrap_around = false;
-	if(glm::distance(vertices.back(), vertices.front()) < 0.001f && vertices.size() > 2) {
+	if(vertices.size() > 2 && glm::distance(vertices.back(), vertices.front()) < 0.001f) {
 		wrap_around = true;
 	}
 

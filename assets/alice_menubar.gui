@@ -522,6 +522,13 @@ guiTypes = {
 			Orientation = "LOWER_RIGHT"
 		}
 		guiButtonType = {
+			name = "mapmode_45"
+			tooltipText = "mapmode_45"
+			position = { -62 -199 }
+			quadTextureSprite = "GFX_mapmode_supplylimit.n"
+			Orientation = "LOWER_RIGHT"
+		}
+		guiButtonType = {
 				name = "expand_mapmodes_button"
 				position = { -374 -178 }
 				quadTextureSprite = "mapmodes_expand_button"

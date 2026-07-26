@@ -10,8 +10,9 @@ void post(sys::state& state, message&& m) {
 	// as that will probably be a more computationally expensive check
 	//
 
-	bool v = state.new_messages.try_emplace(std::move(m));
-	assert(v);
+	// A burst of messages can fill the bounded queue. Dropping the newest
+	// notification is preferable to terminating the game in debug builds.
+	(void)state.new_messages.try_emplace(std::move(m));
 }
 
 bool nation_is_interesting(sys::state& state, dcon::nation_id n) {

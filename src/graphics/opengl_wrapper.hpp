@@ -1,4 +1,6 @@
 #pragma once
+#include <cassert>
+#include <cstdint>
 #include <numbers>
 
 #include <string>
@@ -8,6 +10,72 @@
 #define GLEW_STATIC
 #endif
 #include "glew.h"
+
+#ifdef __APPLE__
+// macOS exposes at most OpenGL 4.1. The renderer normally uses the separate
+// vertex format API added in OpenGL 4.3, but currently only uses binding zero
+// with a zero buffer offset. Translate that subset to the equivalent 4.1 API.
+namespace alice_gl_compat {
+inline GLsizei vertex_stride = 0;
+
+inline void bind_vertex_buffer(GLuint binding, GLuint buffer, GLintptr offset, GLsizei stride) {
+	assert(binding == 0);
+	assert(offset == 0);
+	vertex_stride = stride;
+	glBindBuffer(GL_ARRAY_BUFFER, buffer);
+}
+
+inline void vertex_attrib_format(GLuint attrib, GLint size, GLenum type, GLboolean normalized, GLuint offset) {
+	glVertexAttribPointer(attrib, size, type, normalized, vertex_stride, reinterpret_cast<void const*>(uintptr_t(offset)));
+}
+
+inline void vertex_attrib_i_format(GLuint attrib, GLint size, GLenum type, GLuint offset) {
+	glVertexAttribIPointer(attrib, size, type, vertex_stride, reinterpret_cast<void const*>(uintptr_t(offset)));
+}
+
+inline void vertex_attrib_binding(GLuint attrib, GLuint binding) {
+	assert(binding == 0);
+}
+
+inline void tex_storage_2d(GLenum target, GLsizei levels, GLenum internal_format, GLsizei width, GLsizei height) {
+	assert(levels == 1);
+	GLenum format = GL_RGBA;
+	GLenum type = GL_UNSIGNED_BYTE;
+	switch(internal_format) {
+	case GL_R8: format = GL_RED; break;
+	case GL_R8UI: format = GL_RED_INTEGER; break;
+	case GL_RG8: format = GL_RG; break;
+	case GL_RGB8: format = GL_RGB; break;
+	case GL_RGBA8: format = GL_RGBA; break;
+	default: assert(false); break;
+	}
+	glTexImage2D(target, 0, GLint(internal_format), width, height, 0, format, type, nullptr);
+	glTexParameteri(target, GL_TEXTURE_BASE_LEVEL, 0);
+	glTexParameteri(target, GL_TEXTURE_MAX_LEVEL, levels - 1);
+}
+
+inline void tex_storage_3d(GLenum target, GLsizei levels, GLenum internal_format, GLsizei width, GLsizei height, GLsizei depth) {
+	assert(levels == 1);
+	assert(internal_format == GL_RGBA8);
+	glTexImage3D(target, 0, GLint(internal_format), width, height, depth, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+	glTexParameteri(target, GL_TEXTURE_BASE_LEVEL, 0);
+	glTexParameteri(target, GL_TEXTURE_MAX_LEVEL, levels - 1);
+}
+}
+
+#undef glBindVertexBuffer
+#undef glVertexAttribFormat
+#undef glVertexAttribIFormat
+#undef glVertexAttribBinding
+#undef glTexStorage2D
+#undef glTexStorage3D
+#define glBindVertexBuffer alice_gl_compat::bind_vertex_buffer
+#define glVertexAttribFormat alice_gl_compat::vertex_attrib_format
+#define glVertexAttribIFormat alice_gl_compat::vertex_attrib_i_format
+#define glVertexAttribBinding alice_gl_compat::vertex_attrib_binding
+#define glTexStorage2D alice_gl_compat::tex_storage_2d
+#define glTexStorage3D alice_gl_compat::tex_storage_3d
+#endif
 
 #include "container_types.hpp"
 #include "container_types_ui.hpp"
@@ -240,6 +308,8 @@ void shutdown_opengl(sys::state& state);
 bool display_tag_is_valid(sys::state& state, char tag[3]);
 
 void set_shader_prefix(std::string_view source);
+void set_shader_prefix_apple_ui(std::string_view source);
+void set_shader_prefix_apple_geometry(std::string_view source);
 GLint compile_shader(std::string_view source, GLenum type);
 GLuint create_program(std::string_view vertex_shader, std::string_view fragment_shader);
 void load_shaders(sys::state& state);
@@ -325,6 +395,7 @@ void render_linegraph(sys::state const& state, color_modification enabled, float
 void render_linegraph(sys::state const& state, color_modification enabled, float x, float y, float width, float height, float r, float g, float b, float a, lines& l);
 void render_barchart(sys::state const& state, color_modification enabled, float x, float y, float width, float height, data_texture& t, ui::rotation r, bool flipped, bool rtl);
 void render_ui_mesh( sys::state const& state, color_modification enabled, float x, float y, float width, float height, generic_ui_mesh_triangle_strip& mesh, data_texture& t);
+void render_colored_ui_mesh(sys::state const& state, float x, float y, float width, float height, generic_ui_mesh_triangle_strip& mesh, float red, float green, float blue);
 void render_piechart(sys::state const& state, color_modification enabled, float x, float y, float size, data_texture& t);
 void render_stripchart(sys::state const& state, color_modification enabled, float x, float y, float sizex, float sizey, data_texture& t);
 void render_bordered_rect(sys::state const& state, color_modification enabled, float border_size, float x, float y, float width, float height, GLuint texture_handle, ui::rotation r, bool flipped, bool rtl);

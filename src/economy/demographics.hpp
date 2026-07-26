@@ -238,9 +238,26 @@ struct province_migration_weight_explanation {
 	float base_weight;
 	float modifier;
 	float wage_multiplier;
+	float old_wage_multiplier;
+	float origin_life_needs_coverage;
+	float target_life_needs_coverage;
 	float culture_multiplier;
+	float old_result;
 	float result;
 };
+
+// Pure numerical core used by migration and unit tests. Coverage is measured in
+// multiples of one full daily life-needs basket.
+float life_needs_coverage_from_components(float labor_price, float labor_supply_sold, float life_needs_cost,
+	float needs_scaling_factor, float subsistence_coverage);
+float life_needs_coverage_from_income(float expected_income_per_capita, float life_needs_cost,
+	float needs_scaling_factor, float subsistence_coverage);
+float migration_opportunity_multiplier_from_coverage(float origin_coverage, float target_coverage);
+bool pop_uses_labor_market(sys::state const& state, dcon::pop_type_id pop_type);
+float expected_labor_income_per_capita(sys::state const& state, dcon::pop_id pop, dcon::province_id province);
+float expected_life_needs_coverage(sys::state const& state, dcon::pop_id pop, dcon::province_id province);
+float real_opportunity_migration_multiplier(sys::state const& state, dcon::pop_id pop,
+	dcon::province_id origin, dcon::province_id target);
 province_migration_weight_explanation explain_province_internal_migration_weight(sys::state& state, dcon::pop_id p, dcon::province_id pid);
 
 void apply_ideologies(sys::state& state, uint32_t offset, uint32_t divisions, ideology_buffer& pbuf);
@@ -251,6 +268,10 @@ void apply_internal_migration(sys::state& state, uint32_t offset, uint32_t divis
 void apply_colonial_migration(sys::state& state, uint32_t offset, uint32_t divisions, migration_buffer& pbuf);
 void apply_immigration(sys::state& state, uint32_t offset, uint32_t divisions, migration_buffer& pbuf);
 
+// Moves population and the same proportional share of its liquid savings.
+// Returns the actual population moved after safety clamping.
+float transfer_pop_amount(sys::state& state, dcon::pop_id source, dcon::pop_id target, float requested_amount);
+
 void remove_size_zero_pops(sys::state& state);
 void remove_small_pops(sys::state& state);
 
@@ -258,6 +279,7 @@ template<bool DeletePops>
 void fixup_state_only_pops(sys::state& state);
 
 float get_pop_starvation_penalty_scale(sys::state& state, dcon::pop_id pop, float growth_modifiers);
+float get_net_pop_starvation_penalty(sys::state& state, dcon::pop_id pop, float growth_modifiers);
 float get_pop_growth_modifiers(sys::state& state, dcon::pop_id pop);
 float get_pop_starvation_factor(sys::state& state, dcon::pop_id ids);
 float popgrowth_from_life_rating(sys::state& state, float life_rating);

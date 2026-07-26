@@ -1401,6 +1401,21 @@ object {
 		type{ uint32_t }
 		tag{ scenario }
 	}
+	property{
+		name{ is_supply_depot }
+		type{ bitfield }
+		tag{ save }
+	}
+	property{
+		name{ supply_depot_stockpile }
+		type{ float }
+		tag{ save }
+	}
+	property{
+		name{ supply_depot_owner }
+		type{ nation_id }
+		tag{ save }
+	}
 
 	property{
 		name{ name }
@@ -2172,6 +2187,16 @@ object {
 	property{
 		name{ name }
 		type{ unit_name_id }
+		tag{ save }
+	}
+	property{
+		name{ supply_reserve }
+		type{ float }
+		tag{ save }
+	}
+	property{
+		name{ supply_priority }
+		type{ uint8_t }
 		tag{ save }
 	}
 
@@ -6186,4 +6211,3 @@ load_save{
 	only_objects{mp_data}
 	only_properties{mp_data}
 }
-

@@ -240,6 +240,7 @@ public:
 	// map pixel -> province id
 	std::vector<uint16_t> province_id_map;
 	std::vector<uint16_t> map_indices;
+	GLuint map_index_buffer = 0;
 
 	// province id mask to detect seas
 	std::vector<uint32_t> province_id_sea_mask;

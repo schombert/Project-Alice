@@ -17,7 +17,9 @@ public:
 };
 
 class production_window : public generic_tabbed_window<production_window_tab> {
-	bool show_empty_states = true;
+	// Keep the default factory-management view focused on states that have
+	// something to manage. Empty states remain available through the toggle.
+	bool show_empty_states = false;
 	std::unique_ptr<bool[]> show_output_commodity;
 
 	production_state_listbox* state_listbox = nullptr;

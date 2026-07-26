@@ -6,10 +6,32 @@
 #include "construction.hpp"
 #include "demographics.hpp"
 #include "economy_constants.hpp"
+#include "gamerule.hpp"
+#include <cmath>
 
 namespace economy {
 
 namespace national_budget {
+
+float sustainable_daily_budget(float treasury, float expected_daily_income) noexcept {
+	if(!std::isfinite(treasury) || treasury <= 0.f || !std::isfinite(expected_daily_income)) {
+		return 0.f;
+	}
+	return std::min(treasury, std::max(0.f, expected_daily_income));
+}
+
+float estimate_sustainable_daily_budget(sys::state& state, dcon::nation_id n, float treasury) {
+	// Keep this suitable for the per-nation parallel budget pass. A complete
+	// tariff forecast scans every commodity on every trade route; the stable
+	// recurring base uses already aggregated taxes plus cheap recurring income.
+	auto const tax = economy::explain_tax_income(state, n);
+	auto const expected_daily_income =
+		tax.poor + tax.mid + tax.rich
+		+ economy::estimate_gold_income(state, n)
+		+ economy::estimate_war_subsidies_income(state, n)
+		+ economy::estimate_reparations_income(state, n);
+	return sustainable_daily_budget(treasury, expected_daily_income);
+}
 
 float budget_ratio(float budget, float priority) {
 	return budget * priority;
@@ -102,9 +124,6 @@ budget_spending_details estimate_budget_detailed(sys::state& state, dcon::nation
 	result.administration_wages.dedicated_budget = admin_budget;
 	result.administration_wages.actual_spending = economy::estimate_spendings_administration(state, n, admin_budget);
 	result.administration_wages.priority = priority.administration_wages;
-	if(admin_budget >= available_funds) {
-		return result;
-	}
 
 	// SCALED SPENDING
 
@@ -137,13 +156,12 @@ budget_spending_details estimate_budget_detailed(sys::state& state, dcon::nation
 		+ stockpile_budget;
 
 	auto scale = 1.f;
-	if(total > available_funds) {
-		auto divisor = (available_funds - admin_budget);
-		if(divisor == 0.f) {
-			scale = 0.f;
-		} else {
-			scale = (available_funds - admin_budget) / divisor;
-		}
+	auto const actual_admin_spending = gamerule::age_of_transformation_enabled(state)
+		? result.administration_wages.actual_spending
+		: admin_budget;
+	if(total + actual_admin_spending > available_funds) {
+		auto const funds_after_admin = std::max(0.f, available_funds - actual_admin_spending);
+		scale = total > 0.f ? funds_after_admin / total : 0.f;
 	}
 
 	scale = std::clamp(scale, 0.f, 1.f);

@@ -54,7 +54,11 @@ void text_render(
 	float size,
 	text::font& f
 ) {
+#ifdef __APPLE__
+	glBindBuffer(GL_ARRAY_BUFFER, square_buffer);
+#else
 	glBindVertexBuffer(0, square_buffer, 0, sizeof(GLfloat) * 4);
+#endif
 	glUniform2ui(ui_shader_subroutines_index_uniform, subroutine_1, subroutine_2);
 
 	auto& font_instance = f.retrieve_stateless_instance(lib, int32_t(size * ui_scale));

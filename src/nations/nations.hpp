@@ -2,12 +2,23 @@
 #include "dcon_generated_ids.hpp"
 #include "culture.hpp"
 #include "military.hpp"
+#include <cmath>
+#include <limits>
 
 namespace sys {
 enum class crisis_state : uint32_t;
 }
 
 namespace nations {
+
+inline uint16_t saturated_industrial_score(double score) {
+	if(std::isnan(score) || score <= 0.0)
+		return 0;
+	auto const maximum = double(std::numeric_limits<uint16_t>::max());
+	if(!std::isfinite(score) || score >= maximum)
+		return std::numeric_limits<uint16_t>::max();
+	return uint16_t(score);
+}
 
 inline float naval_base_level_to_market_attractiveness = 0.25f;
 
@@ -236,6 +247,7 @@ void switch_all_players(sys::state& state, dcon::nation_id new_n, dcon::nation_i
 bool has_units_inside_other_nation(sys::state& state, dcon::nation_id nation_a, dcon::nation_id nation_b);
 bool can_put_flashpoint_focus_in_state(sys::state& state, dcon::state_instance_id s, dcon::nation_id fp_nation);
 int64_t get_monthly_pop_increase_of_nation(sys::state& state, dcon::nation_id n);
+int64_t get_monthly_net_external_migration(sys::state& state, dcon::nation_id n);
 bool can_accumulate_influence_with(sys::state& state, dcon::nation_id gp, dcon::nation_id target, dcon::gp_relationship_id rel);
 bool are_allied(sys::state& state, dcon::nation_id a, dcon::nation_id b);
 bool is_landlocked(sys::state& state, dcon::nation_id n);

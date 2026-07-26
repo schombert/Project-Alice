@@ -880,12 +880,15 @@ public:
 			return make_element_by_type<playable_nations_window>(state, id);
 		} else if(name == "back_button") {
 			return make_element_by_type<quit_game_button>(state, id);
-		} else if(name == "play_button") {
-			return make_element_by_type<start_game_button>(state, id);
-		} else if(name == "chatlog") {
-			auto ptr = make_element_by_type<nation_alice_readme_text>(state, state.ui_state.defs_by_name.find(state.lookup_key("alice_readme_text"))->second.definition);
-			add_child_to_front(std::move(ptr));
-			return make_element_by_type<invisible_element>(state, id);
+			} else if(name == "play_button") {
+				return make_element_by_type<start_game_button>(state, id);
+			} else if(name == "chatlog") {
+				auto const readme = state.ui_state.defs_by_name.find(state.lookup_key("alice_readme_text"));
+				if(readme != state.ui_state.defs_by_name.end()) {
+					auto ptr = make_element_by_type<nation_alice_readme_text>(state, readme->second.definition);
+					add_child_to_front(std::move(ptr));
+				}
+				return make_element_by_type<invisible_element>(state, id);
 		} else if(name == "observer_button") {
 			return make_element_by_type<observer_button>(state, id);
 

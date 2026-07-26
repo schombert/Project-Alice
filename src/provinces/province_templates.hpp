@@ -445,6 +445,11 @@ std::vector<dcon::province_id> make_path_to_expression(sys::state& state, dcon::
 						// this is a better path; update distance covered and parent
 						neighbor_node.distance_covered = distance_to_neighbor;
 						neighbor_node.parent = current_prov;
+						// open_queue stores province ids while its comparator reads the
+						// mutable distance above. Updating a key in place invalidates the
+						// heap and can make Dijkstra close a non-minimal node. Restore the
+						// heap immediately after a decrease-key operation.
+						std::make_heap(open_queue.begin(), open_queue.end(), province_comparer);
 					}
 					
 

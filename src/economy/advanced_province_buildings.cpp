@@ -103,6 +103,13 @@ constexpr float ports_decay_speed = 0.99999f;
 
 // it uses speed and other stuff because currently we don't have merchant fleets and transportation is done by port workers instead of sailors
 float ports_efficiency(sys::state& state, dcon::nation_id n, float size) {
+	// Uncolonized and otherwise unowned coastal provinces have no nation unit
+	// statistics. They are still visited by the province-wide production pass,
+	// so use the neutral port baseline instead of indexing the nation arrays
+	// with an invalid id.
+	if(!state.world.nation_is_valid(n)) {
+		return 1.f + size / 10000.f;
+	}
 	auto base_id = state.military_definitions.base_naval_unit;
 	auto& base_stats = state.world.nation_get_unit_stats(n, base_id);
 	auto speed = std::max(1.f, 10.f + base_stats.maximum_speed);
@@ -210,7 +217,12 @@ void update_consumption(sys::state& state) {
 			auto size = state.world.province_get_advanced_province_building_private_size(pid, id);
 			auto max_expansion_speed = max_size * max_city_expansion_rate + max_city_expansion_speed;
 
-			auto lots_of_empty_housing = size < max_size * 0.8f;
+			// A city expands when the built stock is almost occupied.  `max_size`
+			// is developable land, not vacant homes, so using it here previously
+			// delayed construction until the fictional capacity was nearly full.
+			auto housing_demand = state.world.province_get_service_demand_forbidden_public_supply(
+				pid, services::list::urban_housing);
+			auto lots_of_empty_housing = housing_demand <= size * def.output_amount * 0.8f;
 
 			auto demand_scale = 0.f;
 
@@ -577,7 +589,12 @@ void update_private_size(sys::state& state) {
 			auto max_size = state.world.province_get_advanced_province_building_max_private_size(pid, bid);
 			auto current_private_size = state.world.province_get_advanced_province_building_private_size(pid, bid);
 			auto margin = (income_per_unit - maintenance_cost_per_unit) / maintenance_cost_per_unit;
-			auto new_private_size = current_private_size + ve::min(margin, 100.f) + ve::min(ve::max(margin, -0.01f), 0.01f) * current_private_size;
+			// Bound both sides of the absolute adjustment. A low introductory rent
+			// could previously produce an arbitrarily negative margin and erase an
+			// entire city's housing stock in one day.
+			auto bounded_absolute_change = ve::min(ve::max(margin, -100.f), 100.f);
+			auto new_private_size = current_private_size + bounded_absolute_change
+				+ ve::min(ve::max(margin, -0.01f), 0.01f) * current_private_size;
 			new_private_size = ve::min(max_size, new_private_size);
 			state.world.province_set_advanced_province_building_private_size(pid, bid, ve::max(0.f, new_private_size));
 		});

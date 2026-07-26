@@ -30,6 +30,8 @@
 #include "immediate_mode_state.hpp"
 #include "network_containers.hpp"
 #include "container_types_ui.hpp"
+#include "military_supply.hpp"
+#include "transformation_politics.hpp"
 
 namespace game_scene {
 scene_properties nation_picker();
@@ -767,6 +769,30 @@ struct alignas(64) state {
 	bool national_cached_values_out_of_date = false;
 	bool diplomatic_cached_values_out_of_date = false;
 	bool trade_route_cached_values_out_of_date = true;
+	// Derived army logistics data. It is rebuilt from world state and is deliberately
+	// excluded from save games and multiplayer checksums.
+	std::vector<military::army_supply_access_data> army_supply_access_cache;
+	std::vector<float> army_supply_capacity_factor_cache;
+	std::vector<float> army_supply_route_capacity_cache;
+	std::vector<float> army_supply_route_demand_cache;
+	std::vector<float> army_supply_army_demand_cache;
+	std::vector<float> army_supply_depot_delivery_cache;
+	std::vector<float> army_supply_depot_draw_cache;
+	std::vector<dcon::province_id> army_supply_source_cache;
+	std::vector<uint8_t> army_supply_source_is_depot_cache;
+	std::vector<float> supply_depot_incoming_cache;
+	std::vector<uint16_t> supply_depot_served_armies_cache;
+	std::vector<uint8_t> supply_depot_connected_cache;
+	bool army_supply_cache_valid = false;
+
+	// Derived flagship politics. Recomputed from POP and economy state and never
+	// serialized, so legacy saves and mods retain their existing schema.
+	std::vector<politics::transformation::nation_result> transformation_politics_cache;
+	bool transformation_politics_cache_valid = false;
+	// Unsaved command-line override used by bounded/headless regression runs on
+	// scenarios created before the flagship gamerule existed. Normal games and
+	// saves continue to use the scenario's gamerule exclusively.
+	bool force_age_of_transformation_ruleset = false;
 
 	std::vector<dcon::nation_id> nations_by_rank;
 	std::vector<dcon::nation_id> nations_by_industrial_score;
@@ -1094,6 +1120,7 @@ struct alignas(64) state {
 	void on_scenario_load(); // called when the scenario file is loaded (not when saves are loaded)
 	void preload(); // clears data that will be later reconstructed from saved values
 	void clear_unsaved_data();
+	void clear_army_supply_derived_data();
 
 	void console_log(std::string_view message);
 	void lua_notification(std::string message);

@@ -8,6 +8,8 @@
 #include "economy.hpp"
 #include "economy_factory_view.hpp"
 #include "events.hpp"
+#include "gamerule.hpp"
+#include "transformation_politics.hpp"
 
 namespace politics {
 
@@ -124,6 +126,14 @@ bool can_enact_political_reform(sys::state& state, dcon::nation_id nation, dcon:
 			(!state.world.issue_get_is_next_step_only(issue.id) || current.index() + 1 == issue_option.index() ||
 					current.index() - 1 == issue_option.index()) &&
 			(!allow || trigger::evaluate(state, allow, trigger::to_generic(nation), trigger::to_generic(nation), 0))) {
+		if(gamerule::age_of_transformation_enabled(state)) {
+			auto const support = transformation::evaluate_issue_support(state, nation, issue_option);
+			auto const political_score =
+				0.45f * support.political_power_support
+				+ 0.35f * support.coalition_support
+				+ 0.20f * support.popular_support;
+			return political_score >= 0.50f;
+		}
 
 		float total = 0.0f;
 		for(uint32_t icounter = state.world.ideology_size(); icounter-- > 0;) {
@@ -198,6 +208,14 @@ bool can_enact_social_reform(sys::state& state, dcon::nation_id n, dcon::issue_o
 			(!state.world.issue_get_is_next_step_only(issue.id) || current.index() + 1 == o.index() ||
 					current.index() - 1 == o.index()) &&
 			(!allow || trigger::evaluate(state, allow, trigger::to_generic(n), trigger::to_generic(n), 0))) {
+		if(gamerule::age_of_transformation_enabled(state)) {
+			auto const support = transformation::evaluate_issue_support(state, n, o);
+			auto const political_score =
+				0.45f * support.political_power_support
+				+ 0.35f * support.coalition_support
+				+ 0.20f * support.popular_support;
+			return political_score >= 0.50f;
+		}
 
 		float total = 0.0f;
 		for(uint32_t icounter = state.world.ideology_size(); icounter-- > 0;) {

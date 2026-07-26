@@ -551,6 +551,19 @@ pop_emg_3;Рабы не эмигрируют
 pop_emg_4;Появляется без ?Yoverseas?! культура не эмигрирует
 pop_emg_5;Количество людей, которые эмигрируют, равно размеру населения, умноженному на масштаб иммиграции ($x$), умноженному на модификатор притока иммигрантов в провинции ($y$, возведенный в квадрат, если он больше 100%), умноженному на коэффициент эмиграции. ($вал$)
 pop_emg_6;?YКоэффициент эмиграции:
+pop_migration_culture;Население предпочитает мигрировать на исконные земли своей культуры: $x$
+pop_emigration_attraction_1;Привлекательность страны для эмиграции равна произведению следующих факторов:
+pop_emigration_attraction_2;Национальный модификатор привлекательности для иммигрантов: $x$
+pop_emigration_attraction_3;Фактор цели миграции: $x$
+pop_migration_attraction_1;Привлекательность направления миграции равна произведению следующих факторов:
+pop_migration_attraction_2;Провинциальный модификатор привлекательности для иммигрантов: $x$
+pop_migration_attraction_3;Фактор цели миграции: $x$
+pop_migration_attraction_opportunity_intro;Реальные возможности сравнивают, насколько ожидаемый доход и натуральное хозяйство покрывают жизненные потребности:
+pop_migration_attraction_opportunity_origin;Покрытие жизненных потребностей в исходной провинции: $x$ (100% = полная дневная корзина)
+pop_migration_attraction_opportunity_target;Покрытие жизненных потребностей в целевой провинции: $x$ (100% = полная дневная корзина)
+pop_migration_attraction_opportunity_multiplier;Множитель реальных возможностей: ×$x$
+pop_migration_attraction_opportunity_legacy_debug;Отладочное сравнение — прежний зарплатный множитель: ×$x$. Прежний вес привлекательности: $y$. Текущий вес привлекательности: $val$.
+pop_migration_attraction_bureaucracy;Базовая привлекательность для чиновников: $x$
 pop_prom_1;?YКоэффициент продвижения:
 pop_prom_2;Из национального фокуса: ?G$val$
 pop_prom_3;0 (из-за национальной направленности)
@@ -600,6 +613,21 @@ pop_growth_topbar;Ожидается, что в течение следующе�
 pop_growth_topbar_2;население изменилось на ?G$x$?W за последние ?Y30?W дней.
 pop_growth_topbar_3;Наше взрослое мужское население — ?Y$curr$?W. Наш взрослый мужчина
 pop_growth_topbar_4;Наша общая численность населения составляет ?Y$val$?W.
+alice_finance_income_daily;Доход за день: ?G$x$?W
+alice_finance_expenses_daily;Расходы за день: ?R$x$?W
+alice_finance_net_daily;Изменение казны за день: ?Y$x$?W
+alice_finance_reserve_days;При таком дефиците казны хватит примерно на ?Y$x$?W дн.
+alice_finance_largest_costs;Крупнейшие расходы за день:
+alice_finance_administration;Администрация
+alice_finance_military_wages;Военное жалованье
+alice_finance_education;Образование
+alice_finance_overseas;Колониальная администрация
+alice_finance_subsidies;Промышленные субсидии
+alice_finance_stockpile;Закупки на склад
+alice_population_natural_monthly;Естественное изменение населения за месяц: ?Y$x$?W
+alice_population_migration_monthly;Чистая внешняя миграция за месяц: ?Y$x$?W
+alice_population_army_attrition_monthly;Ожидаемые потери населения от истощения армии за месяц: ?Y$x$?W
+alice_population_expected_monthly;Ожидаемое изменение населения за месяц: ?Y$x$?W
 pop_growth_1;Ежемесячный прирост населения:
 pop_growth_2;Рабы не растут
 pop_growth_3;Рост населения пропорционален размеру населения, умноженному на сумму:
@@ -611,6 +639,11 @@ pop_growth_8;Жизнь населения нуждается в факторе 
 pop_growth_9;И 4
 pop_growth_10;Модификатор роста местного населения $x$
 pop_growth_11;Модификатор национального роста населения $x$
+pop_growth_12;Итоговый штраф от голода равен произведению фактора голода $x$ и масштаба штрафа $y$: $val$.
+pop_growth_13;?CAge of Transformation:?W доступность жилья — ?Y$x$?W, урбанизация — ?Y$y$?W, давление перенаселения — ?Y$val$?W.
+pop_growth_14;Перенаселение изменяет месячный прирост на ?R$x$?W и добавляет ?R+$y$?W воинственности в месяц.
+pop_growth_15;Демографический переход — ?Y$x$?W (грамотность ?Y$y$?W, доступ к образованию ?Y$val$?W) и изменяет месячный прирост на ?R$value$?W.
+pop_growth_16;Местный индекс человеческого развития: ?Y$x$?W.
 pop_assim_1;Ежемесячная ассимиляция населения: $x$
 pop_assim_2;Рабы не ассимилируются
 pop_assim_3;Население принятой культуры не ассимилируется
@@ -938,6 +971,30 @@ unit_arrival_time_text;(прибудет $date$)
 ol_unit_standing_text;$m$ $n$/$x$/$y$
 unit_moving_text;$m$ $n$/$x$/$y$ -> $prov$ к $date$ (ATK $attunit$ DEF $defunit$ содерж. ?R$cost$?W)
 unit_standing_text;$m$ $n$/$x$/$y$ (ATK $attunit$ DEF $defunit$ содерж. ?R$cost$?W)
+army_supply_spatial_access;Пространственная связь с тылом: $value$
+army_supply_effective;Фактическая обеспеченность: $value$
+army_supply_priority;Приоритет снабжения: $x$ (0 низкий, 1 обычный, 2 высокий)
+army_supply_reserve;Запас снабжения: $value$ (за день $x$)
+army_supply_movement_factor;Скорость движения от логистики: $value$
+army_supply_replacement_load;Нагрузка восполнения потерь: $value$
+army_supply_capacity;Пропускная способность: $value$ (спрос $x$ / мощность $y$)
+army_supply_army_demand;Логистический вес армии: $value$
+army_supply_reinforcement_factor;Пополнение от логистики: $value$
+army_supply_source;Источник: $prov$
+army_supply_depot_delivery;Выдача депо: $value$ (запас $x$ / $y$)
+army_supply_depot_connected;Депо снабжения: связано с национальным тылом
+army_supply_depot_disconnected;Депо снабжения: отрезано от национального тыла
+army_supply_depot_stockpile;Запас депо: $value$ / $x$
+army_supply_depot_flow;Поступает в день: $value$; обслуживает армий: $x$
+army_supply_depot_toggle_hint;Shift-клик: создать или убрать депо снабжения
+army_supply_priority_toggle_hint;Ctrl-клик: сменить приоритет снабжения своих армий здесь
+army_supply_distance;Расстояние: $value$ км ($x$)
+army_supply_infrastructure;Инфраструктура маршрута: $value$
+army_supply_control;Контроль территории: $value$
+army_supply_goods;Доступность военных товаров: $value$
+army_supply_no_route;Нет доступного пути к источнику снабжения
+army_supply_sea_route;Морской маршрут: $x$ — $y$
+army_supply_sea_distance;Морское расстояние: $value$ км
 disarmed_pop;население разоружённой страны
 cancel_fac_construction;Отменить строительство завода
 cancel_fac_upgrade;Отменить расширение завода
@@ -1073,6 +1130,14 @@ alice_spending_total;?YВсего потрачено:?W
 alice_spending_commodity;?R$cost$?W - Требуется $need$ $name$ ($val$)
 alice_spending_commodity_2;?R$cost$?W - Покупка $need$ $name$ (по цене $val$ x единица). Прогресс: $x$/$y$
 alice_recommended_build;?GРекомендуется построить эту фабрику?W
+alice_factory_best_options;?GЛучшие варианты для этого региона:?W
+alice_factory_best_option;?Y$name$?W — ожидается ?G$value$/день?W (маржа ?Y$x$?W)
+alice_factory_recommendation_positive;?GРекомендуется для этого региона?W
+alice_factory_recommendation_neutral;?YАльтернативный вариант — проверьте расчёт ниже?W
+alice_factory_estimated_profit;Ожидаемый операционный результат: ?Y$value$/день?W (маржа ?Y$x$?W)
+alice_factory_estimated_payback;Ожидаемая окупаемость: ?Y$x$ дней?W
+alice_factory_workers_available;Свободные рабочие: ?Y$x$?W / требуется ?Y$value$?W
+alice_factory_input_availability;Минимальная доступность сырья: ?Y$x$?W
 alice_factory_bonus;Мы получим бонус ?Y$x$?!, если:
 alice_factory_inputs;Необходимые входные данные:
 alice_factory_input_item;?R$cost$?! - Требуется $need$ $name$ ($val$)
@@ -1331,6 +1396,7 @@ investment_pool_income_3;Государственные субсидии: ?G$x$W
 investment_pool_spending_1;Административные расходы: ?R$x$?W
 investment_pool_spending_2;Расходы на строительство: ?R$x$?W
 investment_pool_spending_3;Трансфер субъектам: ?R$x$?W
+budget_projected_balance;Прогноз баланса за день: ?Y$val$?W
 subjectpayments_income_row;?G$VAL$?W от ?Y$country$?W
 alice_unit_builder_apply_button;Построить в выбранной провинции
 unit_macro_template_tooltip;Шаблон макробилдера юнитов
@@ -1341,7 +1407,7 @@ alice_budget_gold;Золотые шахты
 alice_budget_construction;Строительные расходы
 alice_budget_army_upkeep;Содержание армии
 alice_budget_navy_upkeep;Содержание флота
-alice_budget_domestic_investment;Субсидии предпринимательства
+alice_budget_domestic_investment;Инвестиционные гранты
 alice_budget_debt_service;Обслуживание долга
 alice_budget_diplo_income;Дипломатические доходы
 alice_budget_diplo_expenses;Дипломатические расходы
@@ -1370,3 +1436,29 @@ alice_budget_debt;Долг
 alice_budget_total_debt;Итого:
 alice_budget_max_debt;Макс:
 alice_budget_debt_enable;Включить долг
+alice_gamerule_age_of_transformation;Alice: Эпоха преобразований
+alice_gamerule_age_of_transformation_desc;Включает опциональный политико-экономический набор правил: группы интересов, влияние богатства, коалиции, легитимность и исполнение законов
+alice_gamerule_age_of_transformation_opt_disabled;Совместимые классические правила
+alice_gamerule_age_of_transformation_opt_enabled;Эпоха преобразований
+alice_aot_legitimacy;Легитимность преобразований: $x$ / 100
+alice_aot_coalition;Правящая коалиция: $x$
+alice_aot_coalition_power;Политическая сила коалиции: $x$
+alice_aot_no_coalition;Дееспособная коалиция не сформирована
+alice_aot_group_landed_elites;Земельные элиты
+alice_aot_group_industrialists;Промышленники
+alice_aot_group_intelligentsia;Интеллигенция
+alice_aot_group_organized_labor;Организованный труд
+alice_aot_group_rural_communities;Сельские сообщества
+alice_aot_group_state_services;Государственные служащие
+alice_aot_reform_header;Политический баланс «Эпохи преобразований» (требуется 50%)
+alice_aot_reform_popular;Народная поддержка: $x$
+alice_aot_reform_power;Поддержка политической силы: $x$
+alice_aot_reform_coalition;Поддержка правящей коалиции: $x$
+alice_aot_reform_execution;Ожидаемое исполнение: $x$
+alice_aot_movement_header;Давление на радикализм в «Эпохе преобразований»
+alice_aot_movement_power;Поддержка политической силы: $x$
+alice_aot_movement_coalition;Противостояние правящей коалиции: $x$
+alice_aot_movement_legitimacy;Чистое давление легитимности: $x$
+alice_aot_movement_hardship;Экономические трудности: $x$
+alice_aot_movement_implementation;Разрыв исполнения: $x$
+alice_aot_movement_total;Итоговая поправка радикализма: $x$

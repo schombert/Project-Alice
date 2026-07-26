@@ -704,7 +704,7 @@
 	LUA_DEFINES_LIST_ELEMENT(alice_need_drift_speed, 0.0001) \
 	LUA_DEFINES_LIST_ELEMENT(alice_disable_divergent_any_country_effect, 0.0) \
 	LUA_DEFINES_LIST_ELEMENT(alice_unciv_civ_forbid_war, 0.0) \
-	LUA_DEFINES_LIST_ELEMENT(alice_ideology_base_change_rate, 1.0) \
+	LUA_DEFINES_LIST_ELEMENT(alice_ideology_base_change_rate, 0.05) \
 	LUA_DEFINES_LIST_ELEMENT(alice_nurture_religion_assimilation, 0.0) \
 	LUA_DEFINES_LIST_ELEMENT(alice_surrender_on_cores_lost, 0.0) \
 	LUA_DEFINES_LIST_ELEMENT(alice_artificial_gp_limitant, 0.0) \

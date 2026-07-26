@@ -8938,7 +8938,19 @@ void pop_details_mig_row_content_t::update_tooltip(sys::state& state, int32_t x,
 	if(explanation.base_weight > 0.f) {
 		text::add_line(state, contents, "pop_migration_attraction_bureaucracy", text::variable_type::x, text::fp_percentage{ explanation.base_weight });
 	}
-	text::add_line(state, contents, "pop_migration_attraction_wage_ratio", text::variable_type::x, text::fp_percentage{ explanation.wage_multiplier });
+	text::add_line(state, contents, "pop_migration_attraction_opportunity_intro");
+	text::add_line(state, contents, "pop_migration_attraction_opportunity_origin", text::variable_type::x,
+		text::fp_percentage{ explanation.origin_life_needs_coverage });
+	text::add_line(state, contents, "pop_migration_attraction_opportunity_target", text::variable_type::x,
+		text::fp_percentage{ explanation.target_life_needs_coverage });
+	text::add_line(state, contents, "pop_migration_attraction_opportunity_multiplier", text::variable_type::x,
+		text::fp_two_places{ explanation.wage_multiplier });
+	if(state.cheat_data.ui_debug_mode) {
+		text::add_line(state, contents, "pop_migration_attraction_opportunity_legacy_debug",
+			text::variable_type::x, text::fp_two_places{ explanation.old_wage_multiplier },
+			text::variable_type::y, text::fp_two_places{ explanation.old_result },
+			text::variable_type::val, text::fp_two_places{ explanation.result });
+	}
 	text::add_line(state, contents, "pop_migration_culture", text::variable_type::x, text::fp_percentage{ explanation.culture_multiplier });
 // END
 	}

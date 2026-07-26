@@ -827,11 +827,16 @@ GLuint load_file_and_return_handle(native_string const& native_name, simple_fs::
 				asset_texture.size_y = int32_t(h);
 				asset_texture.loaded = true;
 
-				if(keep_data) {
-					asset_texture.data = static_cast<uint8_t*>(STBI_MALLOC(4 * w * h));
-					glGetTextureImage(asset_texture.texture_handle, 0, GL_RGBA, GL_UNSIGNED_BYTE, static_cast<int32_t>(4 * w * h),
-						asset_texture.data);
-				}
+					if(keep_data) {
+						asset_texture.data = static_cast<uint8_t*>(STBI_MALLOC(4 * w * h));
+#ifdef __APPLE__
+						glBindTexture(GL_TEXTURE_2D, asset_texture.texture_handle);
+						glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, asset_texture.data);
+#else
+						glGetTextureImage(asset_texture.texture_handle, 0, GL_RGBA, GL_UNSIGNED_BYTE, static_cast<int32_t>(4 * w * h),
+							asset_texture.data);
+#endif
+					}
 				return asset_texture.texture_handle;
 			}
 		}
@@ -1024,13 +1029,33 @@ data_texture::data_texture(int32_t sz, int32_t ch) {
 	glBindTexture(GL_TEXTURE_2D, texture_handle);
 
 	if(channels == 3) {
+#ifdef __APPLE__
+		// glTexStorage2D is core in OpenGL 4.2, while macOS stops at 4.1.
+		// Apple's shim otherwise leaves chart textures "unloadable" and samples
+		// them as black. A mutable one-level texture is equivalent for these
+		// tiny, frequently updated UI datasets.
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, size, 1, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
+#else
 		glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGB8, size, 1);
+#endif
 	} else if(channels == 4) {
+#ifdef __APPLE__
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, size, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+#else
 		glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, size, 1);
+#endif
 	} else if(channels == 2) {
+#ifdef __APPLE__
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RG8, size, 1, 0, GL_RG, GL_UNSIGNED_BYTE, nullptr);
+#else
 		glTexStorage2D(GL_TEXTURE_2D, 1, GL_RG8, size, 1);
+#endif
 	} else {
+#ifdef __APPLE__
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, size, 1, 0, GL_RED, GL_UNSIGNED_BYTE, nullptr);
+#else
 		glTexStorage2D(GL_TEXTURE_2D, 1, GL_R8, size, 1);
+#endif
 	}
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);

@@ -95,3 +95,19 @@ end
 ---@param gamerule_id gamerule id
 function alice.alice_gamerule_command_units_opt_enabled_on_deselect(gamerule_id)
 end
+
+---@param gamerule_id gamerule id
+function alice.alice_gamerule_age_of_transformation_opt_disabled_on_select(gamerule_id)
+end
+
+---@param gamerule_id gamerule id
+function alice.alice_gamerule_age_of_transformation_opt_disabled_on_deselect(gamerule_id)
+end
+
+---@param gamerule_id gamerule id
+function alice.alice_gamerule_age_of_transformation_opt_enabled_on_select(gamerule_id)
+end
+
+---@param gamerule_id gamerule id
+function alice.alice_gamerule_age_of_transformation_opt_enabled_on_deselect(gamerule_id)
+end

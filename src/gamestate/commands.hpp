@@ -126,6 +126,8 @@ enum class command_type : uint8_t {
 		toggle_production_directive = 114,
 		load_saved_game = 115,
 		change_naval_unit_type = 116,
+		toggle_supply_depot = 117,
+		set_army_supply_priority = 118,
 
 
 		// network
@@ -250,6 +252,11 @@ struct influence_priority_data {
 
 struct generic_location_data {
 	dcon::province_id prov;
+};
+
+struct army_supply_priority_data {
+	dcon::army_id army;
+	uint8_t priority;
 };
 
 struct generic_state_definition_data {
@@ -724,6 +731,8 @@ constexpr enum_array<command_type, command_handler> command_type_handlers = {
 	{ command_type::crisis_add_wargoal, command_handler{ sizeof(command::new_war_goal_data), sizeof(command::new_war_goal_data), &command_handler::true_is_host_receive_command, &command_handler::true_is_host_broadcast_command } },
 	{ command_type::change_land_unit_type, command_handler{ sizeof(command::change_land_unit_type_data), sizeof(command::change_land_unit_type_data) + (max_regiment_count * sizeof(dcon::regiment_id)), &command_handler::true_is_host_receive_command, &command_handler::true_is_host_broadcast_command } },
 	{ command_type::change_naval_unit_type, command_handler{ sizeof(command::change_naval_unit_type_data), sizeof(command::change_naval_unit_type_data) + (max_ship_count * sizeof(dcon::ship_id)), &command_handler::true_is_host_receive_command, &command_handler::true_is_host_broadcast_command } },
+	{ command_type::toggle_supply_depot, command_handler{ sizeof(command::generic_location_data), sizeof(command::generic_location_data), &command_handler::true_is_host_receive_command, &command_handler::true_is_host_broadcast_command } },
+	{ command_type::set_army_supply_priority, command_handler{ sizeof(command::army_supply_priority_data), sizeof(command::army_supply_priority_data), &command_handler::true_is_host_receive_command, &command_handler::true_is_host_broadcast_command } },
 	{ command_type::take_province, command_handler{ sizeof(command::generic_location_data), sizeof(command::generic_location_data), &command_handler::true_is_host_receive_command, &command_handler::true_is_host_broadcast_command } },
 	{ command_type::grant_province, command_handler{ 0, 0, &command_handler::true_is_host_receive_command, &command_handler::true_is_host_broadcast_command } },
 	{ command_type::ask_for_free_trade_agreement, command_handler{ sizeof(command::diplo_action_data), sizeof(command::diplo_action_data), &command_handler::true_is_host_receive_command, &command_handler::true_is_host_broadcast_command } },
@@ -1112,6 +1121,10 @@ bool can_move_capital(sys::state& state, dcon::nation_id source, dcon::province_
 
 void toggle_local_administration(sys::state& state, dcon::nation_id source, dcon::province_id p);
 bool can_toggle_local_administration(sys::state& state, dcon::nation_id source, dcon::province_id p);
+void toggle_supply_depot(sys::state& state, dcon::nation_id source, dcon::province_id p);
+bool can_toggle_supply_depot(sys::state& state, dcon::nation_id source, dcon::province_id p);
+void set_army_supply_priority(sys::state& state, dcon::nation_id source, dcon::army_id army, uint8_t priority);
+bool can_set_army_supply_priority(sys::state& state, dcon::nation_id source, dcon::army_id army, uint8_t priority);
 
 void take_province(sys::state& state, dcon::nation_id source, dcon::province_id prov);
 bool can_take_province(sys::state& state, dcon::nation_id source, dcon::province_id p);
@@ -1239,4 +1252,3 @@ void execute_network_inactivity_ping(sys::state& state, dcon::nation_id source, 
 
 
 } // namespace command
-

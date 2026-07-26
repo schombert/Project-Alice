@@ -950,7 +950,7 @@ class minimap_container_window : public window_element_base {
 	const std::string_view mapmode_btn_prefix{"mapmode_"};
 	minimap_open_message_log_button* open_btn = nullptr;
 	bool expand_mapmodes = false;
-	std::array<minimap_mapmode_button*, 45> mapmode_buttons = {};
+	std::array<minimap_mapmode_button*, 46> mapmode_buttons = {};
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "messagelog_window") {

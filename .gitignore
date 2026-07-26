@@ -392,3 +392,6 @@ FodyWeavers.xsd
 
 # User's git files
 *.diff
+
+# Local release packages
+/dist/

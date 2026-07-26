@@ -8,6 +8,8 @@
 #include "text.hpp"
 #include "gui_templates.hpp"
 #include "gui_listbox_templates.hpp"
+#include "gamerule.hpp"
+#include "transformation_politics.hpp"
 
 namespace ui {
 
@@ -63,6 +65,30 @@ public:
 	std::string get_text(sys::state& state, dcon::movement_id movement_id) noexcept override {
 		auto radicalism = state.world.movement_get_radicalism(movement_id);
 		return text::format_float(radicalism, 1);
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return gamerule::age_of_transformation_enabled(state)
+			? tooltip_behavior::variable_tooltip : tooltip_behavior::no_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t, int32_t,
+		text::columnar_layout& contents) noexcept override {
+		auto const movement = retrieve<dcon::movement_id>(state, parent);
+		auto const pressure = politics::transformation::movement_pressure_for(state, movement);
+		text::add_line(state, contents, "alice_aot_movement_header");
+		text::add_line(state, contents, "alice_aot_movement_power",
+			text::variable_type::x, text::fp_one_place{pressure.political_power_pressure});
+		text::add_line(state, contents, "alice_aot_movement_coalition",
+			text::variable_type::x, text::fp_one_place{pressure.coalition_opposition_pressure});
+		text::add_line(state, contents, "alice_aot_movement_legitimacy",
+			text::variable_type::x, text::fp_one_place{pressure.legitimacy_pressure - pressure.legitimacy_relief});
+		text::add_line(state, contents, "alice_aot_movement_hardship",
+			text::variable_type::x, text::fp_one_place{pressure.hardship_pressure});
+		text::add_line(state, contents, "alice_aot_movement_implementation",
+			text::variable_type::x, text::fp_one_place{pressure.implementation_pressure});
+		text::add_line(state, contents, "alice_aot_movement_total",
+			text::variable_type::x, text::fp_one_place{pressure.total_adjustment});
 	}
 };
 

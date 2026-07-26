@@ -9,8 +9,13 @@
 #include "economy_stats.hpp"
 #include "economy_pops.hpp"
 #include "economy_constants.hpp"
+#include "human_development.hpp"
+#include "math_fns.hpp"
+#include "price.hpp"
 #include "demographics_templates.hpp"
 #include "province.hpp"
+
+#include <limits>
 
 // #define CHECK_LLVM_RESULTS
 
@@ -43,14 +48,26 @@ void regenerate_is_primary_or_accepted(sys::state& state) {
 }
 
 float get_demo(sys::state const& state, dcon::pop_id p, dcon::pop_demographics_key k) {
+	// Null ideology/issue ids are represented by the maximum key value.  They can
+	// legitimately appear while movements are being rebuilt, so never pass that
+	// sentinel through to the generated demographic storage.
+	if(!p || k.index() >= size(state)) {
+		return 0.0f;
+	}
 	auto ival = state.world.pop_get_udemographics(p, k);
 	return from_pu8(ival);
 }
 void set_demo(sys::state& state, dcon::pop_id p, dcon::pop_demographics_key k, float v) {
+	if(!p || k.index() >= size(state)) {
+		return;
+	}
 	state.world.pop_set_udemographics(p, k, to_pu8(v));
 }
 template<typename T>
 void set_demo(sys::state& state, T p, dcon::pop_demographics_key k, ve::fp_vector v) {
+	if(k.index() >= size(state)) {
+		return;
+	}
 	state.world.pop_set_udemographics(p, k, to_pu8(v));
 }
 float get_militancy(sys::state const& state, dcon::pop_id p) {
@@ -1178,6 +1195,23 @@ void alt_mt_regenerate_from_pop_data(sys::state& state) {
 		}
 	});
 
+	if constexpr(!full) {
+		// The alternate demographics buffer is swapped with the live buffer at
+		// the end of the tick. Preserve the extra-key group refreshed on the
+		// previous day so staggered culture, ideology, issue and religion values
+		// survive that swap. Each worker owns a distinct key.
+		concurrency::parallel_for(uint32_t(0), extra_group_size, [&](uint32_t group_index) {
+			auto const index = csz + group_index
+				+ extra_group_size
+					* ((state.current_date.value + extra_demo_grouping - 1) % extra_demo_grouping);
+			if(index < sz) {
+				alt_copy_demographics(
+					state,
+					dcon::demographics_key{ dcon::demographics_key::value_base_t(index) });
+			}
+		});
+	}
+
 	//
 	// calculate values derived from demographics
 	//
@@ -2036,7 +2070,9 @@ void alt_st_regenerate_from_pop_data(sys::state& state) {
 }
 
 void alt_regenerate_from_pop_data_daily(sys::state& state) {
-	alt_st_regenerate_from_pop_data<false>(state);
+	// Each worker owns a distinct demographics key, so this keeps the coherent
+	// pre-economy snapshot without serializing the entire daily regeneration.
+	alt_mt_regenerate_from_pop_data<false>(state);
 }
 void alt_regenerate_from_pop_data_full(sys::state& state) {
 	alt_mt_regenerate_from_pop_data<true>(state);
@@ -2113,6 +2149,24 @@ void alt_demographics_update_extras(sys::state& state) {
 inline constexpr uint32_t executions_per_block = 16 / ve::vector_size;
 
 template<typename F>
+void execute_staggered_pop_block(uint32_t block_index, uint32_t max, F&& functor) {
+	for(uint32_t i = 0; i < executions_per_block; ++i) {
+		auto const vector_index = block_index + i * ve::vector_size;
+		if(vector_index >= max) {
+			break;
+		}
+		auto const remaining = max - vector_index;
+		if(remaining >= ve::vector_size) {
+			functor(ve::contiguous_tags<dcon::pop_id>(vector_index));
+		} else {
+			// Preserve the staggered schedule for the final 1-3 POPs while
+			// preventing inactive SIMD lanes from becoming entity ids.
+			functor(ve::partial_contiguous_tags<dcon::pop_id>(vector_index, remaining));
+		}
+	}
+}
+
+template<typename F>
 void execute_staggered_blocks(uint32_t offset, uint32_t divisions, uint32_t max, F&& functor) {
 	auto block_index = 16 * offset;
 	auto const block_advance = 16 * divisions;
@@ -2120,9 +2174,7 @@ void execute_staggered_blocks(uint32_t offset, uint32_t divisions, uint32_t max,
 	assert(divisions > 10);
 
 	while(block_index < max) {
-		for(uint32_t i = 0; i < executions_per_block; ++i) {
-			functor(ve::contiguous_tags<dcon::pop_id>(block_index + i * ve::vector_size));
-		}
+		execute_staggered_pop_block(block_index, max, functor);
 		block_index += block_advance;
 	}
 }
@@ -2130,9 +2182,7 @@ void execute_staggered_blocks(uint32_t offset, uint32_t divisions, uint32_t max,
 template<typename F>
 void pexecute_staggered_blocks(uint32_t offset, uint32_t divisions, uint32_t max, F&& functor) {
 	concurrency::parallel_for(16 * offset, max, 16 * divisions, [&](uint32_t index) {
-		for(uint32_t i = 0; i < executions_per_block; ++i) {
-			functor(ve::contiguous_tags<dcon::pop_id>(index + i * ve::vector_size));
-		}
+		execute_staggered_pop_block(index, max, functor);
 	});
 }
 
@@ -2207,6 +2257,11 @@ void update_militancy(sys::state& state, uint32_t offset, uint32_t divisions) {
 		//Ranges from +0.00 - +0.50 militancy monthly, 0 - 100 war exhaustion
 		auto war_exhaustion = state.world.nation_get_war_exhaustion(owner) * state.defines.mil_war_exhaustion;
 		auto old_mil = pop_demographics::get_militancy(state, ids);
+		auto urban_mil = ve::apply(
+			[&](dcon::pop_id pop) {
+				return economy::human_development::evaluate_pop(state, pop)
+					.monthly_militancy_adjustment;
+			}, ids);
 
 		pop_demographics::set_militancy(state,
 			ids,
@@ -2224,7 +2279,7 @@ void update_militancy(sys::state& state, uint32_t offset, uint32_t divisions) {
 							+ (
 								(sep_mod - ln_mod)
 								+ (en_mod_b - en_mod_a)
-								+ (war_exhaustion + overseas_mil)
+								+ (war_exhaustion + overseas_mil + urban_mil)
 							)
 						),
 						0.0f
@@ -2282,8 +2337,13 @@ float get_estimated_mil_change(sys::state& state, dcon::pop_id ids) {
 	float war_exhaustion =
 		state.world.nation_get_war_exhaustion(owner) * 0.005f;
 	auto old_mil = pop_demographics::get_militancy(state, ids);
+	auto const urban_mil = economy::human_development::evaluate_pop(state, ids)
+		.monthly_militancy_adjustment;
 
-	return (sub_t + local_mod) + ((sep_mod - ln_mod) + (en_mod_b - en_mod_a) + (war_exhaustion + overseas_mil)) - old_mil * state.defines.alice_militancy_decay;
+	return (sub_t + local_mod)
+		+ ((sep_mod - ln_mod) + (en_mod_b - en_mod_a)
+			+ (war_exhaustion + overseas_mil + urban_mil))
+		- old_mil * state.defines.alice_militancy_decay;
 }
 
 float get_estimated_mil_change(sys::state& state, dcon::nation_id n) {
@@ -2418,6 +2478,12 @@ void update_ideologies(sys::state& state, uint32_t offset, uint32_t divisions, i
 
 	auto new_pop_count = state.world.pop_size();
 	ibuf.update(state, new_pop_count);
+	// Defines are serialized into scenarios and saves, so legacy games can still
+	// carry the old 1.0 default. Cap the monthly convergence here as well as
+	// lowering the default, otherwise those games keep replacing a POP's entire
+	// ideology distribution in a single staggered update.
+	auto const change_rate = std::clamp(
+		float(state.defines.alice_ideology_base_change_rate), 0.0f, 0.05f);
 
 	assert(state.world.ideology_size() <= 64);
 
@@ -2498,7 +2564,9 @@ void update_ideologies(sys::state& state, uint32_t offset, uint32_t divisions, i
 				auto const i_key = pop_demographics::to_key(state, iid);
 				auto current = pop_demographics::get_demo(state, ids, i_key);
 
-				auto new_weight = ve::select(ttotal > 0.0f, state.defines.alice_ideology_base_change_rate * avalue + (1.0f - state.defines.alice_ideology_base_change_rate) * current, current);
+				auto new_weight = ve::select(ttotal > 0.0f,
+					change_rate * avalue + (1.0f - change_rate) * current,
+					current);
 				auto new_max = new_weight > max_weight;
 				preferred = ve::select(new_max, ve::tagged_vector<dcon::ideology_id>{iid}, preferred);
 				max_weight = ve::select(new_max, new_weight, max_weight);
@@ -2518,7 +2586,8 @@ void update_ideologies(sys::state& state, uint32_t offset, uint32_t divisions, i
 				//	ve::select(ttotal > 0.0f, state.defines.alice_ideology_base_change_rate * avalue + (1.0f - state.defines.alice_ideology_base_change_rate) * current, current));
 
 				ibuf.temp_buffers[iid].set(ids, pop_demographics::to_pu8(ve::select(ttotal > 0.0f,
-					state.defines.alice_ideology_base_change_rate * avalue + (1.0f - state.defines.alice_ideology_base_change_rate) * current, current)));
+					change_rate * avalue + (1.0f - change_rate) * current,
+					current)));
 				
 			});
 		}
@@ -2727,7 +2796,13 @@ void update_growth(sys::state& state, uint32_t offset, uint32_t divisions) {
 		}
 		
 
-		auto total_factor = ln_factor * ln_penalty_scale + modifiers;
+		auto urban_growth_adjustment = ve::apply(
+			[&](dcon::pop_id pop) {
+				return economy::human_development::evaluate_pop(state, pop)
+					.monthly_growth_adjustment;
+			}, ids);
+		auto total_factor = ln_factor * ln_penalty_scale + modifiers
+			+ urban_growth_adjustment;
 		auto old_size = state.world.pop_get_size(ids);
 		auto new_size = old_size * total_factor + old_size;
 
@@ -2804,7 +2879,8 @@ float get_monthly_pop_growth_factor(sys::state& state, dcon::pop_id ids) {
 	auto modifiers = get_pop_growth_modifiers(state, ids);
 
 
-	return get_net_pop_starvation_penalty(state, ids, modifiers) + modifiers;
+	return get_net_pop_starvation_penalty(state, ids, modifiers) + modifiers
+		+ economy::human_development::evaluate_pop(state, ids).monthly_growth_adjustment;
 }
 
 float get_monthly_pop_increase(sys::state& state, dcon::pop_id ids) {
@@ -3037,15 +3113,18 @@ void update_assimilation(sys::state& state, uint32_t offset, uint32_t divisions,
 	pexecute_staggered_blocks(offset, divisions, state.world.pop_size(), [&](auto ids) {
 		pbuf.amounts.set(ids, 0.0f);
 		auto loc = state.world.pop_get_province_from_pop_location(ids);
-		auto owners = state.world.province_get_nation_from_province_ownership(loc);
 		auto assimilation_chances = ve::max(trigger::evaluate_additive_modifier(state, state.culture_definitions.assimilation_chance, trigger::to_generic(ids), trigger::to_generic(ids), 0), 0.0f);
 
 		ve::apply(
-				[&](dcon::pop_id p, dcon::province_id location, dcon::nation_id owner, float assimilation_chance) {
-					// no assimilation in unowned provinces
-					if(!owner)
-						return; // early exit
+				[&](dcon::pop_id p, dcon::province_id location, float assimilation_chance) {
+					if(!state.world.pop_is_valid(p)
+							|| !state.world.province_is_valid(location))
+						return;
+					auto owner = state.world.province_get_nation_from_province_ownership(location);
+					if(!state.world.nation_is_valid(owner))
+						return;
 
+					// no assimilation in unowned provinces
 					// slaves do not assimilate
 					if(state.world.pop_get_poptype(p) == state.culture_definitions.slaves)
 						return; // early exit
@@ -3070,6 +3149,8 @@ void update_assimilation(sys::state& state, uint32_t offset, uint32_t divisions,
 					float current_size = state.world.pop_get_size(p);
 
 					auto pc = state.world.pop_get_culture(p);
+					if(!state.world.culture_is_valid(pc))
+						return;
 
 					// to avoid 20 cultures per province due to migration
 					float culture_size = state.world.province_get_demographics(location, demographics::to_key(state, pc));
@@ -3115,13 +3196,19 @@ void update_assimilation(sys::state& state, uint32_t offset, uint32_t divisions,
 						pbuf.amounts.set(p, transfer_amount);
 					}
 				},
-				ids, loc, owners, assimilation_chances);
+				ids, loc, assimilation_chances);
 	});
 }
 
 float get_estimated_assimilation(sys::state& state, dcon::pop_id ids) {
+	if(!state.world.pop_is_valid(ids))
+		return 0.0f;
 	auto location = state.world.pop_get_province_from_pop_location(ids);
+	if(!state.world.province_is_valid(location))
+		return 0.0f;
 	auto owner = state.world.province_get_nation_from_province_ownership(location);
+	if(!state.world.nation_is_valid(owner))
+		return 0.0f;
 	auto assimilation_chances = std::max(trigger::evaluate_additive_modifier(state, state.culture_definitions.assimilation_chance, trigger::to_generic(ids), trigger::to_generic(ids), 0), 0.0f);
 
 	// slaves do not assimilate
@@ -3137,6 +3224,8 @@ float get_estimated_assimilation(sys::state& state, dcon::pop_id ids) {
 		return 0.0f; // early exit
 
 	auto pc = state.world.pop_get_culture(ids);
+	if(!state.world.culture_is_valid(pc))
+		return 0.0f;
 	float current_size = state.world.pop_get_size(ids);
 
 	float culture_size = state.world.province_get_demographics(location, demographics::to_key(state, pc));
@@ -3200,6 +3289,178 @@ float wage_based_multiplier(sys::state& state, dcon::province_id origin, dcon::p
 	} else {
 		return std::min(1000000.f, wage_target / (wage_origin + 0.00001f));
 	}
+}
+
+namespace {
+
+constexpr float migration_opportunity_floor = 0.05f;
+constexpr float migration_coverage_max = 1000.0f;
+constexpr float migration_multiplier_min = 0.5f;
+constexpr float migration_multiplier_max = 2.0f;
+
+float finite_nonnegative_or(float value, float fallback) {
+	return std::isfinite(value) && value >= 0.f ? value : fallback;
+}
+
+}
+
+float migration_opportunity_multiplier_from_coverage(float origin_coverage, float target_coverage) {
+	// A corrupt market value must not turn every candidate weight into NaN.
+	// Treat invalid comparisons as neutral and bound valid coverage before the
+	// deterministic square-root approximation.
+	if(!std::isfinite(origin_coverage) || !std::isfinite(target_coverage)) {
+		return 1.f;
+	}
+	auto safe_origin = std::clamp(origin_coverage, migration_opportunity_floor, migration_coverage_max);
+	auto safe_target = std::clamp(target_coverage, migration_opportunity_floor, migration_coverage_max);
+	auto ratio = safe_target / safe_origin;
+	auto result = math::sqrt(ratio);
+	return std::isfinite(result)
+		? std::clamp(result, migration_multiplier_min, migration_multiplier_max)
+		: 1.f;
+}
+
+float life_needs_coverage_from_income(
+	float expected_income_per_capita,
+	float life_needs_cost,
+	float needs_scaling_factor,
+	float subsistence_coverage
+) {
+	auto subsistence = std::clamp(finite_nonnegative_or(subsistence_coverage, 0.f), 0.f, migration_coverage_max);
+	if(!std::isfinite(needs_scaling_factor) || needs_scaling_factor <= 0.f) {
+		return subsistence;
+	}
+
+	auto income = finite_nonnegative_or(expected_income_per_capita, 0.f);
+	auto scaled_cost = life_needs_cost / needs_scaling_factor;
+	if(!std::isfinite(scaled_cost)) {
+		return subsistence;
+	}
+
+	auto cost_floor = std::max(economy::price_properties::labor::min, 0.000001f);
+	auto purchased_coverage = income / std::max(scaled_cost, cost_floor);
+	if(!std::isfinite(purchased_coverage)) {
+		purchased_coverage = migration_coverage_max;
+	}
+	return std::clamp(purchased_coverage + subsistence, 0.f, migration_coverage_max);
+}
+
+float life_needs_coverage_from_components(
+	float labor_price,
+	float labor_supply_sold,
+	float life_needs_cost,
+	float needs_scaling_factor,
+	float subsistence_coverage
+) {
+	auto price = finite_nonnegative_or(labor_price, 0.f);
+	auto sold = finite_nonnegative_or(labor_supply_sold, 0.f);
+	auto income = price * sold;
+	if(!std::isfinite(income)) {
+		income = migration_coverage_max;
+	}
+	return life_needs_coverage_from_income(
+		income, life_needs_cost, needs_scaling_factor, subsistence_coverage);
+}
+
+bool pop_uses_labor_market(sys::state const& state, dcon::pop_type_id pop_type) {
+	return pop_type && (state.world.pop_type_get_is_paid_rgo_worker(pop_type)
+		|| pop_type == state.culture_definitions.primary_factory_worker
+		|| pop_type == state.culture_definitions.secondary_factory_worker
+		|| pop_type == state.culture_definitions.bureaucrat
+		|| pop_type == state.culture_definitions.clergy);
+}
+
+float expected_labor_income_per_capita(
+	sys::state const& state,
+	dcon::pop_id pop,
+	dcon::province_id province
+) {
+	if(!pop || !province) {
+		return 0.f;
+	}
+	auto pop_type = state.world.pop_get_poptype(pop);
+	if(!pop_uses_labor_market(state, pop_type)) {
+		return 0.f;
+	}
+
+	auto owner = state.world.province_get_nation_from_province_ownership(province);
+	auto culture = state.world.pop_get_culture(pop);
+	auto accepted = owner && nations::nation_accepts_culture(state, owner, culture);
+	float result = 0.f;
+	for(auto const& item : economy::pops::estimate_wage(state, province, pop_type, accepted, 1.f)) {
+		if(std::isfinite(item.wage) && item.wage > 0.f) {
+			result += item.wage;
+		}
+	}
+	return std::isfinite(result) ? std::max(0.f, result) : migration_coverage_max;
+}
+
+float expected_life_needs_coverage(
+	sys::state const& state,
+	dcon::pop_id pop,
+	dcon::province_id province
+) {
+	if(!pop || !province) {
+		return 0.f;
+	}
+	auto state_instance = state.world.province_get_state_membership(province);
+	if(!state_instance) {
+		return 0.f;
+	}
+	auto market = state.world.state_instance_get_market_from_local_market(state_instance);
+	if(!market) {
+		return 0.f;
+	}
+	auto pop_type = state.world.pop_get_poptype(pop);
+	if(!pop_type) {
+		return 0.f;
+	}
+
+	auto subsistence_coverage = 0.f;
+	if(state.world.pop_type_get_is_paid_rgo_worker(pop_type)) {
+		auto population = state.world.province_get_demographics(province, demographics::total);
+		auto subsistence_score = finite_nonnegative_or(state.world.province_get_subsistence_score(province), 0.f);
+		auto subsistence_employment = finite_nonnegative_or(state.world.province_get_subsistence_employment(province), 0.f);
+		auto safe_population = finite_nonnegative_or(population, 0.f);
+		auto subsistence_per_person = subsistence_score * subsistence_employment / (safe_population + 1.f);
+		// Match prepare_pop_budget's free life-needs semantics at the neutral
+		// target demand scale of one: qol / (1 + demand_scale).
+		if(std::isfinite(subsistence_per_person) && economy::subsistence_score_life > 0.f) {
+			subsistence_coverage = std::clamp(subsistence_per_person, 0.f, economy::subsistence_score_life)
+				/ economy::subsistence_score_life / 2.f;
+		}
+	}
+
+	return life_needs_coverage_from_income(
+		expected_labor_income_per_capita(state, pop, province),
+		state.world.market_get_life_needs_costs(market, pop_type),
+		state.defines.alice_needs_scaling_factor,
+		subsistence_coverage
+	);
+}
+
+float real_opportunity_migration_multiplier(
+	sys::state const& state,
+	dcon::pop_id pop,
+	dcon::province_id origin,
+	dcon::province_id target
+) {
+	if(!pop || !origin || !target) {
+		return 1.f;
+	}
+	auto opportunity = 1.f;
+	if(pop_uses_labor_market(state, state.world.pop_get_poptype(pop))) {
+		auto const origin_coverage = expected_life_needs_coverage(state, pop, origin);
+		auto const target_coverage = expected_life_needs_coverage(state, pop, target);
+		opportunity = migration_opportunity_multiplier_from_coverage(
+			origin_coverage, target_coverage);
+	}
+	// Profit, artisan and state-paid POPs do not pretend to sell uneducated
+	// labor, but they still respond to the same local housing constraint.
+	auto const housing = economy::human_development::migration_multiplier(
+		state, origin, target);
+	auto const combined = opportunity * housing;
+	return std::isfinite(combined) ? std::clamp(combined, 0.35f, 2.70f) : 1.f;
 }
 
 float culture_based_multiplier(sys::state& state, dcon::pop_id migrating_pop, dcon::province_id target) {
@@ -3266,7 +3527,11 @@ province_migration_weight_explanation explain_province_internal_migration_weight
 		.base_weight = base_weight,
 		.modifier = 0.f,
 		.wage_multiplier = 0.f,
+		.old_wage_multiplier = 0.f,
+		.origin_life_needs_coverage = 0.f,
+		.target_life_needs_coverage = 0.f,
 		.culture_multiplier = 0.f,
+		.old_result = 0.f,
 		.result = 0.f
 	};
 
@@ -3289,12 +3554,17 @@ province_migration_weight_explanation explain_province_internal_migration_weight
 	float weight = 0.0f;
 	float interp_result = trigger::evaluate_multiplicative_modifier(state, modifier, trigger::to_generic(pid), trigger::to_generic(p), 0);
 	weight = std::max(0.0f, interp_result * (attraction + 1.0f));
-	float wage_mult = wage_based_multiplier(state, origin, pid, labor_type);
+	float old_wage_mult = wage_based_multiplier(state, origin, pid, labor_type);
+	float wage_mult = real_opportunity_migration_multiplier(state, p, origin, pid);
 
 	result.base_multiplier = interp_result;
 	result.modifier = attraction;
 	result.wage_multiplier = wage_mult;
+	result.old_wage_multiplier = old_wage_mult;
+	result.origin_life_needs_coverage = expected_life_needs_coverage(state, p, origin);
+	result.target_life_needs_coverage = expected_life_needs_coverage(state, p, pid);
 	result.culture_multiplier = culture_based_multiplier(state, p, pid);
+	result.old_result = (base_weight + weight) * old_wage_mult * result.culture_multiplier;
 	result.result = (base_weight + weight) * wage_mult * result.culture_multiplier;
 
 	return result;
@@ -3316,13 +3586,6 @@ dcon::province_id get_province_target_in_nation(sys::state& state, dcon::nation_
 
 	auto origin = state.world.pop_get_province_from_pop_location(p);
 	auto pt = state.world.pop_get_poptype(p);
-	auto labor_type = signature_labor_type(
-		state,
-		state.world.province_get_nation_from_province_ownership(origin),
-		pt.id,
-		state.world.pop_get_culture(p)
-	);
-
 	float base_weight = 0.f;
 	if(pt == state.culture_definitions.bureaucrat) {
 		base_weight = administration_additional_province_weight;
@@ -3353,7 +3616,7 @@ dcon::province_id get_province_target_in_nation(sys::state& state, dcon::nation_
 				}
 
 				weight = (base_weight + weight)
-					* wage_based_multiplier(state, origin, loc.get_province(), labor_type)
+					* real_opportunity_migration_multiplier(state, p, origin, loc.get_province())
 					* culture_based_multiplier(state, p, loc.get_province());
 
 				if(weight > 0.0f) {
@@ -3388,13 +3651,6 @@ dcon::province_id get_colonial_province_target_in_nation(sys::state& state, dcon
 
 	auto origin = state.world.pop_get_province_from_pop_location(p);
 	auto pt = state.world.pop_get_poptype(p);
-
-	auto labor_type = signature_labor_type(
-		state,
-		state.world.province_get_nation_from_province_ownership(origin),
-		pt.id,
-		state.world.pop_get_culture(p)
-	);
 
 	float base_weight = 0.f;
 	if(pt == state.culture_definitions.bureaucrat) {
@@ -3431,7 +3687,7 @@ dcon::province_id get_colonial_province_target_in_nation(sys::state& state, dcon
 				}
 				
 				weight = (base_weight + weight)
-					* wage_based_multiplier(state, origin, loc.get_province(), labor_type)
+					* real_opportunity_migration_multiplier(state, p, origin, loc.get_province())
 					* culture_based_multiplier(state, p, loc.get_province());
 
 				if(weight > 0.0f) {
@@ -3557,7 +3813,8 @@ void update_internal_migration(sys::state& state, uint32_t offset, uint32_t divi
 
 		ve::mask_vector accepted = ve::apply(
 			[&](dcon::culture_id culture, dcon::nation_id owner) {
-				return state.world.nation_get_accepted_cultures(owner, culture);
+				return owner && state.world.nation_is_valid(owner)
+					&& state.world.nation_get_accepted_cultures(owner, culture);
 			}, state.world.pop_get_culture(ids), owners
 		);
 
@@ -3594,6 +3851,12 @@ void update_internal_migration(sys::state& state, uint32_t offset, uint32_t divi
 
 		ve::apply(
 				[&](dcon::pop_id p, dcon::province_id location, dcon::nation_id owner, float amount, float pop_size, bool can_migrate_from_colony) {
+					if(!state.world.pop_is_valid(p)
+							|| !state.world.province_is_valid(location)
+							|| !state.world.nation_is_valid(owner)
+							|| !state.world.culture_is_valid(state.world.pop_get_culture(p))
+							|| !state.world.pop_type_is_valid(state.world.pop_get_poptype(p)))
+						return;
 					if(amount <= 0.0f)
 						return; // early exit
 					if(!owner)
@@ -3617,8 +3880,12 @@ void update_internal_migration(sys::state& state, uint32_t offset, uint32_t divi
 }
 
 float get_estimated_internal_migration(sys::state& state, dcon::pop_id ids) {
+	if(!state.world.pop_is_valid(ids))
+		return 0.0f;
 
 	auto loc = state.world.pop_get_province_from_pop_location(ids);
+	if(!state.world.province_is_valid(loc))
+		return 0.0f;
 
 	if(state.world.province_get_is_colonial(loc))
 		return 0.0f; // early exit
@@ -3626,6 +3893,8 @@ float get_estimated_internal_migration(sys::state& state, dcon::pop_id ids) {
 		return 0.0f; // early exit
 
 	auto owners = state.world.province_get_nation_from_province_ownership(loc);
+	if(!state.world.nation_is_valid(owners))
+		return 0.0f;
 	auto pop_sizes = state.world.pop_get_size(ids);
 	float base = 0.f;
 	if (state.world.pop_get_poptype(ids) == state.culture_definitions.bureaucrat
@@ -3705,6 +3974,12 @@ void update_colonial_migration(sys::state& state, uint32_t offset, uint32_t divi
 
 		ve::apply(
 				[&](dcon::pop_id p, dcon::province_id location, dcon::nation_id owner, float amount, float pop_size, bool can_migrate_from_colony) {
+					if(!state.world.pop_is_valid(p)
+							|| !state.world.province_is_valid(location)
+							|| !state.world.nation_is_valid(owner)
+							|| !state.world.culture_is_valid(state.world.pop_get_culture(p))
+							|| !state.world.pop_type_is_valid(state.world.pop_get_poptype(p)))
+						return;
 					if(amount <= 0.0f)
 						return; // early exit
 					if(!owner)
@@ -3734,8 +4009,14 @@ void update_colonial_migration(sys::state& state, uint32_t offset, uint32_t divi
 }
 
 float get_estimated_colonial_migration(sys::state& state, dcon::pop_id ids) {
+	if(!state.world.pop_is_valid(ids))
+		return 0.0f;
 	auto loc = state.world.pop_get_province_from_pop_location(ids);
+	if(!state.world.province_is_valid(loc))
+		return 0.0f;
 	auto owner = state.world.province_get_nation_from_province_ownership(loc);
+	if(!state.world.nation_is_valid(owner))
+		return 0.0f;
 
 	if(state.world.nation_get_is_colonial_nation(owner) == false)
 		return 0.0f; // early exit
@@ -3799,6 +4080,12 @@ void update_immigration(sys::state& state, uint32_t offset, uint32_t divisions, 
 
 		ve::apply(
 				[&](dcon::pop_id p, dcon::province_id location, dcon::nation_id owner, float amount, float pop_size) {
+					if(!state.world.pop_is_valid(p)
+							|| !state.world.province_is_valid(location)
+							|| !state.world.nation_is_valid(owner)
+							|| !state.world.culture_is_valid(state.world.pop_get_culture(p))
+							|| !state.world.pop_type_is_valid(state.world.pop_get_poptype(p)))
+						return;
 
 					if(amount <= 0.0f)
 						return; // early exit
@@ -3900,9 +4187,59 @@ float get_estimated_emigration(sys::state& state, dcon::pop_id ids) {
 	return std::min(pop_sizes, std::ceil(amounts));
 }
 
+float transfer_pop_amount(sys::state& state, dcon::pop_id source, dcon::pop_id target, float requested_amount) {
+	if(!source || !target || source == target
+		|| !state.world.pop_is_valid(source) || !state.world.pop_is_valid(target)
+		|| !std::isfinite(requested_amount) || requested_amount <= 0.f) {
+		return 0.f;
+	}
+
+	auto const source_size = state.world.pop_get_size(source);
+	auto const target_size = state.world.pop_get_size(target);
+	auto const source_savings = state.world.pop_get_savings(source);
+	auto const target_savings = state.world.pop_get_savings(target);
+	if(!std::isfinite(source_size) || source_size <= 0.f
+		|| !std::isfinite(target_size) || target_size < 0.f
+		|| !std::isfinite(source_savings) || source_savings < 0.f
+		|| !std::isfinite(target_savings) || target_savings < 0.f) {
+		return 0.f;
+	}
+
+	auto moved = std::min(requested_amount, source_size);
+	// The daily cleanup removes POPs smaller than one person. Move that tiny
+	// remainder now so neither population nor its savings silently disappears.
+	if(source_size - moved < 1.f) {
+		moved = source_size;
+	}
+	auto const remaining_size = source_size - moved;
+	auto const remaining_savings = moved == source_size
+		? 0.f
+		: source_savings * (remaining_size / source_size);
+	auto const moved_savings = source_savings - remaining_savings;
+	auto const max_value = std::numeric_limits<float>::max();
+	if(!std::isfinite(remaining_savings) || remaining_savings < 0.f
+		|| !std::isfinite(moved_savings) || moved_savings < 0.f
+		|| moved > max_value - target_size
+		|| moved_savings > max_value - target_savings) {
+		return 0.f;
+	}
+
+	state.world.pop_set_size(source, remaining_size);
+	state.world.pop_set_size(target, target_size + moved);
+	state.world.pop_set_savings(source, remaining_savings);
+	state.world.pop_set_savings(target, target_savings + moved_savings);
+	return moved;
+}
+
 namespace impl {
 dcon::pop_id find_or_make_pop(sys::state& state, dcon::province_id loc, dcon::culture_id cid, dcon::religion_id rid,
 		dcon::pop_type_id ptid, float l) {
+	if(!state.world.province_is_valid(loc)
+		|| !state.world.culture_is_valid(cid)
+		|| !state.world.religion_is_valid(rid)
+		|| !state.world.pop_type_is_valid(ptid)) {
+		return {};
+	}
 	bool is_mine = state.world.commodity_get_is_mine(state.world.province_get_rgo(loc));
 	if(is_mine && ptid == state.culture_definitions.farmers) {
 		ptid = state.culture_definitions.laborers;
@@ -3916,15 +4253,16 @@ dcon::pop_id find_or_make_pop(sys::state& state, dcon::province_id loc, dcon::cu
 	}
 	auto np = fatten(state.world, state.world.create_pop());
 	state.world.force_create_pop_location(np, loc);
+	np.set_savings(0.f);
 	np.set_culture(cid);
 	np.set_religion(rid);
 	np.set_poptype(ptid);
 	pop_demographics::set_literacy(state, np.id, l);
 	{
 		auto n = state.world.province_get_nation_from_province_ownership(loc);
-		if(state.world.nation_get_primary_culture(n) == cid) {
+		if(n && state.world.nation_is_valid(n) && state.world.nation_get_primary_culture(n) == cid) {
 			np.set_is_primary_or_accepted_culture(true);
-		} else {
+		} else if(n && state.world.nation_is_valid(n)) {
 			if(state.world.nation_get_accepted_cultures(n, cid) == true) {
 				np.set_is_primary_or_accepted_culture(true);
 			}
@@ -3943,10 +4281,12 @@ dcon::pop_id find_or_make_pop(sys::state& state, dcon::province_id loc, dcon::cu
 
 		state.world.for_each_ideology([&](dcon::ideology_id i) {
 			buf.set(i, 0.0f);
+			auto owner = nations::owner_of_pop(state, np);
+			if(!owner || !state.world.nation_is_valid(owner))
+				return;
 			if(state.world.ideology_get_enabled(i)) {
 				auto ptrigger = state.world.pop_type_get_ideology(ptid, i);
 				auto const i_key = pop_demographics::to_key(state, i);
-				auto owner = nations::owner_of_pop(state, np);
 				if(state.world.ideology_get_is_civilized_only(i)) {
 					if(state.world.nation_get_is_civilized(owner)) {
 						auto amount = ptrigger ? std::max(0.0f, trigger::evaluate_multiplicative_modifier(state, ptrigger, trigger::to_generic(np.id),
@@ -3981,6 +4321,9 @@ dcon::pop_id find_or_make_pop(sys::state& state, dcon::province_id loc, dcon::cu
 
 		state.world.for_each_issue_option([&](dcon::issue_option_id iid) {
 			buf.set(iid, 0.0f);
+			auto owner = nations::owner_of_pop(state, np);
+			if(!owner || !state.world.nation_is_valid(owner))
+				return;
 			auto opt = fatten(state.world, iid);
 			auto allow = opt.get_allow();
 			auto parent_issue = opt.get_parent_issue();
@@ -3992,7 +4335,6 @@ dcon::pop_id find_or_make_pop(sys::state& state, dcon::province_id loc, dcon::cu
 			auto modifier_key =
 					is_social_issue ? sys::national_mod_offsets::social_reform_desire : sys::national_mod_offsets::political_reform_desire;
 
-			auto owner = nations::owner_of_pop(state, np);
 			auto current_issue_setting = state.world.nation_get_issues(owner, parent_issue);
 			auto allowed_by_owner =
 					(state.world.nation_get_is_civilized(owner) || is_party_issue) &&
@@ -4024,8 +4366,7 @@ void apply_type_changes(sys::state& state, uint32_t offset, uint32_t divisions, 
 					if(promotion_buf.amounts.get(p) > 0.0f && promotion_buf.types.get(p)) {
 						auto target_pop = impl::find_or_make_pop(state, state.world.pop_get_province_from_pop_location(p),
 								state.world.pop_get_culture(p), state.world.pop_get_religion(p), promotion_buf.types.get(p), pop_demographics::get_literacy(state, p));
-						state.world.pop_set_size(p, state.world.pop_get_size(p) - promotion_buf.amounts.get(p));
-						state.world.pop_set_size(target_pop, state.world.pop_get_size(target_pop) + promotion_buf.amounts.get(p));
+						transfer_pop_amount(state, p, target_pop, promotion_buf.amounts.get(p));
 					}
 				},
 				ids);
@@ -4037,8 +4378,7 @@ void apply_type_changes(sys::state& state, uint32_t offset, uint32_t divisions, 
 					if(demotion_buf.amounts.get(p) > 0.0f && demotion_buf.types.get(p)) {
 						auto target_pop = impl::find_or_make_pop(state, state.world.pop_get_province_from_pop_location(p),
 								state.world.pop_get_culture(p), state.world.pop_get_religion(p), demotion_buf.types.get(p), pop_demographics::get_literacy(state, p));
-						state.world.pop_set_size(p, state.world.pop_get_size(p) - demotion_buf.amounts.get(p));
-						state.world.pop_set_size(target_pop, state.world.pop_get_size(target_pop) + demotion_buf.amounts.get(p));
+						transfer_pop_amount(state, p, target_pop, demotion_buf.amounts.get(p));
 					}
 				},
 				ids);
@@ -4053,16 +4393,26 @@ void apply_assimilation(sys::state& state, uint32_t offset, uint32_t divisions, 
 	auto exec_fn = [&](auto ids) {
 		auto locs = state.world.pop_get_province_from_pop_location(ids);
 		ve::apply([&](dcon::pop_id p, dcon::province_id l, dcon::culture_id dac) {
-			if(pbuf.amounts.get(p) > 0.0f) {
-				//auto o = nations::owner_of_pop(state, p);
-				auto cul = dac ? dac : state.world.province_get_dominant_culture(l);
-				auto rel = dac
-					? state.world.nation_get_religion(nations::owner_of_pop(state, p))
+			auto const owner = l ? state.world.province_get_nation_from_province_ownership(l) : dcon::nation_id{};
+			// Assimilation is a state policy and has no meaningful target in an
+			// unowned province. Old or modded scenarios can contain POPs there;
+			// do not index nation bitsets with a null owner.
+			if(pbuf.amounts.get(p) > 0.0f && owner && state.world.nation_is_valid(owner)) {
+				auto const accepted_culture = state.world.culture_is_valid(dac)
+					? dac : dcon::culture_id{};
+				auto cul = accepted_culture
+					? accepted_culture : state.world.province_get_dominant_culture(l);
+				auto rel = accepted_culture
+					? state.world.nation_get_religion(owner)
 					: state.world.province_get_dominant_religion(l);
-				assert(state.world.pop_get_poptype(p));
-				auto target_pop = impl::find_or_make_pop(state, l, cul, rel, state.world.pop_get_poptype(p), pop_demographics::get_literacy(state, p));
-				state.world.pop_set_size(p, state.world.pop_get_size(p) - pbuf.amounts.get(p));
-				state.world.pop_set_size(target_pop, state.world.pop_get_size(target_pop) + pbuf.amounts.get(p));
+				auto const pop_type = state.world.pop_get_poptype(p);
+				if(state.world.culture_is_valid(cul)
+						&& state.world.religion_is_valid(rel)
+						&& state.world.pop_type_is_valid(pop_type)) {
+					auto target_pop = impl::find_or_make_pop(state, l, cul, rel,
+						pop_type, pop_demographics::get_literacy(state, p));
+					transfer_pop_amount(state, p, target_pop, pbuf.amounts.get(p));
+				}
 			}
 		},
 		ids, locs, state.world.province_get_dominant_accepted_culture(locs));
@@ -4076,17 +4426,26 @@ void apply_internal_migration(sys::state& state, uint32_t offset, uint32_t divis
 				[&](dcon::pop_id p) {
 					if(pbuf.amounts.get(p) > 0.0f && pbuf.destinations.get(p)) {
 						assert(state.world.pop_get_poptype(p));
+						auto const source_province = state.world.pop_get_province_from_pop_location(p);
+						auto const destination_province = pbuf.destinations.get(p);
+						// Internal migration must never become cross-border movement. The
+						// destination is calculated from the source owner one phase earlier;
+						// ownership may have changed in between because of a defection or
+						// scripted transfer. In that case, leave the POP in place instead
+						// of silently exporting it through the internal-migration channel.
+						if(state.world.province_get_nation_from_province_ownership(source_province)
+							!= state.world.province_get_nation_from_province_ownership(destination_province))
+							return;
 						auto target_pop = impl::find_or_make_pop(state, pbuf.destinations.get(p), state.world.pop_get_culture(p),
 								state.world.pop_get_religion(p), state.world.pop_get_poptype(p), pop_demographics::get_literacy(state, p));
 
-						state.world.pop_set_size(p, state.world.pop_get_size(p) - pbuf.amounts.get(p));
-						state.world.pop_set_size(target_pop, state.world.pop_get_size(target_pop) + pbuf.amounts.get(p));
+						auto const moved = transfer_pop_amount(state, p, target_pop, pbuf.amounts.get(p));
 
 						auto cur_pop_location = state.world.pop_get_province_from_pop_location(p);
-						state.world.province_set_daily_net_migration(cur_pop_location, state.world.province_get_daily_net_migration(cur_pop_location) - pbuf.amounts.get(p));
+						state.world.province_set_daily_net_migration(cur_pop_location, state.world.province_get_daily_net_migration(cur_pop_location) - moved);
 
 						auto dest_pop_location = pbuf.destinations.get(p);
-						state.world.province_set_daily_net_migration(dest_pop_location, state.world.province_get_daily_net_migration(dest_pop_location) + pbuf.amounts.get(p));
+						state.world.province_set_daily_net_migration(dest_pop_location, state.world.province_get_daily_net_migration(dest_pop_location) + moved);
 					}
 				},
 				ids);
@@ -4099,17 +4458,21 @@ void apply_colonial_migration(sys::state& state, uint32_t offset, uint32_t divis
 				[&](dcon::pop_id p) {
 					if(pbuf.amounts.get(p) > 0.0f && pbuf.destinations.get(p)) {
 						assert(state.world.pop_get_poptype(p));
+						auto const source_province = state.world.pop_get_province_from_pop_location(p);
+						auto const destination_province = pbuf.destinations.get(p);
+						if(state.world.province_get_nation_from_province_ownership(source_province)
+							!= state.world.province_get_nation_from_province_ownership(destination_province))
+							return;
 						auto target_pop = impl::find_or_make_pop(state, pbuf.destinations.get(p), state.world.pop_get_culture(p),
 								state.world.pop_get_religion(p), state.world.pop_get_poptype(p), pop_demographics::get_literacy(state, p));
 
-						state.world.pop_set_size(p, state.world.pop_get_size(p) - pbuf.amounts.get(p));
-						state.world.pop_set_size(target_pop, state.world.pop_get_size(target_pop) + pbuf.amounts.get(p));
+						auto const moved = transfer_pop_amount(state, p, target_pop, pbuf.amounts.get(p));
 
 						auto cur_pop_location = state.world.pop_get_province_from_pop_location(p);
-						state.world.province_set_daily_net_migration(cur_pop_location, state.world.province_get_daily_net_migration(cur_pop_location) - pbuf.amounts.get(p));
+						state.world.province_set_daily_net_migration(cur_pop_location, state.world.province_get_daily_net_migration(cur_pop_location) - moved);
 
 						auto dest_pop_location = pbuf.destinations.get(p);
-						state.world.province_set_daily_net_migration(dest_pop_location, state.world.province_get_daily_net_migration(dest_pop_location) + pbuf.amounts.get(p));
+						state.world.province_set_daily_net_migration(dest_pop_location, state.world.province_get_daily_net_migration(dest_pop_location) + moved);
 					}
 				},
 				ids);
@@ -4126,21 +4489,126 @@ void apply_immigration(sys::state& state, uint32_t offset, uint32_t divisions, m
 						auto target_pop = impl::find_or_make_pop(state, pbuf.destinations.get(p), state.world.pop_get_culture(p),
 								state.world.pop_get_religion(p), state.world.pop_get_poptype(p), pop_demographics::get_literacy(state, p));
 
-						state.world.pop_set_size(p, state.world.pop_get_size(p) - amount);
-						state.world.pop_set_size(target_pop, state.world.pop_get_size(target_pop) + amount);
+						auto const moved = transfer_pop_amount(state, p, target_pop, amount);
 
 						auto cur_pop_location = state.world.pop_get_province_from_pop_location(p);
-						state.world.province_set_daily_net_immigration(cur_pop_location, state.world.province_get_daily_net_immigration(cur_pop_location) - amount);
+						state.world.province_set_daily_net_immigration(cur_pop_location, state.world.province_get_daily_net_immigration(cur_pop_location) - moved);
 
 						auto dest_pop_location = pbuf.destinations.get(p);
-						state.world.province_set_daily_net_immigration(dest_pop_location, state.world.province_get_daily_net_immigration(dest_pop_location) + amount);
+						state.world.province_set_daily_net_immigration(dest_pop_location, state.world.province_get_daily_net_immigration(dest_pop_location) + moved);
 
-						state.world.province_set_last_immigration(dest_pop_location, state.current_date);
+						if(moved > 0.f)
+							state.world.province_set_last_immigration(dest_pop_location, state.current_date);
 					}
 				},
 				ids);
 	});
 }
+
+namespace {
+
+void relink_pop_dependents(sys::state& state, dcon::pop_id source, dcon::pop_id target) {
+	while(state.world.pop_get_regiment_source(source).begin() != state.world.pop_get_regiment_source(source).end()) {
+		auto regiment_source = *state.world.pop_get_regiment_source(source).begin();
+		regiment_source.set_pop(target);
+	}
+	while(state.world.pop_get_province_land_construction(source).begin()
+			!= state.world.pop_get_province_land_construction(source).end()) {
+		auto construction_source = *state.world.pop_get_province_land_construction(source).begin();
+		construction_source.set_pop(target);
+	}
+}
+
+dcon::pop_id find_cleanup_merge_target(sys::state& state, dcon::pop_id source) {
+	auto const location = state.world.pop_get_province_from_pop_location(source);
+	if(!state.world.province_is_valid(location)) {
+		return {};
+	}
+
+	auto const source_type = state.world.pop_get_poptype(source);
+	auto const source_culture = state.world.pop_get_culture(source);
+	auto const source_religion = state.world.pop_get_religion(source);
+	dcon::pop_id best{};
+	int32_t best_match = -1;
+	float best_size = -1.f;
+	for(auto pop_location : state.world.province_get_pop_location(location)) {
+		auto candidate = pop_location.get_pop();
+		if(candidate == source || !state.world.pop_is_valid(candidate)) {
+			continue;
+		}
+		auto const candidate_size = state.world.pop_get_size(candidate);
+		auto const candidate_savings = state.world.pop_get_savings(candidate);
+		if(!std::isfinite(candidate_size) || candidate_size < 0.f
+			|| !std::isfinite(candidate_savings) || candidate_savings < 0.f) {
+			continue;
+		}
+
+		auto match = 0;
+		if(state.world.pop_get_poptype(candidate) == source_type) {
+			match = 1;
+			if(state.world.pop_get_culture(candidate) == source_culture) {
+				match = 2;
+				if(state.world.pop_get_religion(candidate) == source_religion) {
+					match = 3;
+				}
+			}
+		}
+		if(match > best_match || (match == best_match && candidate_size > best_size)) {
+			best = candidate;
+			best_match = match;
+			best_size = candidate_size;
+		}
+	}
+	return best;
+}
+
+bool transfer_savings_without_population(sys::state& state, dcon::pop_id source, dcon::pop_id target) {
+	auto const source_savings = state.world.pop_get_savings(source);
+	auto const target_savings = state.world.pop_get_savings(target);
+	if(!std::isfinite(source_savings) || source_savings < 0.f
+		|| !std::isfinite(target_savings) || target_savings < 0.f
+		|| source_savings > std::numeric_limits<float>::max() - target_savings) {
+		return false;
+	}
+	state.world.pop_set_savings(source, 0.f);
+	state.world.pop_set_savings(target, target_savings + source_savings);
+	return true;
+}
+
+bool merge_cleanup_pop(sys::state& state, dcon::pop_id source) {
+	auto const source_size = state.world.pop_get_size(source);
+	auto const source_savings = state.world.pop_get_savings(source);
+	if(!std::isfinite(source_size) || source_size < 0.f
+		|| !std::isfinite(source_savings) || source_savings < 0.f) {
+		return false;
+	}
+
+	auto const target = find_cleanup_merge_target(state, source);
+	if(target) {
+		auto population_moved = source_size == 0.f;
+		if(source_size > 0.f) {
+			auto const moved = transfer_pop_amount(state, source, target, source_size);
+			population_moved = moved == source_size && state.world.pop_get_size(source) == 0.f;
+		}
+		if(!population_moved) {
+			return false;
+		}
+		if(state.world.pop_get_savings(source) > 0.f
+			&& !transfer_savings_without_population(state, source, target)) {
+			return false;
+		}
+		relink_pop_dependents(state, source, target);
+		return true;
+	}
+
+	// A genuinely empty record can always be removed. A non-empty isolated POP
+	// is retained until a safe merge target exists instead of silently deleting
+	// population or liquid wealth.
+	return source_size == 0.f && source_savings == 0.f;
+}
+
+}
+
 template<bool DeletePops>
 void fixup_state_only_pops(sys::state& state) {
 
@@ -4153,33 +4621,25 @@ void fixup_state_only_pops(sys::state& state) {
 		}
 		auto pop_type = state.world.pop_get_poptype(pop);
 		auto state_capital_only = state.world.pop_type_get_state_capital_only(pop_type);
-		if(state_capital_only) {
-			auto state_instance = state.world.province_get_state_membership(pop_location);
-			auto state_capital = state.world.state_instance_get_capital(state_instance);
-			if(pop_location != state_capital) {
-				auto new_pop = impl::find_or_make_pop(state, state_capital, state.world.pop_get_culture(pop), state.world.pop_get_religion(pop), pop_type, pop_demographics::get_literacy(state, pop));
-				float new_pop_size = state.world.pop_get_size(new_pop);
-				float old_pop_size = state.world.pop_get_size(pop);
-				state.world.pop_set_size(new_pop, new_pop_size + old_pop_size);
-				// Move any regiments or land constructions connected to previous pop, over to the new pop
-				while(state.world.pop_get_regiment_source(pop).begin() != state.world.pop_get_regiment_source(pop).end()) {
-					auto regiment_src = *state.world.pop_get_regiment_source(pop).begin();
-					regiment_src.set_pop(new_pop);
-				}
-				while(state.world.pop_get_province_land_construction(pop).begin() != state.world.pop_get_province_land_construction(pop).end()) {
-					auto construction_src = *state.world.pop_get_province_land_construction(pop).begin();
-					construction_src.set_pop(new_pop);
-				}
-				if constexpr(DeletePops) {
-					state.world.delete_pop(pop);
-				}
-				else {
-					state.world.pop_set_size(pop, 0.0f);
+			if(state_capital_only) {
+				auto state_instance = state.world.province_get_state_membership(pop_location);
+				auto state_capital = state.world.state_instance_get_capital(state_instance);
+				if(pop_location != state_capital && state.world.province_is_valid(state_capital)) {
+					auto new_pop = impl::find_or_make_pop(state, state_capital, state.world.pop_get_culture(pop),
+						state.world.pop_get_religion(pop), pop_type, pop_demographics::get_literacy(state, pop));
+					auto const source_size = state.world.pop_get_size(pop);
+					auto const moved = transfer_pop_amount(state, pop, new_pop, source_size);
+					if(moved != source_size || state.world.pop_get_size(pop) != 0.f
+						|| state.world.pop_get_savings(pop) != 0.f) {
+						continue;
+					}
+					relink_pop_dependents(state, pop, new_pop);
+					if constexpr(DeletePops) {
+						state.world.delete_pop(pop);
+					}
 				}
 			}
-
 		}
-	}
 }
 template void fixup_state_only_pops<true>(sys::state& state);
 template void fixup_state_only_pops<false>(sys::state& state);
@@ -4189,7 +4649,9 @@ void remove_size_zero_pops(sys::state& state) {
 	for(auto last = state.world.pop_size(); last-- > 0;) {
 		dcon::pop_id m{dcon::pop_id::value_base_t(last)};
 		if(state.world.pop_get_size(m) < 1.0f) {
-			state.world.delete_pop(m);
+			if(merge_cleanup_pop(state, m)) {
+				state.world.delete_pop(m);
+			}
 		}
 	}
 }
@@ -4199,7 +4661,9 @@ void remove_small_pops(sys::state& state) {
 	for(auto last = state.world.pop_size(); last-- > 0;) {
 		dcon::pop_id m{ dcon::pop_id::value_base_t(last) };
 		if(state.world.pop_get_size(m) < 20.0f) {
-			state.world.delete_pop(m);
+			if(merge_cleanup_pop(state, m)) {
+				state.world.delete_pop(m);
+			}
 		}
 	}
 }

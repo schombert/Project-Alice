@@ -818,7 +818,17 @@ uint8_t const* read_save_section(uint8_t const* ptr_in, uint8_t const* section_e
 		std::byte const* start = reinterpret_cast<std::byte const*>(ptr_in);
 		state.world.deserialize(start, reinterpret_cast<std::byte const*>(section_end), loaded, loadmask);
 	}
+	migrate_legacy_army_supply_fields(state, loaded);
+	state.clear_army_supply_derived_data();
 	return section_end;
+}
+
+void migrate_legacy_army_supply_fields(sys::state& state, dcon::load_record const& loaded) {
+	if(loaded.army_supply_reserve && loaded.army_supply_priority) return;
+	for(auto army : state.world.in_army) {
+		if(!loaded.army_supply_reserve) army.set_supply_reserve(1.0f);
+		if(!loaded.army_supply_priority) army.set_supply_priority(1);
+	}
 }
 
 uint8_t* write_handwritten_save_section(uint8_t* ptr_in, sys::state& state, bool exclude_local_handwritten_fields = false) {
@@ -944,6 +954,8 @@ uint8_t const* read_entire_mp_state(uint8_t const* ptr_in, uint8_t const* sectio
 	dcon::load_record loaded;
 	std::byte const* start = reinterpret_cast<std::byte const*>(ptr_in);
 	state.world.deserialize(start, reinterpret_cast<std::byte const*>(section_end), loaded);
+	migrate_legacy_army_supply_fields(state, loaded);
+	state.clear_army_supply_derived_data();
 	return section_end;
 }
 uint8_t* write_entire_mp_state(uint8_t* ptr_in, sys::state& state, bool exclude_local_handwritten_fields) {
