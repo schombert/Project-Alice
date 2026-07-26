@@ -1502,3 +1502,5 @@ alice_land_pop_role;Земельный статус
 alice_land_role_owner;Возможный владелец-земледелец
 alice_land_role_tenant;Арендаторское хозяйство
 alice_land_role_laborer;Безземельный сельский рабочий
+alice_land_click_expand;Нажмите, чтобы открыть сведения о земле
+alice_land_drag_hint;Перетащите панель или нажмите −, чтобы свернуть
