@@ -2791,7 +2791,10 @@ float rgo_potential_size(sys::state const& state, dcon::nation_id n, dcon::provi
 	bool is_mine = state.world.commodity_get_is_mine(c);
 	// - We calculate its potential size which is its base size x (technology-bonus-to-specific-rgo-good-size +
 	// technology-general-farm-or-mine-size-bonus + provincial-mine-or-farm-size-modifier + 1)
-	auto rgo_ownership = state.world.province_get_landowners_share(p) + state.world.province_get_capitalists_share(p);
+	auto rgo_ownership = state.world.province_get_landowners_share(p)
+		+ state.world.province_get_capitalists_share(p)
+		+ state.world.province_get_state_land_share(p)
+		+ state.world.province_get_foreign_land_share(p);
 	auto sz = state.world.province_get_rgo_potential(p, c) * rgo_ownership;
 	auto pmod = state.world.province_get_modifier_values(p, is_mine ? sys::provincial_mod_offsets::mine_rgo_size : sys::provincial_mod_offsets::farm_rgo_size);
 	auto nmod = state.world.nation_get_modifier_values(n, is_mine ? sys::national_mod_offsets::mine_rgo_size : sys::national_mod_offsets::farm_rgo_size);

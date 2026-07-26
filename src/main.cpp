@@ -33,6 +33,7 @@
 #include "economy.cpp"
 #include "banking_stability.cpp"
 #include "human_development.cpp"
+#include "land_ownership.cpp"
 #include "world_trade_capacity.cpp"
 #include "economy_pops.cpp"
 #include "economy_trade_routes.cpp"

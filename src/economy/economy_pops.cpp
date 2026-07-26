@@ -10,6 +10,7 @@
 #include "economy_pops_constants.hpp"
 #include "policy_execution.hpp"
 #include "advanced_province_buildings.hpp"
+#include "gamerule.hpp"
 
 #include <cmath>
 #include <cstdio>
@@ -1046,6 +1047,60 @@ void update_income_non_labor(sys::state& state) {
 
 	constexpr float expected_share = trade_dividents_rate;
 
+	// Public and foreign owners receive the same RGO dividend rate as POP
+	// owners. The later bank decay removes the complete dividend once; only the
+	// private remainder enters the POP market pool below.
+	if(gamerule::age_of_transformation_enabled(state)) {
+		province::for_each_land_province(state, [&](dcon::province_id pid) {
+			auto const bank = std::max(
+				0.f, state.world.province_get_rgo_bank(pid));
+			auto const state_share = std::clamp(
+				state.world.province_get_state_land_share(pid), 0.f, 1.f);
+			auto const foreign_share = std::clamp(
+				state.world.province_get_foreign_land_share(pid),
+				0.f, 1.f - state_share);
+			auto const owner =
+				state.world.province_get_nation_from_province_ownership(pid);
+			if(!owner || bank <= 0.f)
+				return;
+			auto const state_income = bank * expected_share * state_share;
+			auto const treasury =
+				state.world.nation_get_stockpiles(owner, economy::money);
+			state.world.nation_set_stockpiles(
+				owner, economy::money, treasury + state_income);
+
+			auto const foreign_income =
+				bank * expected_share * foreign_share;
+			float total_investment = 0.f;
+			for(auto relation :
+					state.world.nation_get_unilateral_relationship_as_target(
+						owner)) {
+				total_investment += std::max(
+					0.f, relation.get_foreign_investment());
+			}
+			if(total_investment <= 0.f) {
+				auto const current =
+					state.world.nation_get_stockpiles(owner, economy::money);
+				state.world.nation_set_stockpiles(
+					owner, economy::money, current + foreign_income);
+				return;
+			}
+			for(auto relation :
+					state.world.nation_get_unilateral_relationship_as_target(
+						owner)) {
+				auto const investor = relation.get_source().id;
+				auto const weight = std::max(
+					0.f, relation.get_foreign_investment())
+					/ total_investment;
+				auto const current =
+					state.world.nation_get_stockpiles(
+						investor, economy::money);
+				state.world.nation_set_stockpiles(investor,
+					economy::money, current + foreign_income * weight);
+			}
+		});
+	}
+
 	auto const artisan_def = state.culture_definitions.artisans;
 	auto artisan_key = demographics::to_key(state, artisan_def);
 
@@ -1140,8 +1195,14 @@ void update_income_non_labor(sys::state& state) {
 		{
 			auto capis_share = state.world.province_get_capitalists_share(pid);
 			auto aristo_share = state.world.province_get_landowners_share(pid);
+			auto public_share =
+				state.world.province_get_state_land_share(pid)
+				+ state.world.province_get_foreign_land_share(pid);
 			auto current = market_rgo_tokens.get(mid);
-			market_rgo_tokens.set(mid, current + capis * capis_share + aristo * aristo_share + rgo_workers * (1.f - capis_share - aristo_share));
+			market_rgo_tokens.set(mid, current + capis * capis_share
+				+ aristo * aristo_share
+				+ rgo_workers * ve::max(
+					0.f, 1.f - capis_share - aristo_share - public_share));
 		}
 
 		{
@@ -1160,9 +1221,13 @@ void update_income_non_labor(sys::state& state) {
 
 		{
 			auto total = market_rgo_money.get(mid);
-			auto current_money = state.world.province_get_rgo_bank(pid);
-			if(current_money > 0.f)
-				market_rgo_money.set(mid, total + current_money);
+			auto public_share = ve::min(1.f,
+				state.world.province_get_state_land_share(pid)
+				+ state.world.province_get_foreign_land_share(pid));
+			auto current_money = state.world.province_get_rgo_bank(pid)
+				* (1.f - public_share);
+			market_rgo_money.set(mid,
+				total + ve::select(current_money > 0.f, current_money, 0.f));
 		}
 
 		{
@@ -1274,7 +1339,12 @@ void update_income_non_labor(sys::state& state) {
 			auto weight =
 				ve::select(pop_type == capis_def, capis_share, 0.f)
 				+ ve::select(pop_type == aristo_def, aristo_share, 0.f)
-				+ ve::select(state.world.pop_type_get_is_paid_rgo_worker(pop_type), 1.f - capis_share - aristo_share, 0.f);
+				+ ve::select(
+					state.world.pop_type_get_is_paid_rgo_worker(pop_type),
+					ve::max(0.f, 1.f - capis_share - aristo_share
+						- state.world.province_get_state_land_share(province)
+						- state.world.province_get_foreign_land_share(province)),
+					0.f);
 			auto income = ve::select(candidates > min_registered_token_size, total_money / candidates * size * weight, 0.f);
 #ifndef NDEBUG
 			ve::apply([](float v) { assert(std::isfinite(v) && v >= 0); }, income);
@@ -1330,9 +1400,18 @@ void update_income_non_labor(sys::state& state) {
 		}
 		{
 			auto current_money = state.world.province_get_rgo_bank(pid_vector);
+			auto public_share =
+				state.world.province_get_state_land_share(pid_vector)
+				+ state.world.province_get_foreign_land_share(pid_vector);
 			state.world.province_set_rgo_bank(
 				pid_vector,
-				ve::select(valid_market && market_rgo_tokens.get(market) > min_registered_token_size && current_money > 0.f, current_money* (1.f - expected_share), current_money)
+				ve::select(valid_market
+						&& (market_rgo_tokens.get(market)
+								> min_registered_token_size
+							|| public_share > 0.f)
+						&& current_money > 0.f,
+					current_money * (1.f - expected_share),
+					current_money)
 			);
 		}
 		{

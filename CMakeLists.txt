@@ -96,6 +96,7 @@ list(APPEND ALICE_INCREMENTAL_SOURCES_LIST_ECONOMY
 	"${PROJECT_SOURCE_DIR}/src/economy/economy.cpp"
 	"${PROJECT_SOURCE_DIR}/src/economy/banking_stability.cpp"
 	"${PROJECT_SOURCE_DIR}/src/economy/human_development.cpp"
+	"${PROJECT_SOURCE_DIR}/src/economy/land_ownership.cpp"
 	"${PROJECT_SOURCE_DIR}/src/economy/world_trade_capacity.cpp"
 	"${PROJECT_SOURCE_DIR}/src/economy/economy_pops.cpp"
 	"${PROJECT_SOURCE_DIR}/src/economy/economy_trade_routes.cpp"

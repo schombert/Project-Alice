@@ -65,13 +65,34 @@ population weight
 ```
 
 Land ownership is persistent economic state in the flagship ruleset. Existing
-province landowner and capitalist shares initialize old scenarios without adding
-new save fields, then move gradually toward the claims implied by local class
-formation. They no longer jump to a new distribution every day when POP
-composition changes. The shares already divide RGO and rent income between
-landowners, capitalists and subsistence producers, so this persistence feeds
-income, savings and political power back into the core loop. Classic games retain
-the legacy immediate recalculation.
+province landowner and capitalist shares initialize old scenarios, then change
+only through a capped monthly land market. Its accounting rules are:
+
+1. The price capitalizes a 270-day (nine-month) exponential average of net RGO
+   rent, with the existing dividend bank as a conservative initialization floor.
+2. Buyers submit cash-backed bids and owners submit separate voluntary or forced
+   asks; only their matched minimum becomes turnover.
+3. POP bids may use only savings above six months of current life-needs costs.
+4. Unmet life needs, unemployment and a lack-of-cash debt proxy create forced
+   listings. Pension and unemployment-benefit law act as tenant protection and
+   reduce that pressure.
+5. Rural land use is reported separately as owner-smallholders, tenants and
+   landless laborers; these categories are not treated as interchangeable POPs.
+6. Sale proceeds follow the seller class's persisted wealth/ownership proxy, not
+   local population, so a numerous class cannot receive another owner's sale.
+7. State and foreign holdings participate alongside smallholders, landed elites
+   and capitalists. Their RGO dividends go to the domestic treasury or the
+   investing nations in proportion to recorded foreign investment.
+8. Existing political-economic rules drive the first legal layer: effective rich
+   tax becomes a land tax; universal voting enables an estate cap and gradual
+   agrarian reform; social insurance protects distressed tenants; state-only
+   construction policy nationalizes; private-only construction policy privatizes;
+   and the foreign-investment rule admits or winds down foreign ownership.
+
+The five shares remain bounded and sum to one, buyer payments equal seller
+receipts, land-tax receipts go to the treasury, and classic games retain the
+legacy immediate recalculation. New state, foreign, smoothing and turnover
+values are derived runtime fields rather than a silent save-format change.
 
 Coalition selection is deterministic. Equal candidates are ordered by stable group
 id. The smallest coalition reaching the configured power threshold governs. The

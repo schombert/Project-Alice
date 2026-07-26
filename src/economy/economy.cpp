@@ -988,7 +988,10 @@ void update_factory_triggered_modifiers(sys::state& state) {
 }
 
 float subsistence_size(sys::state const& state, dcon::province_id p) {
-	auto rgo_ownership = state.world.province_get_landowners_share(p) + state.world.province_get_capitalists_share(p);
+	auto rgo_ownership = state.world.province_get_landowners_share(p)
+		+ state.world.province_get_capitalists_share(p)
+		+ state.world.province_get_state_land_share(p)
+		+ state.world.province_get_foreign_land_share(p);
 	return state.world.province_get_rgo_base_size(p) * (1.f - rgo_ownership);
 }
 
@@ -1038,7 +1041,7 @@ void update_land_ownership(sys::state& state) {
 					float target_landed, float target_capitalist) {
 				return land_ownership::advance(
 					{current_landed, current_capitalist},
-					{target_landed, target_capitalist}).landed_elites;
+					{target_landed, target_capitalist}, 0.f).landed_elites;
 			}, current_landowners, current_capitalists,
 			target_landowners, target_capitalists);
 		auto const next_capitalists = ve::apply(
@@ -1046,7 +1049,7 @@ void update_land_ownership(sys::state& state) {
 					float target_landed, float target_capitalist) {
 				return land_ownership::advance(
 					{current_landed, current_capitalist},
-					{target_landed, target_capitalist}).capitalists;
+					{target_landed, target_capitalist}, 0.f).capitalists;
 			}, current_landowners, current_capitalists,
 			target_landowners, target_capitalists);
 		state.world.province_set_landowners_share(ids, next_landowners);
@@ -2598,6 +2601,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			});
 		}
 	);
+	land_ownership::update_markets(state);
 
 	// PROFILE
 	set_profile_point(state, "land stats and inventions count");

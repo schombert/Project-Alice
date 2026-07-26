@@ -1718,6 +1718,22 @@ object {
 		tag{ save }
 	}
 	property{
+		name{ state_land_share }
+		type{ float }
+	}
+	property{
+		name{ foreign_land_share }
+		type{ float }
+	}
+	property{
+		name{ smoothed_land_rent }
+		type{ float }
+	}
+	property{
+		name{ land_market_turnover }
+		type{ float }
+	}
+	property{
 		name{ subsistence_employment }
 		type{ float }
 		tag{ save }
