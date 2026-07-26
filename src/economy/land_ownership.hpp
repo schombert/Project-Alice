@@ -4,6 +4,8 @@
 #include <array>
 #include <cmath>
 
+#include "dcon_generated_ids.hpp"
+
 namespace sys {
 struct state;
 }
@@ -95,6 +97,7 @@ struct market_result {
 	std::array<float, owner_group_count> asks{};
 	float land_value = 0.f;
 	float turnover = 0.f;
+	float distress_asks = 0.f;
 	float land_tax = 0.f;
 };
 
@@ -125,6 +128,9 @@ float update_smoothed_rent(float previous_daily_rent, float current_daily_rent,
 
 land_use_distribution classify_land_use(float rural_population,
 	float privately_worked_land, float tenant_protection);
+
+market_config configuration_for(sys::state const& state,
+	dcon::province_id province);
 
 inline distribution target_from_claims(float smallholder_claim,
 		float landed_claim, float capitalist_claim) {

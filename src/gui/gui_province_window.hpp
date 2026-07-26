@@ -10,6 +10,7 @@ class province_view_foreign_details;
 class province_view_statistics;
 class province_view_buildings;
 class province_window_colony;
+class province_land_panel;
 
 class province_terrain_image : public opaque_element_base {
 public:
@@ -31,6 +32,7 @@ private:
 	element_base* nf_win = nullptr;
 	element_base* tiles_window = nullptr;
 	element_base* market_window = nullptr;
+	province_land_panel* land_panel = nullptr;
 
 public:
 	void on_create(sys::state& state) noexcept override;

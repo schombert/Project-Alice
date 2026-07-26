@@ -2115,3 +2115,43 @@ alice_aot_movement_legitimacy;Net legitimacy pressure: $x$
 alice_aot_movement_hardship;Economic hardship: $x$
 alice_aot_movement_implementation;Implementation gap: $x$
 alice_aot_movement_total;Total radicalism adjustment: $x$
+alice_land_panel_title;LAND & TENURE
+alice_land_monthly_market;Monthly land market
+alice_land_ownership;OWNERSHIP
+alice_land_use;RURAL TENURE
+alice_land_market_pulse;MARKET PULSE
+alice_land_legal_regime;LEGAL REGIME
+alice_land_smallholders;Smallholders
+alice_land_estates;Estates
+alice_land_capital;Capital
+alice_land_state;State
+alice_land_foreign;Foreign
+alice_land_price;Land value
+alice_land_smoothed_rent;9-mo net rent
+alice_land_turnover;Monthly turnover
+alice_day;day
+alice_land_owner_operators;Owner-operators
+alice_land_tenants;Tenants
+alice_land_landless;Landless workers
+alice_land_bids;Bids
+alice_land_asks;Asks
+alice_land_distress;Forced sales
+alice_land_tax;Land tax
+alice_land_tenant_protection;Tenant protection
+alice_land_estate_cap;Estate cap
+alice_land_none;None
+alice_land_open;Open
+alice_land_closed;Closed
+alice_land_policy;Policy
+alice_land_nationalization;Nationalization
+alice_land_privatization;Privatization
+alice_land_agrarian_reform;Agrarian reform
+alice_land_market_policy;Market allocation
+alice_land_reserve;Needs reserve, months
+alice_land_panel_tooltip;Ownership is a persistent provincial stock. The colored bar shows who holds the land; the small signed number is this month's change.
+alice_land_panel_law_tooltip;The market clears monthly. Buyers keep an essential-needs reserve, tenant protection reduces forced sales, and the active legal regime limits eligible transfers.
+alice_land_tenure_mix;Provincial tenure mix
+alice_land_pop_role;Land status
+alice_land_role_owner;Owner-operator candidate
+alice_land_role_tenant;Tenant household
+alice_land_role_laborer;Landless agricultural worker

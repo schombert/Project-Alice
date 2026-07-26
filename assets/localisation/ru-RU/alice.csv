@@ -1462,3 +1462,43 @@ alice_aot_movement_legitimacy;Чистое давление легитимнос
 alice_aot_movement_hardship;Экономические трудности: $x$
 alice_aot_movement_implementation;Разрыв исполнения: $x$
 alice_aot_movement_total;Итоговая поправка радикализма: $x$
+alice_land_panel_title;ЗЕМЛЯ И ВЛАДЕНИЕ
+alice_land_monthly_market;Ежемесячный рынок земли
+alice_land_ownership;СОБСТВЕННОСТЬ
+alice_land_use;СЕЛЬСКОЕ ЗЕМЛЕПОЛЬЗОВАНИЕ
+alice_land_market_pulse;РЫНОК
+alice_land_legal_regime;ПРАВОВОЙ РЕЖИМ
+alice_land_smallholders;Мелкие владельцы
+alice_land_estates;Поместья
+alice_land_capital;Капитал
+alice_land_state;Государство
+alice_land_foreign;Иностранцы
+alice_land_price;Стоимость земли
+alice_land_smoothed_rent;Чистая рента за 9 мес.
+alice_land_turnover;Оборот за месяц
+alice_day;день
+alice_land_owner_operators;Владельцы-земледельцы
+alice_land_tenants;Арендаторы
+alice_land_landless;Безземельные рабочие
+alice_land_bids;Спрос
+alice_land_asks;Предложение
+alice_land_distress;Вынужденные продажи
+alice_land_tax;Земельный налог
+alice_land_tenant_protection;Защита арендаторов
+alice_land_estate_cap;Предел поместья
+alice_land_none;Нет
+alice_land_open;Открыт
+alice_land_closed;Закрыт
+alice_land_policy;Политика
+alice_land_nationalization;Национализация
+alice_land_privatization;Приватизация
+alice_land_agrarian_reform;Аграрная реформа
+alice_land_market_policy;Рыночное распределение
+alice_land_reserve;Резерв на нужды, мес.
+alice_land_panel_tooltip;Собственность — постоянный запас земли провинции. Цветная полоса показывает владельцев, а маленькое число со знаком — изменение за текущий месяц.
+alice_land_panel_law_tooltip;Рынок сводится раз в месяц. Покупатели сохраняют резерв на основные нужды, защита арендаторов сокращает вынужденные продажи, а законы ограничивают допустимые сделки.
+alice_land_tenure_mix;Структура землепользования провинции
+alice_land_pop_role;Земельный статус
+alice_land_role_owner;Возможный владелец-земледелец
+alice_land_role_tenant;Арендаторское хозяйство
+alice_land_role_laborer;Безземельный сельский рабочий

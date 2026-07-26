@@ -202,6 +202,42 @@ land_use_distribution classify_land_use(float rural_population,
 	return result;
 }
 
+market_config configuration_for(sys::state const& state,
+		dcon::province_id province) {
+	market_config config;
+	config.enabled = gamerule::age_of_transformation_enabled(state);
+	auto const nation =
+		state.world.province_get_nation_from_province_ownership(province);
+	auto const rules = nation
+		? state.world.nation_get_combined_issue_rules(nation) : 0u;
+	auto const allows_private_building =
+		(rules & issue_rule::pop_build_factory) != 0;
+	auto const allows_state_building =
+		(rules & issue_rule::build_factory) != 0;
+	config.foreign_investment_allowed =
+		(rules & issue_rule::allow_foreign_investment) != 0;
+	config.tenant_protection = nation
+		? std::clamp(
+			state.world.nation_get_modifier_values(nation,
+				sys::national_mod_offsets::unemployment_benefit)
+			+ state.world.nation_get_modifier_values(nation,
+				sys::national_mod_offsets::pension_level), 0.f, 1.f)
+		: 0.f;
+	config.annual_land_tax_rate = nation
+		? 0.05f * nations::tax_efficiency(state, nation)
+			* float(state.world.nation_get_rich_tax(nation)) / 100.f
+		: 0.f;
+	config.large_estate_limit =
+		(rules & issue_rule::all_voting) != 0 ? 0.35f : 1.f;
+	config.agrarian_reform_rate =
+		(rules & issue_rule::all_voting) != 0 ? 0.001f : 0.f;
+	config.nationalization_rate =
+		allows_state_building && !allows_private_building ? 0.002f : 0.f;
+	config.privatization_rate =
+		allows_private_building && !allows_state_building ? 0.001f : 0.f;
+	return config;
+}
+
 market_result clear_market(distribution current,
 		std::array<group_finance, owner_group_count> finances,
 		float land_value, market_config const& config) {
@@ -238,9 +274,12 @@ market_result clear_market(distribution current,
 		auto const excess_cash = std::max(0.f, savings - reserve);
 		auto const hardship = std::clamp(
 			finite_nonnegative(finances[i].hardship), 0.f, 1.f);
+		auto const distress_ask = current_shares[i]
+			* 0.03f * hardship * (1.f - protection);
 		result.bids[i] = excess_cash / result.land_value;
 		result.asks[i] = current_shares[i]
-			* (voluntary_rate + 0.03f * hardship * (1.f - protection));
+			* voluntary_rate + distress_ask;
+		result.distress_asks += distress_ask;
 	}
 
 	auto const smallholders = index(owner_group::smallholders);
@@ -339,35 +378,7 @@ void update_markets(sys::state& state) {
 
 		auto const nation =
 			state.world.province_get_nation_from_province_ownership(province);
-		auto const rules = nation
-			? state.world.nation_get_combined_issue_rules(nation) : 0u;
-		auto const allows_private_building =
-			(rules & issue_rule::pop_build_factory) != 0;
-		auto const allows_state_building =
-			(rules & issue_rule::build_factory) != 0;
-		market_config config;
-		config.enabled = true;
-		config.foreign_investment_allowed =
-			(rules & issue_rule::allow_foreign_investment) != 0;
-		config.tenant_protection = nation
-			? std::clamp(
-				state.world.nation_get_modifier_values(nation,
-					sys::national_mod_offsets::unemployment_benefit)
-				+ state.world.nation_get_modifier_values(nation,
-					sys::national_mod_offsets::pension_level), 0.f, 1.f)
-			: 0.f;
-		config.annual_land_tax_rate = nation
-			? 0.05f * nations::tax_efficiency(state, nation)
-				* float(state.world.nation_get_rich_tax(nation)) / 100.f
-			: 0.f;
-		config.large_estate_limit =
-			(rules & issue_rule::all_voting) != 0 ? 0.35f : 1.f;
-		config.agrarian_reform_rate =
-			(rules & issue_rule::all_voting) != 0 ? 0.001f : 0.f;
-		config.nationalization_rate =
-			allows_state_building && !allows_private_building ? 0.002f : 0.f;
-		config.privatization_rate =
-			allows_private_building && !allows_state_building ? 0.001f : 0.f;
+		auto const config = configuration_for(state, province);
 
 		std::array<group_finance, owner_group_count> finances{};
 		std::array<float, owner_group_count> population{};
@@ -440,8 +451,44 @@ void update_markets(sys::state& state) {
 			daily_rgo_income * 365.f * 10.f);
 		auto const result = clear_market(
 			current, finances, land_value, config);
+		float total_bids = 0.f;
+		float total_asks = 0.f;
+		for(std::size_t i = 0; i < owner_group_count; ++i) {
+			total_bids += result.bids[i];
+			total_asks += result.asks[i];
+		}
 		state.world.province_set_land_market_turnover(
 			province, result.turnover);
+		state.world.province_set_land_market_value(
+			province, result.land_value);
+		state.world.province_set_land_market_bids(
+			province, total_bids);
+		state.world.province_set_land_market_asks(
+			province, total_asks);
+		state.world.province_set_land_market_distress_asks(
+			province, result.distress_asks);
+		state.world.province_set_land_market_tax(
+			province, result.land_tax);
+		auto const land_use = classify_land_use(
+			population[index(owner_group::smallholders)],
+			result.after.smallholders, config.tenant_protection);
+		state.world.province_set_land_use_tenant_share(
+			province, land_use.tenants);
+		state.world.province_set_land_use_landless_share(
+			province, land_use.landless_laborers);
+		state.world.province_set_smallholder_land_change(
+			province,
+			result.after.smallholders - result.before.smallholders);
+		state.world.province_set_landowner_land_change(
+			province,
+			result.after.landed_elites - result.before.landed_elites);
+		state.world.province_set_capitalist_land_change(
+			province,
+			result.after.capitalists - result.before.capitalists);
+		state.world.province_set_state_land_change(
+			province, result.after.state - result.before.state);
+		state.world.province_set_foreign_land_change(
+			province, result.after.foreign - result.before.foreign);
 		for(std::size_t i = 0; i < 3; ++i) {
 			apply_cash_delta(state, province, owner_group(i),
 				result.cash_delta[i],

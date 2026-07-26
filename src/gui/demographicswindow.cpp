@@ -6227,6 +6227,31 @@ void demographicswindow_province_row_job_t::update_tooltip(sys::state& state, in
 		text::add_space_to_layout_box(state, contents, box);
 		text::add_to_layout_box(state, contents, box, text::fp_percentage_one_place{ total > 0.0f ? graph_content[temp_index].amount / total : 0.0f });
 		text::close_layout_box(contents, box);
+		if(gamerule::age_of_transformation_enabled(state)) {
+			auto const province = province_row.content;
+			auto const tenants = std::clamp(
+				state.world.province_get_land_use_tenant_share(province),
+				0.f, 1.f);
+			auto const landless = std::clamp(
+				state.world.province_get_land_use_landless_share(province),
+				0.f, 1.f - tenants);
+			auto const owners = std::max(0.f, 1.f - tenants - landless);
+			text::add_line_break_to_layout(state, contents);
+			text::add_line(state, contents, "alice_land_tenure_mix");
+			auto add_tenure = [&](std::string_view key, float share) {
+				auto tenure_box = text::open_layout_box(contents);
+				text::add_to_layout_box(state, contents, tenure_box,
+					text::produce_simple_string(state, key));
+				text::add_to_layout_box(state, contents, tenure_box,
+					std::string_view{": "});
+				text::add_to_layout_box(state, contents, tenure_box,
+					text::fp_percentage_one_place{share});
+				text::close_layout_box(contents, tenure_box);
+			};
+			add_tenure("alice_land_owner_operators", owners);
+			add_tenure("alice_land_tenants", tenants);
+			add_tenure("alice_land_landless", landless);
+		}
 // END
 	}
 }
@@ -7606,6 +7631,57 @@ void demographicswindow_pop_row_job_t::update_tooltip(sys::state& state, int32_t
 	demographicswindow_main_t& main = *((demographicswindow_main_t*)(parent->parent)); 
 // BEGIN pop_row::job::tooltip
 	text::add_line(state, contents, state.world.pop_get_poptype(pop_row.value).get_name());
+	auto const pop_type = state.world.pop_get_poptype(pop_row.value);
+	if(gamerule::age_of_transformation_enabled(state)
+			&& (pop_type == state.culture_definitions.farmers
+				|| pop_type == state.culture_definitions.laborers)) {
+		auto const province =
+			state.world.pop_get_province_from_pop_location(pop_row.value);
+		auto const tenants = std::clamp(
+			state.world.province_get_land_use_tenant_share(province), 0.f, 1.f);
+		auto const landless = std::clamp(
+			state.world.province_get_land_use_landless_share(province),
+			0.f, 1.f - tenants);
+		auto const owners = std::max(0.f, 1.f - tenants - landless);
+		text::add_line_break_to_layout(state, contents);
+		auto role_box = text::open_layout_box(contents);
+		text::add_to_layout_box(state, contents, role_box,
+			text::produce_simple_string(state, "alice_land_pop_role"));
+		text::add_to_layout_box(state, contents, role_box,
+			std::string_view{": "});
+		auto const role = pop_type == state.culture_definitions.laborers
+			? "alice_land_role_laborer"
+			: (tenants > owners ? "alice_land_role_tenant"
+				: "alice_land_role_owner");
+		text::add_to_layout_box(state, contents, role_box,
+			text::produce_simple_string(state, role));
+		text::close_layout_box(contents, role_box);
+		text::add_line(state, contents, "alice_land_tenure_mix");
+		auto mix_box = text::open_layout_box(contents);
+		text::add_to_layout_box(state, contents, mix_box,
+			text::produce_simple_string(state, "alice_land_owner_operators"));
+		text::add_to_layout_box(state, contents, mix_box,
+			std::string_view{" / "});
+		text::add_to_layout_box(state, contents, mix_box,
+			text::produce_simple_string(state, "alice_land_tenants"));
+		text::add_to_layout_box(state, contents, mix_box,
+			std::string_view{" / "});
+		text::add_to_layout_box(state, contents, mix_box,
+			text::produce_simple_string(state, "alice_land_landless"));
+		text::add_to_layout_box(state, contents, mix_box,
+			std::string_view{": "});
+		text::add_to_layout_box(state, contents, mix_box,
+			text::fp_percentage_one_place{owners});
+		text::add_to_layout_box(state, contents, mix_box,
+			std::string_view{" / "});
+		text::add_to_layout_box(state, contents, mix_box,
+			text::fp_percentage_one_place{tenants});
+		text::add_to_layout_box(state, contents, mix_box,
+			std::string_view{" / "});
+		text::add_to_layout_box(state, contents, mix_box,
+			text::fp_percentage_one_place{landless});
+		text::close_layout_box(contents, mix_box);
+	}
 // END
 }
 void demographicswindow_pop_row_job_t::render(sys::state & state, int32_t x, int32_t y) noexcept {

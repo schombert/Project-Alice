@@ -1734,6 +1734,54 @@ object {
 		type{ float }
 	}
 	property{
+		name{ land_market_value }
+		type{ float }
+	}
+	property{
+		name{ land_market_bids }
+		type{ float }
+	}
+	property{
+		name{ land_market_asks }
+		type{ float }
+	}
+	property{
+		name{ land_market_distress_asks }
+		type{ float }
+	}
+	property{
+		name{ land_market_tax }
+		type{ float }
+	}
+	property{
+		name{ land_use_tenant_share }
+		type{ float }
+	}
+	property{
+		name{ land_use_landless_share }
+		type{ float }
+	}
+	property{
+		name{ smallholder_land_change }
+		type{ float }
+	}
+	property{
+		name{ landowner_land_change }
+		type{ float }
+	}
+	property{
+		name{ capitalist_land_change }
+		type{ float }
+	}
+	property{
+		name{ state_land_change }
+		type{ float }
+	}
+	property{
+		name{ foreign_land_change }
+		type{ float }
+	}
+	property{
 		name{ subsistence_employment }
 		type{ float }
 		tag{ save }
