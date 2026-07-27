@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <array>
 #include <cmath>
+#include <limits>
 #include <string_view>
 
 #include "dcon_generated_ids.hpp"
@@ -56,6 +57,18 @@ enum class historical_profile : uint8_t {
 	latin_latifundia = 6,
 };
 
+enum class estate_law : uint8_t {
+	unrestricted,
+	concentration_limit,
+};
+
+enum class tenant_law : uint8_t {
+	free_contract,
+	regulated_rent,
+	secure_tenure,
+	right_to_buy,
+};
+
 constexpr inline std::size_t owner_group_count =
 	std::size_t(owner_group::count);
 
@@ -70,10 +83,20 @@ struct market_config {
 	// Tenant protection reduces hardship-driven listings.
 	float tenant_protection = 0.f;
 	float annual_land_tax_rate = 0.f;
+	estate_law estate_regime = estate_law::unrestricted;
+	tenant_law tenant_regime = tenant_law::free_contract;
 	// No private estate may grow above this fraction when the cap is active.
 	float large_estate_limit = 1.f;
 	// Policy flows are expressed as a fraction of all provincial land per month.
 	float agrarian_reform_rate = 0.f;
+	float right_to_buy_rate = 0.f;
+	// The state compensates dispossessed owners at this share of market value.
+	float reform_compensation_rate = 0.f;
+	// Administrative capacity controls how much of the legal entitlement is
+	// actually executed each month.
+	float implementation_efficiency = 1.f;
+	float available_public_funds =
+		std::numeric_limits<float>::max();
 	float nationalization_rate = 0.f;
 	float privatization_rate = 0.f;
 	bool foreign_investment_allowed = false;
@@ -110,6 +133,10 @@ struct market_result {
 	float turnover = 0.f;
 	float distress_asks = 0.f;
 	float land_tax = 0.f;
+	float reform_turnover = 0.f;
+	float reform_compensation = 0.f;
+	float public_cost = 0.f;
+	float elite_resistance = 0.f;
 };
 
 inline float finite_nonnegative(float value) {
@@ -144,6 +171,8 @@ historical_profile profile_for_tag(uint32_t identifying_int);
 historical_profile profile_for(sys::state const& state,
 	dcon::province_id province);
 std::string_view profile_localization_key(historical_profile profile);
+std::string_view estate_law_localization_key(estate_law law);
+std::string_view tenant_law_localization_key(tenant_law law);
 distribution historical_initial_distribution(historical_profile profile,
 	distribution demographic_claims, float plantation_intensity = 0.f);
 void initialize_historical_profiles(sys::state& state);

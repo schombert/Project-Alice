@@ -2163,3 +2163,13 @@ alice_land_profile_russian;Communal and estate tenure
 alice_land_profile_ottoman;Ottoman state tenure
 alice_land_profile_american;Family farms
 alice_land_profile_latifundia;Latifundia
+alice_land_law_estate_unrestricted;Estates: free
+alice_land_law_estate_limit;Estate ceiling
+alice_land_law_tenant_free;Free tenancy
+alice_land_law_tenant_regulated;Regulated rent
+alice_land_law_tenant_secure;Secure tenure
+alice_land_law_tenant_buy;Right to buy
+alice_land_reform_execution;Transferred
+alice_land_compensation;Comp.
+alice_land_resistance;Resistance
+alice_land_reform_tooltip;Estate ceilings force holdings above the legal limit onto the reform market. A right-to-buy transfers an additional share to cultivating households each month. Execution is reduced by weak administration, elite resistance and an insufficient compensation budget.

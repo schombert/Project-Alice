@@ -3,6 +3,7 @@
 #include "economy_pops_constants.hpp"
 #include "demographics.hpp"
 #include "gamerule.hpp"
+#include "money.hpp"
 #include "nations.hpp"
 #include "province_templates.hpp"
 #include "system_state.hpp"
@@ -119,6 +120,17 @@ void apply_state_cash_delta(sys::state& state, dcon::nation_id nation,
 		finite_nonnegative(state.world.nation_get_national_bank(nation));
 	state.world.nation_set_national_bank(nation,
 		std::max(0.f, current + cash_delta));
+}
+
+void apply_treasury_cost(sys::state& state, dcon::nation_id nation,
+		float cost) {
+	if(!nation || state.world.commodity_size() == 0
+			|| !std::isfinite(cost) || cost <= 0.f)
+		return;
+	auto const treasury = finite_nonnegative(
+		state.world.nation_get_stockpiles(nation, economy::money));
+	state.world.nation_set_stockpiles(nation, economy::money,
+		std::max(0.f, treasury - cost));
 }
 
 void apply_foreign_cash_delta(sys::state& state, dcon::nation_id target,
@@ -269,6 +281,28 @@ std::string_view profile_localization_key(historical_profile profile) {
 	}
 }
 
+std::string_view estate_law_localization_key(estate_law law) {
+	switch(law) {
+	case estate_law::concentration_limit:
+		return "alice_land_law_estate_limit";
+	default:
+		return "alice_land_law_estate_unrestricted";
+	}
+}
+
+std::string_view tenant_law_localization_key(tenant_law law) {
+	switch(law) {
+	case tenant_law::regulated_rent:
+		return "alice_land_law_tenant_regulated";
+	case tenant_law::secure_tenure:
+		return "alice_land_law_tenant_secure";
+	case tenant_law::right_to_buy:
+		return "alice_land_law_tenant_buy";
+	default:
+		return "alice_land_law_tenant_free";
+	}
+}
+
 distribution historical_initial_distribution(historical_profile profile,
 		distribution demographic_claims, float plantation_intensity) {
 	auto const demographic = normalize(demographic_claims);
@@ -415,21 +449,40 @@ market_config configuration_for(sys::state const& state,
 		(rules & issue_rule::build_factory) != 0;
 	config.foreign_investment_allowed =
 		(rules & issue_rule::allow_foreign_investment) != 0;
-	config.tenant_protection = nation
+	auto const social_protection = nation
 		? std::clamp(
 			state.world.nation_get_modifier_values(nation,
 				sys::national_mod_offsets::unemployment_benefit)
 			+ state.world.nation_get_modifier_values(nation,
 				sys::national_mod_offsets::pension_level), 0.f, 1.f)
 		: 0.f;
+	config.tenant_protection = social_protection;
+	if(social_protection >= 0.5f) {
+		config.tenant_regime = tenant_law::secure_tenure;
+	} else if(social_protection > 0.f) {
+		config.tenant_regime = tenant_law::regulated_rent;
+	}
 	config.annual_land_tax_rate = nation
 		? 0.05f * nations::tax_efficiency(state, nation)
 			* float(state.world.nation_get_rich_tax(nation)) / 100.f
 		: 0.f;
-	config.large_estate_limit =
-		(rules & issue_rule::all_voting) != 0 ? 0.35f : 1.f;
-	config.agrarian_reform_rate =
-		(rules & issue_rule::all_voting) != 0 ? 0.001f : 0.f;
+	if((rules & issue_rule::all_voting) != 0) {
+		config.estate_regime = estate_law::concentration_limit;
+		config.tenant_regime = tenant_law::right_to_buy;
+		config.large_estate_limit = 0.35f;
+		config.right_to_buy_rate = 0.001f;
+		config.reform_compensation_rate = 0.75f;
+		config.tenant_protection =
+			std::max(config.tenant_protection, 0.75f);
+	}
+	config.implementation_efficiency = nation
+		? std::clamp(0.25f + 0.75f * nations::tax_efficiency(state, nation),
+			0.25f, 1.f)
+		: 0.25f;
+	config.available_public_funds = nation && state.world.commodity_size() > 0
+		? 0.02f * finite_nonnegative(
+			state.world.nation_get_stockpiles(nation, economy::money))
+		: 0.f;
 	config.nationalization_rate =
 		allows_state_building && !allows_private_building ? 0.002f : 0.f;
 	config.privatization_rate =
@@ -461,7 +514,63 @@ market_result clear_market(distribution current,
 	auto const estate_limit = std::isfinite(config.large_estate_limit)
 		? std::clamp(config.large_estate_limit, 0.f, 1.f) : 1.f;
 
-	auto const current_shares = shares(result.before);
+	auto const smallholders = index(owner_group::smallholders);
+	auto const landed = index(owner_group::landed_elites);
+	auto const capitalists = index(owner_group::capitalists);
+	auto const state = index(owner_group::state);
+	auto const foreign = index(owner_group::foreign);
+	auto next_shares = shares(result.before);
+
+	// Rights-based transfers are executed before the ordinary market. This is
+	// what makes an estate ceiling and a tenant right-to-buy legal entitlements
+	// rather than mere changes to private demand.
+	auto const reform_rate = std::clamp(
+		finite_nonnegative(config.agrarian_reform_rate)
+			+ finite_nonnegative(config.right_to_buy_rate), 0.f, 1.f);
+	auto const implementation = std::clamp(
+		finite_nonnegative(config.implementation_efficiency), 0.f, 1.f);
+	auto const compensation_rate = std::clamp(
+		finite_nonnegative(config.reform_compensation_rate), 0.f, 1.f);
+	auto const concentrated =
+		next_shares[landed] + next_shares[capitalists];
+	result.elite_resistance = std::clamp(
+		concentrated * (0.25f + 0.75f * (1.f - implementation)),
+		0.f, 0.95f);
+	auto desired_landed =
+		std::max(0.f, next_shares[landed] - estate_limit)
+		+ next_shares[landed] * reform_rate;
+	auto desired_capitalist =
+		std::max(0.f, next_shares[capitalists] - estate_limit)
+		+ next_shares[capitalists] * reform_rate;
+	auto const desired_reform = desired_landed + desired_capitalist;
+	float reform_capacity = maximum_turnover * implementation
+		* (1.f - result.elite_resistance);
+	if(compensation_rate > 0.f) {
+		auto const funds = finite_nonnegative(config.available_public_funds);
+		reform_capacity = std::min(reform_capacity,
+			funds / (result.land_value * compensation_rate));
+	}
+	result.reform_turnover =
+		std::min(desired_reform, reform_capacity);
+	float reform_from_landed = 0.f;
+	float reform_from_capitalist = 0.f;
+	if(result.reform_turnover > 0.0000001f && desired_reform > 0.f) {
+		reform_from_landed =
+			result.reform_turnover * desired_landed / desired_reform;
+		reform_from_capitalist =
+			result.reform_turnover - reform_from_landed;
+		next_shares[landed] -= reform_from_landed;
+		next_shares[capitalists] -= reform_from_capitalist;
+		next_shares[smallholders] += result.reform_turnover;
+		result.reform_compensation =
+			result.reform_turnover * result.land_value * compensation_rate;
+		result.public_cost = result.reform_compensation;
+		result.cash_delta[landed] +=
+			reform_from_landed * result.land_value * compensation_rate;
+		result.cash_delta[capitalists] +=
+			reform_from_capitalist * result.land_value * compensation_rate;
+	}
+
 	float total_bids = 0.f;
 	float total_asks = 0.f;
 	for(std::size_t i = 0; i < owner_group_count; ++i) {
@@ -473,48 +582,30 @@ market_result clear_market(distribution current,
 		auto const excess_cash = std::max(0.f, savings - reserve);
 		auto const hardship = std::clamp(
 			finite_nonnegative(finances[i].hardship), 0.f, 1.f);
-		auto const distress_ask = current_shares[i]
+		auto const distress_ask = next_shares[i]
 			* 0.03f * hardship * (1.f - protection);
 		result.bids[i] = excess_cash / result.land_value;
-		result.asks[i] = current_shares[i]
+		result.asks[i] = next_shares[i]
 			* voluntary_rate + distress_ask;
 		result.distress_asks += distress_ask;
 	}
 
-	auto const smallholders = index(owner_group::smallholders);
-	auto const landed = index(owner_group::landed_elites);
-	auto const capitalists = index(owner_group::capitalists);
-	auto const state = index(owner_group::state);
-	auto const foreign = index(owner_group::foreign);
-	if(current_shares[landed] >= estate_limit)
+	if(next_shares[landed] >= estate_limit)
 		result.bids[landed] = 0.f;
-	if(current_shares[capitalists] >= estate_limit)
+	if(next_shares[capitalists] >= estate_limit)
 		result.bids[capitalists] = 0.f;
-	result.asks[landed] +=
-		std::max(0.f, current_shares[landed] - estate_limit);
-	result.asks[capitalists] +=
-		std::max(0.f, current_shares[capitalists] - estate_limit);
 	if(!config.foreign_investment_allowed) {
 		result.bids[foreign] = 0.f;
-		result.asks[foreign] += current_shares[foreign] * 0.02f;
+		result.asks[foreign] += next_shares[foreign] * 0.02f;
 	}
-	auto const agrarian = std::clamp(
-		finite_nonnegative(config.agrarian_reform_rate), 0.f, 1.f);
 	auto const nationalization = std::clamp(
 		finite_nonnegative(config.nationalization_rate), 0.f, 1.f);
 	auto const privatization = std::clamp(
 		finite_nonnegative(config.privatization_rate), 0.f, 1.f);
-	result.asks[landed] += current_shares[landed] * agrarian;
-	result.asks[capitalists] += current_shares[capitalists]
-		* (agrarian + nationalization);
-	result.asks[landed] += current_shares[landed] * nationalization;
-	result.asks[foreign] += current_shares[foreign] * nationalization;
-	result.asks[state] += current_shares[state] * privatization;
-	if(agrarian > 0.f) {
-		for(std::size_t i = 0; i < owner_group_count; ++i)
-			if(i != smallholders)
-				result.bids[i] = 0.f;
-	}
+	result.asks[capitalists] += next_shares[capitalists] * nationalization;
+	result.asks[landed] += next_shares[landed] * nationalization;
+	result.asks[foreign] += next_shares[foreign] * nationalization;
+	result.asks[state] += next_shares[state] * privatization;
 	if(nationalization > 0.f) {
 		for(std::size_t i = 0; i < owner_group_count; ++i)
 			if(i != state)
@@ -524,27 +615,41 @@ market_result clear_market(distribution current,
 		result.bids[state] = 0.f;
 
 	for(std::size_t i = 0; i < owner_group_count; ++i) {
-		result.asks[i] = std::min(result.asks[i], current_shares[i]);
+		result.asks[i] = std::min(result.asks[i], next_shares[i]);
 		total_bids += result.bids[i];
 		total_asks += result.asks[i];
 	}
 	result.land_tax = result.land_value
 		* std::clamp(finite_nonnegative(config.annual_land_tax_rate), 0.f, 1.f)
 		/ 12.f;
-	result.turnover = std::min({maximum_turnover, total_bids, total_asks});
-	if(result.turnover <= 0.0000001f)
+	auto const private_turnover = std::min({
+		std::max(0.f, maximum_turnover - result.reform_turnover),
+		total_bids, total_asks});
+	result.turnover = result.reform_turnover + private_turnover;
+	if(private_turnover <= 0.0000001f) {
+		result.bids[smallholders] += result.reform_turnover;
+		result.asks[landed] += reform_from_landed;
+		result.asks[capitalists] += reform_from_capitalist;
+		result.after = from_shares(next_shares);
+		result.target = result.after;
 		return result;
-
-	auto next_shares = current_shares;
-	float cash_balance = 0.f;
-	for(std::size_t i = 0; i < owner_group_count; ++i) {
-		auto const bought = result.turnover * result.bids[i] / total_bids;
-		auto const sold = result.turnover * result.asks[i] / total_asks;
-		next_shares[i] += bought - sold;
-		result.cash_delta[i] = (sold - bought) * result.land_value;
-		cash_balance += result.cash_delta[i];
 	}
-	result.cash_delta[smallholders] -= cash_balance;
+
+	float cash_balance = 0.f;
+	std::array<float, owner_group_count> private_cash_delta{};
+	for(std::size_t i = 0; i < owner_group_count; ++i) {
+		auto const bought = private_turnover * result.bids[i] / total_bids;
+		auto const sold = private_turnover * result.asks[i] / total_asks;
+		next_shares[i] += bought - sold;
+		private_cash_delta[i] = (sold - bought) * result.land_value;
+		cash_balance += private_cash_delta[i];
+	}
+	private_cash_delta[smallholders] -= cash_balance;
+	for(std::size_t i = 0; i < owner_group_count; ++i)
+		result.cash_delta[i] += private_cash_delta[i];
+	result.bids[smallholders] += result.reform_turnover;
+	result.asks[landed] += reform_from_landed;
+	result.asks[capitalists] += reform_from_capitalist;
 	result.after = from_shares(next_shares);
 	result.target = result.after;
 	return result;
@@ -668,6 +773,12 @@ void update_markets(sys::state& state) {
 			province, result.distress_asks);
 		state.world.province_set_land_market_tax(
 			province, result.land_tax);
+		state.world.province_set_land_reform_turnover(
+			province, result.reform_turnover);
+		state.world.province_set_land_reform_compensation(
+			province, result.reform_compensation);
+		state.world.province_set_land_elite_resistance(
+			province, result.elite_resistance);
 		auto const land_use = classify_land_use(
 			population[index(owner_group::smallholders)],
 			result.after.smallholders, config.tenant_protection);
@@ -697,6 +808,7 @@ void update_markets(sys::state& state) {
 			result.cash_delta[index(owner_group::state)]);
 		apply_foreign_cash_delta(state, nation,
 			result.cash_delta[index(owner_group::foreign)]);
+		apply_treasury_cost(state, nation, result.public_cost);
 		float collected_land_tax = 0.f;
 		auto const post_market_shares = shares(result.after);
 		for(std::size_t i = 0; i < 3; ++i) {

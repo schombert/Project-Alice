@@ -364,13 +364,12 @@ public:
 		law_chips[0]->set_text(state, metric(state, "alice_land_tax",
 			config.annual_land_tax_rate > 0.f
 				? text::format_percentage(config.annual_land_tax_rate, 1) : none));
-		law_chips[1]->set_text(state,
-			metric(state, "alice_land_tenant_protection",
-				config.tenant_protection > 0.f
-					? text::format_percentage(config.tenant_protection, 0) : none));
-		law_chips[2]->set_text(state, metric(state, "alice_land_estate_cap",
-			config.large_estate_limit < 0.999f
-				? text::format_percentage(config.large_estate_limit, 0) : none));
+		law_chips[1]->set_text(state, land_localize(state,
+			economy::land_ownership::tenant_law_localization_key(
+				config.tenant_regime)));
+		law_chips[2]->set_text(state, land_localize(state,
+			economy::land_ownership::estate_law_localization_key(
+				config.estate_regime)));
 		law_chips[3]->set_text(state, metric(state, "alice_land_foreign",
 			land_localize(state, config.foreign_investment_allowed
 				? "alice_land_open" : "alice_land_closed")));
@@ -380,12 +379,29 @@ public:
 			active_policy = land_localize(state, "alice_land_nationalization");
 		else if(config.privatization_rate > 0.f)
 			active_policy = land_localize(state, "alice_land_privatization");
+		else if(config.right_to_buy_rate > 0.f)
+			active_policy = land_localize(state, "alice_land_law_tenant_buy");
 		else if(config.agrarian_reform_rate > 0.f)
 			active_policy = land_localize(state, "alice_land_agrarian_reform");
-		policy_line->set_text(state, land_localize(state, "alice_land_policy")
-			+ ": " + active_policy + "   •   "
-			+ land_localize(state, "alice_land_reserve") + ": "
-			+ std::to_string(int32_t(config.reserve_months)));
+		auto const reform_turnover =
+			state.world.province_get_land_reform_turnover(province);
+		if(reform_turnover > 0.0000001f) {
+			policy_line->set_text(state,
+				land_localize(state, "alice_land_reform_execution") + " "
+				+ text::format_percentage(reform_turnover, 2) + "  •  "
+				+ land_localize(state, "alice_land_compensation") + " "
+				+ text::format_money(
+					state.world.province_get_land_reform_compensation(province))
+				+ "  •  " + land_localize(state, "alice_land_resistance") + " "
+				+ text::format_percentage(
+					state.world.province_get_land_elite_resistance(province), 0));
+		} else {
+			policy_line->set_text(state,
+				land_localize(state, "alice_land_policy") + ": "
+				+ active_policy + "   •   "
+				+ land_localize(state, "alice_land_reserve") + ": "
+				+ std::to_string(int32_t(config.reserve_months)));
+		}
 
 		place(title, 22, 8, 410, 28);
 		place(context, 22, 36, 410, 20);
@@ -422,6 +438,8 @@ public:
 		text::add_line(state, contents, "alice_land_panel_tooltip");
 		text::add_line_break_to_layout(state, contents);
 		text::add_line(state, contents, "alice_land_panel_law_tooltip");
+		text::add_line_break_to_layout(state, contents);
+		text::add_line(state, contents, "alice_land_reform_tooltip");
 	}
 
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override {

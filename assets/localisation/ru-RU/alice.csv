@@ -1510,3 +1510,13 @@ alice_land_profile_russian;Общинно-помещичье владение
 alice_land_profile_ottoman;Османское государственное владение
 alice_land_profile_american;Семейные фермы
 alice_land_profile_latifundia;Латифундии
+alice_land_law_estate_unrestricted;Поместья: свободно
+alice_land_law_estate_limit;Предел поместий
+alice_land_law_tenant_free;Свободная аренда
+alice_land_law_tenant_regulated;Регулируемая рента
+alice_land_law_tenant_secure;Защищённая аренда
+alice_land_law_tenant_buy;Право на выкуп
+alice_land_reform_execution;Передано
+alice_land_compensation;Компенс.
+alice_land_resistance;Сопротивление
+alice_land_reform_tooltip;Предел поместий принудительно выводит на рынок владения сверх установленной нормы. Право на выкуп ежемесячно передаёт дополнительную долю земли обрабатывающим её семьям. Исполнение замедляют слабая администрация, сопротивление элит и нехватка средств на компенсации.

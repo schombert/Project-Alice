@@ -1762,6 +1762,18 @@ object {
 		type{ float }
 	}
 	property{
+		name{ land_reform_turnover }
+		type{ float }
+	}
+	property{
+		name{ land_reform_compensation }
+		type{ float }
+	}
+	property{
+		name{ land_elite_resistance }
+		type{ float }
+	}
+	property{
 		name{ land_use_tenant_share }
 		type{ float }
 	}

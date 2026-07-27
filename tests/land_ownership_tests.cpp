@@ -306,6 +306,76 @@ TEST_CASE("nationalization and privatization move the state share",
 		> public_result.after.capitalists);
 }
 
+TEST_CASE("estate ceiling and right to buy transfer land to cultivators",
+		"[economy][ownership][law][reform]") {
+	using namespace economy::land_ownership;
+	market_config config;
+	config.enabled = true;
+	config.maximum_monthly_turnover = 0.01f;
+	config.voluntary_ask_rate = 0.f;
+	config.estate_regime = estate_law::concentration_limit;
+	config.tenant_regime = tenant_law::right_to_buy;
+	config.large_estate_limit = 0.35f;
+	config.right_to_buy_rate = 0.001f;
+	config.reform_compensation_rate = 0.75f;
+	config.implementation_efficiency = 1.f;
+	config.available_public_funds = 1'000.f;
+	auto const result = clear_market(
+		{0.70f, 0.10f}, std::array<float, owner_group_count>{},
+		1'000.f, config);
+
+	CHECK(result.reform_turnover > 0.f);
+	CHECK(result.after.smallholders > result.before.smallholders);
+	CHECK(result.after.landed_elites < result.before.landed_elites);
+	CHECK(result.reform_compensation > 0.f);
+	CHECK(result.public_cost == Approx(result.reform_compensation));
+	CHECK(result.cash_delta[std::size_t(owner_group::smallholders)]
+		== Approx(0.f));
+	CHECK(result.cash_delta[std::size_t(owner_group::landed_elites)] > 0.f);
+	CHECK(result.after.smallholders + result.after.landed_elites
+		+ result.after.capitalists + result.after.state + result.after.foreign
+		== Approx(1.f));
+}
+
+TEST_CASE("compensated land reform cannot outrun its public budget",
+		"[economy][ownership][law][reform]") {
+	using namespace economy::land_ownership;
+	market_config config;
+	config.enabled = true;
+	config.maximum_monthly_turnover = 0.10f;
+	config.large_estate_limit = 0.30f;
+	config.reform_compensation_rate = 1.f;
+	config.implementation_efficiency = 1.f;
+	config.available_public_funds = 5.f;
+	auto const result = clear_market(
+		{0.70f, 0.10f}, std::array<float, owner_group_count>{},
+		1'000.f, config);
+
+	CHECK(result.reform_compensation <= 5.f + 0.0001f);
+	CHECK(result.reform_turnover <= 0.005f + 0.000001f);
+}
+
+TEST_CASE("administrative capacity overcomes more elite resistance",
+		"[economy][ownership][law][reform]") {
+	using namespace economy::land_ownership;
+	market_config capable;
+	capable.enabled = true;
+	capable.maximum_monthly_turnover = 0.02f;
+	capable.large_estate_limit = 0.30f;
+	capable.implementation_efficiency = 1.f;
+	auto weak = capable;
+	weak.implementation_efficiency = 0.25f;
+	auto const effective = clear_market(
+		{0.70f, 0.10f}, std::array<float, owner_group_count>{},
+		100.f, capable);
+	auto const obstructed = clear_market(
+		{0.70f, 0.10f}, std::array<float, owner_group_count>{},
+		100.f, weak);
+
+	CHECK(effective.elite_resistance < obstructed.elite_resistance);
+	CHECK(effective.reform_turnover > obstructed.reform_turnover);
+}
+
 TEST_CASE("foreign ownership is liquidated when investment is forbidden",
 		"[economy][ownership][foreign][law]") {
 	std::array<economy::land_ownership::group_finance,
