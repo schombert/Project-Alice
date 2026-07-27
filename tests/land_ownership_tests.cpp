@@ -1,4 +1,5 @@
 #include "economy/land_ownership.hpp"
+#include "demographics.hpp"
 
 #include <limits>
 
@@ -34,6 +35,131 @@ TEST_CASE("empty legacy ownership initializes on its first observation",
 	CHECK(initialized.landed_elites == Approx(0.35f));
 	CHECK(initialized.capitalists == Approx(0.15f));
 	CHECK(initialized.smallholders == Approx(0.50f));
+}
+
+TEST_CASE("country tags select distinct historical land regimes",
+		"[economy][ownership][history]") {
+	auto const tag = [](char a, char b, char c) {
+		return (uint32_t(uint8_t(a)) << 16)
+			| (uint32_t(uint8_t(b)) << 8) | uint32_t(uint8_t(c));
+	};
+	using profile = economy::land_ownership::historical_profile;
+	CHECK(economy::land_ownership::profile_for_tag(tag('P', 'E', 'R'))
+		== profile::persian_estates);
+	CHECK(economy::land_ownership::profile_for_tag(tag('R', 'U', 'S'))
+		== profile::russian_communal);
+	CHECK(economy::land_ownership::profile_for_tag(tag('T', 'U', 'R'))
+		== profile::ottoman_state_tenure);
+	CHECK(economy::land_ownership::profile_for_tag(tag('U', 'S', 'A'))
+		== profile::american_family_farms);
+	CHECK(economy::land_ownership::profile_for_tag(tag('B', 'R', 'A'))
+		== profile::latin_latifundia);
+	CHECK(economy::land_ownership::profile_for_tag(tag('J', 'A', 'P'))
+		== profile::demographic);
+}
+
+TEST_CASE("historical profiles create different normalized starting stocks",
+		"[economy][ownership][history]") {
+	using namespace economy::land_ownership;
+	distribution const local_claims{0.20f, 0.10f, 0.70f, 0.f, 0.f};
+	auto const persian = historical_initial_distribution(
+		historical_profile::persian_estates, local_claims);
+	auto const russian = historical_initial_distribution(
+		historical_profile::russian_communal, local_claims);
+	auto const ottoman = historical_initial_distribution(
+		historical_profile::ottoman_state_tenure, local_claims);
+	auto const american = historical_initial_distribution(
+		historical_profile::american_family_farms, local_claims);
+	auto const latin = historical_initial_distribution(
+		historical_profile::latin_latifundia, local_claims);
+
+	auto const total = [](distribution const& value) {
+		return value.landed_elites + value.capitalists
+			+ value.smallholders + value.state + value.foreign;
+	};
+	CHECK(total(persian) == Approx(1.f));
+	CHECK(total(russian) == Approx(1.f));
+	CHECK(total(ottoman) == Approx(1.f));
+	CHECK(total(american) == Approx(1.f));
+	CHECK(total(latin) == Approx(1.f));
+	CHECK(persian.landed_elites > persian.smallholders);
+	CHECK(russian.smallholders > russian.landed_elites);
+	CHECK(ottoman.state > 0.20f);
+	CHECK(american.smallholders > 0.60f);
+	CHECK(latin.landed_elites > 0.50f);
+}
+
+TEST_CASE("slave intensity creates a plantation belt inside the US profile",
+		"[economy][ownership][history]") {
+	using namespace economy::land_ownership;
+	distribution const local_claims{0.15f, 0.10f, 0.75f, 0.f, 0.f};
+	auto const free_farming = historical_initial_distribution(
+		historical_profile::american_family_farms, local_claims, 0.f);
+	auto const plantation = historical_initial_distribution(
+		historical_profile::american_family_farms, local_claims, 0.8f);
+	CHECK(plantation.landed_elites > free_farming.landed_elites);
+	CHECK(plantation.smallholders < free_farming.smallholders);
+	CHECK(plantation.landed_elites + plantation.capitalists
+		+ plantation.smallholders + plantation.state + plantation.foreign
+		== Approx(1.f));
+}
+
+TEST_CASE("historical profile initializes a province exactly once",
+		"[economy][ownership][history][integration]") {
+	auto state = std::make_unique<sys::state>();
+	state->force_age_of_transformation_ruleset = true;
+	auto const farmers = state->world.create_pop_type();
+	auto const laborers = state->world.create_pop_type();
+	auto const aristocrats = state->world.create_pop_type();
+	auto const capitalists = state->world.create_pop_type();
+	auto const slaves = state->world.create_pop_type();
+	state->culture_definitions.farmers = farmers;
+	state->culture_definitions.laborers = laborers;
+	state->culture_definitions.aristocrat = aristocrats;
+	state->culture_definitions.capitalists = capitalists;
+	state->culture_definitions.slaves = slaves;
+
+	auto const nation = state->world.create_nation();
+	auto const identity = state->world.create_national_identity();
+	state->world.national_identity_set_identifying_int(identity,
+		(uint32_t('P') << 16) | (uint32_t('E') << 8) | uint32_t('R'));
+	state->world.force_create_identity_holder(nation, identity);
+	auto const province = state->world.create_province();
+	state->world.province_set_nation_from_province_ownership(
+		province, nation);
+	state->province_definitions.first_sea_province =
+		dcon::province_id{dcon::province_id::value_base_t(1)};
+	state->world.province_resize_demographics(demographics::size(*state));
+	state->world.province_set_demographics(province,
+		demographics::to_key(*state, farmers), 10'000.f);
+	state->world.province_set_demographics(province,
+		demographics::to_key(*state, aristocrats), 100.f);
+
+	economy::land_ownership::initialize_historical_profiles(*state);
+	CHECK(state->world.province_get_land_profile(province)
+		== uint8_t(economy::land_ownership::historical_profile::persian_estates));
+	CHECK(state->world.province_get_landowners_share(province) > 0.50f);
+	CHECK(state->world.province_get_state_land_share(province) > 0.10f);
+	auto const first_landed =
+		state->world.province_get_landowners_share(province);
+
+	state->world.province_set_demographics(province,
+		demographics::to_key(*state, aristocrats), 100'000.f);
+	economy::land_ownership::initialize_historical_profiles(*state);
+	CHECK(state->world.province_get_landowners_share(province)
+		== Approx(first_landed));
+
+	state->world.province_set_land_profile(province, 0);
+	state->world.province_set_landowners_share(province, 0.30f);
+	state->world.province_set_capitalists_share(province, 0.10f);
+	state->world.province_set_state_land_share(province, 0.f);
+	state->world.province_set_foreign_land_share(province, 0.f);
+	state->current_date = sys::date{100};
+	economy::land_ownership::initialize_historical_profiles(*state);
+	CHECK(state->world.province_get_landowners_share(province)
+		== Approx(0.30f));
+	CHECK(state->world.province_get_capitalists_share(province)
+		== Approx(0.10f));
 }
 
 TEST_CASE("land ownership sanitizes invalid inputs",

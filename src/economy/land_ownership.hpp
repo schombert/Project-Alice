@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <array>
 #include <cmath>
+#include <string_view>
 
 #include "dcon_generated_ids.hpp"
 
@@ -43,6 +44,16 @@ enum class owner_group : uint8_t {
 	state = 3,
 	foreign = 4,
 	count = 5,
+};
+
+enum class historical_profile : uint8_t {
+	unassigned = 0,
+	demographic = 1,
+	persian_estates = 2,
+	russian_communal = 3,
+	ottoman_state_tenure = 4,
+	american_family_farms = 5,
+	latin_latifundia = 6,
 };
 
 constexpr inline std::size_t owner_group_count =
@@ -128,6 +139,14 @@ float update_smoothed_rent(float previous_daily_rent, float current_daily_rent,
 
 land_use_distribution classify_land_use(float rural_population,
 	float privately_worked_land, float tenant_protection);
+
+historical_profile profile_for_tag(uint32_t identifying_int);
+historical_profile profile_for(sys::state const& state,
+	dcon::province_id province);
+std::string_view profile_localization_key(historical_profile profile);
+distribution historical_initial_distribution(historical_profile profile,
+	distribution demographic_claims, float plantation_intensity = 0.f);
+void initialize_historical_profiles(sys::state& state);
 
 market_config configuration_for(sys::state const& state,
 	dcon::province_id province);

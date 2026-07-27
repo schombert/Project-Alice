@@ -1012,6 +1012,8 @@ void update_local_subsistence_factor(sys::state& state) {
 void update_land_ownership(sys::state& state) {
 	auto const dynamic_ownership =
 		gamerule::age_of_transformation_enabled(state);
+	if(dynamic_ownership)
+		land_ownership::initialize_historical_profiles(state);
 	province::ve_for_each_land_province(state, [&](auto ids) {
 		auto local_states = state.world.province_get_state_membership(ids);
 		auto weight_population =

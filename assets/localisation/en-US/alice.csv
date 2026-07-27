@@ -2157,3 +2157,9 @@ alice_land_role_tenant;Tenant household
 alice_land_role_laborer;Landless agricultural worker
 alice_land_click_expand;Click to open land details
 alice_land_drag_hint;Drag the panel or press − to collapse
+alice_land_profile_demographic;Local class pattern
+alice_land_profile_persian;Persian estates
+alice_land_profile_russian;Communal and estate tenure
+alice_land_profile_ottoman;Ottoman state tenure
+alice_land_profile_american;Family farms
+alice_land_profile_latifundia;Latifundia

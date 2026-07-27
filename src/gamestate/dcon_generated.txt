@@ -1720,14 +1720,22 @@ object {
 	property{
 		name{ state_land_share }
 		type{ float }
+		tag{ save }
 	}
 	property{
 		name{ foreign_land_share }
 		type{ float }
+		tag{ save }
+	}
+	property{
+		name{ land_profile }
+		type{ uint8_t }
+		tag{ save }
 	}
 	property{
 		name{ smoothed_land_rent }
 		type{ float }
+		tag{ save }
 	}
 	property{
 		name{ land_market_turnover }

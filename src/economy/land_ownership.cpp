@@ -174,6 +174,205 @@ distribution normalize(distribution value) {
 	return result;
 }
 
+namespace {
+
+constexpr uint32_t country_tag(char first, char second, char third) {
+	return (uint32_t(uint8_t(first)) << 16)
+		| (uint32_t(uint8_t(second)) << 8)
+		| uint32_t(uint8_t(third));
+}
+
+constexpr bool is_latin_latifundia_tag(uint32_t tag) {
+	constexpr std::array<uint32_t, 16> tags{
+		country_tag('A', 'R', 'G'), country_tag('B', 'O', 'L'),
+		country_tag('B', 'R', 'A'), country_tag('C', 'H', 'L'),
+		country_tag('C', 'O', 'L'), country_tag('C', 'O', 'S'),
+		country_tag('E', 'C', 'U'), country_tag('G', 'U', 'A'),
+		country_tag('H', 'O', 'N'), country_tag('M', 'E', 'X'),
+		country_tag('N', 'I', 'C'), country_tag('P', 'A', 'N'),
+		country_tag('P', 'A', 'R'), country_tag('P', 'R', 'U'),
+		country_tag('U', 'R', 'U'), country_tag('V', 'E', 'N'),
+	};
+	return std::find(tags.begin(), tags.end(), tag) != tags.end();
+}
+
+distribution blend(distribution historical, distribution demographic,
+		float historical_weight) {
+	auto const weight = std::clamp(historical_weight, 0.f, 1.f);
+	historical = normalize(historical);
+	demographic = normalize(demographic);
+	return normalize({
+		historical.landed_elites * weight
+			+ demographic.landed_elites * (1.f - weight),
+		historical.capitalists * weight
+			+ demographic.capitalists * (1.f - weight),
+		historical.smallholders * weight
+			+ demographic.smallholders * (1.f - weight),
+		historical.state * weight
+			+ demographic.state * (1.f - weight),
+		historical.foreign * weight
+			+ demographic.foreign * (1.f - weight),
+	});
+}
+
+} // namespace
+
+historical_profile profile_for_tag(uint32_t identifying_int) {
+	switch(identifying_int) {
+	case country_tag('P', 'E', 'R'):
+		return historical_profile::persian_estates;
+	case country_tag('R', 'U', 'S'):
+		return historical_profile::russian_communal;
+	case country_tag('T', 'U', 'R'):
+		return historical_profile::ottoman_state_tenure;
+	case country_tag('U', 'S', 'A'):
+		return historical_profile::american_family_farms;
+	default:
+		return is_latin_latifundia_tag(identifying_int)
+			? historical_profile::latin_latifundia
+			: historical_profile::demographic;
+	}
+}
+
+historical_profile profile_for(sys::state const& state,
+		dcon::province_id province) {
+	auto const stored = state.world.province_get_land_profile(province);
+	if(stored >= uint8_t(historical_profile::demographic)
+			&& stored <= uint8_t(historical_profile::latin_latifundia))
+		return historical_profile(stored);
+	auto const nation =
+		state.world.province_get_nation_from_province_ownership(province);
+	if(!nation)
+		return historical_profile::demographic;
+	auto const identity =
+		state.world.nation_get_identity_from_identity_holder(nation);
+	return identity
+		? profile_for_tag(
+			state.world.national_identity_get_identifying_int(identity))
+		: historical_profile::demographic;
+}
+
+std::string_view profile_localization_key(historical_profile profile) {
+	switch(profile) {
+	case historical_profile::persian_estates:
+		return "alice_land_profile_persian";
+	case historical_profile::russian_communal:
+		return "alice_land_profile_russian";
+	case historical_profile::ottoman_state_tenure:
+		return "alice_land_profile_ottoman";
+	case historical_profile::american_family_farms:
+		return "alice_land_profile_american";
+	case historical_profile::latin_latifundia:
+		return "alice_land_profile_latifundia";
+	default:
+		return "alice_land_profile_demographic";
+	}
+}
+
+distribution historical_initial_distribution(historical_profile profile,
+		distribution demographic_claims, float plantation_intensity) {
+	auto const demographic = normalize(demographic_claims);
+	distribution historical;
+	switch(profile) {
+	case historical_profile::persian_estates:
+		historical = {0.62f, 0.03f, 0.18f, 0.15f, 0.02f};
+		break;
+	case historical_profile::russian_communal:
+		historical = {0.42f, 0.02f, 0.45f, 0.10f, 0.01f};
+		break;
+	case historical_profile::ottoman_state_tenure:
+		historical = {0.33f, 0.03f, 0.32f, 0.30f, 0.02f};
+		break;
+	case historical_profile::american_family_farms:
+		historical = {0.16f, 0.13f, 0.68f, 0.02f, 0.01f};
+		break;
+	case historical_profile::latin_latifundia:
+		historical = {0.62f, 0.07f, 0.22f, 0.05f, 0.04f};
+		break;
+	default:
+		return demographic;
+	}
+
+	auto result = blend(historical, demographic, 0.85f);
+	if(profile == historical_profile::american_family_farms) {
+		auto const plantation = std::clamp(
+			finite_nonnegative(plantation_intensity), 0.f, 1.f);
+		auto const transfer =
+			std::min(result.smallholders, 0.35f * plantation);
+		result.smallholders -= transfer;
+		result.landed_elites += transfer;
+	}
+	return normalize(result);
+}
+
+void initialize_historical_profiles(sys::state& state) {
+	if(!gamerule::age_of_transformation_enabled(state))
+		return;
+
+	province::for_each_land_province(state, [&](dcon::province_id province) {
+		if(state.world.province_get_land_profile(province) != 0)
+			return;
+		auto const current = distribution{
+			state.world.province_get_landowners_share(province),
+			state.world.province_get_capitalists_share(province),
+			std::max(0.f, 1.f
+				- state.world.province_get_landowners_share(province)
+				- state.world.province_get_capitalists_share(province)
+				- state.world.province_get_state_land_share(province)
+				- state.world.province_get_foreign_land_share(province)),
+			state.world.province_get_state_land_share(province),
+			state.world.province_get_foreign_land_share(province),
+		};
+		auto const profile = profile_for(state, province);
+		state.world.province_set_land_profile(
+			province, uint8_t(profile));
+		auto const explicitly_owned =
+			finite_nonnegative(current.landed_elites)
+			+ finite_nonnegative(current.capitalists)
+			+ finite_nonnegative(current.state)
+			+ finite_nonnegative(current.foreign);
+		// Scenario binaries already contain the old demographic approximation.
+		// Replace it during the opening month so existing installs receive the
+		// historical baseline, but never rewrite a progressed legacy save.
+		if(explicitly_owned > 0.000001f && state.current_date.value > 31)
+			return;
+
+		auto const farmers = state.world.province_get_demographics(
+			province,
+			demographics::to_key(state, state.culture_definitions.farmers));
+		auto const laborers = state.world.province_get_demographics(
+			province,
+			demographics::to_key(state, state.culture_definitions.laborers));
+		auto const aristocrats = state.world.province_get_demographics(
+			province,
+			demographics::to_key(state, state.culture_definitions.aristocrat));
+		auto const capitalists = state.world.province_get_demographics(
+			province,
+			demographics::to_key(state, state.culture_definitions.capitalists));
+		auto const slaves = state.world.province_get_demographics(
+			province,
+			demographics::to_key(state, state.culture_definitions.slaves));
+		auto const rural = finite_nonnegative(farmers + laborers);
+		auto const demographic = target_from_claims(
+			rural + 1.f,
+			rural / 50.f + finite_nonnegative(aristocrats) * 200.f
+				+ finite_nonnegative(slaves),
+			rural / 50.f + finite_nonnegative(capitalists) * 200.f);
+		auto const plantation = finite_nonnegative(slaves)
+			/ std::max(1.f, rural + finite_nonnegative(slaves));
+		auto const initial = historical_initial_distribution(
+			profile, demographic, plantation);
+		state.world.province_set_landowners_share(
+			province, initial.landed_elites);
+		state.world.province_set_capitalists_share(
+			province, initial.capitalists);
+		state.world.province_set_state_land_share(
+			province, initial.state);
+		state.world.province_set_foreign_land_share(
+			province, initial.foreign);
+	});
+}
+
 float update_smoothed_rent(float previous_daily_rent,
 		float current_daily_rent, float window_days) {
 	auto const current = finite_nonnegative(current_daily_rent);

@@ -305,7 +305,10 @@ public:
 		title->set_text(state, land_localize(state, "alice_land_panel_title"));
 		auto const province_name = text::produce_simple_string(
 			state, dcon::fatten(state.world, province).get_name());
-		context->set_text(state, province_name + "  /  "
+		auto const profile_name = land_localize(state,
+			economy::land_ownership::profile_localization_key(
+				economy::land_ownership::profile_for(state, province)));
+		context->set_text(state, province_name + "  /  " + profile_name + "  /  "
 			+ (expanded
 				? land_localize(state, "alice_land_drag_hint")
 				: land_localize(state, "alice_land_click_expand"))

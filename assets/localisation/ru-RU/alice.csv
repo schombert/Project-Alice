@@ -1504,3 +1504,9 @@ alice_land_role_tenant;Арендаторское хозяйство
 alice_land_role_laborer;Безземельный сельский рабочий
 alice_land_click_expand;Нажмите, чтобы открыть сведения о земле
 alice_land_drag_hint;Перетащите панель или нажмите −, чтобы свернуть
+alice_land_profile_demographic;Местная классовая структура
+alice_land_profile_persian;Персидские поместья
+alice_land_profile_russian;Общинно-помещичье владение
+alice_land_profile_ottoman;Османское государственное владение
+alice_land_profile_american;Семейные фермы
+alice_land_profile_latifundia;Латифундии
