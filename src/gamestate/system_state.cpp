@@ -806,15 +806,15 @@ void state::render() { // called to render the frame may (and should) delay retu
 					auto grid_rect = std::vector<equirectangular::point>{ };
 					auto grid_square = std::vector<square::point>{ };
 
-					for(auto border_index : map_state.map_data.province_to_borders[candidate.id.value]) {				
-						auto border = map_state.map_data.borders[border_index.first];
+					for(auto border_index : map_state.map_data.province_to_edges[candidate.id.value]) {
+						auto border = map_state.map_data.border_edges[border_index];
 						auto adj = border.adj;
 						if(!adj || border.count == 0) {
 							continue;
 						}
-						int quarter = border.count / 8;
+						int quarter = border.count / 4;
 						for(int segment = 0; segment < 4; segment++) {
-							square::point node_square {map_state.map_data.border_vertices[border.start_index + quarter * segment].position};
+							square::point node_square {map_state.map_data.province_border_vertices[border.offset + quarter * segment].position};
 							grid_square.push_back(node_square);
 							grid_sphere.push_back(sphere_R3::from_square(node_square));
 							grid_rect.push_back(equirectangular::from_square(node_square, (float)map_state.map_data.size_x, (float)map_state.map_data.size_y));
@@ -2052,8 +2052,9 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 		context.map_color_to_province_id.insert_or_assign(sys::pack_color(247, 248, 245), it->second);
 	}
 
-
-	std::thread map_loader([&]() { map_state.load_map_data(context); });
+	std::thread map_loader([&]() {
+		map_state.load_map_data(context);
+	});
 
 	parsers::make_leader_images(context);
 
@@ -3377,23 +3378,21 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 
 	// make ports
 	province::for_each_land_province(*this, [&](dcon::province_id p) {
-
 		auto best_port = dcon::province_id{ };
 		auto best_border_length = 0;
-
 		for(auto adj : world.province_get_province_adjacency(p)) {
-			auto& border = map_state.map_data.borders[adj.id.index()];
+			auto& border = map_state.map_data.adj_index_to_border_edge[adj.id.index()];
+			auto& edge = map_state.map_data.border_edges[border];
 			auto other = adj.get_connected_provinces(0) != p ? adj.get_connected_provinces(0) : adj.get_connected_provinces(1);
 			auto bits = adj.get_type();
 			if(other && (bits & province::border::coastal_bit) != 0 && (bits & province::border::impassible_bit) == 0) {
 				world.province_set_is_coast(p, true);
-				if(best_border_length < border.count) {
+				if(best_border_length < edge.count) {
 					best_port = other.id;
-					best_border_length = border.count;
+					best_border_length = edge.count;
 				}
 			}
 		}
-
 		if(best_port) {
 			world.province_set_port_to(p, best_port);
 		}
@@ -3471,6 +3470,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 		}
 	}
 
+
 	// Sanity checking navies & armies
 	for(auto n : world.in_navy) {
 		auto p = n.get_navy_location().get_location();
@@ -3484,6 +3484,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 			}
 		}
 	}
+
 	for(auto a : world.in_army) {
 		auto p = a.get_army_location().get_location();
 		if(p.id.index() >= province_definitions.first_sea_province.index()) {
@@ -4137,6 +4138,25 @@ void state::fill_unsaved_data() { // reconstructs derived values that are not di
 	nations_by_prestige_score.resize(2000);
 	crisis_participants.resize(2000);
 
+	world.for_each_province([&](auto pid){
+		map_state.map_data.province_to_edges[pid.value] = { };
+		map_state.map_data.province_to_province_border[pid.value] = {};
+	});
+
+	for(size_t i = 0; i < map_state.map_data.border_edges.size(); i++) {
+		auto& item = map_state.map_data.border_edges[i];
+		map_state.map_data.province_to_edges[item.associated_province.value].push_back(i);
+	}
+
+
+	for(size_t i = 0; i < map_state.map_data.province_border_starts.size(); i++) {
+		auto& start = map_state.map_data.province_border_starts[i];
+		auto& item = map_state.map_data.province_border_vertices[start];
+		auto prov = province::from_map_id(item.province_index);
+		if(prov) {
+			map_state.map_data.province_to_province_border[prov.value].push_back(i);
+		}
+	}
 
 	world.for_each_issue([&](dcon::issue_id id) {
 		for(auto& opt : world.issue_get_options(id)) {

@@ -167,8 +167,9 @@ public:
 		auto adj = state.world.get_province_adjacency_by_province_pair(p, state.world.province_get_port_to(p));
 		assert(adj);
 		auto id = adj.index();
-		auto& border = state.map_state.map_data.borders[id];
-		auto& vertex = state.map_state.map_data.border_vertices[border.start_index + border.count / 4];
+		auto& border = state.map_state.map_data.adj_index_to_border_edge[id];
+		auto& edge = state.map_state.map_data.border_edges[border];
+		auto& vertex = state.map_state.map_data.province_border_vertices[edge.offset + edge.count / 2];
 
 		map_x = vertex.position.x;
 		map_y = vertex.position.y;

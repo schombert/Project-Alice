@@ -62,8 +62,9 @@ glm::vec2 get_port_location(sys::state& state, dcon::province_id p) {
 	assert(adj);
 	auto id = adj.index();
 	auto& map_data = state.map_state.map_data;
-	auto& border = map_data.borders[id];
-	auto& vertex = map_data.border_vertices[border.start_index + border.count / 4];
+	auto border_index = map_data.adj_index_to_border_edge[id];
+	auto& border = map_data.border_edges[border_index];
+	auto& vertex = map_data.province_border_vertices[border.offset + border.count / 2];
 	glm::vec2 map_size = glm::vec2(map_data.size_x, map_data.size_y);
 
 	return vertex.position * map_size;
@@ -78,8 +79,9 @@ glm::vec2 get_port_direction(sys::state& state, dcon::province_id p) {
 	assert(adj);
 	auto id = adj.index();
 	auto& map_data = state.map_state.map_data;
-	auto& border = map_data.borders[id];
-	auto& vertex = map_data.border_vertices[border.start_index + border.count / 4];
+	auto border_index = map_data.adj_index_to_border_edge[id];
+	auto& border = map_data.border_edges[border_index];
+	auto& vertex = map_data.province_border_vertices[border.offset + border.count / 2];
 
 	auto& next_vertex = vertex.next_point;
 	auto& prev_vertex = vertex.previous_point;
@@ -1393,7 +1395,7 @@ void commit_text_lines(sys::state& state, display_data& map_data) {
 
 void update_text_lines(sys::state& state, display_data& map_data) {
 
-	clear_drawing(state, state.map_state.map_data);
+	//clear_drawing(state, state.map_state.map_data);
 
 	
 
@@ -1937,8 +1939,8 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 				return;
 			}
 
-			for(auto border_index : state.map_state.map_data.province_to_borders[p1.value]) {				
-				auto border = state.map_state.map_data.borders[border_index.first];
+			for(auto border_index : state.map_state.map_data.province_to_edges[p1.value]) {				
+				auto border = state.map_state.map_data.border_edges[border_index];
 				auto adj = border.adj;
 				if(!adj || border.count == 0) {
 					continue;
@@ -1951,7 +1953,7 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 					return;
 				}
 
-				auto vertex = state.map_state.map_data.border_vertices[border.start_index + border.count / 4].position;
+				auto vertex = state.map_state.map_data.province_border_vertices[border.offset + border.count / 2].position;
 				square::point sq { vertex };
 				auto result = equirectangular::from_square(sq, (float)map_data.size_x, (float)map_data.size_y).data;
 
@@ -2673,10 +2675,10 @@ void map_state::update_cache(sys::state& state) {
 
 		std::shared_lock lock(state.game_state_resetting_lock);
 		state.game_state_resetting_cv.wait(lock, [&] { return !state.yield_game_state_resetting_lock; });
-
+		/*
 		auto screen_size  = glm::vec2(state.x_size, state.y_size);
 		if (update_cache_on_map_movement) {
-			for (auto& b : map_data.borders) {
+			for (auto& b : map_data.border_edges) {
 				if (b.count == 0) {
 					b.skip = true;
 					continue;
@@ -2686,7 +2688,7 @@ void map_state::update_cache(sys::state& state) {
 					continue;
 				}
 
-				map_space::point_normalized center_pos = {map_data.border_vertices[b.start_index + b.count / 4].position};
+				map_space::point_normalized center_pos = {map_data.province_border_vertices[b.start_index + b.count / 2].position};
 				auto center_pos_adjusted = map_space::inverted_from_normalized(center_pos);
 
 				screen_space::point_ui center;
@@ -2701,7 +2703,6 @@ void map_state::update_cache(sys::state& state) {
 			update_cache_on_map_movement = false;
 			//request_fresh_border_index = true;
 		}
-
 		if (request_fresh_border_index) {
 			uint8_t updated_index = 1 - smoothing_borders_index_current;
 
@@ -2735,6 +2736,7 @@ void map_state::update_cache(sys::state& state) {
 			smoothing_borders_index_current = updated_index;
 			request_fresh_border_index = false;
 		}
+		*/
 
 		std::this_thread::sleep_for(std::chrono::milliseconds((int)delay));
 	}

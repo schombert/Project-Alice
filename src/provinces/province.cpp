@@ -172,323 +172,79 @@ void update_connected_regions(sys::state& state) {
 	}
 
 
-	auto& province_to_borders = state.map_state.map_data.province_to_borders;
-	if(province_to_borders.empty()) {
-		for(size_t i = 0; i < state.map_state.map_data.borders.size(); i++) {
-			auto& border = state.map_state.map_data.borders[i];
-			auto adj = border.adj;
-			auto A = state.world.province_adjacency_get_connected_provinces(adj, 0);
-			auto B = state.world.province_adjacency_get_connected_provinces(adj, 1);
+	auto& border_edges = state.map_state.map_data.border_edges;
+	auto& border_nodes = state.map_state.map_data.border_nodes;
+	auto& province_border_vertices = state.map_state.map_data.province_border_vertices;
+	auto& national_border_starts = state.map_state.map_data.national_border_starts;
+	auto& national_border_counts = state.map_state.map_data.national_border_counts;
+	auto& national_border_vertices = state.map_state.map_data.national_border_vertices;
 
-			auto query_result_A = province_to_borders.find(A.value);
-			if(query_result_A == province_to_borders.end()) {
-				province_to_borders[A.value] = {{ i, 0 }};
-			} else {
-				query_result_A->second.push_back({ i, 0 });
-			}
+	national_border_starts.clear();
+	national_border_counts.clear();
+	national_border_vertices.clear();
 
-			auto query_result_B = province_to_borders.find(B.value);
-			if(query_result_B == province_to_borders.end()) {
-				province_to_borders[B.value] = {{ i, 1 }};
-			} else {
-				query_result_B->second.push_back({ i, 1 });
-			}
+	auto good_nation_border = [&](map::border_edge& edge) {
+		auto p_left = edge.associated_province;
+		auto n_left = state.world.province_get_nation_from_province_ownership(p_left);
+
+		if(edge.sibling == -1) {
+			return false;
 		}
+
+		auto& sibling = border_edges[edge.sibling];
+		auto p_right = sibling.associated_province;
+		auto n_right = state.world.province_get_nation_from_province_ownership(p_right);
+
+		if(n_left == n_right) {
+			return false;
+		}
+		return true;
+	};
+
+	auto nation_border = [&](map::border_edge& edge, dcon::nation_id n) {
+		auto p_left = edge.associated_province;
+		auto n_left = state.world.province_get_nation_from_province_ownership(p_left);
+		return n_left == n;
+	};
+
+	auto weave_nation_border = [&](map::border_edge& edge) {
+		if(!good_nation_border(edge)) {
+			return;
+		}
+		auto p_left = edge.associated_province;
+		auto sd_left = state.world.province_get_nation_from_province_ownership(p_left);
+
+		// weave previous edge into it
+
+		national_border_starts.push_back(national_border_vertices.size());
+		for(auto k = edge.offset; k < edge.offset + edge.count; k++) {
+			national_border_vertices.push_back(province_border_vertices[k]);
+		}
+		national_border_counts.push_back(national_border_vertices.size() - national_border_starts.back());
+
+		auto& origin_node = border_nodes[edge.node_start];
+		for(uint8_t j = 0; j < origin_node.in_count; j++) {
+			auto& previous_edge = border_edges[origin_node.edges_in[j]];
+			if(!good_nation_border(previous_edge)) continue;
+			if(!nation_border(previous_edge, sd_left)) continue;
+			national_border_vertices[national_border_starts.back()].previous_point = province_border_vertices[previous_edge.offset + previous_edge.count - 4].position;
+			national_border_vertices[national_border_starts.back() + 1].previous_point = province_border_vertices[previous_edge.offset + previous_edge.count - 3].position;
+		}
+
+		auto& final_node = border_nodes[edge.node_end];
+		for(uint8_t j = 0; j < final_node.out_count; j++) {
+			auto& next_edge = border_edges[final_node.edges_out[j]];
+			if(!good_nation_border(next_edge)) continue;
+			if(!nation_border(next_edge, sd_left)) continue;
+			national_border_vertices[national_border_vertices.size() - 1].next_point = province_border_vertices[next_edge.offset + 3].position;
+			national_border_vertices[national_border_vertices.size() - 2].next_point = province_border_vertices[next_edge.offset + 2].position;
+		}
+	};
+
+	for(auto& item : state.map_state.map_data.border_edges) {
+		weave_nation_border(item);
 	}
 
-	// start chaining borders:
-	for(size_t i = 0; i < state.map_state.map_data.borders.size(); i++) {
-		auto& border = state.map_state.map_data.borders[i];
-		if(border.count == 0) {
-			continue;
-		}
-
-		auto border_start_A = border.start_index;
-		auto border_end_A = border.start_index + border.count / 2 - 2;
-		auto border_start_B = border.start_index + border.count / 2;
-		auto border_end_B = border.start_index + border.count - 2;
-
-		auto A = province::from_map_id(state.map_state.map_data.border_vertices[border_start_A].province_index);
-		auto B = province::from_map_id(state.map_state.map_data.border_vertices[border_start_B].province_index);
-		auto n_A = state.world.province_get_nation_from_province_ownership(A);
-		auto n_B = state.world.province_get_nation_from_province_ownership(B);
-
-		if(n_A == n_B && A && B) {
-			if(n_A) {
-				continue;
-			}
-			if(
-				A.index() >= state.province_definitions.first_sea_province.index()
-				&&
-				B.index() >= state.province_definitions.first_sea_province.index()
-			) {
-				continue;
-			}
-			if(
-				A.index() < state.province_definitions.first_sea_province.index()
-				&&
-				B.index() < state.province_definitions.first_sea_province.index()
-			) {
-				continue;
-			}
-		}
-
-		auto& PA1 = state.map_state.map_data.border_vertices[border_start_A];
-		auto& PA2 = state.map_state.map_data.border_vertices[border_end_A];
-		auto& PAs1 = state.map_state.map_data.border_vertices[border_start_A + 1];
-		auto& PAs2 = state.map_state.map_data.border_vertices[border_end_A + 1];
-
-		auto& PB1 = state.map_state.map_data.border_vertices[border_start_B];
-		auto& PB2 = state.map_state.map_data.border_vertices[border_end_B];
-		auto& PBs1 = state.map_state.map_data.border_vertices[border_start_B + 1];
-		auto& PBs2 = state.map_state.map_data.border_vertices[border_end_B + 1];
-
-		if(PA1.position == PA2.position) {
-			if(PA1.previous_point == PA1.position) {
-				PA1.previous_point = PA2.previous_point;
-				PA2.next_point = PA1.next_point;
-				PAs1.previous_point = PAs2.previous_point;
-				PAs2.next_point = PAs1.next_point;
-
-				PB1.previous_point = PB2.previous_point;
-				PB2.next_point = PB1.next_point;
-				PBs1.previous_point = PBs2.previous_point;
-				PBs2.next_point = PBs1.next_point;
-			}
-			/*
-			if(PA1.next_point == PA1.position) {
-				PA1.next_point = PA2.next_point;
-				PA2.previous_point = PA1.previous_point;
-				PAs1.next_point = PAs2.next_point;
-				PAs2.previous_point = PAs1.previous_point;
-
-				PB1.next_point = PB2.next_point;
-				PB2.previous_point = PB1.previous_point;
-				PBs1.next_point = PBs2.next_point;
-				PBs2.previous_point = PBs1.previous_point;
-			}
-			*/
-			continue;
-		}
-
-		// find borders to weave:
-		for(auto& candidate_index : province_to_borders[A.value]) {
-			auto& candidate_border = state.map_state.map_data.borders[candidate_index.first];
-
-			if(candidate_index.first == i) {
-				continue;
-			}
-
-			if(candidate_border.count == 0) {
-				continue;
-			}
-
-			auto candidate_start =
-				candidate_border.start_index
-				+ candidate_index.second * candidate_border.count / 2;
-			auto candidate_end =
-				candidate_border.start_index
-				+ (1 + candidate_index.second) * candidate_border.count / 2 - 2;
-
-			auto opposite_candidate_start =
-				candidate_border.start_index
-				+ (1 - candidate_index.second) * candidate_border.count / 2;
-			auto opposite_candidate_end =
-				candidate_border.start_index
-				+ (1 + (1 - candidate_index.second)) * candidate_border.count / 2 - 2;
-
-			auto opposite_province = province::from_map_id(state.map_state.map_data.border_vertices[opposite_candidate_start].province_index);
-			auto opposite_nation = state.world.province_get_nation_from_province_ownership(opposite_province);
-
-			if(opposite_province == A) {
-				std::swap(candidate_start, opposite_candidate_start);
-				std::swap(candidate_end, opposite_candidate_end);
-				opposite_province = province::from_map_id(state.map_state.map_data.border_vertices[opposite_candidate_start].province_index);
-				opposite_nation = state.world.province_get_nation_from_province_ownership(opposite_province);
-			}
-
-			auto& QT1 = state.map_state.map_data.border_vertices[candidate_start];
-			auto& QT2 = state.map_state.map_data.border_vertices[candidate_end];
-			auto& QTs1 = state.map_state.map_data.border_vertices[candidate_start + 1];
-			auto& QTs2 = state.map_state.map_data.border_vertices[candidate_end + 1];
-
-			auto& QW1 = state.map_state.map_data.border_vertices[opposite_candidate_start];
-			auto& QW2 = state.map_state.map_data.border_vertices[opposite_candidate_end];
-			auto& QWs1 = state.map_state.map_data.border_vertices[opposite_candidate_start + 1];
-			auto& QWs2 = state.map_state.map_data.border_vertices[opposite_candidate_end + 1];			
-
-			if(PA1.position == QT1.position) {
-				if(opposite_nation != n_A) {
-					PA1.previous_point = QT1.next_point;
-					PAs1.previous_point = QTs1.next_point;
-					QT1.previous_point = PA1.next_point;
-					QTs1.previous_point = PAs1.next_point;
-				}
-
-				if(opposite_nation == n_B) {
-
-					PB1.previous_point = QT1.next_point;
-					PBs1.previous_point = QTs1.next_point;
-					QW1.previous_point = PA1.next_point;
-					QWs1.previous_point = PAs1.next_point;
-				}
-			}
-			if(PA1.position == QT2.position) {
-				if(opposite_nation != n_A) {
-					PA1.previous_point = QT2.previous_point;
-					PAs1.previous_point = QTs2.previous_point;
-					QT2.next_point = PA1.next_point;
-					QTs2.next_point = PAs1.next_point;
-				}
-
-
-				if(opposite_nation == n_B) {
-					PB1.previous_point = QT2.previous_point;
-					PBs1.previous_point = QTs2.previous_point;
-					QW2.next_point = PA1.next_point;
-					QWs2.next_point = PAs1.next_point;
-				}
-			}
-			if(PA2.position == QT1.position) {
-				if(opposite_nation != n_A) {
-					PA2.next_point = QT1.next_point;
-					PAs2.next_point = QTs1.next_point;
-					QT1.previous_point = PA2.previous_point;
-					QTs1.previous_point = PAs2.previous_point;
-				}
-
-				if(opposite_nation == n_B) {
-					PB2.next_point = QT1.next_point;
-					PBs2.next_point = QTs1.next_point;
-					QW1.previous_point = PA2.previous_point;
-					QWs1.previous_point = PAs2.previous_point;
-				}
-			}
-			if(PA2.position == QT2.position) {
-				if(opposite_nation != n_A) {
-					PA2.next_point = QT2.previous_point;
-					PAs2.next_point = QTs2.previous_point;
-					QT2.next_point = PA2.previous_point;
-					QTs2.next_point = PAs2.previous_point;
-				}
-
-				if(opposite_nation == n_B) {
-					PB2.next_point = QT2.previous_point;
-					PBs2.next_point = QTs2.previous_point;
-					QW2.next_point = PA2.previous_point;
-					QWs2.next_point = PAs2.previous_point;
-				}
-			}
-		}
-
-		for(auto& candidate_index : province_to_borders[B.value]) {
-			auto& candidate_border = state.map_state.map_data.borders[candidate_index.first];
-
-			if(candidate_index.first == i) {
-				continue;
-			}
-
-			if(candidate_border.count == 0) {
-				continue;
-			}
-
-			auto candidate_start =
-				candidate_border.start_index
-				+ candidate_index.second * candidate_border.count / 2;
-			auto candidate_end =
-				candidate_border.start_index
-				+ (1 + candidate_index.second) * candidate_border.count / 2 - 2;
-
-			auto opposite_candidate_start =
-				candidate_border.start_index
-				+ (1 - candidate_index.second) * candidate_border.count / 2;
-			auto opposite_candidate_end =
-				candidate_border.start_index
-				+ (1 + (1 - candidate_index.second)) * candidate_border.count / 2 - 2;
-
-			auto opposite_province = province::from_map_id(state.map_state.map_data.border_vertices[opposite_candidate_start].province_index);
-			auto opposite_nation = state.world.province_get_nation_from_province_ownership(opposite_province);
-
-			if(opposite_province == B) {
-				std::swap(candidate_start, opposite_candidate_start);
-				std::swap(candidate_end, opposite_candidate_end);
-				opposite_province = province::from_map_id(state.map_state.map_data.border_vertices[opposite_candidate_start].province_index);
-				opposite_nation = state.world.province_get_nation_from_province_ownership(opposite_province);
-			}
-
-			auto& QT1 = state.map_state.map_data.border_vertices[candidate_start];
-			auto& QT2 = state.map_state.map_data.border_vertices[candidate_end];
-			auto& QTs1 = state.map_state.map_data.border_vertices[candidate_start + 1];
-			auto& QTs2 = state.map_state.map_data.border_vertices[candidate_end + 1];
-
-			auto& QW1 = state.map_state.map_data.border_vertices[opposite_candidate_start];
-			auto& QW2 = state.map_state.map_data.border_vertices[opposite_candidate_end];
-			auto& QWs1 = state.map_state.map_data.border_vertices[opposite_candidate_start + 1];
-			auto& QWs2 = state.map_state.map_data.border_vertices[opposite_candidate_end + 1];
-
-			if(PA1.position == QT1.position) {
-				if(opposite_nation != n_B) {
-					PB1.previous_point = QT1.next_point;
-					PBs1.previous_point = QTs1.next_point;
-					QT1.previous_point = PA1.next_point;
-					QTs1.previous_point = PAs1.next_point;
-				}
-
-				if(opposite_nation == n_A) {
-					PA1.previous_point = QT1.next_point;
-					PAs1.previous_point = QTs1.next_point;
-					QW1.previous_point = PA1.next_point;
-					QWs1.previous_point = PAs1.next_point;
-				}
-			}
-			if(PA1.position == QT2.position) {
-				if(opposite_nation != n_B) {
-					PB1.previous_point = QT2.previous_point;
-					PBs1.previous_point = QTs2.previous_point;
-					QT2.next_point = PA1.next_point;
-					QTs2.next_point = PAs1.next_point;
-				}
-
-
-				if(opposite_nation == n_A) {
-					PA1.previous_point = QT2.previous_point;
-					PAs1.previous_point = QTs2.previous_point;
-					QW2.next_point = PA1.next_point;
-					QWs2.next_point = PAs1.next_point;
-				}
-			}
-			if(PA2.position == QT1.position) {
-				if(opposite_nation != n_B) {
-					PB2.next_point = QT1.next_point;
-					PBs2.next_point = QTs1.next_point;
-					QT1.previous_point = PA2.previous_point;
-					QTs1.previous_point = PAs2.previous_point;
-				}
-
-				if(opposite_nation == n_A) {
-					PA2.next_point = QT1.next_point;
-					PAs2.next_point = QTs1.next_point;
-					QW1.previous_point = PA2.previous_point;
-					QWs1.previous_point = PAs2.previous_point;
-				}
-			}
-			if(PA2.position == QT2.position) {
-				if(opposite_nation != n_B) {
-					PB2.next_point = QT2.previous_point;
-					PBs2.next_point = QTs2.previous_point;
-					QT2.next_point = PA2.previous_point;
-					QTs2.next_point = PAs2.previous_point;
-				}
-
-				if(opposite_nation == n_A) {
-					PA2.next_point = QT2.previous_point;
-					PAs2.next_point = QTs2.previous_point;
-					QW2.next_point = PA2.previous_point;
-					QWs2.next_point = PAs2.previous_point;
-				}
-			}
-		}
-	}
 	state.province_ownership_changed.store(true, std::memory_order::release);
 }
 

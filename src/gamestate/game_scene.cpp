@@ -439,8 +439,9 @@ bool province_port_is_in_selection(sys::state& state, int32_t x, int32_t y, dcon
 	auto adj = state.world.get_province_adjacency_by_province_pair(province, port_to);
 	if(adj) {
 		auto id = adj.index();
-		auto& border = state.map_state.map_data.borders[id];
-		auto& vertex = state.map_state.map_data.border_vertices[border.start_index + border.count / 4];
+		auto& border_idx = state.map_state.map_data.adj_index_to_border_edge[id];
+		auto& border = state.map_state.map_data.border_edges[border_idx];
+		auto& vertex = state.map_state.map_data.province_border_vertices[border.offset + border.count / 2];
 
 		auto map_x = vertex.position.x;
 		auto map_y = vertex.position.y;

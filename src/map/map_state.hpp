@@ -93,14 +93,6 @@ public:
 	bool province_labels_require_text_changes = true;
 	bool scheduled_map_labels_update = false;
 
-	std::array<std::vector<size_t>, 2> smoothing_borders_index {};
-	uint8_t smoothing_borders_index_current;
-	size_t smoothing_borders_count = 0;
-	std::vector<size_t> coastal_borders_index {};
-	size_t coastal_borders_count = 0;
-
-	bool border_indices_ready = false;
-
 	// lighting
 	glm::vec3 light_direction {0.f, 1.f, -0.3f};
 	bool light_on = false;
