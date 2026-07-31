@@ -446,7 +446,7 @@ struct DrawArraysIndirectCommand {
 };
 
 static GLuint national_borders_draw_command;
-static int national_borders_count;
+static size_t national_borders_count;
 
 void display_data::update_borders_mesh() {	
 	if(national_border_vertices.empty()) return;

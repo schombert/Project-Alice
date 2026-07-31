@@ -190,11 +190,11 @@ public:
 
 	std::vector<border_node> border_nodes;
 
-	ankerl::unordered_dense::map<dcon::province_id::value_base_t, std::vector<int>> province_to_edges;
-	std::vector<int> adj_index_to_border_edge;
+	ankerl::unordered_dense::map<dcon::province_id::value_base_t, std::vector<size_t>> province_to_edges;
+	std::vector<size_t> adj_index_to_border_edge;
 	std::vector<border_edge> border_edges;
 
-	ankerl::unordered_dense::map<dcon::state_definition_id::value_base_t, std::vector<int>> nation_to_nation_border;
+	//ankerl::unordered_dense::map<dcon::state_definition_id::value_base_t, std::vector<size_t>> nation_to_nation_border;
 	std::vector<GLsizei> national_border_starts;
 	std::vector<GLsizei> national_border_counts;
 	std::vector<textured_line_vertex_b_enriched_with_province_index> national_border_vertices;
@@ -203,12 +203,12 @@ public:
 	std::vector<GLsizei> coastal_border_counts;
 	std::vector<textured_line_vertex_b_enriched_with_province_index> coastal_border_vertices;
 
-	ankerl::unordered_dense::map<dcon::state_definition_id::value_base_t, std::vector<int>> state_to_state_border;
+	//ankerl::unordered_dense::map<dcon::state_definition_id::value_base_t, std::vector<size_t>> state_to_state_border;
 	std::vector<GLsizei> state_border_starts;
 	std::vector<GLsizei> state_border_counts;
 	std::vector<textured_line_vertex_b_enriched_with_province_index> state_border_vertices;
 
-	ankerl::unordered_dense::map<dcon::province_id::value_base_t, std::vector<int>> province_to_province_border;
+	ankerl::unordered_dense::map<dcon::province_id::value_base_t, std::vector<size_t>> province_to_province_border;
 	std::vector<GLsizei> province_border_starts;
 	std::vector<GLsizei> province_border_counts;
 	std::vector<textured_line_vertex_b_enriched_with_province_index> province_border_vertices;

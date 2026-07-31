@@ -367,7 +367,7 @@ void display_data::make_borders(sys::state& state, std::vector<uint8_t>& visited
 	province_border_counts.clear();
 	province_border_vertices.clear();
 
-	ankerl::unordered_dense::map<uint64_t, uint32_t> coord_to_border_node_index;
+	ankerl::unordered_dense::map<uint64_t, size_t> coord_to_border_node_index;
 	ankerl::unordered_dense::map<uint64_t, uint8_t> use_subindex;
 
 	auto border_node_Eq = [&](border_node& A, border_node& B) {
@@ -454,7 +454,7 @@ void display_data::make_borders(sys::state& state, std::vector<uint8_t>& visited
 			out_x -= size_x;
 		}
 		uint64_t shift = 0;
-		int base = out_x + out_y * size_x;
+		uint64_t base = out_x + out_y * size_x;
 		if(use_subindex.contains(base)) {
 			shift = encode_direction(dx, dy) * size_x * size_y;
 		}
@@ -475,7 +475,7 @@ void display_data::make_borders(sys::state& state, std::vector<uint8_t>& visited
 		if(use_subindex_flag) {
 			use_subindex[base] = true;
 			result.use_subindex = true;
-			result.subindex = encode_direction(dx, dy);
+			result.subindex = (uint8_t)encode_direction(dx, dy);
 			shift = result.subindex * size_x * size_y;
 		}
 		auto idx = border_nodes.size();
@@ -613,7 +613,7 @@ void display_data::make_borders(sys::state& state, std::vector<uint8_t>& visited
 		//if(!province_map_index) {
 			//return;
 		//}
-		province_border_starts.push_back(province_border_vertices.size());
+		province_border_starts.push_back((GLsizei)province_border_vertices.size());
 		int32_t start_x = x;
 		int32_t start_y = y;
 		int32_t start_dx = dx;
@@ -640,7 +640,7 @@ void display_data::make_borders(sys::state& state, std::vector<uint8_t>& visited
 
 		auto adjacent_province = safe_get_province(glm::ivec2(x + dx, y + dy));
 		border_edge current_edge = { };
-		current_edge.offset = province_border_vertices.size();
+		current_edge.offset = (int)province_border_vertices.size();
 		current_edge.adj = state.world.get_province_adjacency_by_province_pair(local_prov, province::from_map_id(adjacent_province));
 		auto prev_adj = current_edge.adj;
 		auto current_adj = current_edge.adj;
@@ -721,7 +721,7 @@ void display_data::make_borders(sys::state& state, std::vector<uint8_t>& visited
 
 			if(border_laying_state != 1 && allow_new_edges && (int)province_border_vertices.size() > current_edge.offset) {
 				if(right_hand_province > 0) {
-					auto right_hand_province_id = province::from_map_id(right_hand_province);
+					auto right_hand_province_id = province::from_map_id((uint16_t)right_hand_province);
 					prev_adj = current_adj;
 					current_adj = state.world.get_province_adjacency_by_province_pair(local_prov, right_hand_province_id);
 
@@ -729,22 +729,22 @@ void display_data::make_borders(sys::state& state, std::vector<uint8_t>& visited
 
 					//if(right_hand_province_id != local_prov && current_adj && current_adj != current_edge.adj) {
 					if (right_hand_province_id != local_prov && node_discovered) {
-						current_edge.count = province_border_vertices.size() - current_edge.offset + 2;
+						current_edge.count = (int)(province_border_vertices.size() - current_edge.offset + 2);
 						if(current_edge.adj)
 							adj_index_to_border_edge[current_edge.adj.index()] = border_edges.size();
 						container.push_back(border_edges.size());
 
-						current_edge.node_start = current_border_node_index;
+						current_edge.node_start = (int)current_border_node_index;
 						auto& node_object = border_nodes[current_border_node_index];
 						assert(node_object.out_count < 4);
-						node_object.edges_out[node_object.out_count] = border_edges.size();
+						node_object.edges_out[node_object.out_count] = (int)border_edges.size();
 						node_object.out_count++;
 
 						current_border_node_index = get_local_node_index(x, y, dx, dy);
-						current_edge.node_end = current_border_node_index;
+						current_edge.node_end = (int)current_border_node_index;
 						auto& final_node_object = border_nodes[current_border_node_index];
 						assert(final_node_object.in_count < 4);
-						final_node_object.edges_in[final_node_object.in_count] = border_edges.size();
+						final_node_object.edges_in[final_node_object.in_count] = (int)border_edges.size();
 						final_node_object.in_count++;
 
 						assert(current_edge.count > 2);
@@ -759,7 +759,7 @@ void display_data::make_borders(sys::state& state, std::vector<uint8_t>& visited
 							//current_edge.true_loop = true;
 							//true_loop = true;
 							loop_is_fixed = false;
-							edge_to_fix = border_edges.size() - 1;
+							edge_to_fix = (int)border_edges.size() - 1;
 
 
 							auto& prev_prev = border_edges[edge_to_fix  - 1];
@@ -772,7 +772,7 @@ void display_data::make_borders(sys::state& state, std::vector<uint8_t>& visited
 						last_vertex_idx = current_edge.offset + current_edge.count - 2;
 
 						current_edge.adj = current_adj;
-						current_edge.offset = province_border_vertices.size();
+						current_edge.offset = (int)province_border_vertices.size();
 						last_edge_handled = true;
 						grace_period = true;
 
@@ -782,25 +782,25 @@ void display_data::make_borders(sys::state& state, std::vector<uint8_t>& visited
 					auto node_discovered = contains_node(x, y, dx, dy);
 					//if(current_edge.adj) {
 					if(node_discovered) {
-						current_edge.count = province_border_vertices.size() - current_edge.offset + 2;
+						current_edge.count = (int)province_border_vertices.size() - current_edge.offset + 2;
 						if(current_edge.adj) {
 							adj_index_to_border_edge[current_edge.adj.index()] = border_edges.size();
 						}
 						container.push_back(border_edges.size());
 
-						current_edge.node_start = current_border_node_index;
+						current_edge.node_start = (int)current_border_node_index;
 
 						auto& node_object = border_nodes[current_border_node_index];
 						assert(node_object.out_count < 4);
-						node_object.edges_out[node_object.out_count] = border_edges.size();
+						node_object.edges_out[node_object.out_count] = (int)border_edges.size();
 						node_object.out_count++;
 
 						current_border_node_index = get_local_node_index(x, y, dx, dy);
-						current_edge.node_end = current_border_node_index;
+						current_edge.node_end = int(current_border_node_index);
 
 						auto& final_node_object = border_nodes[current_border_node_index];
 						assert(final_node_object.in_count < 4);
-						final_node_object.edges_in[final_node_object.in_count] = border_edges.size();
+						final_node_object.edges_in[final_node_object.in_count] = int(border_edges.size());
 						final_node_object.in_count++;
 
 						assert(current_edge.count > 2);
@@ -815,14 +815,14 @@ void display_data::make_borders(sys::state& state, std::vector<uint8_t>& visited
 							//current_edge.true_loop = true;
 							//true_loop = true;
 							loop_is_fixed = false;
-							edge_to_fix = border_edges.size() - 1;
+							edge_to_fix = int(border_edges.size() - 1);
 							assert(border_edges[edge_to_fix].offset > last_vertex_idx);
 						} else {
 							edge_to_fix = -1;
 						}
 
 						last_vertex_idx = current_edge.offset + current_edge.count - 2;
-						current_edge.offset = province_border_vertices.size();
+						current_edge.offset = int(province_border_vertices.size());
 
 						last_edge_handled = true;
 						grace_period = true;
@@ -899,7 +899,7 @@ void display_data::make_borders(sys::state& state, std::vector<uint8_t>& visited
 		province_border_vertices[first + 1].previous_point = province_border_vertices[last + 1].previous_point;
 		province_border_vertices[last].next_point = province_border_vertices[first].next_point;
 		province_border_vertices[last + 1].next_point = province_border_vertices[first + 1].next_point;
-		province_border_counts.push_back(province_border_vertices.size() - province_border_starts.back());
+		province_border_counts.push_back(GLsizei(province_border_vertices.size() - province_border_starts.back()));
 
 		assert(validate_border_vertex(province_border_vertices[first]));
 		assert(validate_border_vertex(province_border_vertices[first + 1]));
@@ -922,7 +922,7 @@ void display_data::make_borders(sys::state& state, std::vector<uint8_t>& visited
 			assert(current_edge.offset > last_vertex_idx);
 
 			lay_border(next_pos);
-			current_edge.count = province_border_vertices.size() - current_edge.offset;
+			current_edge.count = int(province_border_vertices.size() - current_edge.offset);
 
 			auto& edge = current_edge;
 			auto o = edge.offset;
@@ -949,9 +949,9 @@ void display_data::make_borders(sys::state& state, std::vector<uint8_t>& visited
 			auto& final_node_object = border_nodes[current_border_node_index];
 			assert(final_node_object.in_count < 4);
 			assert(final_node_object.out_count < 4);
-			final_node_object.edges_in[final_node_object.in_count] = border_edges.size();
+			final_node_object.edges_in[final_node_object.in_count] = (int)border_edges.size();
 			final_node_object.in_count++;
-			final_node_object.edges_out[final_node_object.out_count] = border_edges.size();
+			final_node_object.edges_out[final_node_object.out_count] = (int)border_edges.size();
 			final_node_object.out_count++;
 
 			assert(current_edge.count > 2);
@@ -1393,11 +1393,11 @@ void display_data::make_borders(sys::state& state, std::vector<uint8_t>& visited
 
 		// weave previous edge into it
 
-		state_border_starts.push_back(state_border_vertices.size());
+		state_border_starts.push_back((int)state_border_vertices.size());
 		for(auto k = edge.offset; k < edge.offset + edge.count; k++) {
 			state_border_vertices.push_back(province_border_vertices[k]);
 		}
-		state_border_counts.push_back(state_border_vertices.size() - state_border_starts.back());
+		state_border_counts.push_back((GLsizei(state_border_vertices.size() - state_border_starts.back())));
 
 		auto& origin_node = border_nodes[edge.node_start];
 		for(uint8_t j = 0; j < origin_node.in_count; j++) {

@@ -294,7 +294,7 @@ void update_connected_regions(sys::state& state) {
 
 		timeout = 200;
 
-		national_border_starts.push_back(national_border_vertices.size());
+		national_border_starts.push_back((GLsizei)national_border_vertices.size());
 		size_t marked_idx = current_idx;
 		do {
 			bool path_found = false;
@@ -323,7 +323,7 @@ void update_connected_regions(sys::state& state) {
 			}
 			timeout--;
 		} while(current_idx != marked_idx && timeout > 0);
-		national_border_counts.push_back(national_border_vertices.size() - national_border_starts.back());
+		national_border_counts.push_back(GLsizei(national_border_vertices.size() - national_border_starts.back()));
 	}
 
 	//for(auto& item : state.map_state.map_data.border_edges) {
