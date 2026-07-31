@@ -216,19 +216,18 @@ void update_connected_regions(sys::state& state) {
 
 		// weave previous edge into it
 
-		national_border_starts.push_back(national_border_vertices.size());
+		auto old_size = national_border_vertices.size();
 		for(auto k = edge.offset; k < edge.offset + edge.count; k++) {
 			national_border_vertices.push_back(province_border_vertices[k]);
 		}
-		national_border_counts.push_back(national_border_vertices.size() - national_border_starts.back());
 
 		auto& origin_node = border_nodes[edge.node_start];
 		for(uint8_t j = 0; j < origin_node.in_count; j++) {
 			auto& previous_edge = border_edges[origin_node.edges_in[j]];
 			if(!good_nation_border(previous_edge)) continue;
 			if(!nation_border(previous_edge, sd_left)) continue;
-			national_border_vertices[national_border_starts.back()].previous_point = province_border_vertices[previous_edge.offset + previous_edge.count - 4].position;
-			national_border_vertices[national_border_starts.back() + 1].previous_point = province_border_vertices[previous_edge.offset + previous_edge.count - 3].position;
+			national_border_vertices[old_size].previous_point = province_border_vertices[previous_edge.offset + previous_edge.count - 4].position;
+			national_border_vertices[old_size + 1].previous_point = province_border_vertices[previous_edge.offset + previous_edge.count - 3].position;
 		}
 
 		auto& final_node = border_nodes[edge.node_end];
@@ -241,9 +240,95 @@ void update_connected_regions(sys::state& state) {
 		}
 	};
 
-	for(auto& item : state.map_state.map_data.border_edges) {
-		weave_nation_border(item);
+	// start with filling the vertices buffer with long border "snakes"
+
+	std::vector<uint8_t> visited_edges;
+	visited_edges.resize(border_edges.size());
+
+	for(size_t idx = 0; idx < border_edges.size(); idx++) {
+		if(visited_edges[idx]) {
+			continue;
+		}
+		if(!good_nation_border(border_edges[idx])) {
+			visited_edges[idx] = 1;
+			continue;
+		}
+
+
+		auto& edge = border_edges[idx];
+		auto p_left = edge.associated_province;
+		auto nation_left = state.world.province_get_nation_from_province_ownership(p_left);
+
+		size_t current_idx = idx;
+
+		int timeout = 100;
+
+		// go back to the start of the chain
+		do {
+			bool path_found = false;
+			auto& origin = border_nodes[edge.node_start];
+			for(uint8_t in_idx = 0; in_idx < origin.in_count; in_idx++) {
+				auto& previous_edge = border_edges[origin.edges_in[in_idx]];
+				if(!good_nation_border(previous_edge)) {
+					visited_edges[origin.edges_in[in_idx]] = 1;
+					continue;
+				}
+				if(nation_border(previous_edge, nation_left)  && (size_t) origin.edges_in[in_idx] != current_idx) {
+					current_idx = origin.edges_in[in_idx];
+					path_found = true;
+					break;
+				}
+			}
+			if(!path_found) {
+				break;
+			}
+			timeout--;
+		} while (current_idx != idx && timeout > 0);
+
+		/*
+		Now we are either
+			1) At the start of the loop
+			2) At the start of the border chain
+		So we can just go forward and push vertices to the buffer
+		*/
+
+		timeout = 200;
+
+		national_border_starts.push_back(national_border_vertices.size());
+		size_t marked_idx = current_idx;
+		do {
+			bool path_found = false;
+			// weave
+			visited_edges[current_idx] = 1;
+			auto& edge_to_add = border_edges[current_idx];
+			weave_nation_border(edge_to_add);
+
+			// find the next edge
+
+			auto& end = border_nodes[edge_to_add.node_end];
+			for(uint8_t out_idx = 0; out_idx < end.out_count; out_idx++) {
+				auto& next_edge = border_edges[end.edges_out[out_idx]];
+				if(!good_nation_border(next_edge)) {
+					visited_edges[end.edges_out[out_idx]] = 1;
+					continue;
+				}
+				if(nation_border(next_edge, nation_left) && (size_t) end.edges_out[out_idx] != current_idx) {
+					current_idx = end.edges_out[out_idx];
+					path_found = true;
+					break;
+				}
+			}
+			if(!path_found) {
+				break;
+			}
+			timeout--;
+		} while(current_idx != marked_idx && timeout > 0);
+		national_border_counts.push_back(national_border_vertices.size() - national_border_starts.back());
 	}
+
+	//for(auto& item : state.map_state.map_data.border_edges) {
+		//weave_nation_border(item);
+	//}
 
 	state.province_ownership_changed.store(true, std::memory_order::release);
 }

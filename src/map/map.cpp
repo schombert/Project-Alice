@@ -438,6 +438,16 @@ void display_data::create_border_ogl_objects() {
 	// TODO: remove unused function
 }
 
+struct DrawArraysIndirectCommand {
+	GLuint  count;
+	GLuint  instanceCount;
+	GLuint  first;
+	GLuint  baseInstance;
+};
+
+static GLuint national_borders_draw_command;
+static int national_borders_count;
+
 void display_data::update_borders_mesh() {	
 	if(national_border_vertices.empty()) return;
 	glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_national_border]);
@@ -448,6 +458,28 @@ void display_data::update_borders_mesh() {
 		national_border_vertices.data(),
 		GL_DYNAMIC_DRAW
 	);
+
+	if(national_borders_draw_command == 0) {
+		glGenBuffers(1, &national_borders_draw_command);
+	}
+	glBindBuffer(GL_DRAW_INDIRECT_BUFFER, national_borders_draw_command);
+	
+	std::vector<DrawArraysIndirectCommand> nation_border_rendering_data{ };
+	for(size_t i = 0; i < national_border_starts.size(); i++) {
+		DrawArraysIndirectCommand to_add{ };
+		to_add.count = national_border_counts[i];
+		to_add.first = national_border_starts[i];
+		to_add.baseInstance = 0;
+		to_add.instanceCount = 1;
+		nation_border_rendering_data.push_back(to_add);
+	}
+	glBufferData(
+		GL_DRAW_INDIRECT_BUFFER,
+		nation_border_rendering_data.size() * sizeof(DrawArraysIndirectCommand),
+		nation_border_rendering_data.data(),
+		GL_DYNAMIC_DRAW
+	);
+	national_borders_count = national_border_starts.size();
 }
 
 void display_data::create_meshes() {
@@ -725,6 +757,7 @@ void display_data::load_shaders(simple_fs::directory& root) {
 constexpr float axial_tilt_angle = 0.409f;
 const glm::mat3 axial_rotation = glm::rotate(axial_tilt_angle, glm::vec3 { 0.f, -1.f, 0.f });
 
+
 void display_data::render(
 	sys::state& state,
 	glm::vec2 screen_size,
@@ -807,6 +840,80 @@ void display_data::render(
 	auto scale_borders = std::clamp(2.f / pixel_size, 1.f, 4.f);
 
 
+	static bool aux_data_is_ready = false;
+
+	//static GLuint province_index_buffer;
+	static GLuint province_indirect_buffer;
+	static GLuint state_indirect_buffer;
+	static GLuint impassible_indirect_buffer;
+	static GLuint impassible_count = 0;
+
+	if(!aux_data_is_ready) {
+		aux_data_is_ready = true;
+
+		glGenBuffers(1, &province_indirect_buffer);
+		glBindBuffer(GL_DRAW_INDIRECT_BUFFER, province_indirect_buffer);
+		std::vector<DrawArraysIndirectCommand> province_border_rendering_data{ };
+		for(size_t i = 0; i < province_border_starts.size(); i++) {
+			DrawArraysIndirectCommand to_add{ };
+			to_add.count = province_border_counts[i];
+			to_add.first = province_border_starts[i];
+			to_add.baseInstance = 0;
+			to_add.instanceCount = 1;
+			province_border_rendering_data.push_back(to_add);
+		}
+		glBufferStorage(
+			GL_DRAW_INDIRECT_BUFFER,
+			province_border_rendering_data.size() * sizeof(DrawArraysIndirectCommand),
+			province_border_rendering_data.data(), 0
+		);
+
+		glGenBuffers(1, &state_indirect_buffer);
+		glBindBuffer(GL_DRAW_INDIRECT_BUFFER, state_indirect_buffer);
+		std::vector<DrawArraysIndirectCommand> state_border_rendering_data{ };
+		for(size_t i = 0; i < state_border_starts.size(); i++) {
+			DrawArraysIndirectCommand to_add{ };
+			to_add.count = state_border_counts[i];
+			to_add.first = state_border_starts[i];
+			to_add.baseInstance = 0;
+			to_add.instanceCount = 1;
+			state_border_rendering_data.push_back(to_add);
+		}
+		glBufferStorage(
+			GL_DRAW_INDIRECT_BUFFER,
+			state_border_rendering_data.size() * sizeof(DrawArraysIndirectCommand),
+			state_border_rendering_data.data(), 0
+		);
+
+		glGenBuffers(1, &impassible_indirect_buffer);
+		glBindBuffer(GL_DRAW_INDIRECT_BUFFER, impassible_indirect_buffer);
+		std::vector<DrawArraysIndirectCommand> impassible_border_rendering_data{ };
+		for(size_t i = 0; i < border_edges.size(); i++) {
+			auto adj = border_edges[i].adj;
+			if (!adj) continue;
+			auto flag_set = province::border::non_adjacent_bit | province::border::coastal_bit | province::border::impassible_bit;
+			if(
+				(state.world.province_adjacency_get_type(adj) & flag_set) != province::border::impassible_bit
+			) {
+				continue;
+			}
+			DrawArraysIndirectCommand to_add{ };
+			to_add.count = border_edges[i].count;
+			to_add.first = border_edges[i].offset;
+			to_add.baseInstance = 0;
+			to_add.instanceCount = 1;
+			impassible_border_rendering_data.push_back(to_add);
+			impassible_count++;
+		}
+		glBufferStorage(
+			GL_DRAW_INDIRECT_BUFFER,
+			impassible_border_rendering_data.size() * sizeof(DrawArraysIndirectCommand),
+			impassible_border_rendering_data.data(), 0
+		);
+		glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);
+	}
+
+
 	// BORDERS TO FIX HUGE PIXELS
 	if(state.user_settings.graphics_mode != sys::graphics_mode::ugly && pixel_size > 0.5f) {
 		load_shader(shader_borders_provinces);
@@ -824,18 +931,15 @@ void display_data::render(
 		glBindVertexArray(vao_array[vo_national_border]);
 		glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_national_border]);
 		glUniform1f(shader_uniforms[shader_borders_provinces][uniform_is_national_border], 1.f);
-		for(size_t b_idx = 0; b_idx < national_border_starts.size(); b_idx++) {
-			glDrawArrays(GL_TRIANGLE_STRIP, national_border_starts[b_idx], national_border_counts[b_idx]);
-		}
+		glBindBuffer(GL_DRAW_INDIRECT_BUFFER, national_borders_draw_command);
+		glMultiDrawArraysIndirect(GL_TRIANGLE_STRIP, 0, national_borders_count, 0);
 
+		glUniform1f(shader_uniforms[shader_borders_provinces][uniform_is_national_border], 0.f);
 		glBindVertexArray(vao_array[vo_border]);
 		glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_border]);
-		glUniform1f(shader_uniforms[shader_borders_provinces][uniform_is_national_border], 0.f);
-		for (size_t idx = 0; idx < state.map_state.map_data.province_border_starts.size(); idx++) {
-			auto boffset = state.map_state.map_data.province_border_starts[idx];
-			auto bcount = state.map_state.map_data.province_border_counts[idx];
-			glDrawArrays(GL_TRIANGLE_STRIP, boffset, bcount);
-		}
+		glBindBuffer(GL_DRAW_INDIRECT_BUFFER, province_indirect_buffer);
+		glMultiDrawArraysIndirect(GL_TRIANGLE_STRIP, 0, province_border_starts.size(),0);
+		glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);
 	}
 
 
@@ -1078,58 +1182,37 @@ void display_data::render(
 				glUniform1f(shader_uniforms[shader_borders][uniform_width], 0.0001f); // width
 				glActiveTexture(GL_TEXTURE2);
 				glBindTexture(GL_TEXTURE_2D, textures[texture_prov_border]);
-
 				glBindVertexArray(vao_array[vo_border]);
 				glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_border]);
-
-				for(size_t idx = 0; idx < state.map_state.map_data.province_border_starts.size(); idx++) {
-					auto boffset = state.map_state.map_data.province_border_starts[idx];
-					auto bcount = state.map_state.map_data.province_border_counts[idx];
-					glDrawArrays(GL_TRIANGLE_STRIP, boffset, bcount);
-				}
+				glBindBuffer(GL_DRAW_INDIRECT_BUFFER, province_indirect_buffer);
+				glMultiDrawArraysIndirect(GL_TRIANGLE_STRIP, 0, province_border_starts.size(), 0);
+				glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);
 			}
 			{ // Render state borders
 				glUniform1f(shader_uniforms[shader_borders][uniform_width], 0.0002f); // width
 				glActiveTexture(GL_TEXTURE2);
 				glBindTexture(GL_TEXTURE_2D, textures[texture_state_border]);
-
-
 				glBindVertexArray(vao_array[vo_state_border]);
 				glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_state_border]);
-
-				for(size_t b_idx = 0; b_idx < state_border_starts.size(); b_idx++) {
-					//glDrawArrays(GL_TRIANGLE_STRIP, state_border_starts[b_idx], border_index % (state_border_counts[b_idx] + 1));
-					glDrawArrays(GL_TRIANGLE_STRIP, state_border_starts[b_idx], state_border_counts[b_idx]);
-				}
+				glBindBuffer(GL_DRAW_INDIRECT_BUFFER, state_indirect_buffer);
+				glMultiDrawArraysIndirect(GL_TRIANGLE_STRIP, 0, state_border_starts.size(), 0);
+				glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);
 			}
 			// impassible borders
 			{
 				glUniform1f(shader_uniforms[shader_borders][uniform_width], 0.001f); // width
 				glActiveTexture(GL_TEXTURE2);
 				glBindTexture(GL_TEXTURE_2D, textures[texture_imp_border]);
-
 				glBindVertexArray(vao_array[vo_border]);
 				glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_border]);
-
-				for(auto b : border_edges) {
-					if(!b.adj) continue;
-					if(
-						(state.world.province_adjacency_get_type(b.adj)
-							&
-							(
-								province::border::non_adjacent_bit
-								| province::border::coastal_bit
-								| province::border::impassible_bit
-							)
-						) == province::border::impassible_bit
-					) {
-						glDrawArrays(GL_TRIANGLE_STRIP, b.offset, b.count);
-					}
-				}
+				glBindBuffer(GL_DRAW_INDIRECT_BUFFER, impassible_indirect_buffer);
+				glMultiDrawArraysIndirect(GL_TRIANGLE_STRIP, 0, national_borders_count, 0);
+				glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);
 			}
 			// national borders
 
-
+			//static int frame = 0;
+			//frame++;
 			{
 				glUniform1f(shader_uniforms[shader_borders][uniform_width], 0.00015f * scale_borders); // width
 				glActiveTexture(GL_TEXTURE2);
@@ -1137,51 +1220,41 @@ void display_data::render(
 
 				glBindVertexArray(vao_array[vo_national_border]);
 				glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_national_border]);
-
-				for(size_t b_idx = 0; b_idx < national_border_starts.size(); b_idx++) {
-					glDrawArrays(GL_TRIANGLE_STRIP, national_border_starts[b_idx], national_border_counts[b_idx]);
-				}
+				glBindBuffer(GL_DRAW_INDIRECT_BUFFER, national_borders_draw_command);
+				glMultiDrawArraysIndirect(GL_TRIANGLE_STRIP, 0, national_borders_count, 0);
+				glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);
 			}
 		} else {
 			if(zoom > map::zoom_very_close) { // Render province borders
 				glUniform1f(shader_uniforms[shader_borders][uniform_width], 0.00005f); // width
 				glActiveTexture(GL_TEXTURE2);
 				glBindTexture(GL_TEXTURE_2D, textures[texture_prov_border]);
-
 				glBindVertexArray(vao_array[vo_border]);
 				glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_border]);
-
-				for(size_t idx = 0; idx < state.map_state.map_data.province_border_starts.size(); idx++) {
-					auto boffset = state.map_state.map_data.province_border_starts[idx];
-					auto bcount = state.map_state.map_data.province_border_counts[idx];
-					glDrawArrays(GL_TRIANGLE_STRIP, boffset, bcount);
-				}
+				glBindBuffer(GL_DRAW_INDIRECT_BUFFER, province_indirect_buffer);
+				glMultiDrawArraysIndirect(GL_TRIANGLE_STRIP, 0, province_border_starts.size(), 0);
+				glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);
 			}
 			if(zoom > map::zoom_close) { // Render state borders
 				glUniform1f(shader_uniforms[shader_borders][uniform_width], 0.00005f); // width
 				glActiveTexture(GL_TEXTURE2);
 				glBindTexture(GL_TEXTURE_2D, textures[texture_state_border]);
-
 				glBindVertexArray(vao_array[vo_state_border]);
 				glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_state_border]);
-
-
-				for(size_t b_idx = 0; b_idx < state_border_starts.size(); b_idx++) {
-					glDrawArrays(GL_TRIANGLE_STRIP, state_border_starts[b_idx], state_border_counts[b_idx]);
-				}
+				glBindBuffer(GL_DRAW_INDIRECT_BUFFER, state_indirect_buffer);
+				glMultiDrawArraysIndirect(GL_TRIANGLE_STRIP, 0, state_border_starts.size(), 0);
+				glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);
 			}
 			// national borders
 			{
 				glUniform1f(shader_uniforms[shader_borders][uniform_width], 0.00015f * scale_borders); // width
 				glActiveTexture(GL_TEXTURE2);
-				glBindTexture(GL_TEXTURE_2D, textures[texture_state_border]);
-
+				glBindTexture(GL_TEXTURE_2D, textures[texture_national_border]);
 				glBindVertexArray(vao_array[vo_national_border]);
 				glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_national_border]);
-
-				for(size_t b_idx = 0; b_idx < national_border_starts.size(); b_idx++) {
-					glDrawArrays(GL_TRIANGLE_STRIP, national_border_starts[b_idx], national_border_counts[b_idx]);
-				}
+				glBindBuffer(GL_DRAW_INDIRECT_BUFFER, national_borders_draw_command);
+				glMultiDrawArraysIndirect(GL_TRIANGLE_STRIP, 0, national_borders_count, 0);
+				glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);
 			}
 		}
 	}
@@ -1351,42 +1424,6 @@ void display_data::render(
 				for(auto selected_province_mesh : state.map_state.map_data.province_to_province_border[prov.value]) {
 					glDrawArrays(GL_TRIANGLE_STRIP, state.map_state.map_data.province_border_starts[selected_province_mesh], state.map_state.map_data.province_border_counts[selected_province_mesh]);
 				}
-			}
-		}
-	}
-
-	// coasts
-
-	if(state.user_settings.graphics_mode != sys::graphics_mode::ugly) {
-		glUniform1f(shader_uniforms[shader_borders][uniform_width], 0.0002f); // width
-
-		glActiveTexture(GL_TEXTURE2);
-		glBindTexture(GL_TEXTURE_2D, textures[texture_coastal_border]);
-
-		glBindVertexArray(vao_array[vo_border]);
-		glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_border]);
-		for(auto b : border_edges) {
-			if(!b.adj) {
-				//glDrawArrays(GL_TRIANGLE_STRIP, b.offset, b.count);
-			} else if((state.world.province_adjacency_get_type(b.adj) & (province::border::coastal_bit)) == province::border::coastal_bit) {
-				//glDrawArrays(GL_TRIANGLE_STRIP, b.offset, b.count);
-			}
-		}
-	}
-
-	// impassible
-
-	if(state.user_settings.graphics_mode != sys::graphics_mode::ugly) {
-		glUniform1f(shader_uniforms[shader_borders][uniform_width], 0.0002f); // width
-
-		glActiveTexture(GL_TEXTURE2);
-		glBindTexture(GL_TEXTURE_2D, textures[texture_imp_border]);
-
-		glBindVertexArray(vao_array[vo_border]);
-		glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_border]);
-		for(auto b : border_edges) {
-			if((state.world.province_adjacency_get_type(b.adj) & (province::border::impassible_bit)) == province::border::impassible_bit) {
-				//glDrawArrays(GL_TRIANGLE_STRIP, b.offset, b.count);
 			}
 		}
 	}

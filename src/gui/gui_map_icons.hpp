@@ -1242,7 +1242,12 @@ class map_colonization_icon : public window_element_base {
 public:
 	dcon::state_definition_id state_def;
 	uint32_t colonization_index;
+	dcon::colonization_id colonization;
 	bool visible = false;
+
+	void on_update(sys::state& state) noexcept override {
+		colonization = get_colonization(state);
+	}
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "colonization_panel_bg") {
@@ -1255,13 +1260,12 @@ public:
 			return nullptr;
 		}
 	}
+
 	void set_state_def(sys::state& state, dcon::state_definition_id def) {
 		state_def = def;
-
 	}
 
 	void impl_render(sys::state& state, int32_t x, int32_t y) noexcept override {
-		auto colonization = get_colonization(state);
 		dcon::province_id render_prov;
 		int32_t highest_prio = -1;
 		if(colonization) {
@@ -1299,7 +1303,6 @@ public:
 			return message_result::consumed;
 		}
 		else if(payload.holds_type<dcon::colonization_id>()) {
-			auto colonization = get_colonization(state);
 			if(colonization) {
 				payload.emplace<dcon::colonization_id>(colonization);
 				return message_result::consumed;
