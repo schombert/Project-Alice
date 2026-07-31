@@ -1130,9 +1130,8 @@ public:
 
 	bool probe_specific_province(sys::state& state, dcon::province_id prov, int32_t mx, int32_t my, mouse_probe_type type) {
 		if(!prov) return false;
-		auto populated = populated_counters[prov.index()];
 		auto visible = visible_counters[prov.index()];
-		if(!(populated && visible)) return false;
+		if(!visible) return false;
 
 		auto coord = last_screen_coordinates[prov.index()];
 		auto x = mx - (int32_t)coord.x;
@@ -1256,20 +1255,29 @@ public:
 			return probe_result;
 		}
 
-		for (auto prov : state.world.in_province) {
-			auto populated = populated_counters[prov.id.index()];
-			auto visible = visible_counters[prov.id.index()];
-			auto coord = last_screen_coordinates[prov.id.index()];
-			auto x = mx - (int32_t)coord.x;
-			auto y = my - (int32_t)coord.y;
-			if (!(populated && visible)) continue;
-
-			if(probe_specific_province(state, prov.id, mx, my, type)) {
+		for(auto army : state.world.in_army) {
+			auto prov = state.world.army_get_location_from_army_location(army);
+			if(!prov) {
+				continue;
+			}
+			if(probe_specific_province(state, prov, mx, my, type)) {
 				probe_result.under_mouse = this;
 				return probe_result;
 			}
 		}
-
+		for(auto navy : state.world.in_navy) {
+			auto prov = state.world.navy_get_location_from_navy_location(navy);
+			if(!prov) {
+				continue;
+			}
+			if(prov.index() < state.province_definitions.first_sea_province.index()) {
+				continue;
+			}
+			if(probe_specific_province(state, prov, mx, my, type)) {
+				probe_result.under_mouse = this;
+				return probe_result;
+			}
+		}
 
 		hovered_icon = {};
 		return mouse_probe{ nullptr, ui::xy_pair{} };

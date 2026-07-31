@@ -1662,7 +1662,7 @@ void update_income_wages(sys::state& state){
 				)
 			)
 		);
-		auto wage = size * wage_per_person;
+		auto wage = ve::select(size == 0.f, 0.f, size * wage_per_person);
 		state.world.pop_set_savings(pops, wage + savings);
 #ifndef NDEBUG
 		ve::apply([](float v) { assert(std::isfinite(v) && v >= 0); }, wage + savings);
