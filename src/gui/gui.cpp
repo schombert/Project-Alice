@@ -528,192 +528,460 @@ void map_button_element_base::render(sys::state& state, int32_t x, int32_t y) no
 }
 
 
-void unit_counter_window::on_update(sys::state& state) noexcept {
-	state.world.for_each_province([&](auto prov){
-		auto& display = display_cache[prov.index()];
+void unit_counter_window::update_province_data(sys::state& state, dcon::province_id prov) noexcept {
+	if(!prov) {
+		return;
+	}
+	auto& display = display_cache[prov.index()];
 
-		if(prov.index() < state.province_definitions.first_sea_province.index()) {
-			auto armies = state.world.province_get_army_location(prov);
-			populated_counters[prov.index()] = (armies.begin() == armies.end()) ? 0 : 1;
-		} else {
-			auto navies = state.world.province_get_navy_location(prov);
-			populated_counters[prov.index()] = (navies.begin() == navies.end()) ? 0 : 1;
+	if(prov.index() < state.province_definitions.first_sea_province.index()) {
+		auto armies = state.world.province_get_army_location(prov);
+		populated_counters[prov.index()] = (armies.begin() == armies.end()) ? 0 : 1;
+	} else {
+		auto navies = state.world.province_get_navy_location(prov);
+		populated_counters[prov.index()] = (navies.begin() == navies.end()) ? 0 : 1;
+	}
+
+	bool player_involved_battle = false;
+	dcon::land_battle_id lbattle;
+	dcon::naval_battle_id nbattle;
+	if(state.world.province_get_land_battle_location(prov).begin() != state.world.province_get_land_battle_location(prov).end()) {
+		auto b = *state.world.province_get_land_battle_location(prov).begin();
+		auto w = b.get_battle().get_war_from_land_battle_in_war();
+		if(!w) { //rebels
+			player_involved_battle = true;
+			lbattle = b.get_battle();
+			display.player_involved_battle = true;
+		} else if(military::get_role(state, w, state.local_player_nation) != military::war_role::none) { //in a war
+			player_involved_battle = true;
+			display.player_involved_battle = true;
+			lbattle = b.get_battle();
+		} else { // player is not involved
+			player_involved_battle = false;
+			display.player_involved_battle = false;
+			lbattle = b.get_battle();
 		}
+	}
 
-		bool player_involved_battle = false;
-		dcon::land_battle_id lbattle;
-		dcon::naval_battle_id nbattle;
-		if(state.world.province_get_land_battle_location(prov).begin() != state.world.province_get_land_battle_location(prov).end()) {
-			auto b = *state.world.province_get_land_battle_location(prov).begin();
-			auto w = b.get_battle().get_war_from_land_battle_in_war();
-			if(!w) { //rebels
+	// if a land battle was not found, try to find a naval battle
+	if(!lbattle) {
+		if(state.world.province_get_naval_battle_location(prov).begin() != state.world.province_get_naval_battle_location(prov).end()) {
+			auto b = *state.world.province_get_naval_battle_location(prov).begin();
+			auto w = b.get_battle().get_war_from_naval_battle_in_war();
+			if(military::get_role(state, w, state.local_player_nation) != military::war_role::none) { // in a war
 				player_involved_battle = true;
-				lbattle = b.get_battle();
-				display.player_involved_battle = true;
-			} else if(military::get_role(state, w, state.local_player_nation) != military::war_role::none) { //in a war
-				player_involved_battle = true;
-				display.player_involved_battle = true;
-				lbattle = b.get_battle();
-			} else { // player is not involved
+				nbattle = b.get_battle();
+			} else { // player not involved
 				player_involved_battle = false;
-				display.player_involved_battle = false;
-				lbattle = b.get_battle();
+				nbattle = b.get_battle();
 			}
 		}
+	}
 
-		// if a land battle was not found, try to find a naval battle
-		if(!lbattle) {
-			if(state.world.province_get_naval_battle_location(prov).begin() != state.world.province_get_naval_battle_location(prov).end()) {
-				auto b = *state.world.province_get_naval_battle_location(prov).begin();
-				auto w = b.get_battle().get_war_from_naval_battle_in_war();
-				if(military::get_role(state, w, state.local_player_nation) != military::war_role::none) { // in a war
-					player_involved_battle = true;
-					nbattle = b.get_battle();
-				} else { // player not involved
-					player_involved_battle = false;
-					nbattle = b.get_battle();
-				}
-			}
-		}
+	static std::vector<int32_t> by_icon_count;
+	for(auto& i : by_icon_count)
+		i = 0;
 
-		static std::vector<int32_t> by_icon_count;
-		for(auto& i : by_icon_count)
-			i = 0;
+	display.top_left_status = -1;
+	display.top_dig_in = -1;
+	display.top_right_dig_in = -1;
+	display.right_frames = 0;
+	display.common_unit_1 = -1;
+	display.common_unit_2 = -1;
+	display.top_left_value = 0.0f;
+	display.top_right_value = 0.0f;
+	display.top_left_org_value = 0.0f;
+	display.top_right_org_value = 0.0f;
+	display.top_right_org_value = 0.0f;
+	display.is_army = false;
 
-		display.top_left_status = -1;
-		display.top_dig_in = -1;
-		display.top_right_dig_in = -1;
-		display.right_frames = 0;
-		display.common_unit_1 = -1;
-		display.common_unit_2 = -1;
-		display.top_left_value = 0.0f;
-		display.top_right_value = 0.0f;
-		display.top_left_org_value = 0.0f;
-		display.top_right_org_value = 0.0f;
-		display.top_right_org_value = 0.0f;
-		display.is_army = false;
+	display.attacker_casualties = 0.0f;
+	display.defender_casualties = 0.0f;
+	display.player_is_attacker = false;
 
-		display.attacker_casualties = 0.0f;
-		display.defender_casualties = 0.0f;
-		display.player_is_attacker = false;
+	bool top_right_found_enemy = false;
+	bool top_right_found_ally = false;
+	bool top_right_found_other = false;
 
-		bool top_right_found_enemy = false;
-		bool top_right_found_ally = false;
-		bool top_right_found_other = false;
+	bool found_selected = false;
+	bool all_selected = true;
+	bool found_ally = false;
+	bool found_enemy = false;
+	bool found_other = false;
 
-		bool found_selected = false;
-		bool all_selected = true;
-		bool found_ally = false;
-		bool found_enemy = false;
-		bool found_other = false;
+	auto set_flags = [&]<class T, bool Is_Top_Right>(T n) mutable {
 
-		auto set_flags = [&]<class T, bool Is_Top_Right>(T n) mutable {
-
-			if constexpr(std::is_same<T, dcon::navy_fat_id>()) {
-				if constexpr(Is_Top_Right) {
-					auto controller = military::get_effective_unit_commander(state, n);
-					if(!controller || military::are_at_war(state, controller, state.local_player_nation))
-						top_right_found_enemy = true;
-					else if(military::are_allied_in_war(state, controller, state.local_player_nation))
-						top_right_found_ally = true;
-					else
-						top_right_found_other = true;
-				} else {
-					auto controller = military::get_effective_unit_commander(state, n);
-
-					if(state.is_selected(n) && controller == state.local_player_nation)
-						found_selected = true;
-					else if(controller == state.local_player_nation)
-						all_selected = false;
-					else if(!controller || military::are_at_war(state, controller, state.local_player_nation))
-						found_enemy = true;
-					else if(military::are_allied_in_war(state, controller, state.local_player_nation))
-						found_ally = true;
-					else
-						found_other = true;
-				}
+		if constexpr(std::is_same<T, dcon::navy_fat_id>()) {
+			if constexpr(Is_Top_Right) {
+				auto controller = military::get_effective_unit_commander(state, n);
+				if(!controller || military::are_at_war(state, controller, state.local_player_nation))
+					top_right_found_enemy = true;
+				else if(military::are_allied_in_war(state, controller, state.local_player_nation))
+					top_right_found_ally = true;
+				else
+					top_right_found_other = true;
 			} else {
-				if constexpr(Is_Top_Right) {
-					auto controller = military::get_effective_unit_commander(state, n);
-					if(!controller || military::are_at_war(state, controller, state.local_player_nation))
-						top_right_found_enemy = true;
-					else if(military::are_allied_in_war(state, controller, state.local_player_nation))
-						top_right_found_ally = true;
-					else
-						top_right_found_other = true;
-				} else {
-					auto controller = military::get_effective_unit_commander(state, n);
+				auto controller = military::get_effective_unit_commander(state, n);
 
-					if(state.is_selected(n) && controller == state.local_player_nation)
-						found_selected = true;
-					else if(controller == state.local_player_nation)
-						all_selected = false;
-					else if(!controller || military::are_at_war(state, controller, state.local_player_nation))
-						found_enemy = true;
-					else if(military::are_allied_in_war(state, controller, state.local_player_nation))
-						found_ally = true;
-					else
-						found_other = true;
-				};
+				if(state.is_selected(n) && controller == state.local_player_nation)
+					found_selected = true;
+				else if(controller == state.local_player_nation)
+					all_selected = false;
+				else if(!controller || military::are_at_war(state, controller, state.local_player_nation))
+					found_enemy = true;
+				else if(military::are_allied_in_war(state, controller, state.local_player_nation))
+					found_ally = true;
+				else
+					found_other = true;
 			}
-		};
+		} else {
+			if constexpr(Is_Top_Right) {
+				auto controller = military::get_effective_unit_commander(state, n);
+				if(!controller || military::are_at_war(state, controller, state.local_player_nation))
+					top_right_found_enemy = true;
+				else if(military::are_allied_in_war(state, controller, state.local_player_nation))
+					top_right_found_ally = true;
+				else
+					top_right_found_other = true;
+			} else {
+				auto controller = military::get_effective_unit_commander(state, n);
 
-		if(lbattle) {
-			display.is_army = true;
+				if(state.is_selected(n) && controller == state.local_player_nation)
+					found_selected = true;
+				else if(controller == state.local_player_nation)
+					all_selected = false;
+				else if(!controller || military::are_at_war(state, controller, state.local_player_nation))
+					found_enemy = true;
+				else if(military::are_allied_in_war(state, controller, state.local_player_nation))
+					found_ally = true;
+				else
+					found_other = true;
+			};
+		}
+	};
+
+	if(lbattle) {
+		display.is_army = true;
+		float max_str = 0.0f;
+		float max_opp_str = 0.0f;
+		int32_t total_count = 0;
+		int32_t total_opp_count = 0;
+
+		auto w = state.world.land_battle_get_war_from_land_battle_in_war(lbattle);
+		bool player_is_attacker = w ? military::is_attacker(state, w, state.local_player_nation) : false;
+
+		bool land_battle_attacker_is_player = false;
+		if(player_is_attacker && state.world.land_battle_get_war_attacker_is_attacker(lbattle))
+			land_battle_attacker_is_player = true;
+		else if(!player_is_attacker && !state.world.land_battle_get_war_attacker_is_attacker(lbattle))
+			land_battle_attacker_is_player = true;
+
+		display.player_is_attacker = land_battle_attacker_is_player;
+
+		display.top_left_status = 6;
+
+		display.attacker_casualties = state.world.land_battle_get_attacker_casualties(lbattle);
+		display.defender_casualties = state.world.land_battle_get_defender_casualties(lbattle);
+
+		for(auto ar : state.world.land_battle_get_army_battle_participation(lbattle)) {
+			auto controller = ar.get_army().get_controller_from_army_control();
+			// either armies opposed to the player while the player is involved, or armies which are part of the attacking side of the war while the player is not involved
+			if((!controller || (player_involved_battle && military::is_attacker(state, w, controller) != player_is_attacker)) || (!player_involved_battle && military::is_attacker(state, w, controller))) {
+				++display.right_frames;
+				set_flags.template operator() < dcon::army_fat_id, true > (ar.get_army());
+
+				float str = 0.0f;
+				for(auto m : state.world.army_get_army_membership(ar.get_army())) {
+					++total_opp_count;
+
+					str += m.get_regiment().get_strength();
+					display.top_right_value += m.get_regiment().get_strength();
+					display.top_right_org_value += m.get_regiment().get_org();
+				}
+
+				auto dig_in = ar.get_army().get_dig_in();
+				if(display.top_right_dig_in == -1) {
+					display.top_right_dig_in = int8_t(dig_in);
+				} else {
+					display.top_right_dig_in = std::min(display.top_right_dig_in, int8_t(dig_in));
+				}
+
+				if(str > max_opp_str) {
+					max_opp_str = str;
+					display.top_right_nation = controller;
+					display.top_right_rebel = ar.get_army().get_controller_from_army_rebel_control();
+				}
+			} else { // same side
+				float str = 0.0f;
+				for(auto m : state.world.army_get_army_membership(ar.get_army())) {
+					auto icon = state.military_definitions.unit_base_definitions[m.get_regiment().get_type()].icon - 1;
+					set_flags.template operator() < dcon::army_fat_id, false > (ar.get_army());
+					if(uint32_t(icon) >= by_icon_count.size()) {
+						by_icon_count.resize(icon + 1, 0);
+					}
+					++(by_icon_count[icon]);
+					++total_count;
+
+					str += m.get_regiment().get_strength();
+					display.top_left_value += m.get_regiment().get_strength();
+					display.top_left_org_value += m.get_regiment().get_org();
+				}
+
+				auto dig_in = ar.get_army().get_dig_in();
+				if(display.top_dig_in == -1) {
+					display.top_dig_in = int8_t(dig_in);
+				} else {
+					display.top_dig_in = std::min(display.top_dig_in, int8_t(dig_in));
+				}
+
+				if(str > max_str) {
+					max_str = str;
+					display.top_left_nation = controller;
+					display.top_left_rebel = dcon::rebel_faction_id{};
+				}
+			}
+		}
+
+		display.top_left_org_value /= float(total_count);
+		display.top_right_org_value /= float(total_opp_count);
+
+		float a_str = 0;
+		float d_str = 0;
+
+		for(auto reg : state.world.land_battle_get_reserves(lbattle)) {
+			auto reg_str = state.world.regiment_get_strength(reg.regiment);
+			if(reg_str > state.defines.alice_reg_deploy_from_reserve_str && state.world.regiment_get_org(reg.regiment) >= state.defines.alice_reg_deploy_from_reserve_org) {
+				if((reg.flags & military::battle_regiment::is_attacking) != 0)
+					a_str += reg_str;
+				else
+					d_str += reg_str;
+			}
+		}
+
+		auto& att_back = state.world.land_battle_get_attacker_back_line(lbattle);
+		auto& def_back = state.world.land_battle_get_defender_back_line(lbattle);
+		auto& att_front = state.world.land_battle_get_attacker_front_line(lbattle);
+		auto& def_front = state.world.land_battle_get_defender_front_line(lbattle);
+		for(auto r : att_back) {
+			if(r.regiment)
+				a_str += state.world.regiment_get_strength(r.regiment);
+		}
+		for(auto r : att_front) {
+			if(r.regiment)
+				a_str += state.world.regiment_get_strength(r.regiment);
+		}
+		for(auto r : def_back) {
+			if(r.regiment)
+				d_str += state.world.regiment_get_strength(r.regiment);
+		}
+		for(auto r : def_front) {
+			if(r.regiment)
+				d_str += state.world.regiment_get_strength(r.regiment);
+		}
+		if(state.world.land_battle_get_war_attacker_is_attacker(lbattle) == player_is_attacker) {
+			display.battle_progress = a_str / (a_str + d_str);
+		} else {
+			display.battle_progress = d_str / (a_str + d_str);
+		}
+
+		active_battles[prov.index()] = 1;
+	} else if(nbattle) {
+		float max_str = 0.0f;
+		float max_opp_str = 0.0f;
+		int32_t total_count = 0;
+		int32_t total_opp_count = 0;
+
+		auto w = state.world.naval_battle_get_war_from_naval_battle_in_war(nbattle);
+		bool player_is_attacker = w ? military::is_attacker(state, w, state.local_player_nation) : false;
+
+		display.top_left_status = 6;
+
+		for(auto ar : state.world.naval_battle_get_navy_battle_participation(nbattle)) {
+			auto controller = ar.get_navy().get_controller_from_navy_control();
+			// either navies opposed to the player while the player is involved, or navies which are part of the attacking side of the war while the player is not involved
+			if((!controller || (player_involved_battle && military::is_attacker(state, w, controller) != player_is_attacker)) || (!player_involved_battle && military::is_attacker(state, w, controller))) {
+				set_flags.template operator() < dcon::navy_fat_id, true > (ar.get_navy());
+
+
+				++display.right_frames;
+
+				float str = 0.0f;
+				for(auto m : state.world.navy_get_navy_membership(ar.get_navy())) {
+					++total_opp_count;
+
+					str += m.get_ship().get_strength();
+					display.top_right_value += 1.0f;
+					display.top_right_org_value += m.get_ship().get_org();
+				}
+
+				if(str > max_opp_str) {
+					max_opp_str = str;
+					display.top_right_nation = controller;
+					display.top_right_rebel = dcon::rebel_faction_id{};
+				}
+			} else { // same side
+				float str = 0.0f;
+				for(auto m : state.world.navy_get_navy_membership(ar.get_navy())) {
+					set_flags.template operator() < dcon::navy_fat_id, false > (ar.get_navy());
+					auto icon = state.military_definitions.unit_base_definitions[m.get_ship().get_type()].icon - 1;
+					if(uint32_t(icon) >= by_icon_count.size()) {
+						by_icon_count.resize(icon + 1, 0);
+					}
+					++(by_icon_count[icon]);
+					++total_count;
+
+					str += m.get_ship().get_strength();
+					display.top_left_value += 1.0f;
+					display.top_left_org_value += m.get_ship().get_org();
+				}
+
+				if(str > max_str) {
+					max_str = str;
+					display.top_left_nation = controller;
+					display.top_left_rebel = dcon::rebel_faction_id{};
+				}
+			}
+		}
+
+		display.top_left_org_value /= float(total_count);
+		display.top_right_org_value /= float(total_opp_count);
+
+		float attacker_combat_score = 0;
+		float defender_combat_score = 0;
+
+		auto slots = state.world.naval_battle_get_slots(nbattle);
+
+		for(uint32_t j = slots.size(); j-- > 0;) {
+			switch(slots[j].flags & military::ship_in_battle::mode_mask) {
+			case military::ship_in_battle::mode_seeking:
+			case military::ship_in_battle::mode_approaching:
+			case military::ship_in_battle::mode_retreating:
+			case military::ship_in_battle::mode_engaged:
+				if((slots[j].flags & military::ship_in_battle::is_attacking) != 0)
+					attacker_combat_score += military::get_ship_combat_score(state, slots[j].ship);
+				else
+					defender_combat_score += military::get_ship_combat_score(state, slots[j].ship);
+				break;
+			default:
+				break;
+			}
+		}
+
+		if(state.world.naval_battle_get_war_attacker_is_attacker(nbattle) == player_is_attacker) {
+			display.battle_progress = attacker_combat_score / (attacker_combat_score + defender_combat_score);
+		} else {
+			display.battle_progress = defender_combat_score / (attacker_combat_score + defender_combat_score);
+		}
+
+		active_battles[prov.index()] = 1;
+	}
+	// no battle
+	else {
+		// if sea province
+		if(prov.index() < state.province_definitions.first_sea_province.index()) {
+			for(auto a : state.world.province_get_army_location(prov)) {
+				if(!(a.get_army().get_navy_from_army_transport())) {
+
+					set_flags.template operator() < dcon::army_fat_id, false > (a.get_army());
+					display.top_army_id = a.get_army();
+				}
+			}
+		} else { // if land province
+			auto navies = state.world.province_get_navy_location(prov);
+			if(navies.begin() == navies.end()) {
+				return;
+			} else {
+				for(auto n : navies) {
+					set_flags.template operator() < dcon::navy_fat_id, false > (n.get_navy());
+				}
+			}
+		}
+
+		active_battles[prov.index()] = 0;
+	}
+
+
+	display.colors_used = 0;
+
+	if(found_selected) {
+		display.colors[display.colors_used] = outline_color::gold;
+		++display.colors_used;
+	}
+	if(!all_selected) {
+		display.colors[display.colors_used] = outline_color::blue;
+		++display.colors_used;
+	}
+	if(!player_involved_battle) {
+		if(found_enemy) {
+			display.colors[display.colors_used] = outline_color::red;
+			++display.colors_used;
+		}
+	}
+	if(found_ally) {
+		display.colors[display.colors_used] = outline_color::cyan;
+		++display.colors_used;
+	}
+	if(found_other) {
+		display.colors[display.colors_used] = outline_color::gray;
+		++display.colors_used;
+	}
+
+
+
+	if(top_right_found_enemy) {
+		display.top_right_color = outline_color::red;
+	}
+
+	if(top_right_found_ally) {
+		display.top_right_color = outline_color::cyan;
+	}
+	if(top_right_found_other) {
+		display.top_right_color = outline_color::gray;
+	}
+
+
+
+	if(!nbattle && !lbattle) {
+		if(prov.index() < state.province_definitions.first_sea_province.index()) {
+			std::function<bool(dcon::army_id)> filter;
+
+			if(display.colors[0] == outline_color::gold) {
+				//display.top_left_nation = state.local_player_nation;
+				display.top_left_rebel = dcon::rebel_faction_id{};
+				filter = [&](dcon::army_id a) { return military::get_effective_unit_commander(state, a) == state.local_player_nation && state.is_selected(a); };
+			} else if(display.colors[0] == outline_color::blue) {
+				//display.top_left_nation = state.local_player_nation;
+				display.top_left_rebel = dcon::rebel_faction_id{};
+				filter = [&](dcon::army_id a) { return military::get_effective_unit_commander(state, a) == state.local_player_nation && !state.is_selected(a); };
+			} else if(display.colors[0] == outline_color::cyan) {
+				filter = [&](dcon::army_id a) {
+					auto n = state.world.army_get_controller_from_army_control(a);
+					return n != state.local_player_nation && military::are_allied_in_war(state, n, state.local_player_nation);
+					};
+			} else if(display.colors[0] == outline_color::red) {
+				filter = [&](dcon::army_id a) {
+					auto n = state.world.army_get_controller_from_army_control(a);
+					return !n || military::are_at_war(state, n, state.local_player_nation);
+					};
+			} else if(display.colors[0] == outline_color::gray) {
+				filter = [&](dcon::army_id a) {
+					auto n = state.world.army_get_controller_from_army_control(a);
+					return n != state.local_player_nation && !military::are_allied_in_war(state, n, state.local_player_nation) && !military::are_at_war(state, n, state.local_player_nation);
+					};
+			}
+
 			float max_str = 0.0f;
-			float max_opp_str = 0.0f;
+
 			int32_t total_count = 0;
-			int32_t total_opp_count = 0;
+			int32_t ucount = 0;
 
-			auto w = state.world.land_battle_get_war_from_land_battle_in_war(lbattle);
-			bool player_is_attacker = w ? military::is_attacker(state, w, state.local_player_nation) : false;
-
-			bool land_battle_attacker_is_player = false;
-			if(player_is_attacker && state.world.land_battle_get_war_attacker_is_attacker(lbattle))
-				land_battle_attacker_is_player = true;
-			else if(!player_is_attacker && !state.world.land_battle_get_war_attacker_is_attacker(lbattle))
-				land_battle_attacker_is_player = true;
-
-			display.player_is_attacker = land_battle_attacker_is_player;
-
-			display.top_left_status = 6;
-
-			display.attacker_casualties = state.world.land_battle_get_attacker_casualties(lbattle);
-			display.defender_casualties = state.world.land_battle_get_defender_casualties(lbattle);
-
-			for(auto ar : state.world.land_battle_get_army_battle_participation(lbattle)) {
-				auto controller = ar.get_army().get_controller_from_army_control();
-				// either armies opposed to the player while the player is involved, or armies which are part of the attacking side of the war while the player is not involved
-				if((!controller || (player_involved_battle && military::is_attacker(state, w, controller) != player_is_attacker)) || (!player_involved_battle && military::is_attacker(state, w, controller))) {
-					++display.right_frames;
-					set_flags.template operator() < dcon::army_fat_id, true > (ar.get_army());
-
+			for(auto a : state.world.province_get_army_location(prov)) {
+				if(!(a.get_army().get_navy_from_army_transport()) && filter(a.get_army())) {
+					++ucount;
 					float str = 0.0f;
-					for(auto m : state.world.army_get_army_membership(ar.get_army())) {
-						++total_opp_count;
-
-						str += m.get_regiment().get_strength();
-						display.top_right_value += m.get_regiment().get_strength();
-						display.top_right_org_value += m.get_regiment().get_org();
-					}
-
-					auto dig_in = ar.get_army().get_dig_in();
-					if(display.top_right_dig_in == -1) {
-						display.top_right_dig_in = int8_t(dig_in);
-					} else {
-						display.top_right_dig_in = std::min(display.top_right_dig_in, int8_t(dig_in));
-					}
-
-					if(str > max_opp_str) {
-						max_opp_str = str;
-						display.top_right_nation = controller;
-						display.top_right_rebel = ar.get_army().get_controller_from_army_rebel_control();
-					}
-				} else { // same side
-					float str = 0.0f;
-					for(auto m : state.world.army_get_army_membership(ar.get_army())) {
+					for(auto m : state.world.army_get_army_membership(a.get_army())) {
 						auto icon = state.military_definitions.unit_base_definitions[m.get_regiment().get_type()].icon - 1;
-						set_flags.template operator() < dcon::army_fat_id, false > (ar.get_army());
+						icon = std::max(icon, 0);
 						if(uint32_t(icon) >= by_icon_count.size()) {
 							by_icon_count.resize(icon + 1, 0);
 						}
@@ -721,11 +989,21 @@ void unit_counter_window::on_update(sys::state& state) noexcept {
 						++total_count;
 
 						str += m.get_regiment().get_strength();
+						display.is_army = true;
 						display.top_left_value += m.get_regiment().get_strength();
 						display.top_left_org_value += m.get_regiment().get_org();
 					}
 
-					auto dig_in = ar.get_army().get_dig_in();
+					auto frame = status_frame(state, a.get_army());
+					if(display.top_left_status == -1) {
+						display.top_left_status = int8_t(frame);
+					} else if(display.top_left_status == int8_t(frame)) {
+
+					} else {
+						display.top_left_status = 0;
+					}
+
+					auto dig_in = a.get_army().get_dig_in();
 					if(display.top_dig_in == -1) {
 						display.top_dig_in = int8_t(dig_in);
 					} else {
@@ -734,93 +1012,61 @@ void unit_counter_window::on_update(sys::state& state) noexcept {
 
 					if(str > max_str) {
 						max_str = str;
-						display.top_left_nation = controller;
-						display.top_left_rebel = dcon::rebel_faction_id{};
+						display.top_left_nation = state.world.army_get_controller_from_army_control(a.get_army());
+						display.top_left_rebel = state.world.army_get_controller_from_army_rebel_control(a.get_army());
 					}
 				}
+			}
+
+			if(ucount > 1 && display.colors_used == 1) {
+				display.colors_used = 2;
+				display.colors[1] = display.colors[0];
 			}
 
 			display.top_left_org_value /= float(total_count);
-			display.top_right_org_value /= float(total_opp_count);
 
-			float a_str = 0;
-			float d_str = 0;
+			battle.set_visible(state, false);
+			active_siege[prov.index()] = state.world.province_get_siege_progress(prov) > 0.f;
+			top_icon.base_data.position.x = -30;
+			top_right_icon.set_visible(state, false);
+			small_top_icon.base_data.position.x = -30;
+			small_top_right_icon.set_visible(state, false);
+		} else {
+			std::function<bool(dcon::navy_id)> filter;
+			display.top_left_rebel = dcon::rebel_faction_id{};
 
-			for(auto reg : state.world.land_battle_get_reserves(lbattle)) {
-				auto reg_str = state.world.regiment_get_strength(reg.regiment);
-				if(reg_str > state.defines.alice_reg_deploy_from_reserve_str && state.world.regiment_get_org(reg.regiment) >= state.defines.alice_reg_deploy_from_reserve_org) {
-					if((reg.flags & military::battle_regiment::is_attacking) != 0)
-						a_str += reg_str;
-					else
-						d_str += reg_str;
-				}
-			}
-
-			auto& att_back = state.world.land_battle_get_attacker_back_line(lbattle);
-			auto& def_back = state.world.land_battle_get_defender_back_line(lbattle);
-			auto& att_front = state.world.land_battle_get_attacker_front_line(lbattle);
-			auto& def_front = state.world.land_battle_get_defender_front_line(lbattle);
-			for(auto r : att_back) {
-				if(r.regiment)
-					a_str += state.world.regiment_get_strength(r.regiment);
-			}
-			for(auto r : att_front) {
-				if(r.regiment)
-					a_str += state.world.regiment_get_strength(r.regiment);
-			}
-			for(auto r : def_back) {
-				if(r.regiment)
-					d_str += state.world.regiment_get_strength(r.regiment);
-			}
-			for(auto r : def_front) {
-				if(r.regiment)
-					d_str += state.world.regiment_get_strength(r.regiment);
-			}
-			if(state.world.land_battle_get_war_attacker_is_attacker(lbattle) == player_is_attacker) {
-				display.battle_progress = a_str / (a_str + d_str);
-			} else {
-				display.battle_progress = d_str / (a_str + d_str);
+			if(display.colors[0] == outline_color::gold) {
+				//display.top_left_nation = state.local_player_nation;
+				filter = [&](dcon::navy_id a) { return military::get_effective_unit_commander(state, a) == state.local_player_nation && state.is_selected(a); };
+			} else if(display.colors[0] == outline_color::blue) {
+				//display.top_left_nation = state.local_player_nation;
+				filter = [&](dcon::navy_id a) { return military::get_effective_unit_commander(state, a) == state.local_player_nation && !state.is_selected(a); };
+			} else if(display.colors[0] == outline_color::cyan) {
+				filter = [&](dcon::navy_id a) {
+					auto n = state.world.navy_get_controller_from_navy_control(a);
+					return n != state.local_player_nation && military::are_allied_in_war(state, n, state.local_player_nation);
+					};
+			} else if(display.colors[0] == outline_color::red) {
+				filter = [&](dcon::navy_id a) {
+					auto n = state.world.navy_get_controller_from_navy_control(a);
+					return military::are_at_war(state, n, state.local_player_nation);
+					};
+			} else if(display.colors[0] == outline_color::gray) {
+				filter = [&](dcon::navy_id a) {
+					auto n = state.world.navy_get_controller_from_navy_control(a);
+					return n != state.local_player_nation && !military::are_allied_in_war(state, n, state.local_player_nation) && !military::are_at_war(state, n, state.local_player_nation);
+					};
 			}
 
-			active_battles[prov.index()] = 1;
-		} else if(nbattle) {
 			float max_str = 0.0f;
-			float max_opp_str = 0.0f;
 			int32_t total_count = 0;
-			int32_t total_opp_count = 0;
+			int32_t ucount = 0;
 
-			auto w = state.world.naval_battle_get_war_from_naval_battle_in_war(nbattle);
-			bool player_is_attacker = w ? military::is_attacker(state, w, state.local_player_nation) : false;
-
-			display.top_left_status = 6;
-
-			for(auto ar : state.world.naval_battle_get_navy_battle_participation(nbattle)) {
-				auto controller = ar.get_navy().get_controller_from_navy_control();
-				// either navies opposed to the player while the player is involved, or navies which are part of the attacking side of the war while the player is not involved
-				if((!controller || (player_involved_battle && military::is_attacker(state, w, controller) != player_is_attacker)) || (!player_involved_battle && military::is_attacker(state, w, controller))) {
-					set_flags.template operator() < dcon::navy_fat_id, true > (ar.get_navy());
-
-
-					++display.right_frames;
-
+			for(auto a : state.world.province_get_navy_location(prov)) {
+				if(filter(a.get_navy())) {
+					++ucount;
 					float str = 0.0f;
-					for(auto m : state.world.navy_get_navy_membership(ar.get_navy())) {
-						++total_opp_count;
-
-						str += m.get_ship().get_strength();
-						display.top_right_value += 1.0f;
-						display.top_right_org_value += m.get_ship().get_org();
-					}
-
-					if(str > max_opp_str) {
-						max_opp_str = str;
-						display.top_right_nation = controller;
-						display.top_right_rebel = dcon::rebel_faction_id{};
-					}
-				} else { // same side
-					float str = 0.0f;
-					for(auto m : state.world.navy_get_navy_membership(ar.get_navy())) {
-						set_flags.template operator() < dcon::navy_fat_id, false > (ar.get_navy());
+					for(auto m : state.world.navy_get_navy_membership(a.get_navy())) {
 						auto icon = state.military_definitions.unit_base_definitions[m.get_ship().get_type()].icon - 1;
 						if(uint32_t(icon) >= by_icon_count.size()) {
 							by_icon_count.resize(icon + 1, 0);
@@ -833,328 +1079,82 @@ void unit_counter_window::on_update(sys::state& state) noexcept {
 						display.top_left_org_value += m.get_ship().get_org();
 					}
 
+					auto frame = status_frame(state, a.get_navy());
+					if(display.top_left_status == -1) {
+						display.top_left_status = int8_t(frame);
+					} else if(display.top_left_status == int8_t(frame)) {
+
+					} else {
+						display.top_left_status = 0;
+					}
+
 					if(str > max_str) {
 						max_str = str;
-						display.top_left_nation = controller;
-						display.top_left_rebel = dcon::rebel_faction_id{};
+						display.top_left_nation = state.world.navy_get_controller_from_navy_control(a.get_navy());
 					}
 				}
+			}
+
+			if(ucount > 1 && display.colors_used == 1) {
+				display.colors_used = 2;
+				display.colors[1] = display.colors[0];
 			}
 
 			display.top_left_org_value /= float(total_count);
-			display.top_right_org_value /= float(total_opp_count);
 
-			float attacker_combat_score = 0;
-			float defender_combat_score = 0;
-
-			auto slots = state.world.naval_battle_get_slots(nbattle);
-
-			for(uint32_t j = slots.size(); j-- > 0;) {
-				switch(slots[j].flags & military::ship_in_battle::mode_mask) {
-				case military::ship_in_battle::mode_seeking:
-				case military::ship_in_battle::mode_approaching:
-				case military::ship_in_battle::mode_retreating:
-				case military::ship_in_battle::mode_engaged:
-					if((slots[j].flags & military::ship_in_battle::is_attacking) != 0)
-						attacker_combat_score += military::get_ship_combat_score(state, slots[j].ship);
-					else
-						defender_combat_score += military::get_ship_combat_score(state, slots[j].ship);
-					break;
-				default:
-					break;
-				}
-			}
-
-			if(state.world.naval_battle_get_war_attacker_is_attacker(nbattle) == player_is_attacker) {
-				display.battle_progress = attacker_combat_score / (attacker_combat_score + defender_combat_score);
-			} else {
-				display.battle_progress = defender_combat_score / (attacker_combat_score + defender_combat_score);
-			}
-
-			active_battles[prov.index()] = 1;
+			battle.set_visible(state, false);
+			active_siege[prov.index()] = state.world.province_get_siege_progress(prov) > 0.f;
+			top_icon.base_data.position.x = -30;
+			top_right_icon.set_visible(state, false);
+			small_top_icon.base_data.position.x = -30;
+			small_top_right_icon.set_visible(state, false);
 		}
-		// no battle
-		else {
-			// if sea province
-			if(prov.index() < state.province_definitions.first_sea_province.index()) {
-				for(auto a : state.world.province_get_army_location(prov)) {
-					if(!(a.get_army().get_navy_from_army_transport())) {
+	}
 
-						set_flags.template operator() < dcon::army_fat_id, false > (a.get_army());
-						display.top_army_id = a.get_army();
-					}
-				}
-			} else { // if land province
-				auto navies = state.world.province_get_navy_location(prov);
-				if(navies.begin() == navies.end()) {
-					return;
-				} else {
-					for(auto n : navies) {
-						set_flags.template operator() < dcon::navy_fat_id, false > (n.get_navy());
-					}
-				}
-			}
-
-			active_battles[prov.index()] = 0;
+	if(display.top_left_nation == state.local_player_nation) {
+		int32_t max_index = 0;
+		for(uint32_t i = 1; i < by_icon_count.size(); ++i) {
+			if(by_icon_count[i] > by_icon_count[max_index])
+				max_index = int32_t(i);
 		}
+		display.common_unit_1 = int8_t(max_index);
 
-
-		display.colors_used = 0;
-
-		if(found_selected) {
-			display.colors[display.colors_used] = outline_color::gold;
-			++display.colors_used;
-		}
-		if(!all_selected) {
-			display.colors[display.colors_used] = outline_color::blue;
-			++display.colors_used;
-		}
-		if(!player_involved_battle) {
-			if(found_enemy) {
-				display.colors[display.colors_used] = outline_color::red;
-				++display.colors_used;
-			}
-		}
-		if(found_ally) {
-			display.colors[display.colors_used] = outline_color::cyan;
-			++display.colors_used;
-		}
-		if(found_other) {
-			display.colors[display.colors_used] = outline_color::gray;
-			++display.colors_used;
-		}
-
-
-
-		if(top_right_found_enemy) {
-			display.top_right_color = outline_color::red;
-		}
-
-		if(top_right_found_ally) {
-			display.top_right_color = outline_color::cyan;
-		}
-		if(top_right_found_other) {
-			display.top_right_color = outline_color::gray;
-		}
-
-
-
-		if(!nbattle && !lbattle) {
-			if(prov.index() < state.province_definitions.first_sea_province.index()) {
-				std::function<bool(dcon::army_id)> filter;
-
-				if(display.colors[0] == outline_color::gold) {
-					//display.top_left_nation = state.local_player_nation;
-					display.top_left_rebel = dcon::rebel_faction_id{};
-					filter = [&](dcon::army_id a) { return military::get_effective_unit_commander(state, a) == state.local_player_nation && state.is_selected(a); };
-				} else if(display.colors[0] == outline_color::blue) {
-					//display.top_left_nation = state.local_player_nation;
-					display.top_left_rebel = dcon::rebel_faction_id{};
-					filter = [&](dcon::army_id a) { return military::get_effective_unit_commander(state, a) == state.local_player_nation && !state.is_selected(a); };
-				} else if(display.colors[0] == outline_color::cyan) {
-					filter = [&](dcon::army_id a) {
-						auto n = state.world.army_get_controller_from_army_control(a);
-						return n != state.local_player_nation && military::are_allied_in_war(state, n, state.local_player_nation);
-						};
-				} else if(display.colors[0] == outline_color::red) {
-					filter = [&](dcon::army_id a) {
-						auto n = state.world.army_get_controller_from_army_control(a);
-						return !n || military::are_at_war(state, n, state.local_player_nation);
-						};
-				} else if(display.colors[0] == outline_color::gray) {
-					filter = [&](dcon::army_id a) {
-						auto n = state.world.army_get_controller_from_army_control(a);
-						return n != state.local_player_nation && !military::are_allied_in_war(state, n, state.local_player_nation) && !military::are_at_war(state, n, state.local_player_nation);
-						};
-				}
-
-				float max_str = 0.0f;
-
-				int32_t total_count = 0;
-				int32_t ucount = 0;
-
-				for(auto a : state.world.province_get_army_location(prov)) {
-					if(!(a.get_army().get_navy_from_army_transport()) && filter(a.get_army())) {
-						++ucount;
-						float str = 0.0f;
-						for(auto m : state.world.army_get_army_membership(a.get_army())) {
-							auto icon = state.military_definitions.unit_base_definitions[m.get_regiment().get_type()].icon - 1;
-							icon = std::max(icon, 0);
-							if(uint32_t(icon) >= by_icon_count.size()) {
-								by_icon_count.resize(icon + 1, 0);
-							}
-							++(by_icon_count[icon]);
-							++total_count;
-
-							str += m.get_regiment().get_strength();
-							display.is_army = true;
-							display.top_left_value += m.get_regiment().get_strength();
-							display.top_left_org_value += m.get_regiment().get_org();
-						}
-
-						auto frame = status_frame(state, a.get_army());
-						if(display.top_left_status == -1) {
-							display.top_left_status = int8_t(frame);
-						} else if(display.top_left_status == int8_t(frame)) {
-
-						} else {
-							display.top_left_status = 0;
-						}
-
-						auto dig_in = a.get_army().get_dig_in();
-						if(display.top_dig_in == -1) {
-							display.top_dig_in = int8_t(dig_in);
-						} else {
-							display.top_dig_in = std::min(display.top_dig_in, int8_t(dig_in));
-						}
-
-						if(str > max_str) {
-							max_str = str;
-							display.top_left_nation = state.world.army_get_controller_from_army_control(a.get_army());
-							display.top_left_rebel = state.world.army_get_controller_from_army_rebel_control(a.get_army());
-						}
-					}
-				}
-
-				if(ucount > 1 && display.colors_used == 1) {
-					display.colors_used = 2;
-					display.colors[1] = display.colors[0];
-				}
-
-				display.top_left_org_value /= float(total_count);
-
-				battle.set_visible(state, false);
-				active_siege[prov.index()] = state.world.province_get_siege_progress(prov) > 0.f;
-				top_icon.base_data.position.x = -30;
-				top_right_icon.set_visible(state, false);
-				small_top_icon.base_data.position.x = -30;
-				small_top_right_icon.set_visible(state, false);
-			} else {
-				std::function<bool(dcon::navy_id)> filter;
-				display.top_left_rebel = dcon::rebel_faction_id{};
-
-				if(display.colors[0] == outline_color::gold) {
-					//display.top_left_nation = state.local_player_nation;
-					filter = [&](dcon::navy_id a) { return military::get_effective_unit_commander(state, a) == state.local_player_nation && state.is_selected(a); };
-				} else if(display.colors[0] == outline_color::blue) {
-					//display.top_left_nation = state.local_player_nation;
-					filter = [&](dcon::navy_id a) { return military::get_effective_unit_commander(state, a) == state.local_player_nation && !state.is_selected(a); };
-				} else if(display.colors[0] == outline_color::cyan) {
-					filter = [&](dcon::navy_id a) {
-						auto n = state.world.navy_get_controller_from_navy_control(a);
-						return n != state.local_player_nation && military::are_allied_in_war(state, n, state.local_player_nation);
-						};
-				} else if(display.colors[0] == outline_color::red) {
-					filter = [&](dcon::navy_id a) {
-						auto n = state.world.navy_get_controller_from_navy_control(a);
-						return military::are_at_war(state, n, state.local_player_nation);
-						};
-				} else if(display.colors[0] == outline_color::gray) {
-					filter = [&](dcon::navy_id a) {
-						auto n = state.world.navy_get_controller_from_navy_control(a);
-						return n != state.local_player_nation && !military::are_allied_in_war(state, n, state.local_player_nation) && !military::are_at_war(state, n, state.local_player_nation);
-						};
-				}
-
-				float max_str = 0.0f;
-				int32_t total_count = 0;
-				int32_t ucount = 0;
-
-				for(auto a : state.world.province_get_navy_location(prov)) {
-					if(filter(a.get_navy())) {
-						++ucount;
-						float str = 0.0f;
-						for(auto m : state.world.navy_get_navy_membership(a.get_navy())) {
-							auto icon = state.military_definitions.unit_base_definitions[m.get_ship().get_type()].icon - 1;
-							if(uint32_t(icon) >= by_icon_count.size()) {
-								by_icon_count.resize(icon + 1, 0);
-							}
-							++(by_icon_count[icon]);
-							++total_count;
-
-							str += m.get_ship().get_strength();
-							display.top_left_value += 1.0f;
-							display.top_left_org_value += m.get_ship().get_org();
-						}
-
-						auto frame = status_frame(state, a.get_navy());
-						if(display.top_left_status == -1) {
-							display.top_left_status = int8_t(frame);
-						} else if(display.top_left_status == int8_t(frame)) {
-
-						} else {
-							display.top_left_status = 0;
-						}
-
-						if(str > max_str) {
-							max_str = str;
-							display.top_left_nation = state.world.navy_get_controller_from_navy_control(a.get_navy());
-						}
-					}
-				}
-
-				if(ucount > 1 && display.colors_used == 1) {
-					display.colors_used = 2;
-					display.colors[1] = display.colors[0];
-				}
-
-				display.top_left_org_value /= float(total_count);
-
-				battle.set_visible(state, false);
-				active_siege[prov.index()] = state.world.province_get_siege_progress(prov) > 0.f;
-				top_icon.base_data.position.x = -30;
-				top_right_icon.set_visible(state, false);
-				small_top_icon.base_data.position.x = -30;
-				small_top_right_icon.set_visible(state, false);
-			}
-		}
-
-		if(display.top_left_nation == state.local_player_nation) {
-			int32_t max_index = 0;
+		if(by_icon_count.size() > 0) {
+			by_icon_count[max_index] = 0;
+			max_index = 0;
 			for(uint32_t i = 1; i < by_icon_count.size(); ++i) {
 				if(by_icon_count[i] > by_icon_count[max_index])
 					max_index = int32_t(i);
 			}
-			display.common_unit_1 = int8_t(max_index);
+			if(by_icon_count[max_index] > 0)
+				display.common_unit_2 = int8_t(max_index);
+		}
+	}
 
-			if(by_icon_count.size() > 0) {
-				by_icon_count[max_index] = 0;
-				max_index = 0;
-				for(uint32_t i = 1; i < by_icon_count.size(); ++i) {
-					if(by_icon_count[i] > by_icon_count[max_index])
-						max_index = int32_t(i);
-				}
-				if(by_icon_count[max_index] > 0)
-					display.common_unit_2 = int8_t(max_index);
+	has_attrition[prov.index()] = false;
+	if(prov.index() >= state.province_definitions.first_sea_province.index()) {
+		for(auto navy : state.world.province_get_navy_location(prov)) {
+			if(military::will_recieve_attrition(state, navy.get_navy())) {
+				has_attrition[prov.index()] = true;
+				break;
 			}
 		}
-
-		has_attrition[prov.index()] = false;
-		if(prov.index() >= state.province_definitions.first_sea_province.index()) {
-			for(auto navy : state.world.province_get_navy_location(prov)) {
-				if(military::will_recieve_attrition(state, navy.get_navy())) {
-					has_attrition[prov.index()] = true;
-					break;
-				}
+	} else {
+		for(auto army : state.world.province_get_army_location(prov)) {
+			if(military::will_recieve_attrition(state, army.get_army())) {
+				has_attrition[prov.index()] = true;
+				break;
 			}
 		}
-		else {
-			for(auto army : state.world.province_get_army_location(prov)) {
-				if(military::will_recieve_attrition(state, army.get_army())) {
-					has_attrition[prov.index()] = true;
-					break;
-				}
-			}
-		}
+	}
 
-	});
+}
 
-	auto rtl = state.world.locale_get_native_rtl(state.font_collection.get_current_locale())
-		? text::layout_base::rtl_status::rtl
-		: text::layout_base::rtl_status::ltr;
 
-	state.world.for_each_province([&](auto prov) {
-		auto& params =  display_cache[prov.index()];
+void unit_counter_window::update_text(sys::state& state, dcon::province_id prov, text::layout_base::rtl_status rtl) noexcept {
+	auto& params = display_cache[prov.index()];
+
+	{
 		auto& layout = strength_layout_cache[prov.index()];
 		auto& layout_small = strength_layout_small_cache[prov.index()];
 		auto strength = params.top_left_value;
@@ -1187,7 +1187,7 @@ void unit_counter_window::on_update(sys::state& state) noexcept {
 					},
 					rtl
 				};
-				sl.add_text(state, pretty);					
+				sl.add_text(state, pretty);
 			}
 
 			{
@@ -1202,13 +1202,11 @@ void unit_counter_window::on_update(sys::state& state) noexcept {
 					},
 					rtl
 				};
-				sl.add_text(state, pretty);					
+				sl.add_text(state, pretty);
 			}
 		}
-	});
-
-	state.world.for_each_province([&](auto prov) {
-		auto& params =  display_cache[prov.index()];
+	}
+	{
 		auto& layout = strength_right_layout_cache[prov.index()];
 		auto& layout_small = strength_right_layout_small_cache[prov.index()];
 		auto strength = params.top_right_value;
@@ -1241,7 +1239,7 @@ void unit_counter_window::on_update(sys::state& state) noexcept {
 					},
 					rtl
 				};
-				sl.add_text(state, pretty);					
+				sl.add_text(state, pretty);
 			}
 
 			{
@@ -1256,15 +1254,12 @@ void unit_counter_window::on_update(sys::state& state) noexcept {
 					},
 					rtl
 				};
-				sl.add_text(state, pretty);					
+				sl.add_text(state, pretty);
 			}
 		}
-	});
-
-	// casualties
-	state.world.for_each_province([&](auto prov) {
-		auto& params =  display_cache[prov.index()];
-		{			
+	}
+	{
+		{
 			auto& label = battle.attacker_casualties;
 			auto& layout = casualties_layout_cache[prov.index()];
 			auto loss = params.attacker_casualties * state.defines.pop_size_per_regiment;
@@ -1318,40 +1313,42 @@ void unit_counter_window::on_update(sys::state& state) noexcept {
 				sl.add_text(state, pretty);
 			}
 		}
-	});
-
-	// update flags here for efficiency: no need to send payloads
-	state.world.for_each_province([&](auto prov) {
-		auto& params = display_cache[prov.index()];
+	}
+	{
 		auto rebel_faction = params.top_left_rebel;
 		auto nation = params.top_left_nation;
 		if(nation) {
 			flag_texture_handles[prov.index()] = ogl::get_flag_handle(state, state.world.nation_get_identity_from_identity_holder(nation), culture::get_current_flag_type(state, nation));
-			return;
-		}
-		if(rebel_faction) {
+		} else if(rebel_faction) {
 			flag_texture_handles[prov.index()] = ogl::get_rebel_flag_handle(state, rebel_faction);
-			return;
+		} else {
+			auto reb_tag = state.national_definitions.rebel_id;
+			flag_texture_handles[prov.index()] = ogl::get_flag_handle(state, reb_tag, { });
 		}
-		auto reb_tag = state.national_definitions.rebel_id;
-		flag_texture_handles[prov.index()] = ogl::get_flag_handle(state, reb_tag, { });
-	});
+	}
 
-	state.world.for_each_province([&](auto prov) {
-		auto& params = display_cache[prov.index()];
+	{
 		auto rebel_faction = params.top_right_rebel;
 		auto nation = params.top_right_nation;
 		if(nation) {
 			flag_right_texture_handles[prov.index()] = ogl::get_flag_handle(state, state.world.nation_get_identity_from_identity_holder(nation), culture::get_current_flag_type(state, nation));
 			return;
-		}
-		if(rebel_faction) {
+		} else if(rebel_faction) {
 			flag_right_texture_handles[prov.index()] = ogl::get_rebel_flag_handle(state, rebel_faction);
 			return;
+		} else {
+			auto reb_tag = state.national_definitions.rebel_id;
+			flag_right_texture_handles[prov.index()] = ogl::get_flag_handle(state, reb_tag, { });
 		}
-		auto reb_tag = state.national_definitions.rebel_id;
-		flag_right_texture_handles[prov.index()] = ogl::get_flag_handle(state, reb_tag, { });
-	});
+	}
+}
+
+void unit_counter_window::on_update(sys::state& state) noexcept {
+	update_global_count++;
+
+	auto rtl = state.world.locale_get_native_rtl(state.font_collection.get_current_locale())
+		? text::layout_base::rtl_status::rtl
+		: text::layout_base::rtl_status::ltr;
 }
 
 void unit_counter_window::toogle_grid (sys::state& state, dcon::province_id target, bool with_shift) {

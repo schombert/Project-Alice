@@ -669,12 +669,21 @@ public:
 	std::vector<uint8_t> active_battles{ };
 	std::vector<uint8_t> active_siege{ };
 
+
+	std::vector<uint8_t> update_count{ };
+	uint8_t update_global_count = 0;
+	std::vector<uint8_t> render_count{ };
+	uint8_t render_global_count = 0;
+
 	std::vector<GLuint> flag_texture_handles{ };
 	std::vector<GLuint> flag_right_texture_handles{ };
 
 	std::vector<glm::vec2> last_screen_coordinates { };
 	bool lack_of_movement_hypothesis = false;
 	float decaying_max_shift = 0.f;
+
+	void update_province_data(sys::state& state, dcon::province_id prov) noexcept;
+	void update_text(sys::state& state, dcon::province_id prov, text::layout_base::rtl_status rtl) noexcept;
 
 	void on_update(sys::state& state) noexcept override;
 
@@ -756,6 +765,10 @@ public:
 		active_battles.resize(state.world.province_size());
 		active_siege.resize(state.world.province_size());
 
+
+		update_count.resize(state.world.province_size());
+		render_count.resize(state.world.province_size());
+
 		//window_element_base::on_create(state);
 
 		auto first_child = base_data.data.window.first_child;
@@ -772,10 +785,6 @@ public:
 			top_right_icon.strength_label.external_layout = nullptr;
 			small_top_icon.strength_label.external_layout = nullptr;
 			small_top_right_icon.strength_label.external_layout = nullptr;
-			return;
-		}
-
-		if(!populated_counters[prov.index()]) {
 			return;
 		}
 
@@ -926,81 +935,180 @@ public:
 		small_top_icon.has_attrition = has_attrition[current_province.index()];	
 	}
 
+	bool render_province_big(sys::state& state, dcon::province_id prov) {
+		set_province(state, prov);
+
+		if(!visible_counters[prov.index()]) {
+			return false;
+		}
+
+		top_icon.frame.hover = hovered_icon == prov;
+		auto x = base_data.position.x;
+		auto y = base_data.position.y;
+
+		{
+			auto shift = child_relative_location(state, *this, top_icon);
+			if(active_battles[prov.index()]) {
+				top_icon.impl_render(state, x + shift.x + battle_shift_big, y + shift.y);
+			} else {
+				top_icon.impl_render(state, x + shift.x, y + shift.y);
+			}
+		}
+		if(active_battles[prov.index()]) {
+			auto shift = child_relative_location(state, *this, top_right_icon);
+			top_right_icon.impl_render(state, x + shift.x, y + shift.y);
+		}
+		if(active_battles[prov.index()]) {
+			auto shift = child_relative_location(state, *this, battle);
+			battle.impl_render(state, x + shift.x, y + shift.y);
+		}
+		if(!active_battles[prov.index()] && active_siege[prov.index()]) {
+			auto shift = child_relative_location(state, *this, siege);
+			siege.impl_render(state, x + shift.x, y + shift.y);
+			auto shift2 = child_relative_location(state, siege, siege.progress);
+			siege.progress.impl_render(state, x + shift.x + shift2.x, y + shift.y + shift2.y);
+		}
+
+		return true;
+	}
+
+	bool render_province_small(sys::state& state, dcon::province_id prov) {
+		set_province(state, prov);
+
+		if(!visible_counters[prov.index()]) {
+			return false;
+		}
+
+		small_top_icon.frame.hover = hovered_icon == prov;
+		auto x = base_data.position.x;
+		auto y = base_data.position.y;
+
+		{
+			auto shift = child_relative_location(state, *this, small_top_icon);
+			if(active_battles[prov.index()]) {
+				small_top_icon.impl_render(state, x + shift.x + battle_shift_small, y + shift.y);
+			} else {
+				small_top_icon.impl_render(state, x + shift.x, y + shift.y);
+			}
+		}
+		if(active_battles[prov.index()]) {
+			auto shift = child_relative_location(state, *this, small_top_right_icon);
+			small_top_right_icon.impl_render(state, x + shift.x, y + shift.y);
+		}
+		if(active_battles[prov.index()]) {
+			auto shift = child_relative_location(state, *this, battle);
+			battle.impl_render(state, x + shift.x, y + shift.y);
+		}
+		if(!active_battles[prov.index()] && active_siege[prov.index()]) {
+			auto shift = child_relative_location(state, *this, siege);
+			siege.impl_render(state, x + shift.x, y + shift.y + siege_progress_shift_y_small);
+			auto shift2 = child_relative_location(state, siege, siege.progress);
+			siege.progress.impl_render(state, x + shift.x + shift2.x, y + shift.y + shift2.y + siege_progress_shift_y_small);
+		}
+
+		return true;
+	}
 
 	void impl_render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		render_global_count++;
+
+		auto rtl = state.world.locale_get_native_rtl(state.font_collection.get_current_locale())
+			? text::layout_base::rtl_status::rtl
+			: text::layout_base::rtl_status::ltr;
+
 		// check if we are the hovered one
 
 		bool hovered = state.ui_state.under_mouse == this;
 
 		if(state.map_state.get_zoom() >= big_counter_cutoff) {
 			// use big counters
-			for (auto prov : state.world.in_province) {
-				set_province(state, prov);
-				auto populated = populated_counters[prov.id.index()];
-				auto visible = visible_counters[prov.id.index()];
-				if(!(populated && visible)) continue;
-
-				top_icon.frame.hover = hovered_icon == prov.id;
-				x = base_data.position.x;
-				y = base_data.position.y;
-
-				{
-					auto shift = child_relative_location(state, *this, top_icon);
-					if (active_battles[prov.id.index()]) {						
-						top_icon.impl_render(state, x + shift.x + battle_shift_big, y + shift.y);
-					} else {
-						top_icon.impl_render(state, x + shift.x, y + shift.y);
-					}
+			for(auto army : state.world.in_army) {
+				auto prov = state.world.army_get_location_from_army_location(army);
+				if(!prov) {
+					continue;
 				}
-				if(active_battles[prov.id.index()]) {
-					auto shift = child_relative_location(state, *this, top_right_icon);
-					top_right_icon.impl_render(state, x + shift.x, y + shift.y);
+				if(render_count[prov.index()] == render_global_count) {
+					continue;
 				}
-				if(active_battles[prov.id.index()]) {
-					auto shift = child_relative_location(state, *this, battle);
-					battle.impl_render(state, x + shift.x, y + shift.y);
+				auto rendered = render_province_big(state, prov);
+				render_count[prov.index()] = render_global_count;
+				if(!rendered) {
+					continue;
 				}
-				if(!active_battles[prov.id.index()] && active_siege[prov.id.index()]) {
-					auto shift = child_relative_location(state, *this, siege);
-					siege.impl_render(state, x + shift.x, y + shift.y);
-					auto shift2 = child_relative_location(state, siege, siege.progress);
-					siege.progress.impl_render(state, x + shift.x + shift2.x, y + shift.y + shift2.y);
+				if(update_count[prov.index()] == update_global_count) {
+					continue;
 				}
+				update_province_data(state, prov);
+				update_text(state, prov, rtl);
+				update_count[prov.index()] = update_global_count;
+			}
+			for(auto navy : state.world.in_navy) {
+				auto prov = state.world.navy_get_location_from_navy_location(navy);
+				if(!prov) {
+					continue;
+				}
+				if(prov.index() < state.province_definitions.first_sea_province.index()) {
+					continue;
+				}
+				if(render_count[prov.index()] == render_global_count) {
+					continue;
+				}
+				auto rendered = render_province_big(state, prov);
+				render_count[prov.index()] = render_global_count;
+				if(!rendered) {
+					continue;
+				}
+				if(update_count[prov.index()] == update_global_count) {
+					continue;
+				}
+				update_province_data(state, prov);
+				update_text(state, prov, rtl);
+				update_count[prov.index()] = update_global_count;
 			}
 		} else {
 			// use small counters
-			for (auto prov : state.world.in_province) {
-				set_province(state, prov);
-				auto populated = populated_counters[prov.id.index()];
-				auto visible = visible_counters[prov.id.index()];
-				if(!(populated && visible)) continue;
-
-				small_top_icon.frame.hover = hovered_icon == prov.id;
-				x = base_data.position.x;
-				y = base_data.position.y;
-
-				{
-					auto shift = child_relative_location(state, *this, small_top_icon);
-					if (active_battles[prov.id.index()]) {
-						small_top_icon.impl_render(state, x + shift.x + battle_shift_small, y + shift.y);
-					} else {
-						small_top_icon.impl_render(state, x + shift.x, y + shift.y);
-					}
+			for(auto army : state.world.in_army) {
+				auto prov = state.world.army_get_location_from_army_location(army);
+				if(!prov) {
+					continue;
 				}
-				if(active_battles[prov.id.index()]) {
-					auto shift = child_relative_location(state, *this, small_top_right_icon);
-					small_top_right_icon.impl_render(state, x + shift.x, y + shift.y);
+				if(render_count[prov.index()] == render_global_count) {
+					continue;
 				}
-				if(active_battles[prov.id.index()]) {
-					auto shift = child_relative_location(state, *this, battle);
-					battle.impl_render(state, x + shift.x, y + shift.y);
+				auto rendered = render_province_small(state, prov);
+				render_count[prov.index()] = render_global_count;
+				if(!rendered) {
+					continue;
 				}
-				if(!active_battles[prov.id.index()] && active_siege[prov.id.index()]) {
-					auto shift = child_relative_location(state, *this, siege);
-					siege.impl_render(state, x + shift.x, y + shift.y + siege_progress_shift_y_small);
-					auto shift2 = child_relative_location(state, siege, siege.progress);
-					siege.progress.impl_render(state, x + shift.x + shift2.x, y + shift.y + shift2.y + siege_progress_shift_y_small);
+				if(update_count[prov.index()] == update_global_count) {
+					continue;
 				}
+				update_province_data(state, prov);
+				update_text(state, prov, rtl);
+				update_count[prov.index()] = update_global_count;
+			}
+			for(auto navy : state.world.in_navy) {
+				auto prov = state.world.navy_get_location_from_navy_location(navy);
+				if(!prov) {
+					continue;
+				}
+				if(prov.index() < state.province_definitions.first_sea_province.index()) {
+					continue;
+				}
+				if(render_count[prov.index()] == render_global_count) {
+					continue;
+				}
+				auto rendered = render_province_small(state, prov);
+				render_count[prov.index()] = render_global_count;
+				if(!rendered) {
+					continue;
+				}
+				if(update_count[prov.index()] == update_global_count) {
+					continue;
+				}
+				update_province_data(state, prov);
+				update_text(state, prov, rtl);
+				update_count[prov.index()] = update_global_count;
 			}
 		}
 	}
