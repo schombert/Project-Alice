@@ -932,13 +932,13 @@ void display_data::render(
 		glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_national_border]);
 		glUniform1f(shader_uniforms[shader_borders_provinces][uniform_is_national_border], 1.f);
 		glBindBuffer(GL_DRAW_INDIRECT_BUFFER, national_borders_draw_command);
-		glMultiDrawArraysIndirect(GL_TRIANGLE_STRIP, 0, national_borders_count, 0);
+		glMultiDrawArraysIndirect(GL_TRIANGLE_STRIP, 0, (GLsizei)national_borders_count, 0);
 
 		glUniform1f(shader_uniforms[shader_borders_provinces][uniform_is_national_border], 0.f);
 		glBindVertexArray(vao_array[vo_border]);
 		glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_border]);
 		glBindBuffer(GL_DRAW_INDIRECT_BUFFER, province_indirect_buffer);
-		glMultiDrawArraysIndirect(GL_TRIANGLE_STRIP, 0, province_border_starts.size(),0);
+		glMultiDrawArraysIndirect(GL_TRIANGLE_STRIP, 0, (GLsizei)province_border_starts.size(),0);
 		glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);
 	}
 
@@ -1185,7 +1185,7 @@ void display_data::render(
 				glBindVertexArray(vao_array[vo_border]);
 				glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_border]);
 				glBindBuffer(GL_DRAW_INDIRECT_BUFFER, province_indirect_buffer);
-				glMultiDrawArraysIndirect(GL_TRIANGLE_STRIP, 0, province_border_starts.size(), 0);
+				glMultiDrawArraysIndirect(GL_TRIANGLE_STRIP, 0, (GLsizei)province_border_starts.size(), 0);
 				glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);
 			}
 			{ // Render state borders
@@ -1195,7 +1195,7 @@ void display_data::render(
 				glBindVertexArray(vao_array[vo_state_border]);
 				glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_state_border]);
 				glBindBuffer(GL_DRAW_INDIRECT_BUFFER, state_indirect_buffer);
-				glMultiDrawArraysIndirect(GL_TRIANGLE_STRIP, 0, state_border_starts.size(), 0);
+				glMultiDrawArraysIndirect(GL_TRIANGLE_STRIP, 0, (GLsizei)state_border_starts.size(), 0);
 				glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);
 			}
 			// impassible borders
@@ -1206,7 +1206,7 @@ void display_data::render(
 				glBindVertexArray(vao_array[vo_border]);
 				glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_border]);
 				glBindBuffer(GL_DRAW_INDIRECT_BUFFER, impassible_indirect_buffer);
-				glMultiDrawArraysIndirect(GL_TRIANGLE_STRIP, 0, national_borders_count, 0);
+				glMultiDrawArraysIndirect(GL_TRIANGLE_STRIP, 0, (GLsizei)impassible_count, 0);
 				glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);
 			}
 			// national borders
@@ -1221,7 +1221,7 @@ void display_data::render(
 				glBindVertexArray(vao_array[vo_national_border]);
 				glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_national_border]);
 				glBindBuffer(GL_DRAW_INDIRECT_BUFFER, national_borders_draw_command);
-				glMultiDrawArraysIndirect(GL_TRIANGLE_STRIP, 0, national_borders_count, 0);
+				glMultiDrawArraysIndirect(GL_TRIANGLE_STRIP, 0, (GLsizei)national_borders_count, 0);
 				glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);
 			}
 		} else {
@@ -1232,7 +1232,7 @@ void display_data::render(
 				glBindVertexArray(vao_array[vo_border]);
 				glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_border]);
 				glBindBuffer(GL_DRAW_INDIRECT_BUFFER, province_indirect_buffer);
-				glMultiDrawArraysIndirect(GL_TRIANGLE_STRIP, 0, province_border_starts.size(), 0);
+				glMultiDrawArraysIndirect(GL_TRIANGLE_STRIP, 0, (GLsizei)province_border_starts.size(), 0);
 				glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);
 			}
 			if(zoom > map::zoom_close) { // Render state borders
@@ -1242,7 +1242,7 @@ void display_data::render(
 				glBindVertexArray(vao_array[vo_state_border]);
 				glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_state_border]);
 				glBindBuffer(GL_DRAW_INDIRECT_BUFFER, state_indirect_buffer);
-				glMultiDrawArraysIndirect(GL_TRIANGLE_STRIP, 0, state_border_starts.size(), 0);
+				glMultiDrawArraysIndirect(GL_TRIANGLE_STRIP, 0, (GLsizei)state_border_starts.size(), 0);
 				glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);
 			}
 			// national borders
@@ -1253,7 +1253,7 @@ void display_data::render(
 				glBindVertexArray(vao_array[vo_national_border]);
 				glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_national_border]);
 				glBindBuffer(GL_DRAW_INDIRECT_BUFFER, national_borders_draw_command);
-				glMultiDrawArraysIndirect(GL_TRIANGLE_STRIP, 0, national_borders_count, 0);
+				glMultiDrawArraysIndirect(GL_TRIANGLE_STRIP, 0, (GLsizei)national_borders_count, 0);
 				glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);
 			}
 		}
