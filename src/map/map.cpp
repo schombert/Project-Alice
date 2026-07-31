@@ -445,12 +445,21 @@ struct DrawArraysIndirectCommand {
 	GLuint  baseInstance;
 };
 
+static_assert(sizeof(DrawArraysIndirectCommand) == 16);
+
 static GLuint national_borders_draw_command;
 static size_t national_borders_count;
 
 void display_data::update_borders_mesh() {	
 	if(national_border_vertices.empty()) return;
 	glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_national_border]);
+	glBufferData(
+		GL_ARRAY_BUFFER,
+		sizeof(textured_line_vertex_b_enriched_with_province_index)
+		* national_border_vertices.size(),
+		NULL,
+		GL_DYNAMIC_DRAW
+	);
 	glBufferData(
 		GL_ARRAY_BUFFER,
 		sizeof(textured_line_vertex_b_enriched_with_province_index)

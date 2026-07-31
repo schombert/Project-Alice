@@ -1360,6 +1360,10 @@ void display_data::make_borders(sys::state& state, std::vector<uint8_t>& visited
 	};
 
 
+	for(auto& item : border_nodes) {
+		make_state_definition_loop(item);
+	}
+
 	auto good_state_border = [&](border_edge& edge) {
 		auto p_left = edge.associated_province;
 		auto sd_left = state.world.province_get_state_from_abstract_state_membership(p_left);
@@ -1376,15 +1380,14 @@ void display_data::make_borders(sys::state& state, std::vector<uint8_t>& visited
 			return false;
 		}
 		return true;
-	};
+		};
 
 	auto state_border = [&](border_edge& edge, dcon::state_definition_id sdid) {
 		auto p_left = edge.associated_province;
 		auto sd_left = state.world.province_get_state_from_abstract_state_membership(p_left);
 		return sd_left == sdid;
-	};
-
-	auto weave_state_definition_border = [&](border_edge& edge) {
+		};
+	auto weave_state_border = [&](border_edge& edge) {
 		if(!good_state_border(edge)) {
 			return;
 		}
@@ -1393,21 +1396,17 @@ void display_data::make_borders(sys::state& state, std::vector<uint8_t>& visited
 
 		// weave previous edge into it
 
-		state_border_starts.push_back((int)state_border_vertices.size());
 		for(auto k = edge.offset; k < edge.offset + edge.count; k++) {
 			state_border_vertices.push_back(province_border_vertices[k]);
 		}
-		state_border_counts.push_back((GLsizei(state_border_vertices.size() - state_border_starts.back())));
 
 		auto& origin_node = border_nodes[edge.node_start];
 		for(uint8_t j = 0; j < origin_node.in_count; j++) {
 			auto& previous_edge = border_edges[origin_node.edges_in[j]];
-			if (!good_state_border(previous_edge)) continue;
-			if (!state_border(previous_edge, sd_left)) continue;
+			if(!good_state_border(previous_edge)) continue;
+			if(!state_border(previous_edge, sd_left)) continue;
 			state_border_vertices[state_border_starts.back()].previous_point = province_border_vertices[previous_edge.offset + previous_edge.count - 4].position;
 			state_border_vertices[state_border_starts.back() + 1].previous_point = province_border_vertices[previous_edge.offset + previous_edge.count - 3].position;
-			//state_border_vertices[state_border_starts.back()].next_point = state_border_vertices[state_border_starts.back() + 2].position;
-			//state_border_vertices[state_border_starts.back() - 1].next_point = state_border_vertices[state_border_starts.back() + 2].position;
 		}
 
 		auto& final_node = border_nodes[edge.node_end];
@@ -1420,13 +1419,91 @@ void display_data::make_borders(sys::state& state, std::vector<uint8_t>& visited
 		}
 	};
 
-	for(auto& item : border_nodes) {
-		make_state_definition_loop(item);
-	}
-	for(auto& item : border_edges) {
-		weave_state_definition_border(item);
-	}
+	// start with filling the vertices buffer with long border "snakes"
 
+	std::vector<uint8_t> visited_edges;
+	visited_edges.resize(border_edges.size());
+
+	for(size_t idx = 0; idx < border_edges.size(); idx++) {
+		if(visited_edges[idx]) {
+			continue;
+		}
+		if(!good_state_border(border_edges[idx])) {
+			visited_edges[idx] = 1;
+			continue;
+		}
+
+
+		auto& edge = border_edges[idx];
+		auto p_left = edge.associated_province;
+		auto state_left = state.world.province_get_state_from_abstract_state_membership(p_left);
+
+		size_t current_idx = idx;
+
+		int timeout = 100;
+
+		// go back to the start of the chain
+		do {
+			bool path_found = false;
+			auto& origin = border_nodes[edge.node_start];
+			for(uint8_t in_idx = 0; in_idx < origin.in_count; in_idx++) {
+				auto& previous_edge = border_edges[origin.edges_in[in_idx]];
+				if(!good_state_border(previous_edge)) {
+					visited_edges[origin.edges_in[in_idx]] = 1;
+					continue;
+				}
+				if(state_border(previous_edge, state_left) && (size_t)origin.edges_in[in_idx] != current_idx) {
+					current_idx = origin.edges_in[in_idx];
+					path_found = true;
+					break;
+				}
+			}
+			if(!path_found) {
+				break;
+			}
+			timeout--;
+		} while(current_idx != idx && timeout > 0);
+
+		/*
+		Now we are either
+			1) At the start of the loop
+			2) At the start of the border chain
+		So we can just go forward and push vertices to the buffer
+		*/
+
+		timeout = 200;
+
+		state_border_starts.push_back((GLsizei)state_border_vertices.size());
+		size_t marked_idx = current_idx;
+		do {
+			bool path_found = false;
+			// weave
+			visited_edges[current_idx] = 1;
+			auto& edge_to_add = border_edges[current_idx];
+			weave_state_border(edge_to_add);
+
+			// find the next edge
+
+			auto& end = border_nodes[edge_to_add.node_end];
+			for(uint8_t out_idx = 0; out_idx < end.out_count; out_idx++) {
+				auto& next_edge = border_edges[end.edges_out[out_idx]];
+				if(!good_state_border(next_edge)) {
+					visited_edges[end.edges_out[out_idx]] = 1;
+					continue;
+				}
+				if(state_border(next_edge, state_left) && (size_t)end.edges_out[out_idx] != current_idx) {
+					current_idx = end.edges_out[out_idx];
+					path_found = true;
+					break;
+				}
+			}
+			if(!path_found) {
+				break;
+			}
+			timeout--;
+		} while(current_idx != marked_idx && timeout > 0);
+		state_border_counts.push_back(GLsizei(state_border_vertices.size() - state_border_starts.back()));
+	}
 }
 
 std::vector<glm::vec2> make_coastal_loop(display_data& dat, sys::state& state, std::vector<bool>& visited, int32_t start_x, int32_t start_y) {
