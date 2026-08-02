@@ -4194,6 +4194,10 @@ void state::fill_unsaved_data() { // reconstructs derived values that are not di
 	culture::repopulate_invention_effects(*this);
 	military::apply_base_unit_stat_modifiers(*this);
 
+	for(uint8_t idx = 0; idx < map::national_groups_count; idx++) {
+		map_state.map_data.national_group_is_clean[idx] = false;
+	}
+
 	province::update_connected_regions(*this);
 	province::restore_unsaved_values(*this);
 

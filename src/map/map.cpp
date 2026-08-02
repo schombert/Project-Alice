@@ -60,6 +60,14 @@ void display_data::update_borders(sys::state& state) {
 
 }
 
+uint8_t nation_to_group(sys::state const& state, dcon::nation_id nation, bool sea) {
+	if(sea) {
+		return 0;
+	}
+
+	return 1 + nation.value % (national_groups_count - 1);
+}
+
 void add_nation_visible_provinces(sys::state& state, std::vector<dcon::province_id>& list, dcon::nation_id n) {
 	for(auto pc : state.world.nation_get_province_control_as_nation(n))
 		list.push_back(pc.get_province());
@@ -447,48 +455,53 @@ struct DrawArraysIndirectCommand {
 
 static_assert(sizeof(DrawArraysIndirectCommand) == 16);
 
-static GLuint national_borders_draw_command;
-static size_t national_borders_count;
+static GLuint national_borders_draw_command[map::national_groups_count];
+static size_t national_borders_count[map::national_groups_count];
 
-void display_data::update_borders_mesh() {	
-	if(national_border_vertices.empty()) return;
-	glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_national_border]);
-	glBufferData(
-		GL_ARRAY_BUFFER,
-		sizeof(textured_line_vertex_b_enriched_with_province_index)
-		* national_border_vertices.size(),
-		NULL,
-		GL_DYNAMIC_DRAW
-	);
-	glBufferData(
-		GL_ARRAY_BUFFER,
-		sizeof(textured_line_vertex_b_enriched_with_province_index)
-		* national_border_vertices.size(),
-		national_border_vertices.data(),
-		GL_DYNAMIC_DRAW
-	);
-
-	if(national_borders_draw_command == 0) {
-		glGenBuffers(1, &national_borders_draw_command);
+void display_data::update_borders_mesh() {
+	if(national_borders_draw_command[0] == 0) {
+		glGenBuffers(map::national_groups_count, national_borders_draw_command);
 	}
-	glBindBuffer(GL_DRAW_INDIRECT_BUFFER, national_borders_draw_command);
+
+	for(uint8_t group_idx = 0; group_idx < map::national_groups_count; group_idx++) {
+		if(national_border_vertices[group_idx].empty()) continue;
+		if(!national_group_request_to_commit_borders[group_idx]) continue;
+		national_group_request_to_commit_borders[group_idx] = false;
+		glBindBuffer(GL_ARRAY_BUFFER, vbo_national_borders_array[group_idx]);
+		glBufferData(
+			GL_ARRAY_BUFFER,
+			sizeof(textured_line_vertex_b_enriched_with_province_index)
+			* national_border_vertices[group_idx].size(),
+			NULL,
+			GL_DYNAMIC_DRAW
+		);
+		glBufferData(
+			GL_ARRAY_BUFFER,
+			sizeof(textured_line_vertex_b_enriched_with_province_index)
+			* national_border_vertices[group_idx].size(),
+			national_border_vertices[group_idx].data(),
+			GL_DYNAMIC_DRAW
+		);
+
+		glBindBuffer(GL_DRAW_INDIRECT_BUFFER, national_borders_draw_command[group_idx]);
 	
-	std::vector<DrawArraysIndirectCommand> nation_border_rendering_data{ };
-	for(size_t i = 0; i < national_border_starts.size(); i++) {
-		DrawArraysIndirectCommand to_add{ };
-		to_add.count = national_border_counts[i];
-		to_add.first = national_border_starts[i];
-		to_add.baseInstance = 0;
-		to_add.instanceCount = 1;
-		nation_border_rendering_data.push_back(to_add);
+		std::vector<DrawArraysIndirectCommand> nation_border_rendering_data{ };
+		for(size_t i = 0; i < national_border_starts[group_idx].size(); i++) {
+			DrawArraysIndirectCommand to_add{ };
+			to_add.count = national_border_counts[group_idx][i];
+			to_add.first = national_border_starts[group_idx][i];
+			to_add.baseInstance = 0;
+			to_add.instanceCount = 1;
+			nation_border_rendering_data.push_back(to_add);
+		}
+		glBufferData(
+			GL_DRAW_INDIRECT_BUFFER,
+			nation_border_rendering_data.size() * sizeof(DrawArraysIndirectCommand),
+			nation_border_rendering_data.data(),
+			GL_DYNAMIC_DRAW
+		);
+		national_borders_count[group_idx] = national_border_starts[group_idx].size();
 	}
-	glBufferData(
-		GL_DRAW_INDIRECT_BUFFER,
-		nation_border_rendering_data.size() * sizeof(DrawArraysIndirectCommand),
-		nation_border_rendering_data.data(),
-		GL_DYNAMIC_DRAW
-	);
-	national_borders_count = national_border_starts.size();
 }
 
 void display_data::create_meshes() {
@@ -545,8 +558,10 @@ void display_data::create_meshes() {
 	glBindVertexArray(vao_array[vo_state_border]);
 	create_textured_line_b_vbo_enriched_with_province_index(vbo_array[vo_state_border], state_border_vertices);
 
-	glBindVertexArray(vao_array[vo_national_border]);
-	create_textured_line_b_vbo_enriched_with_province_index(vbo_array[vo_national_border], national_border_vertices);
+	for(uint8_t group_idx = 0; group_idx < map::national_groups_count; group_idx++) {
+		glBindVertexArray(vao_national_borders_array[group_idx]);
+		create_textured_line_b_vbo_enriched_with_province_index(vbo_national_borders_array[group_idx], national_border_vertices[group_idx]);
+	}
 
 	glBindVertexArray(vao_array[vo_river]);
 	create_textured_line_vbo(vbo_array[vo_river], river_vertices);
@@ -836,13 +851,30 @@ void display_data::render(
 	glActiveTexture(GL_TEXTURE12);
 	glBindTexture(GL_TEXTURE_2D, textures[texture_provinces]);
 
+	static bool map_indices_ready = false;
+	static GLuint map_indices_buffer;
+	if(!map_indices_ready) {
+		map_indices_ready = true;
+		glGenBuffers(1, &map_indices_buffer);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, map_indices_buffer);
+		glBufferStorage(
+			GL_ELEMENT_ARRAY_BUFFER,
+			map_indices.size() * sizeof(uint16_t),
+			map_indices.data(),
+			0
+		);
+	}
+
+
 	load_shader(shader_provinces);
 	glUniform1i(shader_uniforms[shader_provinces][uniform_provinces_real_texture_sampler], 12);
 	glBindVertexArray(vao_array[vo_land]);
-
 	glDisable(GL_CULL_FACE);
-	glDrawElements(GL_TRIANGLE_STRIP, GLsizei(map_indices.size() - 1), GL_UNSIGNED_SHORT, map_indices.data());
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, map_indices_buffer);
+	glDrawElements(GL_TRIANGLE_STRIP, GLsizei(map_indices.size() - 1), GL_UNSIGNED_SHORT, 0);
 	glDisable(GL_PRIMITIVE_RESTART);
+
+
 
 	float pixel_size = (screen_size.y) / float(size_y) * zoom;
 
@@ -937,11 +969,14 @@ void display_data::render(
 
 		glUniform1f(shader_uniforms[shader_borders_provinces][uniform_width], 0.002f);// * std::min(1.f, (pixel_size - 1.f))); // width
 
-		glBindVertexArray(vao_array[vo_national_border]);
-		glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_national_border]);
 		glUniform1f(shader_uniforms[shader_borders_provinces][uniform_is_national_border], 1.f);
-		glBindBuffer(GL_DRAW_INDIRECT_BUFFER, national_borders_draw_command);
-		glMultiDrawArraysIndirect(GL_TRIANGLE_STRIP, 0, (GLsizei)national_borders_count, 0);
+
+		for(uint8_t group_idx = 0; group_idx < map::national_groups_count; group_idx++) {
+			glBindVertexArray(vao_national_borders_array[group_idx]);
+			glBindBuffer(GL_ARRAY_BUFFER, vbo_national_borders_array[group_idx]);
+			glBindBuffer(GL_DRAW_INDIRECT_BUFFER, national_borders_draw_command[group_idx]);
+			glMultiDrawArraysIndirect(GL_TRIANGLE_STRIP, 0, (GLsizei)national_borders_count[group_idx], 0);
+		}
 
 		glUniform1f(shader_uniforms[shader_borders_provinces][uniform_is_national_border], 0.f);
 		glBindVertexArray(vao_array[vo_border]);
@@ -1053,7 +1088,8 @@ void display_data::render(
 	glEnable(GL_PRIMITIVE_RESTART);
 	glPrimitiveRestartIndex(std::numeric_limits<uint16_t>::max());
 	glBindVertexArray(vao_array[vo_land]);
-	glDrawElements(GL_TRIANGLE_STRIP, GLsizei(map_indices.size() - 1), GL_UNSIGNED_SHORT, map_indices.data());
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, map_indices_buffer);
+	glDrawElements(GL_TRIANGLE_STRIP, GLsizei(map_indices.size() - 1), GL_UNSIGNED_SHORT, 0);
 
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
@@ -1227,10 +1263,13 @@ void display_data::render(
 				glActiveTexture(GL_TEXTURE2);
 				glBindTexture(GL_TEXTURE_2D, textures[texture_national_border]);
 
-				glBindVertexArray(vao_array[vo_national_border]);
-				glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_national_border]);
-				glBindBuffer(GL_DRAW_INDIRECT_BUFFER, national_borders_draw_command);
-				glMultiDrawArraysIndirect(GL_TRIANGLE_STRIP, 0, (GLsizei)national_borders_count, 0);
+				for(uint8_t group_idx = 0; group_idx < map::national_groups_count; group_idx++) {
+					glBindVertexArray(vao_national_borders_array[group_idx]);
+					glBindBuffer(GL_ARRAY_BUFFER, vbo_national_borders_array[group_idx]);
+					glBindBuffer(GL_DRAW_INDIRECT_BUFFER, national_borders_draw_command[group_idx]);
+					glMultiDrawArraysIndirect(GL_TRIANGLE_STRIP, 0, (GLsizei)national_borders_count[group_idx], 0);
+				}
+
 				glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);
 			}
 		} else {
@@ -1259,10 +1298,12 @@ void display_data::render(
 				glUniform1f(shader_uniforms[shader_borders][uniform_width], 0.00015f * scale_borders); // width
 				glActiveTexture(GL_TEXTURE2);
 				glBindTexture(GL_TEXTURE_2D, textures[texture_national_border]);
-				glBindVertexArray(vao_array[vo_national_border]);
-				glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_national_border]);
-				glBindBuffer(GL_DRAW_INDIRECT_BUFFER, national_borders_draw_command);
-				glMultiDrawArraysIndirect(GL_TRIANGLE_STRIP, 0, (GLsizei)national_borders_count, 0);
+				for(uint8_t group_idx = 0; group_idx < map::national_groups_count; group_idx++) {
+					glBindVertexArray(vao_national_borders_array[group_idx]);
+					glBindBuffer(GL_ARRAY_BUFFER, vbo_national_borders_array[group_idx]);
+					glBindBuffer(GL_DRAW_INDIRECT_BUFFER, national_borders_draw_command[group_idx]);
+					glMultiDrawArraysIndirect(GL_TRIANGLE_STRIP, 0, (GLsizei)national_borders_count[group_idx], 0);
+				}
 				glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);
 			}
 		}
@@ -1467,7 +1508,7 @@ void display_data::render(
 
 		glBindVertexArray(vao_array[vo_trade_flow]);
 		glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_trade_flow]);
-		glMultiDrawArrays(GL_TRIANGLE_STRIP, trade_flow_arrow_starts.data(), trade_flow_arrow_counts.data(), GLsizei(trade_flow_arrow_starts.size()));
+		//glMultiDrawArrays(GL_TRIANGLE_STRIP, trade_flow_arrow_starts.data(), trade_flow_arrow_counts.data(), GLsizei(trade_flow_arrow_starts.size()));
 
 		// trade particles
 		if(state.user_settings.graphics_mode != sys::graphics_mode::ugly) {
@@ -3955,7 +3996,9 @@ void load_static_meshes(sys::state& state) {
 void display_data::load_map(sys::state& state) {
 	auto root = simple_fs::get_root(state.common_fs);
 	glGenVertexArrays(vo_count, vao_array);
+	glGenVertexArrays(map::national_groups_count, vao_national_borders_array);
 	glGenBuffers(vo_count, vbo_array);
+	glGenBuffers(map::national_groups_count, vbo_national_borders_array);
 	load_shaders(root);
 	load_static_meshes(state);
 	create_meshes();

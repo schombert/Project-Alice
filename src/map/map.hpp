@@ -155,6 +155,9 @@ struct border_edge {
 	bool true_loop = false;
 };
 
+constexpr int national_groups_count = 32;
+uint8_t nation_to_group(sys::state const& state, dcon::nation_id nation, bool sea);
+
 enum class map_view;
 class display_data {
 public:
@@ -195,9 +198,11 @@ public:
 	std::vector<border_edge> border_edges;
 
 	//ankerl::unordered_dense::map<dcon::state_definition_id::value_base_t, std::vector<size_t>> nation_to_nation_border;
-	std::vector<GLsizei> national_border_starts;
-	std::vector<GLsizei> national_border_counts;
-	std::vector<textured_line_vertex_b_enriched_with_province_index> national_border_vertices;
+	std::array<std::vector<GLsizei>, national_groups_count> national_border_starts {};
+	std::array<std::vector<GLsizei>, national_groups_count> national_border_counts {};
+	std::array<std::vector<textured_line_vertex_b_enriched_with_province_index>, national_groups_count>  national_border_vertices {};
+	std::array<bool, national_groups_count> national_group_is_clean {};
+	std::array<bool, national_groups_count> national_group_request_to_commit_borders {};
 
 	std::vector<GLsizei> coastal_border_starts;
 	std::vector<GLsizei> coastal_border_counts;
@@ -317,9 +322,10 @@ public:
 	static constexpr uint32_t vo_square = 16;
 	static constexpr uint32_t vo_cities = 17;
 	static constexpr uint32_t vo_arbitrary_map_triangles = 18;
-	static constexpr uint32_t vo_national_border = 19;
-	static constexpr uint32_t vo_state_border = 20;
-	static constexpr uint32_t vo_count = 21;
+	static constexpr uint32_t vo_state_border = 19;
+	static constexpr uint32_t vo_count = 20;
+	GLuint vao_national_borders_array[map::national_groups_count] = {0};
+	GLuint vbo_national_borders_array[map::national_groups_count] = { 0 };
 	GLuint vao_array[vo_count] = { 0 };
 	GLuint vbo_array[vo_count] = { 0 };
 	// Textures
