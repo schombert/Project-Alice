@@ -256,7 +256,8 @@ void update_connected_regions(sys::state& state) {
 		std::vector<map::textured_line_vertex_b_enriched_with_province_index>& target_vertices,
 		std::vector<GLsizei> const& target_starts,
 		std::vector<GLsizei> const& target_counts,
-		uint8_t validation_group
+		uint8_t validation_group,
+		bool& first
 	) {
 		if(!good_nation_border(edge)) {
 			return;
@@ -277,6 +278,11 @@ void update_connected_regions(sys::state& state) {
 			assert (k >= 0);
 			assert((size_t)(int)(province_border_vertices.size()) == province_border_vertices.size());
 			target_vertices.push_back(province_border_vertices[k]);
+			if(first) {
+				target_vertices.push_back(province_border_vertices[k]);
+				target_vertices.push_back(province_border_vertices[k]);
+				first = false;
+			}
 		}
 		auto& origin_node = border_nodes[edge.node_start];
 		for(uint8_t j = 0; j < origin_node.in_count; j++) {
@@ -327,7 +333,7 @@ void update_connected_regions(sys::state& state) {
 
 		size_t current_idx = idx;
 
-		int timeout = 100;
+		int timeout = 500;
 
 		// go back to the start of the chain
 		do {
@@ -359,10 +365,11 @@ void update_connected_regions(sys::state& state) {
 			2) At the start of the border chain
 		So we can just go forward and push vertices to the buffer
 		*/
-		timeout = 200;
+		timeout = 1000;
 		auto starting_amount = (GLsizei)national_border_vertices[nat_group].size();
 		national_border_starts[nat_group].push_back(starting_amount);
 		size_t marked_idx = current_idx;
+		bool first = true;
 		do {
 			bool path_found = false;
 			// weave
@@ -378,7 +385,8 @@ void update_connected_regions(sys::state& state) {
 				national_border_vertices[nat_group],
 				national_border_starts[nat_group],
 				national_border_counts[nat_group],
-				nat_group
+				nat_group,
+				first
 			);
 
 			// find the next edge
@@ -399,7 +407,11 @@ void update_connected_regions(sys::state& state) {
 				break;
 			}
 			timeout--;
-		} while(current_idx != marked_idx && timeout > 0);
+		} while(current_idx != marked_idx && timeout > 0 && !visited_edges[current_idx]);
+
+		auto last = national_border_vertices[nat_group].back();
+		national_border_vertices[nat_group].push_back(last);
+		national_border_vertices[nat_group].push_back(last);
 
 		auto local_count = GLsizei(national_border_vertices[nat_group].size() - national_border_starts[nat_group].back());
 		//assert(local_count > 0);

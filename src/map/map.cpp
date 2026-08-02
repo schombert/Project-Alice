@@ -464,7 +464,6 @@ void display_data::update_borders_mesh() {
 	}
 
 	for(uint8_t group_idx = 0; group_idx < map::national_groups_count; group_idx++) {
-		if(national_border_vertices[group_idx].empty()) continue;
 		if(!national_group_request_to_commit_borders[group_idx]) continue;
 		national_group_request_to_commit_borders[group_idx] = false;
 		glBindBuffer(GL_ARRAY_BUFFER, vbo_national_borders_array[group_idx]);
@@ -486,6 +485,7 @@ void display_data::update_borders_mesh() {
 		glBindBuffer(GL_DRAW_INDIRECT_BUFFER, national_borders_draw_command[group_idx]);
 	
 		std::vector<DrawArraysIndirectCommand> nation_border_rendering_data{ };
+		size_t count = 0;
 		for(size_t i = 0; i < national_border_starts[group_idx].size(); i++) {
 			DrawArraysIndirectCommand to_add{ };
 			to_add.count = national_border_counts[group_idx][i];
@@ -493,7 +493,9 @@ void display_data::update_borders_mesh() {
 			to_add.baseInstance = 0;
 			to_add.instanceCount = 1;
 			nation_border_rendering_data.push_back(to_add);
+			count+= national_border_counts[group_idx][i];
 		}
+
 		glBufferData(
 			GL_DRAW_INDIRECT_BUFFER,
 			nation_border_rendering_data.size() * sizeof(DrawArraysIndirectCommand),
@@ -501,6 +503,7 @@ void display_data::update_borders_mesh() {
 			GL_DYNAMIC_DRAW
 		);
 		national_borders_count[group_idx] = national_border_starts[group_idx].size();
+		national_borders_count[group_idx] = count;
 	}
 }
 
@@ -974,8 +977,10 @@ void display_data::render(
 		for(uint8_t group_idx = 0; group_idx < map::national_groups_count; group_idx++) {
 			glBindVertexArray(vao_national_borders_array[group_idx]);
 			glBindBuffer(GL_ARRAY_BUFFER, vbo_national_borders_array[group_idx]);
-			glBindBuffer(GL_DRAW_INDIRECT_BUFFER, national_borders_draw_command[group_idx]);
-			glMultiDrawArraysIndirect(GL_TRIANGLE_STRIP, 0, (GLsizei)national_borders_count[group_idx], 0);
+			//glBindBuffer(GL_DRAW_INDIRECT_BUFFER, national_borders_draw_command[group_idx]);
+			glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);
+			//glMultiDrawArraysIndirect(GL_TRIANGLE_STRIP, 0, (GLsizei)national_borders_count[group_idx], 0);
+			glDrawArrays(GL_TRIANGLE_STRIP, 0, (GLsizei)national_borders_count[group_idx]);
 		}
 
 		glUniform1f(shader_uniforms[shader_borders_provinces][uniform_is_national_border], 0.f);
@@ -1266,8 +1271,10 @@ void display_data::render(
 				for(uint8_t group_idx = 0; group_idx < map::national_groups_count; group_idx++) {
 					glBindVertexArray(vao_national_borders_array[group_idx]);
 					glBindBuffer(GL_ARRAY_BUFFER, vbo_national_borders_array[group_idx]);
-					glBindBuffer(GL_DRAW_INDIRECT_BUFFER, national_borders_draw_command[group_idx]);
-					glMultiDrawArraysIndirect(GL_TRIANGLE_STRIP, 0, (GLsizei)national_borders_count[group_idx], 0);
+					//glBindBuffer(GL_DRAW_INDIRECT_BUFFER, national_borders_draw_command[group_idx]);
+					glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);
+					//glMultiDrawArraysIndirect(GL_TRIANGLE_STRIP, 0, (GLsizei)national_borders_count[group_idx], 0);
+					glDrawArrays(GL_TRIANGLE_STRIP, 0, (GLsizei)national_borders_count[group_idx]);
 				}
 
 				glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);
@@ -1301,8 +1308,10 @@ void display_data::render(
 				for(uint8_t group_idx = 0; group_idx < map::national_groups_count; group_idx++) {
 					glBindVertexArray(vao_national_borders_array[group_idx]);
 					glBindBuffer(GL_ARRAY_BUFFER, vbo_national_borders_array[group_idx]);
-					glBindBuffer(GL_DRAW_INDIRECT_BUFFER, national_borders_draw_command[group_idx]);
-					glMultiDrawArraysIndirect(GL_TRIANGLE_STRIP, 0, (GLsizei)national_borders_count[group_idx], 0);
+					//glBindBuffer(GL_DRAW_INDIRECT_BUFFER, national_borders_draw_command[group_idx]);
+					glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);
+					//glMultiDrawArraysIndirect(GL_TRIANGLE_STRIP, 0, (GLsizei)national_borders_count[group_idx], 0);
+					glDrawArrays(GL_TRIANGLE_STRIP, 0, (GLsizei)national_borders_count[group_idx]);
 				}
 				glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);
 			}
