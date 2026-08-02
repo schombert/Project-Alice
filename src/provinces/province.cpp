@@ -191,11 +191,9 @@ void update_connected_regions(sys::state& state) {
 	auto good_nation_border = [&state = std::as_const(state), &border_edges](map::border_edge const & edge) {
 		auto p_left = edge.associated_province;
 		auto n_left = state.world.province_get_nation_from_province_ownership(p_left);
+		bool left_is_sea = p_left.index() >= state.province_definitions.first_sea_province.index() || !p_left;
 
-
-		bool sea = p_left.index() >= state.province_definitions.first_sea_province.index() || !p_left;
-
-		if(state.map_state.map_data.national_group_is_clean[map::nation_to_group(state, n_left, sea)]) {
+		if(state.map_state.map_data.national_group_is_clean[map::nation_to_group(state, n_left, left_is_sea)]) {
 			return false;
 		}
 
@@ -209,13 +207,11 @@ void update_connected_regions(sys::state& state) {
 
 		//bool coast = false;
 
-		if(state.province_definitions.first_sea_province.index() <= p_right.index() && state.province_definitions.first_sea_province.index() > p_left.index()) {
-			return true;
-		}
-		if(state.province_definitions.first_sea_province.index() <= p_left.index() && state.province_definitions.first_sea_province.index() > p_right.index()) {
-			return true;
-		}
+		bool rigth_is_sea = state.province_definitions.first_sea_province.index() <= p_right.index() || !p_right;
 
+		if((!rigth_is_sea) != (!left_is_sea)) {
+			return true;
+		}
 
 		if(n_left == n_right) {
 			return false;
@@ -272,6 +268,9 @@ void update_connected_regions(sys::state& state) {
 		// weave previous edge into it
 
 		auto old_size = target_vertices.size();
+		if(first) {
+			old_size += 2;
+		}
 		for(auto k = edge.offset; k < edge.offset + edge.count; k++) {
 		//for(auto k = edge.offset; k < edge.offset + 2; k++) {
 			assert((int)province_border_vertices.size() > k);
@@ -370,7 +369,12 @@ void update_connected_regions(sys::state& state) {
 		national_border_starts[nat_group].push_back(starting_amount);
 		size_t marked_idx = current_idx;
 		bool first = true;
+		auto good = good_nation_border(border_edges[current_idx]) && nation_border(border_edges[current_idx], nation_left, sea);
 		do {
+			if(!good) {
+				continue;
+			}
+
 			bool path_found = false;
 			// weave
 			visited_edges[current_idx] = 1;
@@ -409,9 +413,11 @@ void update_connected_regions(sys::state& state) {
 			timeout--;
 		} while(current_idx != marked_idx && timeout > 0 && !visited_edges[current_idx]);
 
-		auto last = national_border_vertices[nat_group].back();
-		national_border_vertices[nat_group].push_back(last);
-		national_border_vertices[nat_group].push_back(last);
+		if(good) {
+			auto last = national_border_vertices[nat_group].back();
+			national_border_vertices[nat_group].push_back(last);
+			national_border_vertices[nat_group].push_back(last);
+		}
 
 		auto local_count = GLsizei(national_border_vertices[nat_group].size() - national_border_starts[nat_group].back());
 		//assert(local_count > 0);

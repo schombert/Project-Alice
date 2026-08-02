@@ -549,6 +549,8 @@ void display_data::make_borders(sys::state& state, std::vector<uint8_t>& visited
 		return true;
 	};
 
+	int deg_shift = 2;
+
 	auto fix_loop = [&](border_edge& item) {
 		assert(item.count >= 4);
 
@@ -556,21 +558,23 @@ void display_data::make_borders(sys::state& state, std::vector<uint8_t>& visited
 
 		auto o = item.offset;
 
-		auto& start_vertex = province_border_vertices[o + 0];
-		auto& end_vertex = province_border_vertices[o + item.count - 2];
-		auto local_dist = glm::distance(start_vertex.position * glm::vec2(size_x, size_y), end_vertex.position * glm::vec2(size_x, size_y));
-		assert(start_vertex.position == end_vertex.position);
+		{
+			auto& start_vertex = province_border_vertices[o + 0];
+			auto& end_vertex = province_border_vertices[o + item.count - 2];
+			auto local_dist = glm::distance(start_vertex.position * glm::vec2(size_x, size_y), end_vertex.position * glm::vec2(size_x, size_y));
+			assert(start_vertex.position == end_vertex.position);
 
-		auto& start_vertex2 = province_border_vertices[o + 1];
-		auto& end_vertex2 = province_border_vertices[o + item.count - 1];
-		auto local_dist2 = glm::distance(start_vertex2.position * glm::vec2(size_x, size_y), end_vertex2.position * glm::vec2(size_x, size_y));
-		assert(start_vertex2.position == end_vertex2.position);
+			auto& start_vertex2 = province_border_vertices[o + 1];
+			auto& end_vertex2 = province_border_vertices[o + item.count - 1];
+			auto local_dist2 = glm::distance(start_vertex2.position * glm::vec2(size_x, size_y), end_vertex2.position * glm::vec2(size_x, size_y));
+			assert(start_vertex2.position == end_vertex2.position);
 
-		end_vertex.next_point = start_vertex2.next_point;
-		end_vertex2.next_point = start_vertex2.next_point;
+			end_vertex.next_point = start_vertex2.next_point;
+			end_vertex2.next_point = start_vertex2.next_point;
 
-		start_vertex.previous_point = end_vertex.previous_point;
-		start_vertex2.previous_point = end_vertex2.previous_point;
+			start_vertex.previous_point = end_vertex.previous_point;
+			start_vertex2.previous_point = end_vertex2.previous_point;
+		}
 	};
 
 	auto validate_true_loop = [&](border_edge const& item) {
@@ -613,7 +617,7 @@ void display_data::make_borders(sys::state& state, std::vector<uint8_t>& visited
 		//if(!province_map_index) {
 			//return;
 		//}
-		province_border_starts.push_back((GLsizei)province_border_vertices.size());
+		province_border_starts.push_back((GLsizei)province_border_vertices.size() + 2);
 		int32_t start_x = x;
 		int32_t start_y = y;
 		int32_t start_dx = dx;
@@ -640,7 +644,7 @@ void display_data::make_borders(sys::state& state, std::vector<uint8_t>& visited
 
 		auto adjacent_province = safe_get_province(glm::ivec2(x + dx, y + dy));
 		border_edge current_edge = { };
-		current_edge.offset = (int)province_border_vertices.size();
+		current_edge.offset = (int)province_border_vertices.size() + deg_shift;
 		current_edge.adj = state.world.get_province_adjacency_by_province_pair(local_prov, province::from_map_id(adjacent_province));
 		auto prev_adj = current_edge.adj;
 		auto current_adj = current_edge.adj;
@@ -656,6 +660,8 @@ void display_data::make_borders(sys::state& state, std::vector<uint8_t>& visited
 		bool loop_is_fixed = false;
 
 		int edge_to_fix = -1;
+
+		bool first_vertex = true;
 
 		auto lay_border = [&](glm::vec2 next) {
 			if(!grace_period) {
@@ -673,6 +679,16 @@ void display_data::make_borders(sys::state& state, std::vector<uint8_t>& visited
 				province_map_index,
 				0.0f, dist
 			});
+			assert(validate_border_vertex(province_border_vertices.back()));
+
+			if(first_vertex) {
+				auto current = province_border_vertices.back();
+				province_border_vertices.push_back(current);
+				assert(validate_border_vertex(province_border_vertices.back()));
+				province_border_vertices.push_back(current);
+				assert(validate_border_vertex(province_border_vertices.back()));
+				first_vertex = false;
+			}
 			province_border_vertices.emplace_back(textured_line_vertex_b_enriched_with_province_index{
 				current_pos, prev_pos, next_pos,
 				province_map_index,
@@ -893,27 +909,49 @@ void display_data::make_borders(sys::state& state, std::vector<uint8_t>& visited
 			step_forward(true);
 		//}
 
-		size_t first = province_border_starts.back();
-		size_t last = province_border_vertices.size() - 2;
-		province_border_vertices[first].previous_point = province_border_vertices[last].previous_point;
-		province_border_vertices[first + 1].previous_point = province_border_vertices[last + 1].previous_point;
-		province_border_vertices[last].next_point = province_border_vertices[first].next_point;
-		province_border_vertices[last + 1].next_point = province_border_vertices[first + 1].next_point;
+		/* {
+			size_t first = province_border_starts.back();
+			size_t last = province_border_vertices.size() - 2;
+			province_border_vertices[first].previous_point = province_border_vertices[last].previous_point;
+			province_border_vertices[first + 1].previous_point = province_border_vertices[last + 1].previous_point;
+			province_border_vertices[last].next_point = province_border_vertices[first].next_point;
+			province_border_vertices[last + 1].next_point = province_border_vertices[first + 1].next_point;
+
+			assert(validate_border_vertex(province_border_vertices[first]));
+			assert(validate_border_vertex(province_border_vertices[first + 1]));
+			assert(validate_border_vertex(province_border_vertices[last]));
+			assert(validate_border_vertex(province_border_vertices[last + 1]));
+		}*/
+
+		{
+			size_t first = province_border_starts.back();
+			size_t last = province_border_vertices.size() - 2;
+			province_border_vertices[first].previous_point = province_border_vertices[last].previous_point;
+			province_border_vertices[first + 1].previous_point = province_border_vertices[last + 1].previous_point;
+			province_border_vertices[last].next_point = province_border_vertices[first].next_point;
+			province_border_vertices[last + 1].next_point = province_border_vertices[first + 1].next_point;
+
+			assert(validate_border_vertex(province_border_vertices[first]));
+			assert(validate_border_vertex(province_border_vertices[first + 1]));
+			assert(validate_border_vertex(province_border_vertices[last]));
+			assert(validate_border_vertex(province_border_vertices[last + 1]));
+		}
+
 		province_border_counts.push_back(GLsizei(province_border_vertices.size() - province_border_starts.back()));
 
-		assert(validate_border_vertex(province_border_vertices[first]));
-		assert(validate_border_vertex(province_border_vertices[first + 1]));
-		assert(validate_border_vertex(province_border_vertices[last]));
-		assert(validate_border_vertex(province_border_vertices[last + 1]));
 
 		assert(initial_node == current_border_node_index);
 
 		if(edge_to_fix != -1) {
 
+			auto current = province_border_vertices.back();
+			province_border_vertices.push_back(current);
+			province_border_vertices.push_back(current);
+
 			fix_loop(border_edges[edge_to_fix]);
 			validate_true_loop(border_edges[edge_to_fix]);
 
-			assert(border_edges.back().offset + (size_t)border_edges.back().count == province_border_vertices.size());
+			assert(border_edges.back().offset + (size_t)border_edges.back().count == province_border_vertices.size() - 2);
 
 			return;
 		}
@@ -922,7 +960,12 @@ void display_data::make_borders(sys::state& state, std::vector<uint8_t>& visited
 			assert(current_edge.offset > last_vertex_idx);
 
 			lay_border(next_pos);
+
+			auto current = province_border_vertices.back();
 			current_edge.count = int(province_border_vertices.size() - current_edge.offset);
+
+			province_border_vertices.push_back(current);
+			province_border_vertices.push_back(current);
 
 			auto& edge = current_edge;
 			auto o = edge.offset;
@@ -957,12 +1000,16 @@ void display_data::make_borders(sys::state& state, std::vector<uint8_t>& visited
 			assert(current_edge.count > 2);
 			last_vertex_idx = current_edge.offset + current_edge.count - 2;
 
-			assert(current_edge.offset + (size_t)current_edge.count == province_border_vertices.size());
+			assert(current_edge.offset + (size_t)current_edge.count == province_border_vertices.size() - 2);
 			border_edges.push_back(current_edge);
+			return;
 		}
 
+		auto current = province_border_vertices.back();
+		province_border_vertices.push_back(current);
+		province_border_vertices.push_back(current);
 
-		assert(border_edges.back().offset + (size_t)border_edges.back().count == province_border_vertices.size());
+		assert(border_edges.back().offset + (size_t)border_edges.back().count == province_border_vertices.size() - 2);
 	};
 
 	for(int32_t j = 0; j < int32_t(size_y); ++j) {
@@ -1043,14 +1090,14 @@ void display_data::make_borders(sys::state& state, std::vector<uint8_t>& visited
 	for(auto& edge : border_edges) {
 		if(edge.true_loop) {
 			auto o = edge.offset;
-			assert(province_border_vertices[o + 0].position == province_border_vertices[o + edge.count - 2].position);
-			assert(province_border_vertices[o + 1].position == province_border_vertices[o + edge.count - 1].position);
+			assert(province_border_vertices[o + 0 ].position == province_border_vertices[o + edge.count - 2 ].position);
+			assert(province_border_vertices[o + 1 ].position == province_border_vertices[o + edge.count - 1 ].position);
 
-			assert(province_border_vertices[o + 0].next_point == province_border_vertices[o + edge.count - 2].next_point);
-			assert(province_border_vertices[o + 1].next_point == province_border_vertices[o + edge.count - 1].next_point);
+			assert(province_border_vertices[o + 0 ].next_point == province_border_vertices[o + edge.count - 2 ].next_point);
+			assert(province_border_vertices[o + 1 ].next_point == province_border_vertices[o + edge.count - 1 ].next_point);
 
-			assert(province_border_vertices[o + 0].previous_point == province_border_vertices[o + edge.count - 2].previous_point);
-			assert(province_border_vertices[o + 1].previous_point == province_border_vertices[o + edge.count - 1].previous_point);
+			assert(province_border_vertices[o + 0 ].previous_point == province_border_vertices[o + edge.count - 2 ].previous_point);
+			assert(province_border_vertices[o + 1 ].previous_point == province_border_vertices[o + edge.count - 1 ].previous_point);
 		}
 	}
 
@@ -1245,6 +1292,19 @@ void display_data::make_borders(sys::state& state, std::vector<uint8_t>& visited
 		}
 	}
 
+	// restore degenerate positions
+
+	for(size_t i = 0; i < province_border_counts.size(); i++) {
+		auto o = province_border_starts[i] - 2;
+		auto c = province_border_counts[i] + 2;
+
+		province_border_vertices[o].position = province_border_vertices[o + 2].position;
+		province_border_vertices[o + 1].position = province_border_vertices[o + 3].position;
+
+		province_border_vertices[o + c].position = province_border_vertices[o + c - 2].position;
+		province_border_vertices[o + 1 + c].position = province_border_vertices[o + 1 + c - 2].position;
+	}
+
 	for(auto& edge : border_edges) {
 		auto o = edge.offset;
 		float dist = 0.f;
@@ -1304,11 +1364,19 @@ void display_data::make_borders(sys::state& state, std::vector<uint8_t>& visited
 						//potential_sibling.sibling = edge_index
 						auto& sample_candidate = province_border_vertices[potential_sibling.offset];
 						auto& sample_us = province_border_vertices[edge.offset + edge.count - 1];
-						auto dist = glm::length((sample_candidate.next_point - sample_candidate.position - sample_us.previous_point + sample_us.position) * glm::vec2(size_x, size_y));
+
+						auto dist = glm::length(
+							(
+								sample_candidate.next_point - sample_candidate.position
+								- sample_us.previous_point + sample_us.position
+							) * glm::vec2(size_x, size_y)
+						);
+
 						if(dist < 0.5f) {
 							edge.sibling = potential_origin.edges_in[i];
 						}
 					}
+
 				}
 			}
 			assert(edge.sibling > -1);
@@ -1387,7 +1455,7 @@ void display_data::make_borders(sys::state& state, std::vector<uint8_t>& visited
 		auto sd_left = state.world.province_get_state_from_abstract_state_membership(p_left);
 		return sd_left == sdid;
 		};
-	auto weave_state_border = [&](border_edge& edge) {
+	auto weave_state_border = [&](border_edge& edge, bool& first) {
 		if(!good_state_border(edge)) {
 			return;
 		}
@@ -1398,6 +1466,11 @@ void display_data::make_borders(sys::state& state, std::vector<uint8_t>& visited
 
 		for(auto k = edge.offset; k < edge.offset + edge.count; k++) {
 			state_border_vertices.push_back(province_border_vertices[k]);
+			if(first) {
+				state_border_vertices.push_back(province_border_vertices[k]);
+				state_border_vertices.push_back(province_border_vertices[k]);
+				first = false;
+			}
 		}
 
 		auto& origin_node = border_nodes[edge.node_start];
@@ -1475,12 +1548,13 @@ void display_data::make_borders(sys::state& state, std::vector<uint8_t>& visited
 
 		state_border_starts.push_back((GLsizei)state_border_vertices.size());
 		size_t marked_idx = current_idx;
+		bool first = true;
 		do {
 			bool path_found = false;
 			// weave
 			visited_edges[current_idx] = 1;
 			auto& edge_to_add = border_edges[current_idx];
-			weave_state_border(edge_to_add);
+			weave_state_border(edge_to_add, first);
 
 			// find the next edge
 
@@ -1502,6 +1576,10 @@ void display_data::make_borders(sys::state& state, std::vector<uint8_t>& visited
 			}
 			timeout--;
 		} while(current_idx != marked_idx && timeout > 0);
+		auto back = state_border_vertices.back();
+		state_border_vertices.push_back(back);
+		state_border_vertices.push_back(back);
+
 		state_border_counts.push_back(GLsizei(state_border_vertices.size() - state_border_starts.back()));
 	}
 }

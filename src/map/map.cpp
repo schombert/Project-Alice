@@ -887,14 +887,17 @@ void display_data::render(
 	static bool aux_data_is_ready = false;
 
 	//static GLuint province_index_buffer;
-	static GLuint province_indirect_buffer;
-	static GLuint state_indirect_buffer;
+	
+	// bugged on Intel GPUs:
+	//static GLuint province_indirect_buffer;
+	//static GLuint state_indirect_buffer;
+
 	static GLuint impassible_indirect_buffer;
 	static GLuint impassible_count = 0;
 
 	if(!aux_data_is_ready) {
 		aux_data_is_ready = true;
-
+		/*
 		glGenBuffers(1, &province_indirect_buffer);
 		glBindBuffer(GL_DRAW_INDIRECT_BUFFER, province_indirect_buffer);
 		std::vector<DrawArraysIndirectCommand> province_border_rendering_data{ };
@@ -911,7 +914,9 @@ void display_data::render(
 			province_border_rendering_data.size() * sizeof(DrawArraysIndirectCommand),
 			province_border_rendering_data.data(), 0
 		);
+		*/
 
+		/*
 		glGenBuffers(1, &state_indirect_buffer);
 		glBindBuffer(GL_DRAW_INDIRECT_BUFFER, state_indirect_buffer);
 		std::vector<DrawArraysIndirectCommand> state_border_rendering_data{ };
@@ -928,6 +933,7 @@ void display_data::render(
 			state_border_rendering_data.size() * sizeof(DrawArraysIndirectCommand),
 			state_border_rendering_data.data(), 0
 		);
+		*/
 
 		glGenBuffers(1, &impassible_indirect_buffer);
 		glBindBuffer(GL_DRAW_INDIRECT_BUFFER, impassible_indirect_buffer);
@@ -986,8 +992,11 @@ void display_data::render(
 		glUniform1f(shader_uniforms[shader_borders_provinces][uniform_is_national_border], 0.f);
 		glBindVertexArray(vao_array[vo_border]);
 		glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_border]);
-		glBindBuffer(GL_DRAW_INDIRECT_BUFFER, province_indirect_buffer);
-		glMultiDrawArraysIndirect(GL_TRIANGLE_STRIP, 0, (GLsizei)province_border_starts.size(),0);
+		//glBindBuffer(GL_DRAW_INDIRECT_BUFFER, province_indirect_buffer);
+		//glMultiDrawArraysIndirect(GL_TRIANGLE_STRIP, 0, (GLsizei)province_border_starts.size(),0);
+		glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);
+		glDrawArrays(GL_TRIANGLE_STRIP, 0, (GLsizei)province_border_vertices.size());
+
 		glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);
 	}
 
@@ -1234,9 +1243,10 @@ void display_data::render(
 				glBindTexture(GL_TEXTURE_2D, textures[texture_prov_border]);
 				glBindVertexArray(vao_array[vo_border]);
 				glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_border]);
-				glBindBuffer(GL_DRAW_INDIRECT_BUFFER, province_indirect_buffer);
-				glMultiDrawArraysIndirect(GL_TRIANGLE_STRIP, 0, (GLsizei)province_border_starts.size(), 0);
-				glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);
+				//glBindBuffer(GL_DRAW_INDIRECT_BUFFER, province_indirect_buffer);
+				//glMultiDrawArraysIndirect(GL_TRIANGLE_STRIP, 0, (GLsizei)province_border_starts.size(), 0);
+				glDrawArrays(GL_TRIANGLE_STRIP, 0, (GLsizei)province_border_vertices.size());
+				//glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);
 			}
 			{ // Render state borders
 				glUniform1f(shader_uniforms[shader_borders][uniform_width], 0.0002f); // width
@@ -1244,9 +1254,10 @@ void display_data::render(
 				glBindTexture(GL_TEXTURE_2D, textures[texture_state_border]);
 				glBindVertexArray(vao_array[vo_state_border]);
 				glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_state_border]);
-				glBindBuffer(GL_DRAW_INDIRECT_BUFFER, state_indirect_buffer);
-				glMultiDrawArraysIndirect(GL_TRIANGLE_STRIP, 0, (GLsizei)state_border_starts.size(), 0);
-				glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);
+				//glBindBuffer(GL_DRAW_INDIRECT_BUFFER, state_indirect_buffer);
+				//glMultiDrawArraysIndirect(GL_TRIANGLE_STRIP, 0, (GLsizei)state_border_starts.size(), 0);
+				glDrawArrays(GL_TRIANGLE_STRIP, 0, (GLsizei)state_border_vertices.size());
+				//glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);
 			}
 			// impassible borders
 			{
@@ -1286,9 +1297,10 @@ void display_data::render(
 				glBindTexture(GL_TEXTURE_2D, textures[texture_prov_border]);
 				glBindVertexArray(vao_array[vo_border]);
 				glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_border]);
-				glBindBuffer(GL_DRAW_INDIRECT_BUFFER, province_indirect_buffer);
-				glMultiDrawArraysIndirect(GL_TRIANGLE_STRIP, 0, (GLsizei)province_border_starts.size(), 0);
-				glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);
+				//glBindBuffer(GL_DRAW_INDIRECT_BUFFER, province_indirect_buffer);
+				//glMultiDrawArraysIndirect(GL_TRIANGLE_STRIP, 0, (GLsizei)province_border_starts.size(), 0);
+				glDrawArrays(GL_TRIANGLE_STRIP, 0, (GLsizei)province_border_vertices.size());
+				//glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);
 			}
 			if(zoom > map::zoom_close) { // Render state borders
 				glUniform1f(shader_uniforms[shader_borders][uniform_width], 0.00005f); // width
@@ -1296,9 +1308,10 @@ void display_data::render(
 				glBindTexture(GL_TEXTURE_2D, textures[texture_state_border]);
 				glBindVertexArray(vao_array[vo_state_border]);
 				glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_state_border]);
-				glBindBuffer(GL_DRAW_INDIRECT_BUFFER, state_indirect_buffer);
-				glMultiDrawArraysIndirect(GL_TRIANGLE_STRIP, 0, (GLsizei)state_border_starts.size(), 0);
-				glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);
+				//glBindBuffer(GL_DRAW_INDIRECT_BUFFER, state_indirect_buffer);
+				//glMultiDrawArraysIndirect(GL_TRIANGLE_STRIP, 0, (GLsizei)state_border_starts.size(), 0);
+				glDrawArrays(GL_TRIANGLE_STRIP, 0, (GLsizei)state_border_vertices.size());
+				//glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);
 			}
 			// national borders
 			{
