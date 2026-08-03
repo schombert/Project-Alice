@@ -1180,20 +1180,40 @@ uint16_t make_font_id(sys::state& state, bool as_header, float target_line_size)
 	}
 }
 
+void convert_contour(
+	std::vector<map_font::map_font_buffer_glyph>& buffer_glyphs,
+	std::vector<map_font::map_font_buffer_curve>& buffer_curves,
+	const FT_Outline* outline,
+	int32_t firstIndex,
+	int32_t lastIndex
+);
+
 void map_font::load_font(FT_Library& ft_library, char const* file_data_in, uint32_t file_size) {
 	buffer_glyphs.clear();
+	buffer_bold_glyphs.clear();
 	buffer_curves.clear();
+	buffer_bold_curves.clear();
 	glyphs.clear();
+	bold_glyphs.clear();
+
 	if(face)
 		FT_Done_Face(face);
+	if(bold_face)
+		FT_Done_Face(bold_face);
 
 	file_data = std::unique_ptr<FT_Byte[]>(new FT_Byte[file_size]);
 
 	memcpy(file_data.get(), file_data_in, file_size);
+
 	FT_New_Memory_Face(ft_library, file_data.get(), file_size, 0, &face);
 	FT_Select_Charmap(face, FT_ENCODING_UNICODE);
-
 	FT_Set_Pixel_Sizes(face, dr_size, dr_size);
+
+	FT_New_Memory_Face(ft_library, file_data.get(), file_size, 0, &bold_face);
+	FT_Select_Charmap(bold_face, FT_ENCODING_UNICODE);
+	//FT_Set_Char_Size(bold_face, 1024 << 6, 1024 << 6, 1024, 1024);
+	FT_Set_Pixel_Sizes(bold_face, dr_size, dr_size);
+
 	hb_font_face = hb_ft_font_create(face, nullptr);
 	hb_buf = hb_buffer_create();
 
@@ -1208,6 +1228,16 @@ void map_font::load_font(FT_Library& ft_library, char const* file_data_in, uint3
 		glDeleteBuffers(1, &glyph_buffer);
 	if(curve_buffer)
 		glDeleteBuffers(1, &curve_buffer);
+	if(bold_glyph_texture) {
+		glDeleteTextures(1, &bold_glyph_texture);
+		bold_glyph_texture = 0;
+	}
+	if(bold_curve_texture)
+		glDeleteTextures(1, &bold_curve_texture);
+	if(bold_glyph_buffer)
+		glDeleteBuffers(1, &bold_glyph_buffer);
+	if(bold_curve_buffer)
+		glDeleteBuffers(1, &bold_curve_buffer);
 }
 map_font::~map_font() {
 	if(glyph_texture)
@@ -1218,6 +1248,16 @@ map_font::~map_font() {
 	if(glyph_buffer)
 		glDeleteBuffers(1, &glyph_buffer);
 	if(curve_buffer)
+		glDeleteBuffers(1, &curve_buffer);
+
+	if(bold_glyph_texture)
+		glDeleteTextures(1, &glyph_texture);
+	if(bold_curve_texture)
+		glDeleteTextures(1, &curve_texture);
+
+	if(bold_glyph_buffer)
+		glDeleteBuffers(1, &glyph_buffer);
+	if(bold_curve_buffer)
 		glDeleteBuffers(1, &curve_buffer);
 
 	if(hb_font_face)
@@ -1234,6 +1274,11 @@ void map_font::ready_textures() {
 		glGenBuffers(1, &glyph_buffer);
 		glGenBuffers(1, &curve_buffer);
 
+		glGenTextures(1, &bold_glyph_texture);
+		glGenTextures(1, &bold_curve_texture);
+		glGenBuffers(1, &bold_glyph_buffer);
+		glGenBuffers(1, &bold_curve_buffer);
+
 		glBindBuffer(GL_TEXTURE_BUFFER, glyph_buffer);
 		glBindBuffer(GL_TEXTURE_BUFFER, curve_buffer);
 
@@ -1244,41 +1289,92 @@ void map_font::ready_textures() {
 		glBindTexture(GL_TEXTURE_BUFFER, curve_texture);
 		glTexBuffer(GL_TEXTURE_BUFFER, GL_RG32F, curve_buffer);
 		glBindTexture(GL_TEXTURE_BUFFER, 0);
+
+		glBindBuffer(GL_TEXTURE_BUFFER, bold_glyph_buffer);
+		glBindBuffer(GL_TEXTURE_BUFFER, bold_curve_buffer);
+
+		glBindTexture(GL_TEXTURE_BUFFER, bold_glyph_texture);
+		glTexBuffer(GL_TEXTURE_BUFFER, GL_RG32I, bold_glyph_buffer);
+		glBindTexture(GL_TEXTURE_BUFFER, 0);
+
+		glBindTexture(GL_TEXTURE_BUFFER, bold_curve_texture);
+		glTexBuffer(GL_TEXTURE_BUFFER, GL_RG32F, bold_curve_buffer);
+		glBindTexture(GL_TEXTURE_BUFFER, 0);
 	}
 }
 void map_font::make_glyph(uint32_t glyph_id) {
 	ready_textures();
 
-	if(glyphs.contains(glyph_id))
-		return;
 
-	map_font_buffer_glyph temp_buffer_glyph;
-	temp_buffer_glyph.start = static_cast<int32_t>(buffer_curves.size());
+	if(!glyphs.contains(glyph_id)) {
+		map_font_buffer_glyph temp_buffer_glyph;
+		temp_buffer_glyph.start = static_cast<int32_t>(buffer_curves.size());
 
-	FT_Load_Glyph(face, glyph_id, FT_LOAD_NO_BITMAP);
+		FT_Load_Glyph(face, glyph_id, FT_LOAD_NO_BITMAP);
+		short start = 0;
+		for(int i = 0; i < face->glyph->outline.n_contours; i++) {
+			// Note: The end indices in face->glyph->outline.contours are inclusive.
+			convert_contour(buffer_glyphs, buffer_curves, &face->glyph->outline, start, face->glyph->outline.contours[i]);
+			start = face->glyph->outline.contours[i] + 1;
+		}	
 
-	short start = 0;
-	for(int i = 0; i < face->glyph->outline.n_contours; i++) {
-		// Note: The end indices in face->glyph->outline.contours are inclusive.
-		convert_contour(&face->glyph->outline, start, face->glyph->outline.contours[i]);
-		start = face->glyph->outline.contours[i] + 1;
+		temp_buffer_glyph.count = static_cast<int32_t>(buffer_curves.size()) - temp_buffer_glyph.start;
+
+		int32_t bufferIndex = static_cast<int32_t>(buffer_glyphs.size());
+		buffer_glyphs.push_back(temp_buffer_glyph);
+
+		{
+			map_font_glyph glyph;
+
+			glyph.ft_height = face->glyph->metrics.height;
+			glyph.ft_width = face->glyph->metrics.width;
+			glyph.ft_x_bearing = face->glyph->metrics.horiBearingX;
+			glyph.ft_y_bearing = face->glyph->metrics.horiBearingY;
+
+			glyph.bufferIndex = bufferIndex;
+			glyph.curveCount = temp_buffer_glyph.count;
+			glyphs[glyph_id] = glyph;
+		}
 	}
 
-	temp_buffer_glyph.count = static_cast<int32_t>(buffer_curves.size()) - temp_buffer_glyph.start;
+	if(!bold_glyphs.contains(glyph_id)) {
+		map_font_buffer_glyph temp_buffer_glyph;
+		temp_buffer_glyph.start = static_cast<int32_t>(buffer_bold_curves.size());
 
-	int32_t bufferIndex = static_cast<int32_t>(buffer_glyphs.size());
-	buffer_glyphs.push_back(temp_buffer_glyph);
+		FT_Load_Glyph(bold_face, glyph_id, FT_LOAD_NO_BITMAP);
+		if(!(FT_Outline_Get_Orientation(&bold_face->glyph->outline) == FT_ORIENTATION_NONE)) {
+			//FT_BBox bbox;
+			//auto error = FT_Outline_Get_BBox(&bold_face->glyph->outline, &bbox);
+			//assert(error == 0);
+			auto error = FT_Outline_Embolden(&bold_face->glyph->outline, dr_size * map_outline_embolden);
+			assert(error == 0);
+		}
+		short start = 0;
+		for(int i = 0; i < bold_face->glyph->outline.n_contours; i++) {
+			// Note: The end indices in face->glyph->outline.contours are inclusive.
+			convert_contour(buffer_bold_glyphs, buffer_bold_curves, &bold_face->glyph->outline, start, bold_face->glyph->outline.contours[i]);
+			start = bold_face->glyph->outline.contours[i] + 1;
+		}
 
-	map_font_glyph glyph;
+		temp_buffer_glyph.count = static_cast<int32_t>(buffer_bold_curves.size()) - temp_buffer_glyph.start;
 
-	glyph.ft_height = face->glyph->metrics.height;
-	glyph.ft_width = face->glyph->metrics.width;
-	glyph.ft_x_bearing = face->glyph->metrics.horiBearingX;
-	glyph.ft_y_bearing = face->glyph->metrics.horiBearingY;
+		int32_t bufferIndex = static_cast<int32_t>(buffer_bold_glyphs.size());
+		buffer_bold_glyphs.push_back(temp_buffer_glyph);
 
-	glyph.bufferIndex = bufferIndex;
-	glyph.curveCount = temp_buffer_glyph.count;
-	glyphs[glyph_id] = glyph;
+		{
+			map_font_glyph glyph;
+
+			glyph.ft_height = bold_face->glyph->metrics.height;
+			glyph.ft_width = bold_face->glyph->metrics.width;
+			glyph.ft_x_bearing = bold_face->glyph->metrics.horiBearingX;
+			glyph.ft_y_bearing = bold_face->glyph->metrics.horiBearingY;
+
+			glyph.bufferIndex = bufferIndex;
+			glyph.curveCount = temp_buffer_glyph.count;
+			bold_glyphs[glyph_id] = glyph;
+		}
+	}
+
 
 	upload_buffers();
 }
@@ -1299,8 +1395,23 @@ void map_font::upload_buffers() {
 	glBindBuffer(GL_TEXTURE_BUFFER, curve_buffer);
 	glBufferData(GL_TEXTURE_BUFFER, sizeof(map_font_buffer_curve) * buffer_curves.size(), buffer_curves.data(), GL_STATIC_DRAW);
 	glBindBuffer(GL_TEXTURE_BUFFER, 0);
+
+
+	glBindBuffer(GL_TEXTURE_BUFFER, bold_glyph_buffer);
+	glBufferData(GL_TEXTURE_BUFFER, sizeof(map_font_buffer_glyph) * buffer_bold_glyphs.size(), buffer_bold_glyphs.data(), GL_STATIC_DRAW);
+	glBindBuffer(GL_TEXTURE_BUFFER, 0);
+
+	glBindBuffer(GL_TEXTURE_BUFFER, bold_curve_buffer);
+	glBufferData(GL_TEXTURE_BUFFER, sizeof(map_font_buffer_curve) * buffer_bold_curves.size(), buffer_bold_curves.data(), GL_STATIC_DRAW);
+	glBindBuffer(GL_TEXTURE_BUFFER, 0);
 }
-void map_font::convert_contour(const FT_Outline* outline, int32_t firstIndex, int32_t lastIndex) {
+void convert_contour(
+	std::vector<map_font::map_font_buffer_glyph>& buffer_glyphs,
+	std::vector<map_font::map_font_buffer_curve>& buffer_curves,
+	const FT_Outline* outline,
+	int32_t firstIndex,
+	int32_t lastIndex
+) {
 	if(firstIndex == lastIndex) return;
 
 	short dIndex = 1;
@@ -1323,7 +1434,7 @@ void map_font::convert_contour(const FT_Outline* outline, int32_t firstIndex, in
 		};
 
 	auto makeCurve = [](const glm::vec2& p0, const glm::vec2& p1, const glm::vec2& p2) {
-		map_font_buffer_curve result;
+		map_font::map_font_buffer_curve result;
 		result.x0 = p0.x;
 		result.y0 = p0.y;
 		result.x1 = p1.x;

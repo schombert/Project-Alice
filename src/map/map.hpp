@@ -282,6 +282,8 @@ public:
 	//
 	std::vector<text_line_vertex> text_line_vertices;
 	GLsizei last_size_of_text_line_vertices = 0;
+	std::vector<text_line_vertex> bold_text_line_vertices;
+	GLsizei last_size_of_bold_text_line_vertices = 0;
 	std::vector<text_line_vertex> province_text_line_vertices;
 	std::vector<screen_vertex> drag_box_vertices;
 	std::vector<uint8_t> terrain_id_map;
@@ -323,7 +325,8 @@ public:
 	static constexpr uint32_t vo_cities = 17;
 	static constexpr uint32_t vo_arbitrary_map_triangles = 18;
 	static constexpr uint32_t vo_state_border = 19;
-	static constexpr uint32_t vo_count = 20;
+	static constexpr uint32_t vo_bold_text_line = 20;
+	static constexpr uint32_t vo_count = 21;
 	GLuint vao_national_borders_array[map::national_groups_count] = {0};
 	GLuint vbo_national_borders_array[map::national_groups_count] = { 0 };
 	GLuint vao_array[vo_count] = { 0 };
