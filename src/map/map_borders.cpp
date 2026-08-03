@@ -538,8 +538,15 @@ void display_data::make_borders(sys::state& state, std::vector<uint8_t>& visited
 
 	auto validate_border_vertex = [&](textured_line_vertex_b_enriched_with_province_index& item) {
 		if(item.position.x < 1.f && item.position.x > 0.f) {
+			if(item.previous_point.x == 0.f && item.position.x > 0.5f) {
+				item.previous_point.x = 1.f;
+			}
+			if(item.previous_point.x == 1.f && item.position.x < 0.5f) {
+				item.previous_point.x = 0.f;
+			}
+
 			auto d_prev = glm::distance(item.position * glm::vec2{ size_x, size_y }, item.previous_point * glm::vec2{ size_x, size_y });
-			auto d_next = glm::distance(item.position * glm::vec2{ size_x, size_y }, item.next_point * glm::vec2{ size_x, size_y });
+			auto d_next = glm::distance(item.position * glm::vec2{ size_x, size_y }, item.next_point * glm::vec2{ size_x, size_y });			
 
 			if(d_prev >= 1.5f || d_next >= 1.5f) {
 				assert(false);
@@ -672,6 +679,14 @@ void display_data::make_borders(sys::state& state, std::vector<uint8_t>& visited
 			prev_pos = current_pos;
 			current_pos = next_pos;
 			next_pos = next;
+
+			if(prev_pos.x == 1.f && current_pos.x < 0.5f) {
+				prev_pos.x = 0.f;
+			}
+
+			if(prev_pos.x == 0.f && current_pos.x > 0.5f) {
+				prev_pos.x = 1.f; 
+			}
 
 			dist += glm::length(prev_pos - current_pos);
 			province_border_vertices.emplace_back(textured_line_vertex_b_enriched_with_province_index{
@@ -1189,16 +1204,16 @@ void display_data::make_borders(sys::state& state, std::vector<uint8_t>& visited
 	}
 
 	auto smooth_point = [&](textured_line_vertex_b_enriched_with_province_index& item, float t) {
-		if(item.next_point.x >= 1.f) {
+		if(item.next_point.x >= 0.999f) {
 			return;
 		}
-		if(item.previous_point.x >= 1.f) {
+		if(item.previous_point.x >= 0.999f) {
 			return;
 		}
-		if(item.next_point.x <= 0.f) {
+		if(item.next_point.x <= 0.001f) {
 			return;
 		}
-		if(item.previous_point.x <= 0.f) {
+		if(item.previous_point.x <= 0.001f) {
 			return;
 		}
 		assert(validate_border_vertex(item));
