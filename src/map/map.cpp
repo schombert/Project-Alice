@@ -1532,7 +1532,7 @@ void display_data::render(
 
 		glBindVertexArray(vao_array[vo_trade_flow]);
 		glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_trade_flow]);
-		//glMultiDrawArrays(GL_TRIANGLE_STRIP, trade_flow_arrow_starts.data(), trade_flow_arrow_counts.data(), GLsizei(trade_flow_arrow_starts.size()));
+		glMultiDrawArrays(GL_TRIANGLE_STRIP, trade_flow_arrow_starts.data(), trade_flow_arrow_counts.data(), GLsizei(trade_flow_arrow_starts.size()));
 
 		// trade particles
 		if(state.user_settings.graphics_mode != sys::graphics_mode::ugly) {
@@ -1751,7 +1751,7 @@ void display_data::render(
 		//}
 
 		if((!state.cheat_data.province_names || zoom < map::zoom_very_close) && !text_line_vertices.empty()) {
-			glUniform4f(color_location, 0.75f, 0.75f, 0.75f, 0.75f);
+			glUniform4f(color_location, 0.9f, 0.9f, 0.9f, 0.8f);
 
 			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_BUFFER, state.font_collection.mfont.bold_glyph_texture);

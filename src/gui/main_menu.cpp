@@ -3962,7 +3962,7 @@ void main_menu_graphics_antialiasing_dropdown_t::on_selection(sys::state& state,
 	quiet_on_selection(state, id);
 	main_menu_graphics_t& graphics = *((main_menu_graphics_t*)(parent)); 
 // BEGIN graphics::antialiasing_dropdown::on_selection
-	state.user_settings.antialias_level = uint8_t(sys::ui_scales[list_contents[id].index]);
+	state.user_settings.antialias_level = (uint8_t)list_contents[id].index;
 	ogl::deinitialize_msaa(state);
 	ogl::initialize_msaa(state, state.x_size, state.y_size);
 	state.user_setting_changed = true;
