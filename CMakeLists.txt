@@ -56,6 +56,7 @@ list(APPEND ALICE_CORE_SOURCES_LIST
 	"${PROJECT_SOURCE_DIR}/src/gui/production.cpp"
 	"${PROJECT_SOURCE_DIR}/src/gui/province_factories.cpp"
 	"${PROJECT_SOURCE_DIR}/src/gui/factory_details.cpp"
+	"${PROJECT_SOURCE_DIR}/src/gui/gui.cpp"
 )
 set_source_files_properties(src/lunasvg/plutovg-blend.c PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
 set_source_files_properties(src/lunasvg/plutovg-canvas.c PROPERTIES SKIP_PRECOMPILE_HEADERS ON)

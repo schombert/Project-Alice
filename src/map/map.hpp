@@ -124,14 +124,39 @@ struct text_line_generator_data {
 	float offset_right = 0.f;
 };
 
-struct border {
-	int start_index = 0;
-	int count = 0;
-	dcon::province_adjacency_id adj;
-	uint16_t padding = 0;
-	bool skip;
-	bool operator==(const border&) const = default;
+// if borders are roads, then these are crossroads
+struct border_node {
+	// coordinates of lower right pixel of the crossroad
+	int x;
+	int y;
+	int edges_out[4] {};
+	int edges_in[4] {};
+	uint8_t out_count = 0;
+	uint8_t in_count = 0;
+
+	bool use_subindex = false;
+	uint8_t subindex = 0;
+
+	bool state_definition_corner = false;
+	bool special_case = false; // X-like structure
 };
+
+struct border_edge {
+	int offset = 0;
+	int count = 0;
+
+	dcon::province_adjacency_id adj;
+	dcon::province_id associated_province;
+
+	int node_start;
+	int node_end;
+	int sibling = -1;
+
+	bool true_loop = false;
+};
+
+constexpr int national_groups_count = 32;
+uint8_t nation_to_group(sys::state const& state, dcon::nation_id nation, bool sea);
 
 enum class map_view;
 class display_data {
@@ -165,9 +190,35 @@ public:
 	void set_text_lines(sys::state& state);
 	void set_province_text_lines(sys::state& state);
 
-	ankerl::unordered_dense::map<dcon::province_id::value_base_t, std::vector<std::pair<size_t, size_t>>> province_to_borders;
-	std::vector<border> borders;
-	std::vector<textured_line_vertex_b_enriched_with_province_index> border_vertices;
+
+	std::vector<border_node> border_nodes;
+
+	ankerl::unordered_dense::map<dcon::province_id::value_base_t, std::vector<size_t>> province_to_edges;
+	std::vector<size_t> adj_index_to_border_edge;
+	std::vector<border_edge> border_edges;
+
+	//ankerl::unordered_dense::map<dcon::state_definition_id::value_base_t, std::vector<size_t>> nation_to_nation_border;
+	std::array<std::vector<GLsizei>, national_groups_count> national_border_starts {};
+	std::array<std::vector<GLsizei>, national_groups_count> national_border_counts {};
+	std::array<std::vector<textured_line_vertex_b_enriched_with_province_index>, national_groups_count>  national_border_vertices {};
+	std::array<bool, national_groups_count> national_group_is_clean {};
+	std::array<bool, national_groups_count> national_group_request_to_commit_borders {};
+
+	std::vector<GLsizei> coastal_border_starts;
+	std::vector<GLsizei> coastal_border_counts;
+	std::vector<textured_line_vertex_b_enriched_with_province_index> coastal_border_vertices;
+
+	//ankerl::unordered_dense::map<dcon::state_definition_id::value_base_t, std::vector<size_t>> state_to_state_border;
+	std::vector<GLsizei> state_border_starts;
+	std::vector<GLsizei> state_border_counts;
+	std::vector<textured_line_vertex_b_enriched_with_province_index> state_border_vertices;
+
+	ankerl::unordered_dense::map<dcon::province_id::value_base_t, std::vector<size_t>> province_to_province_border;
+	std::vector<GLsizei> province_border_starts;
+	std::vector<GLsizei> province_border_counts;
+	std::vector<textured_line_vertex_b_enriched_with_province_index> province_border_vertices;
+
+
 	//
 	std::vector<textured_line_with_width_vertex> river_vertices;
 	std::vector<GLint> river_starts;
@@ -271,7 +322,10 @@ public:
 	static constexpr uint32_t vo_square = 16;
 	static constexpr uint32_t vo_cities = 17;
 	static constexpr uint32_t vo_arbitrary_map_triangles = 18;
-	static constexpr uint32_t vo_count = 19;
+	static constexpr uint32_t vo_state_border = 19;
+	static constexpr uint32_t vo_count = 20;
+	GLuint vao_national_borders_array[map::national_groups_count] = {0};
+	GLuint vbo_national_borders_array[map::national_groups_count] = { 0 };
 	GLuint vao_array[vo_count] = { 0 };
 	GLuint vbo_array[vo_count] = { 0 };
 	// Textures
@@ -401,8 +455,9 @@ public:
 	void load_median_terrain_type(parsers::scenario_building_context& context);
 
 	uint16_t safe_get_province(glm::ivec2 pt);
+	int32_t safe_get_province_handle_invalid_coords(glm::ivec2 pt);
 	void make_coastal_borders(sys::state& state, std::vector<bool>& visited);
-	void make_borders(sys::state& state, std::vector<bool>& visited);
+	void make_borders(sys::state& state, std::vector<uint8_t>& visited);
 
 	void load_shaders(simple_fs::directory& root);
 	void update_borders_mesh();

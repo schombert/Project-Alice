@@ -161,8 +161,15 @@ uint8_t const* read_handwritten_scenario_section(uint8_t const* ptr_in, uint8_t 
 			ptr_in = deserialize(ptr_in, state.map_state.map_data.coastal_vertices);
 			ptr_in = deserialize(ptr_in, state.map_state.map_data.coastal_starts);
 			ptr_in = deserialize(ptr_in, state.map_state.map_data.coastal_counts);
-			ptr_in = deserialize(ptr_in, state.map_state.map_data.border_vertices);
-			ptr_in = deserialize(ptr_in, state.map_state.map_data.borders);
+			ptr_in = deserialize(ptr_in, state.map_state.map_data.province_border_vertices);
+			ptr_in = deserialize(ptr_in, state.map_state.map_data.province_border_starts);
+			ptr_in = deserialize(ptr_in, state.map_state.map_data.province_border_counts);
+			ptr_in = deserialize(ptr_in, state.map_state.map_data.state_border_vertices);
+			ptr_in = deserialize(ptr_in, state.map_state.map_data.state_border_starts);
+			ptr_in = deserialize(ptr_in, state.map_state.map_data.state_border_counts);
+			ptr_in = deserialize(ptr_in, state.map_state.map_data.border_edges);
+			ptr_in = deserialize(ptr_in, state.map_state.map_data.border_nodes);
+			ptr_in = deserialize(ptr_in, state.map_state.map_data.adj_index_to_border_edge);
 		}
 		ptr_in = deserialize(ptr_in, state.map_state.map_data.terrain_id_map);
 		ptr_in = deserialize(ptr_in, state.map_state.map_data.province_id_map);
@@ -366,8 +373,15 @@ uint8_t* write_handwritten_scenario_section(uint8_t* ptr_in, sys::state& state, 
 			ptr_in = serialize(ptr_in, state.map_state.map_data.coastal_vertices);
 			ptr_in = serialize(ptr_in, state.map_state.map_data.coastal_starts);
 			ptr_in = serialize(ptr_in, state.map_state.map_data.coastal_counts);
-			ptr_in = serialize(ptr_in, state.map_state.map_data.border_vertices);
-			ptr_in = serialize(ptr_in, state.map_state.map_data.borders);
+			ptr_in = serialize(ptr_in, state.map_state.map_data.province_border_vertices);
+			ptr_in = serialize(ptr_in, state.map_state.map_data.province_border_starts);
+			ptr_in = serialize(ptr_in, state.map_state.map_data.province_border_counts);
+			ptr_in = serialize(ptr_in, state.map_state.map_data.state_border_vertices);
+			ptr_in = serialize(ptr_in, state.map_state.map_data.state_border_starts);
+			ptr_in = serialize(ptr_in, state.map_state.map_data.state_border_counts);
+			ptr_in = serialize(ptr_in, state.map_state.map_data.border_edges);
+			ptr_in = serialize(ptr_in, state.map_state.map_data.border_nodes);
+			ptr_in = serialize(ptr_in, state.map_state.map_data.adj_index_to_border_edge);
 		}
 		ptr_in = serialize(ptr_in, state.map_state.map_data.terrain_id_map);
 		ptr_in = serialize(ptr_in, state.map_state.map_data.province_id_map);
@@ -571,8 +585,15 @@ size_t sizeof_handwritten_scenario_section(sys::state& state, bool exclude_local
 			sz += serialize_size(state.map_state.map_data.coastal_vertices);
 			sz += serialize_size(state.map_state.map_data.coastal_starts);
 			sz += serialize_size(state.map_state.map_data.coastal_counts);
-			sz += serialize_size(state.map_state.map_data.border_vertices);
-			sz += serialize_size(state.map_state.map_data.borders);
+			sz += serialize_size(state.map_state.map_data.province_border_vertices);
+			sz += serialize_size(state.map_state.map_data.province_border_starts);
+			sz += serialize_size(state.map_state.map_data.province_border_counts);
+			sz += serialize_size(state.map_state.map_data.state_border_vertices);
+			sz += serialize_size(state.map_state.map_data.state_border_starts);
+			sz += serialize_size(state.map_state.map_data.state_border_counts);
+			sz += serialize_size(state.map_state.map_data.border_edges);
+			sz += serialize_size(state.map_state.map_data.border_nodes);
+			sz += serialize_size(state.map_state.map_data.adj_index_to_border_edge);
 		}
 		sz += serialize_size(state.map_state.map_data.terrain_id_map);
 		sz += serialize_size(state.map_state.map_data.province_id_map);

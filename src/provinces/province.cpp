@@ -172,323 +172,264 @@ void update_connected_regions(sys::state& state) {
 	}
 
 
-	auto& province_to_borders = state.map_state.map_data.province_to_borders;
-	if(province_to_borders.empty()) {
-		for(size_t i = 0; i < state.map_state.map_data.borders.size(); i++) {
-			auto& border = state.map_state.map_data.borders[i];
-			auto adj = border.adj;
-			auto A = state.world.province_adjacency_get_connected_provinces(adj, 0);
-			auto B = state.world.province_adjacency_get_connected_provinces(adj, 1);
+	auto const & border_edges = state.map_state.map_data.border_edges;
+	auto const& border_nodes = state.map_state.map_data.border_nodes;
+	auto const& province_border_vertices = state.map_state.map_data.province_border_vertices;
+	auto& national_border_starts = state.map_state.map_data.national_border_starts;
+	auto& national_border_counts = state.map_state.map_data.national_border_counts;
+	auto& national_border_vertices = state.map_state.map_data.national_border_vertices;
 
-			auto query_result_A = province_to_borders.find(A.value);
-			if(query_result_A == province_to_borders.end()) {
-				province_to_borders[A.value] = {{ i, 0 }};
-			} else {
-				query_result_A->second.push_back({ i, 0 });
-			}
-
-			auto query_result_B = province_to_borders.find(B.value);
-			if(query_result_B == province_to_borders.end()) {
-				province_to_borders[B.value] = {{ i, 1 }};
-			} else {
-				query_result_B->second.push_back({ i, 1 });
-			}
-		}
+	for(uint8_t group_idx = 0; group_idx < map::national_groups_count; group_idx++) {
+		if (state.map_state.map_data.national_group_is_clean[group_idx]) continue;
+		national_border_starts[group_idx].clear();
+		national_border_counts[group_idx].clear();
+		national_border_vertices[group_idx].clear();
 	}
 
-	// start chaining borders:
-	for(size_t i = 0; i < state.map_state.map_data.borders.size(); i++) {
-		auto& border = state.map_state.map_data.borders[i];
-		if(border.count == 0) {
+	//sys::state const& const_state = state;
+
+	auto good_nation_border = [&state = std::as_const(state), &border_edges](map::border_edge const & edge) {
+		auto p_left = edge.associated_province;
+		auto n_left = state.world.province_get_nation_from_province_ownership(p_left);
+		bool left_is_sea = p_left.index() >= state.province_definitions.first_sea_province.index() || !p_left;
+
+		if(state.map_state.map_data.national_group_is_clean[map::nation_to_group(state, n_left, left_is_sea)]) {
+			return false;
+		}
+
+		if(edge.sibling == -1) {
+			return false;
+		}
+
+		auto& sibling = border_edges[edge.sibling];
+		auto p_right = sibling.associated_province;
+		auto n_right = state.world.province_get_nation_from_province_ownership(p_right);
+
+		//bool coast = false;
+
+		bool rigth_is_sea = state.province_definitions.first_sea_province.index() <= p_right.index() || !p_right;
+
+		if((!rigth_is_sea) != (!left_is_sea)) {
+			return true;
+		}
+
+		if(n_left == n_right) {
+			return false;
+		}
+
+		return true;
+	};
+
+	auto nation_border = [&state = std::as_const(state)](map::border_edge const & edge, dcon::nation_id n, bool sea) {
+		auto p_left = edge.associated_province;
+		auto n_left = state.world.province_get_nation_from_province_ownership(p_left);
+
+		bool local_sea = p_left.index() >= state.province_definitions.first_sea_province.index() || !p_left;
+
+		if(sea) {
+			return sea == local_sea;
+		} else {
+			if(local_sea) {
+				return false;
+			}
+		}
+		return n_left == n;
+	};
+
+
+	auto weave_nation_border =
+	[
+		&state = std::as_const(state),
+		&good_nation_border,
+		&nation_border,
+		&province_border_vertices,
+		&border_nodes,
+		&border_edges
+	]
+	(
+		map::border_edge const & edge,
+		bool sea,
+		std::vector<map::textured_line_vertex_b_enriched_with_province_index>& target_vertices,
+		std::vector<GLsizei> const& target_starts,
+		std::vector<GLsizei> const& target_counts,
+		uint8_t validation_group,
+		bool& first
+	) {
+		if(!good_nation_border(edge)) {
+			return;
+		}
+		auto p_left = edge.associated_province;
+		auto n_left = state.world.province_get_nation_from_province_ownership(p_left);
+		bool local_sea = p_left.index() >= state.province_definitions.first_sea_province.index() || !p_left;
+		assert(sea == local_sea);
+		auto nat_group = map::nation_to_group(state, n_left, sea);
+		assert(validation_group == nat_group);
+
+		// weave previous edge into it
+
+		auto old_size = target_vertices.size();
+		if(first) {
+			old_size += 2;
+		}
+		for(auto k = edge.offset; k < edge.offset + edge.count; k++) {
+		//for(auto k = edge.offset; k < edge.offset + 2; k++) {
+			assert((int)province_border_vertices.size() > k);
+			assert (k >= 0);
+			assert((size_t)(int)(province_border_vertices.size()) == province_border_vertices.size());
+			target_vertices.push_back(province_border_vertices[k]);
+			if(first) {
+				target_vertices.push_back(province_border_vertices[k]);
+				target_vertices.push_back(province_border_vertices[k]);
+				first = false;
+			}
+		}
+		auto& origin_node = border_nodes[edge.node_start];
+		for(uint8_t j = 0; j < origin_node.in_count; j++) {
+			auto& previous_edge = border_edges[origin_node.edges_in[j]];
+			if(!good_nation_border(previous_edge)) continue;
+			if(!nation_border(previous_edge, n_left, sea)) continue;
+			target_vertices[old_size].previous_point = province_border_vertices[previous_edge.offset + previous_edge.count - 4].position;
+			target_vertices[old_size + 1].previous_point = province_border_vertices[previous_edge.offset + previous_edge.count - 3].position;
+		}
+
+		auto& final_node = border_nodes[edge.node_end];
+		for(uint8_t j = 0; j < final_node.out_count; j++) {
+			auto& next_edge = border_edges[final_node.edges_out[j]];
+			if(!good_nation_border(next_edge)) continue;
+			if(!nation_border(next_edge, n_left, sea)) continue;
+			target_vertices[target_vertices.size() - 1].next_point = province_border_vertices[next_edge.offset + 3].position;
+			target_vertices[target_vertices.size() - 2].next_point = province_border_vertices[next_edge.offset + 2].position;
+		}
+	};
+
+	// start with filling the vertices buffer with long border "snakes"
+
+	std::vector<uint8_t> visited_edges;
+	visited_edges.resize(border_edges.size());
+
+	for(size_t idx = 0; idx < border_edges.size(); idx++) {
+		if(visited_edges[idx]) {
+			continue;
+		}
+		if(!good_nation_border(border_edges[idx])) {
+			visited_edges[idx] = 1;
 			continue;
 		}
 
-		auto border_start_A = border.start_index;
-		auto border_end_A = border.start_index + border.count / 2 - 2;
-		auto border_start_B = border.start_index + border.count / 2;
-		auto border_end_B = border.start_index + border.count - 2;
 
-		auto A = province::from_map_id(state.map_state.map_data.border_vertices[border_start_A].province_index);
-		auto B = province::from_map_id(state.map_state.map_data.border_vertices[border_start_B].province_index);
-		auto n_A = state.world.province_get_nation_from_province_ownership(A);
-		auto n_B = state.world.province_get_nation_from_province_ownership(B);
+		auto& edge = border_edges[idx];
+		auto p_left = edge.associated_province;
 
-		if(n_A == n_B && A && B) {
-			if(n_A) {
-				continue;
-			}
-			if(
-				A.index() >= state.province_definitions.first_sea_province.index()
-				&&
-				B.index() >= state.province_definitions.first_sea_province.index()
-			) {
-				continue;
-			}
-			if(
-				A.index() < state.province_definitions.first_sea_province.index()
-				&&
-				B.index() < state.province_definitions.first_sea_province.index()
-			) {
-				continue;
-			}
-		}
+		bool sea = p_left.index() >= state.province_definitions.first_sea_province.index() || !p_left;
 
-		auto& PA1 = state.map_state.map_data.border_vertices[border_start_A];
-		auto& PA2 = state.map_state.map_data.border_vertices[border_end_A];
-		auto& PAs1 = state.map_state.map_data.border_vertices[border_start_A + 1];
-		auto& PAs2 = state.map_state.map_data.border_vertices[border_end_A + 1];
-
-		auto& PB1 = state.map_state.map_data.border_vertices[border_start_B];
-		auto& PB2 = state.map_state.map_data.border_vertices[border_end_B];
-		auto& PBs1 = state.map_state.map_data.border_vertices[border_start_B + 1];
-		auto& PBs2 = state.map_state.map_data.border_vertices[border_end_B + 1];
-
-		if(PA1.position == PA2.position) {
-			if(PA1.previous_point == PA1.position) {
-				PA1.previous_point = PA2.previous_point;
-				PA2.next_point = PA1.next_point;
-				PAs1.previous_point = PAs2.previous_point;
-				PAs2.next_point = PAs1.next_point;
-
-				PB1.previous_point = PB2.previous_point;
-				PB2.next_point = PB1.next_point;
-				PBs1.previous_point = PBs2.previous_point;
-				PBs2.next_point = PBs1.next_point;
-			}
-			/*
-			if(PA1.next_point == PA1.position) {
-				PA1.next_point = PA2.next_point;
-				PA2.previous_point = PA1.previous_point;
-				PAs1.next_point = PAs2.next_point;
-				PAs2.previous_point = PAs1.previous_point;
-
-				PB1.next_point = PB2.next_point;
-				PB2.previous_point = PB1.previous_point;
-				PBs1.next_point = PBs2.next_point;
-				PBs2.previous_point = PBs1.previous_point;
-			}
-			*/
+		auto nation_left = state.world.province_get_nation_from_province_ownership(p_left);
+		auto nat_group = map::nation_to_group(state, nation_left, sea);
+		if(state.map_state.map_data.national_group_is_clean[nat_group]) {
+			visited_edges[idx] = 1;
 			continue;
 		}
 
-		// find borders to weave:
-		for(auto& candidate_index : province_to_borders[A.value]) {
-			auto& candidate_border = state.map_state.map_data.borders[candidate_index.first];
 
-			if(candidate_index.first == i) {
+		size_t current_idx = idx;
+
+		int timeout = 500;
+
+		// go back to the start of the chain
+		do {
+			bool path_found = false;
+			auto& origin = border_nodes[edge.node_start];
+			for(uint8_t in_idx = 0; in_idx < origin.in_count; in_idx++) {
+				auto& previous_edge = border_edges[origin.edges_in[in_idx]];
+				if(!good_nation_border(previous_edge)) {
+					visited_edges[origin.edges_in[in_idx]] = 1;
+					continue;
+				}
+				if(nation_border(previous_edge, nation_left, sea)  && (size_t) origin.edges_in[in_idx] != current_idx) {
+					auto local_p_left = previous_edge.associated_province;
+					bool local_sea = local_p_left.index() >= state.province_definitions.first_sea_province.index() || !local_p_left;
+					assert(local_sea == sea);
+					current_idx = origin.edges_in[in_idx];
+					path_found = true;
+					break;
+				}
+			}
+			if(!path_found) {
+				break;
+			}
+			timeout--;
+		} while (current_idx != idx && timeout > 0);
+		/*
+		Now we are either
+			1) At the start of the loop
+			2) At the start of the border chain
+		So we can just go forward and push vertices to the buffer
+		*/
+		timeout = 1000;
+		auto starting_amount = (GLsizei)national_border_vertices[nat_group].size();
+		national_border_starts[nat_group].push_back(starting_amount);
+		size_t marked_idx = current_idx;
+		bool first = true;
+		auto good = good_nation_border(border_edges[current_idx]) && nation_border(border_edges[current_idx], nation_left, sea);
+		do {
+			if(!good) {
 				continue;
 			}
 
-			if(candidate_border.count == 0) {
-				continue;
-			}
+			bool path_found = false;
+			// weave
+			visited_edges[current_idx] = 1;
+			auto& edge_to_add = border_edges[current_idx];
 
-			auto candidate_start =
-				candidate_border.start_index
-				+ candidate_index.second * candidate_border.count / 2;
-			auto candidate_end =
-				candidate_border.start_index
-				+ (1 + candidate_index.second) * candidate_border.count / 2 - 2;
+			assert(nat_group >= 0);
+			assert(nat_group < map::national_groups_count);
 
-			auto opposite_candidate_start =
-				candidate_border.start_index
-				+ (1 - candidate_index.second) * candidate_border.count / 2;
-			auto opposite_candidate_end =
-				candidate_border.start_index
-				+ (1 + (1 - candidate_index.second)) * candidate_border.count / 2 - 2;
+			weave_nation_border(
+				edge_to_add,
+				sea,
+				national_border_vertices[nat_group],
+				national_border_starts[nat_group],
+				national_border_counts[nat_group],
+				nat_group,
+				first
+			);
 
-			auto opposite_province = province::from_map_id(state.map_state.map_data.border_vertices[opposite_candidate_start].province_index);
-			auto opposite_nation = state.world.province_get_nation_from_province_ownership(opposite_province);
-
-			if(opposite_province == A) {
-				std::swap(candidate_start, opposite_candidate_start);
-				std::swap(candidate_end, opposite_candidate_end);
-				opposite_province = province::from_map_id(state.map_state.map_data.border_vertices[opposite_candidate_start].province_index);
-				opposite_nation = state.world.province_get_nation_from_province_ownership(opposite_province);
-			}
-
-			auto& QT1 = state.map_state.map_data.border_vertices[candidate_start];
-			auto& QT2 = state.map_state.map_data.border_vertices[candidate_end];
-			auto& QTs1 = state.map_state.map_data.border_vertices[candidate_start + 1];
-			auto& QTs2 = state.map_state.map_data.border_vertices[candidate_end + 1];
-
-			auto& QW1 = state.map_state.map_data.border_vertices[opposite_candidate_start];
-			auto& QW2 = state.map_state.map_data.border_vertices[opposite_candidate_end];
-			auto& QWs1 = state.map_state.map_data.border_vertices[opposite_candidate_start + 1];
-			auto& QWs2 = state.map_state.map_data.border_vertices[opposite_candidate_end + 1];			
-
-			if(PA1.position == QT1.position) {
-				if(opposite_nation != n_A) {
-					PA1.previous_point = QT1.next_point;
-					PAs1.previous_point = QTs1.next_point;
-					QT1.previous_point = PA1.next_point;
-					QTs1.previous_point = PAs1.next_point;
+			// find the next edge
+			auto& end = border_nodes[edge_to_add.node_end];
+			for(uint8_t out_idx = 0; out_idx < end.out_count; out_idx++) {
+				auto& next_edge = border_edges[end.edges_out[out_idx]];
+				if(!good_nation_border(next_edge)) {
+					visited_edges[end.edges_out[out_idx]] = 1;
+					continue;
 				}
-
-				if(opposite_nation == n_B) {
-
-					PB1.previous_point = QT1.next_point;
-					PBs1.previous_point = QTs1.next_point;
-					QW1.previous_point = PA1.next_point;
-					QWs1.previous_point = PAs1.next_point;
+				if(nation_border(next_edge, nation_left, sea) && (size_t) end.edges_out[out_idx] != current_idx) {
+					current_idx = end.edges_out[out_idx];
+					path_found = true;
+					break;
 				}
 			}
-			if(PA1.position == QT2.position) {
-				if(opposite_nation != n_A) {
-					PA1.previous_point = QT2.previous_point;
-					PAs1.previous_point = QTs2.previous_point;
-					QT2.next_point = PA1.next_point;
-					QTs2.next_point = PAs1.next_point;
-				}
-
-
-				if(opposite_nation == n_B) {
-					PB1.previous_point = QT2.previous_point;
-					PBs1.previous_point = QTs2.previous_point;
-					QW2.next_point = PA1.next_point;
-					QWs2.next_point = PAs1.next_point;
-				}
+			if(!path_found) {
+				break;
 			}
-			if(PA2.position == QT1.position) {
-				if(opposite_nation != n_A) {
-					PA2.next_point = QT1.next_point;
-					PAs2.next_point = QTs1.next_point;
-					QT1.previous_point = PA2.previous_point;
-					QTs1.previous_point = PAs2.previous_point;
-				}
+			timeout--;
+		} while(current_idx != marked_idx && timeout > 0 && !visited_edges[current_idx]);
 
-				if(opposite_nation == n_B) {
-					PB2.next_point = QT1.next_point;
-					PBs2.next_point = QTs1.next_point;
-					QW1.previous_point = PA2.previous_point;
-					QWs1.previous_point = PAs2.previous_point;
-				}
-			}
-			if(PA2.position == QT2.position) {
-				if(opposite_nation != n_A) {
-					PA2.next_point = QT2.previous_point;
-					PAs2.next_point = QTs2.previous_point;
-					QT2.next_point = PA2.previous_point;
-					QTs2.next_point = PAs2.previous_point;
-				}
-
-				if(opposite_nation == n_B) {
-					PB2.next_point = QT2.previous_point;
-					PBs2.next_point = QTs2.previous_point;
-					QW2.next_point = PA2.previous_point;
-					QWs2.next_point = PAs2.previous_point;
-				}
-			}
+		if(good) {
+			auto last = national_border_vertices[nat_group].back();
+			national_border_vertices[nat_group].push_back(last);
+			national_border_vertices[nat_group].push_back(last);
 		}
 
-		for(auto& candidate_index : province_to_borders[B.value]) {
-			auto& candidate_border = state.map_state.map_data.borders[candidate_index.first];
-
-			if(candidate_index.first == i) {
-				continue;
-			}
-
-			if(candidate_border.count == 0) {
-				continue;
-			}
-
-			auto candidate_start =
-				candidate_border.start_index
-				+ candidate_index.second * candidate_border.count / 2;
-			auto candidate_end =
-				candidate_border.start_index
-				+ (1 + candidate_index.second) * candidate_border.count / 2 - 2;
-
-			auto opposite_candidate_start =
-				candidate_border.start_index
-				+ (1 - candidate_index.second) * candidate_border.count / 2;
-			auto opposite_candidate_end =
-				candidate_border.start_index
-				+ (1 + (1 - candidate_index.second)) * candidate_border.count / 2 - 2;
-
-			auto opposite_province = province::from_map_id(state.map_state.map_data.border_vertices[opposite_candidate_start].province_index);
-			auto opposite_nation = state.world.province_get_nation_from_province_ownership(opposite_province);
-
-			if(opposite_province == B) {
-				std::swap(candidate_start, opposite_candidate_start);
-				std::swap(candidate_end, opposite_candidate_end);
-				opposite_province = province::from_map_id(state.map_state.map_data.border_vertices[opposite_candidate_start].province_index);
-				opposite_nation = state.world.province_get_nation_from_province_ownership(opposite_province);
-			}
-
-			auto& QT1 = state.map_state.map_data.border_vertices[candidate_start];
-			auto& QT2 = state.map_state.map_data.border_vertices[candidate_end];
-			auto& QTs1 = state.map_state.map_data.border_vertices[candidate_start + 1];
-			auto& QTs2 = state.map_state.map_data.border_vertices[candidate_end + 1];
-
-			auto& QW1 = state.map_state.map_data.border_vertices[opposite_candidate_start];
-			auto& QW2 = state.map_state.map_data.border_vertices[opposite_candidate_end];
-			auto& QWs1 = state.map_state.map_data.border_vertices[opposite_candidate_start + 1];
-			auto& QWs2 = state.map_state.map_data.border_vertices[opposite_candidate_end + 1];
-
-			if(PA1.position == QT1.position) {
-				if(opposite_nation != n_B) {
-					PB1.previous_point = QT1.next_point;
-					PBs1.previous_point = QTs1.next_point;
-					QT1.previous_point = PA1.next_point;
-					QTs1.previous_point = PAs1.next_point;
-				}
-
-				if(opposite_nation == n_A) {
-					PA1.previous_point = QT1.next_point;
-					PAs1.previous_point = QTs1.next_point;
-					QW1.previous_point = PA1.next_point;
-					QWs1.previous_point = PAs1.next_point;
-				}
-			}
-			if(PA1.position == QT2.position) {
-				if(opposite_nation != n_B) {
-					PB1.previous_point = QT2.previous_point;
-					PBs1.previous_point = QTs2.previous_point;
-					QT2.next_point = PA1.next_point;
-					QTs2.next_point = PAs1.next_point;
-				}
-
-
-				if(opposite_nation == n_A) {
-					PA1.previous_point = QT2.previous_point;
-					PAs1.previous_point = QTs2.previous_point;
-					QW2.next_point = PA1.next_point;
-					QWs2.next_point = PAs1.next_point;
-				}
-			}
-			if(PA2.position == QT1.position) {
-				if(opposite_nation != n_B) {
-					PB2.next_point = QT1.next_point;
-					PBs2.next_point = QTs1.next_point;
-					QT1.previous_point = PA2.previous_point;
-					QTs1.previous_point = PAs2.previous_point;
-				}
-
-				if(opposite_nation == n_A) {
-					PA2.next_point = QT1.next_point;
-					PAs2.next_point = QTs1.next_point;
-					QW1.previous_point = PA2.previous_point;
-					QWs1.previous_point = PAs2.previous_point;
-				}
-			}
-			if(PA2.position == QT2.position) {
-				if(opposite_nation != n_B) {
-					PB2.next_point = QT2.previous_point;
-					PBs2.next_point = QTs2.previous_point;
-					QT2.next_point = PA2.previous_point;
-					QTs2.next_point = PAs2.previous_point;
-				}
-
-				if(opposite_nation == n_A) {
-					PA2.next_point = QT2.previous_point;
-					PAs2.next_point = QTs2.previous_point;
-					QW2.next_point = PA2.previous_point;
-					QWs2.next_point = PAs2.previous_point;
-				}
-			}
-		}
+		auto local_count = GLsizei(national_border_vertices[nat_group].size() - national_border_starts[nat_group].back());
+		//assert(local_count > 0);
+		national_border_counts[nat_group].push_back(local_count);
 	}
+
+	for(uint8_t group_idx = 0; group_idx < map::national_groups_count; group_idx++) {
+		state.map_state.map_data.national_group_request_to_commit_borders[group_idx] = !state.map_state.map_data.national_group_is_clean[group_idx];
+		state.map_state.map_data.national_group_is_clean[group_idx] = true;
+	}
+
+
 	state.province_ownership_changed.store(true, std::memory_order::release);
 }
 
@@ -1083,6 +1024,9 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 
 	if(new_owner == old_owner)
 		return;
+
+	if (new_owner) state.map_state.map_data.national_group_is_clean[map::nation_to_group(state, new_owner, false)] = false;
+	if (old_owner) state.map_state.map_data.national_group_is_clean[map::nation_to_group(state, old_owner, false)] = false;
 
 	state.adjacency_data_out_of_date = true;
 	state.national_cached_values_out_of_date = true;

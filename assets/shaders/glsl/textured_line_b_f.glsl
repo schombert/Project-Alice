@@ -19,8 +19,9 @@ vec4 gamma_correct(vec4 colour) {
 }
 
 void main() {
-	// frag_color = vec4(tex_coord, tex_coord, tex_coord, 1.0);
-	// return;
+	//frag_color = vec4(tex_coord, tex_coord, tex_coord, 1.0);
+	//frag_color = vec4(0.0, 0.0, 0.0, 1.0);
+	//return;
 
 
 	vec4 out_color = texture(line_texture, vec2(o_dist, border_width_coord));

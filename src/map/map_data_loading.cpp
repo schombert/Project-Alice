@@ -681,8 +681,8 @@ void display_data::load_map_data(parsers::scenario_building_context& context) {
 	create_curved_river_vertices(context, river_data, terrain_id_map);
 
 	{
-		std::vector<bool> borders_visited;
-		borders_visited.resize(size_x * size_y * 2, false);
+		std::vector<uint8_t> borders_visited;
+		borders_visited.resize(size_x * size_y * 5, false);
 		make_borders(context.state, borders_visited);
 	}
 }

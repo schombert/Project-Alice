@@ -62,8 +62,9 @@ glm::vec2 get_port_location(sys::state& state, dcon::province_id p) {
 	assert(adj);
 	auto id = adj.index();
 	auto& map_data = state.map_state.map_data;
-	auto& border = map_data.borders[id];
-	auto& vertex = map_data.border_vertices[border.start_index + border.count / 4];
+	auto border_index = map_data.adj_index_to_border_edge[id];
+	auto& border = map_data.border_edges[border_index];
+	auto& vertex = map_data.province_border_vertices[border.offset + border.count / 2];
 	glm::vec2 map_size = glm::vec2(map_data.size_x, map_data.size_y);
 
 	return vertex.position * map_size;
@@ -78,8 +79,9 @@ glm::vec2 get_port_direction(sys::state& state, dcon::province_id p) {
 	assert(adj);
 	auto id = adj.index();
 	auto& map_data = state.map_state.map_data;
-	auto& border = map_data.borders[id];
-	auto& vertex = map_data.border_vertices[border.start_index + border.count / 4];
+	auto border_index = map_data.adj_index_to_border_edge[id];
+	auto& border = map_data.border_edges[border_index];
+	auto& vertex = map_data.province_border_vertices[border.offset + border.count / 2];
 
 	auto& next_vertex = vertex.next_point;
 	auto& prev_vertex = vertex.previous_point;
@@ -1393,7 +1395,7 @@ void commit_text_lines(sys::state& state, display_data& map_data) {
 
 void update_text_lines(sys::state& state, display_data& map_data) {
 
-	clear_drawing(state, state.map_state.map_data);
+	//clear_drawing(state, state.map_state.map_data);
 
 	
 
@@ -1937,8 +1939,8 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 				return;
 			}
 
-			for(auto border_index : state.map_state.map_data.province_to_borders[p1.value]) {				
-				auto border = state.map_state.map_data.borders[border_index.first];
+			for(auto border_index : state.map_state.map_data.province_to_edges[p1.value]) {				
+				auto border = state.map_state.map_data.border_edges[border_index];
 				auto adj = border.adj;
 				if(!adj || border.count == 0) {
 					continue;
@@ -1951,7 +1953,7 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 					return;
 				}
 
-				auto vertex = state.map_state.map_data.border_vertices[border.start_index + border.count / 4].position;
+				auto vertex = state.map_state.map_data.province_border_vertices[border.offset + border.count / 2].position;
 				square::point sq { vertex };
 				auto result = equirectangular::from_square(sq, (float)map_data.size_x, (float)map_data.size_y).data;
 
@@ -2673,10 +2675,10 @@ void map_state::update_cache(sys::state& state) {
 
 		std::shared_lock lock(state.game_state_resetting_lock);
 		state.game_state_resetting_cv.wait(lock, [&] { return !state.yield_game_state_resetting_lock; });
-
+		/*
 		auto screen_size  = glm::vec2(state.x_size, state.y_size);
 		if (update_cache_on_map_movement) {
-			for (auto& b : map_data.borders) {
+			for (auto& b : map_data.border_edges) {
 				if (b.count == 0) {
 					b.skip = true;
 					continue;
@@ -2686,7 +2688,7 @@ void map_state::update_cache(sys::state& state) {
 					continue;
 				}
 
-				map_space::point_normalized center_pos = {map_data.border_vertices[b.start_index + b.count / 4].position};
+				map_space::point_normalized center_pos = {map_data.province_border_vertices[b.start_index + b.count / 2].position};
 				auto center_pos_adjusted = map_space::inverted_from_normalized(center_pos);
 
 				screen_space::point_ui center;
@@ -2701,7 +2703,6 @@ void map_state::update_cache(sys::state& state) {
 			update_cache_on_map_movement = false;
 			//request_fresh_border_index = true;
 		}
-
 		if (request_fresh_border_index) {
 			uint8_t updated_index = 1 - smoothing_borders_index_current;
 
@@ -2735,6 +2736,7 @@ void map_state::update_cache(sys::state& state) {
 			smoothing_borders_index_current = updated_index;
 			request_fresh_border_index = false;
 		}
+		*/
 
 		std::this_thread::sleep_for(std::chrono::milliseconds((int)delay));
 	}
@@ -2843,7 +2845,10 @@ void map_state::update(sys::state& state) {
 
 	screen_space::point_ui mouse_pos{ {(float)(state.mouse_x_position), (float)(state.mouse_y_position)} };
 	glm::vec2 screen_size{ state.x_size, state.y_size };
+
 	screen_space::point_ui screen_center = {{screen_size / 2.f}};
+	screen_space::point_ui screen_corner = { {0.f, 0.f} };
+
 	auto view_mode = current_view(state);
 	map_space::point_normalized_inverted_y pos_before_zoom;
 	bool valid_pos = screen_to_map(mouse_pos, screen_size, view_mode, pos_before_zoom);
@@ -2925,7 +2930,16 @@ void map_state::update(sys::state& state) {
 	axis.y = 0;
 	axis = glm::normalize(axis);
 	globe_rotation = glm::rotate(globe_rotation, (0.5f + pos.data.y) * glm::pi<float>(), axis);
+	camera_over_sphere_point = glm::vec3(0.f, 0.f, 1.f) * glm::mat3(globe_rotation);
+	camera_corner_over_sphere_point = -camera_over_sphere_point;
 
+	map_space::point_normalized_inverted_y corner_projection;
+	if(screen_to_map(screen_corner, screen_size, view_mode, corner_projection)) {
+		auto sq_corner = map_space::to_square(corner_projection);
+		auto sph_corner = sphere_R3::from_square(sq_corner);
+		camera_corner_over_sphere_point = sph_corner.data;
+	}
+	
 
 	if(unhandled_province_selection) {
 		map_mode::update_map_mode(state);
@@ -3302,6 +3316,11 @@ bool map_state::map_to_screen(map_space::point_normalized_inverted_y map_pos, gl
 		{
 			auto sphere_point = sphere_R3::from_square(square_point).data;
 			auto sphere_adjusted = glm::vec3 { sphere_point.y, sphere_point.x, sphere_point.z };
+
+			if(glm::dot(sphere_adjusted, camera_over_sphere_point) < 0.f) {
+				return false;
+			}
+
 			auto visible_point = glm::mat3(globe_rotation) * sphere_adjusted / glm::pi<float>();
 
 			auto x = 2. * visible_point.x / aspect_ratio * zoom;
@@ -3320,6 +3339,11 @@ bool map_state::map_to_screen(map_space::point_normalized_inverted_y map_pos, gl
 		{
 			auto sphere_point = sphere_R3::from_square(square_point).data;
 			auto sphere_adjusted = glm::vec3 { sphere_point.y, sphere_point.x, sphere_point.z };
+
+			if(glm::dot(sphere_adjusted, camera_over_sphere_point) < glm::dot(camera_corner_over_sphere_point, camera_over_sphere_point) - 0.1f) {
+				return false;
+			}
+
 			auto visible_point = glm::mat3(globe_rotation) * sphere_adjusted / glm::pi<float>();
 
 			// shift the globe away from camera

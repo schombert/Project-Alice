@@ -335,7 +335,7 @@ uint32_t internal_get_disabled_color(float r, float g, float b) {
 
 void render_text_chunk(
 	sys::state& state,
-	text::text_chunk t,
+	text::text_chunk& t,
 	float x,
 	float baseline_y,
 	uint16_t font_id,
@@ -2625,6 +2625,21 @@ void simple_text_element_base::on_create(sys::state& state) noexcept {
 	on_reset_text(state);
 }
 
+void remote_text_element_base::render(sys::state& state, int32_t x, int32_t y) noexcept {
+	if (external_layout == nullptr) return;
+	for(auto& t : external_layout->contents) {
+		render_text_chunk(
+			state,
+			t,
+			float(x + base_data.data.text.border_size.x) + t.x,
+			float(y + base_data.data.text.border_size.y),
+			base_data.data.button.font_handle,
+			get_text_color(state, t.color),
+			ogl::color_modification::none
+		);
+	}
+}
+
 void simple_text_element_base::render(sys::state& state, int32_t x, int32_t y) noexcept {
 	auto tc = get_text_color(state, black_text ? text::text_color::black : text::text_color::white);
 
@@ -3043,6 +3058,7 @@ std::unique_ptr<element_base> make_element(sys::state& state, std::string_view n
 
 state::state() : queued_invocations(512) {
 	units_root = std::make_unique<container_base>();
+	colonization_icons_root = std::make_unique<container_base>();
 	rgos_root = std::make_unique<container_base>();
 	province_details_root = std::make_unique<container_base>();
 	root = std::make_unique<container_base>();
@@ -3398,6 +3414,68 @@ void flag_button2::update_tooltip(sys::state& state, int32_t x, int32_t y, text:
 }
 
 void flag_button2::render(sys::state& state, int32_t x, int32_t y) noexcept {
+	dcon::gfx_object_id gid;
+	if(base_data.get_element_type() == element_type::image) {
+		gid = base_data.data.image.gfx_object;
+	} else if(base_data.get_element_type() == element_type::button) {
+		gid = base_data.data.button.button_image;
+	}
+	if(gid && flag_texture_handle > 0) {
+		auto const& gfx_def = state.ui_defs.gfx[gid];
+		if(gfx_def.type_dependent) {
+			auto mask_handle = ogl::get_texture_handle(state, dcon::texture_id(gfx_def.type_dependent - 1), true);
+			auto& mask_tex = state.open_gl.asset_textures[dcon::texture_id(gfx_def.type_dependent - 1)];
+			ogl::render_masked_rect(state, get_color_modification(this == state.ui_state.under_mouse, disabled, interactable),
+				float(x) + float(base_data.size.x - mask_tex.size_x) * 0.5f,
+				float(y) + float(base_data.size.y - mask_tex.size_y) * 0.5f,
+				float(mask_tex.size_x),
+				float(mask_tex.size_y),
+				flag_texture_handle, mask_handle, base_data.get_rotation(), gfx_def.is_vertically_flipped(),
+				false);
+		} else {
+			ogl::render_textured_rect(state, get_color_modification(this == state.ui_state.under_mouse, disabled, interactable),
+				float(x), float(y), float(base_data.size.x), float(base_data.size.y), flag_texture_handle, base_data.get_rotation(),
+				gfx_def.is_vertically_flipped(),
+				false);
+		}
+	}
+	image_element_base::render(state, x, y);
+}
+
+
+void external_flag_button::button_action(sys::state& state) noexcept {
+	if(related_nation && state.world.nation_get_owned_province_count(related_nation) != 0)
+		state.open_diplomacy(related_nation);
+
+	state.open_diplomacy(related_nation);
+}
+
+
+void external_flag_button::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
+	auto nid = nation;
+	if(nid) {
+		auto box = text::open_layout_box(contents, 0);
+		text::add_to_layout_box(state, contents, box, nid);
+		text::close_layout_box(contents, box);
+		return;
+	}
+	auto tid = identity;
+	if(tid) {
+		auto box = text::open_layout_box(contents, 0);
+		text::add_to_layout_box(state, contents, box, tid);
+		text::close_layout_box(contents, box);
+		return;
+	}
+	auto rid = rebel_faction;
+	if(rid) {
+		auto box = text::open_layout_box(contents, 0);
+		text::add_to_layout_box(state, contents, box, rebel::rebel_name(state, rid));
+		text::close_layout_box(contents, box);
+		return;
+	}
+}
+
+void external_flag_button::render(sys::state& state, int32_t x, int32_t y) noexcept {
 	dcon::gfx_object_id gid;
 	if(base_data.get_element_type() == element_type::image) {
 		gid = base_data.data.image.gfx_object;

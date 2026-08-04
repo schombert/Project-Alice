@@ -421,8 +421,9 @@ int32_t* f_dump_oos(fif::state_stack& s, int32_t* p, fif::environment* e) {
 		ptr_in = sys::serialize(ptr_in, state.map_state.map_data.coastal_vertices);
 		ptr_in = sys::serialize(ptr_in, state.map_state.map_data.coastal_starts);
 		ptr_in = sys::serialize(ptr_in, state.map_state.map_data.coastal_counts);
-		ptr_in = sys::serialize(ptr_in, state.map_state.map_data.border_vertices);
-		ptr_in = sys::serialize(ptr_in, state.map_state.map_data.borders);
+		ptr_in = sys::serialize(ptr_in, state.map_state.map_data.province_border_vertices);
+		ptr_in = sys::serialize(ptr_in, state.map_state.map_data.province_border_starts);
+		ptr_in = sys::serialize(ptr_in, state.map_state.map_data.province_border_counts);
 		ptr_in = sys::serialize(ptr_in, state.map_state.map_data.terrain_id_map);
 		ptr_in = sys::serialize(ptr_in, state.map_state.map_data.province_id_map);
 		ptr_in = sys::serialize(ptr_in, state.map_state.map_data.province_area);

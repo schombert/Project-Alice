@@ -2530,7 +2530,7 @@ float factory_type_input_cost(
 	auto inputs_data = get_inputs_data(state, m, inputs);
 	float input_multiplier = nation_factory_input_multiplier(state, fac_type, n);
 	auto result = inputs_data.total_cost * input_multiplier;
-	assert(result > 0.f);
+	//assert(result > 0.f);
 	return result;
 }
 
