@@ -25,7 +25,7 @@ void main() {
 	vec4 temp_result = calc_gl_position(vertex_position);
 
 	float pixels_thickness = thickness * zoom;
-	float min_thickness = 0.005f;
+	float min_thickness = 0.01f;
 	float max_thickness = 1.f;
 	opacity = clamp((min_thickness / pixels_thickness - 1.f) * (pixels_thickness / max_thickness - 1.f), 0.f, 1.f);
 

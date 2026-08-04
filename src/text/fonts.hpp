@@ -16,6 +16,7 @@ namespace text {
 inline constexpr uint32_t max_texture_layers = 256;
 inline constexpr int magnification_factor = 4;
 inline constexpr int dr_size = 64 * magnification_factor;
+inline constexpr int map_outline_embolden = 4;
 
 enum class font_selection {
 	body_font,
@@ -156,10 +157,14 @@ public:
 
 	std::vector<map_font_buffer_glyph> buffer_glyphs;
 	std::vector<map_font_buffer_curve> buffer_curves;
+	std::vector<map_font_buffer_glyph> buffer_bold_glyphs;
+	std::vector<map_font_buffer_curve> buffer_bold_curves;
 	ankerl::unordered_dense::map<uint32_t, map_font_glyph> glyphs;
+	ankerl::unordered_dense::map<uint32_t, map_font_glyph> bold_glyphs;
 	std::unique_ptr<FT_Byte[]> file_data;
 
 	FT_Face face = nullptr;
+	FT_Face bold_face = nullptr;
 	hb_font_t* hb_font_face = nullptr;
 	hb_buffer_t* hb_buf = nullptr;
 
@@ -167,6 +172,11 @@ public:
 	GLuint curve_texture = 0;
 	GLuint glyph_buffer = 0;
 	GLuint curve_buffer = 0;
+
+	GLuint bold_glyph_texture = 0;
+	GLuint bold_curve_texture = 0;
+	GLuint bold_glyph_buffer = 0;
+	GLuint bold_curve_buffer = 0;
 
 	// The glyph quads are expanded by this amount to enable proper
 	// anti-aliasing. Value is relative to emSize.
@@ -181,7 +191,7 @@ public:
 	~map_font();
 	void make_glyph(uint32_t glyph_id);
 	void upload_buffers();
-	void convert_contour(const FT_Outline* outline, int32_t firstIndex, int32_t lastIndex);
+	//void convert_contour(const FT_Outline* outline, int32_t firstIndex, int32_t lastIndex);
 	void load_font(FT_Library& ft_library, char const* file_data, uint32_t file_size);
 	void ready_textures();
 	void remake_map_cache(sys::state& state, stored_glyphs& txt, std::string const& source);
