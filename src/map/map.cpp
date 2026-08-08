@@ -741,6 +741,7 @@ void display_data::load_shaders(simple_fs::directory& root) {
 		shader_uniforms[i][uniform_time] = glGetUniformLocation(shaders[i], "time");
 		shader_uniforms[i][uniform_light_direction] = glGetUniformLocation(shaders[i], "light_direction");
 		shader_uniforms[i][uniform_ignore_light] = glGetUniformLocation(shaders[i], "ignore_light");
+		shader_uniforms[i][uniform_railroad_level] = glGetUniformLocation(shaders[i], "railroad_level");
 		shader_uniforms[i][uniform_terrain_texture_sampler] = glGetUniformLocation(shaders[i], "terrain_texture_sampler");
 		shader_uniforms[i][uniform_terrainsheet_texture_sampler] = glGetUniformLocation(shaders[i], "terrainsheet_texture_sampler");
 		shader_uniforms[i][uniform_terrainsheet_texture_sampler_array] = glGetUniformLocation(shaders[i], "terrainsheet_texture_sampler_array");
@@ -1144,7 +1145,7 @@ void display_data::render(
 
 	// Draw the railroads and city
 
-	if(/*zoom > map::zoom_close && */!railroad_vertices.empty() && state.user_settings.railroads_enabled) {
+	if(zoom > map::zoom_close && !railroad_vertices.empty() && state.user_settings.railroads_enabled) {
 		glEnable(GL_BLEND);
 		glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE);
 
@@ -1168,7 +1169,20 @@ void display_data::render(
 
 		glBindVertexArray(vao_array[vo_railroad]);
 		glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_railroad]);
-		glMultiDrawArrays(GL_TRIANGLE_STRIP, railroad_starts.data(), railroad_counts.data(), GLsizei(railroad_starts.size()));
+
+		for(uint32_t idx = 0; idx < railroad_counts.size(); idx++) {
+			dcon::province_adjacency_id adj { (dcon::province_adjacency_id::value_base_t)idx };
+			float railroad_level = 0.f;
+			if(state.world.province_adjacency_is_valid(adj)) {
+				auto p0 = state.world.province_adjacency_get_connected_provinces(adj, 0);
+				auto p1 = state.world.province_adjacency_get_connected_provinces(adj, 0);
+				auto rail0 = state.world.province_get_building_level(p0, uint8_t(economy::province_building_type::railroad));
+				auto rail1 = state.world.province_get_building_level(p1, uint8_t(economy::province_building_type::railroad));
+				railroad_level = (float)std::max(rail0, rail1);
+			}
+			glUniform1f(shader_uniforms[shader_railroad_line][uniform_railroad_level], railroad_level);
+			glDrawArrays(GL_TRIANGLE_STRIP, railroad_starts[idx], railroad_counts[idx]);
+		}
 	}
 
 	if(//zoom > map::zoom_close &&
@@ -1544,37 +1558,61 @@ void display_data::render(
 						state.lookup_key("gfx_storage_commodity")
 							)->second.definition
 				].data.image.gfx_object;
-				auto& gfx_def = state.ui_defs.gfx[gfx_id];
-				auto frame = state.world.commodity_get_icon(state.selected_trade_good);
-				auto texture_handle = ogl::get_texture_handle(state, gfx_def.primary_texture_handle, gfx_def.is_partially_transparent());
+			auto& gfx_def = state.ui_defs.gfx[gfx_id];
+			auto frame = state.world.commodity_get_icon(state.selected_trade_good);
+			auto texture_handle = ogl::get_texture_handle(state, gfx_def.primary_texture_handle, gfx_def.is_partially_transparent());
 
-				glActiveTexture(GL_TEXTURE0);
-				glBindTexture(GL_TEXTURE_2D, texture_handle);
 
-				glUniform1i(shader_uniforms[shader_map_sprite][uniform_texture_sampler], 0);
-				glUniform2f(shader_uniforms[shader_map_sprite][uniform_sprite_texture_start], (float)frame / gfx_def.number_of_frames, 0.f);
-				glUniform2f(shader_uniforms[shader_map_sprite][uniform_sprite_texture_size], 1.f / gfx_def.number_of_frames, 1.f);
+			const float speed = 0.5f;
 
-				glBindVertexArray(vao_array[vo_square]);
-				glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_square]);
+			bool spawned_something = false;
 
-				const float speed = 0.5f;
-
-				bool spawned_something = false;
-
+			{
 				for(size_t i = 0; i < trade_particles_positions.size(); i++) {
 					auto& p = trade_particles_positions[i];
 
 					// update movement
 					if(p.trade_graph_node_current != -1 && p.trade_graph_node_next != -1) {
-						auto direction = p.target_ - p.position_;
-						auto length = float(glm::length(direction));
-						if(length < speed * 2) {
-							p.trade_graph_node_prev = p.trade_graph_node_current;
-							p.trade_graph_node_current = p.trade_graph_node_next;
-							p.trade_graph_node_next = -1;
-						} else {
-							p.position_ += direction / length * speed;
+						if(p.adj_index != -1) {
+							auto time_left = 1.f;
+							while(time_left > 0.f) {
+								auto actual_target_offset = railroad_starts[p.adj_index] + p.adj_count;
+								auto actual_target = railroad_vertices[actual_target_offset].position_ * glm::vec2(float(size_x), float(size_y));
+								auto direction = actual_target - p.position_;
+								auto length = float(glm::length(direction));
+								if(length < speed * 2) {
+									p.adj_count += p.adj_direction;
+									if(p.adj_count >= railroad_counts[p.adj_index] || p.adj_count < 0) {
+										p.trade_graph_node_prev = p.trade_graph_node_current;
+										p.trade_graph_node_current = p.trade_graph_node_next;
+										p.trade_graph_node_next = -1;
+										p.adj_index = -1;
+										break;
+									}
+									time_left -= length / (speed * 2);
+								} else {
+									for(int vagon = (int)p.vagon_positions.size() - 1; vagon > 0; vagon--) {
+										p.vagon_positions[vagon] = p.vagon_positions[vagon - 1];
+									}
+									p.vagon_positions[0] = p.position_;
+									p.position_ += direction / length * speed;
+									time_left -= 1.f;
+								}
+							}
+							} else {
+								auto direction = p.target_ - p.position_;
+								auto length = float(glm::length(direction));
+								if(length < speed * 2) {
+									p.trade_graph_node_prev = p.trade_graph_node_current;
+									p.trade_graph_node_current = p.trade_graph_node_next;
+									p.trade_graph_node_next = -1;
+								} else {
+									for(int vagon = (int)p.vagon_positions.size() - 1; vagon > 0; vagon--) {
+										p.vagon_positions[vagon] = p.vagon_positions[vagon - 1];
+									}
+									p.vagon_positions[0] = p.position_;
+									p.position_ += direction / length * speed;
+								}
 						}
 					}
 
@@ -1601,16 +1639,34 @@ void display_data::render(
 							p.trade_graph_node_current = -1;
 						} else {
 							p.trade_graph_node_next = target;
+							if(target >= (int)state.world.province_size()) {
+								target -= state.world.province_size();
+							}
 							p.target_ = put_in_local(trade_node_position[target], p.position_, (float)size_x);
+
+							auto current = p.trade_graph_node_current;
+							if(current >= (int)state.world.province_size()) {
+								current -= state.world.province_size();
+							}
+
+							auto adj = state.world.get_province_adjacency_by_province_pair(
+								dcon::province_id{ dcon::province_id::value_base_t(target) },
+								dcon::province_id{ dcon::province_id::value_base_t(current) }
+							);
+							if(adj && railroad_counts[adj.index()] > 0) {
+								p.adj_index = adj.index();
+								p.adj_count = 0;
+								p.adj_direction = 1;
+								if(state.world.province_adjacency_get_connected_provinces(adj, 0).index() != target) {
+									p.adj_count = railroad_counts[adj.index()] - 1;
+									p.adj_direction = -1;
+								}
+							}
 						}
 					}
 
 
-					if(p.trade_graph_node_current != -1) {
-						glUniform2f(shader_uniforms[shader_map_sprite][uniform_sprite_offsets], trade_particles_positions[i].position_.x / float(size_x), trade_particles_positions[i].position_.y / float(size_y));
-						glUniform2f(shader_uniforms[shader_map_sprite][uniform_sprite_scale], 4.f / float(size_x), 4.f / float(size_y));
-						glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-					}
+					
 
 					// spawn "new" particles
 					// don't spawn them too often
@@ -1638,6 +1694,96 @@ void display_data::render(
 						}
 					}
 				}
+			}
+			// draw
+			{
+
+				glEnable(GL_BLEND);
+				glBlendEquation(GL_FUNC_ADD);
+				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+				glActiveTexture(GL_TEXTURE0);
+				glBindTexture(GL_TEXTURE_2D, texture_handle);
+
+				glUniform1i(shader_uniforms[shader_map_sprite][uniform_texture_sampler], 0);
+				glUniform2f(shader_uniforms[shader_map_sprite][uniform_sprite_texture_start], (float)frame / gfx_def.number_of_frames, 0.f);
+				glUniform2f(shader_uniforms[shader_map_sprite][uniform_sprite_texture_size], 1.f / gfx_def.number_of_frames, 1.f);
+
+				glBindVertexArray(vao_array[vo_square]);
+				glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_square]);
+
+				for(size_t i = 0; i < trade_particles_positions.size(); i++) {
+					auto& p = trade_particles_positions[i];
+					if(p.trade_graph_node_current != -1) {
+						for(int vagon = (int)p.vagon_positions.size() - 1; vagon > 0; vagon--) {
+							glUniform2f(shader_uniforms[shader_map_sprite][uniform_sprite_offsets], trade_particles_positions[i].vagon_positions[vagon].x / float(size_x), trade_particles_positions[i].vagon_positions[vagon].y / float(size_y));
+							glUniform2f(shader_uniforms[shader_map_sprite][uniform_sprite_scale], 1.f / float(size_x), 1.f / float(size_y));
+							glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+						}
+					}
+				}
+
+
+				glActiveTexture(GL_TEXTURE0);
+				glBindTexture(GL_TEXTURE_2D, textures[texture_train]);
+
+				glUniform1i(shader_uniforms[shader_map_sprite][uniform_texture_sampler], 0);
+				glUniform2f(shader_uniforms[shader_map_sprite][uniform_sprite_texture_start], 0.f, 0.f);
+				glUniform2f(shader_uniforms[shader_map_sprite][uniform_sprite_texture_size], 1.f, 1.f);
+
+				glBindVertexArray(vao_array[vo_square]);
+				glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_square]);
+
+				for(size_t i = 0; i < trade_particles_positions.size(); i++) {
+					auto& p = trade_particles_positions[i];
+
+					dcon::province_adjacency_id adj{ dcon::province_adjacency_id::value_base_t(p.adj_index) };
+					auto p1 = state.world.province_adjacency_get_connected_provinces(adj, 0);
+					auto p2 = state.world.province_adjacency_get_connected_provinces(adj, 1);
+					auto p1_is_sea = p1.index() >= state.province_definitions.first_sea_province.index() && p1.index() < (int)state.world.province_size();
+					auto p2_is_sea = p2.index() >= state.province_definitions.first_sea_province.index() && p2.index() < (int)state.world.province_size();
+
+					if(p1_is_sea || p2_is_sea) {
+						continue;
+					}
+
+					if(p.trade_graph_node_current != -1) {
+						glUniform2f(shader_uniforms[shader_map_sprite][uniform_sprite_offsets], trade_particles_positions[i].position_.x / float(size_x), trade_particles_positions[i].position_.y / float(size_y));
+						glUniform2f(shader_uniforms[shader_map_sprite][uniform_sprite_scale], 1.f / float(size_x), 1.f / float(size_y));
+						glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+					}
+				}
+
+				glActiveTexture(GL_TEXTURE0);
+				glBindTexture(GL_TEXTURE_2D, textures[texture_ship]);
+
+				glUniform1i(shader_uniforms[shader_map_sprite][uniform_texture_sampler], 0);
+				glUniform2f(shader_uniforms[shader_map_sprite][uniform_sprite_texture_start], 0.f, 0.f);
+				glUniform2f(shader_uniforms[shader_map_sprite][uniform_sprite_texture_size], 1.f, 1.f);
+
+				glBindVertexArray(vao_array[vo_square]);
+				glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_square]);
+
+				for(size_t i = 0; i < trade_particles_positions.size(); i++) {
+					auto& p = trade_particles_positions[i];
+
+					dcon::province_adjacency_id adj{ dcon::province_adjacency_id::value_base_t(p.adj_index) };
+					auto p1 = state.world.province_adjacency_get_connected_provinces(adj, 0);
+					auto p2 = state.world.province_adjacency_get_connected_provinces(adj, 1);
+					auto p1_is_sea = p1.index() >= state.province_definitions.first_sea_province.index() && p1.index() < (int)state.world.province_size();
+					auto p2_is_sea = p2.index() >= state.province_definitions.first_sea_province.index() && p2.index() < (int)state.world.province_size();
+
+					if(!(p1_is_sea || p2_is_sea)) {
+						continue;
+					}
+
+					if(p.trade_graph_node_current != -1) {
+						glUniform2f(shader_uniforms[shader_map_sprite][uniform_sprite_offsets], trade_particles_positions[i].position_.x / float(size_x), trade_particles_positions[i].position_.y / float(size_y));
+						glUniform2f(shader_uniforms[shader_map_sprite][uniform_sprite_scale], 1.f / float(size_x), 1.f / float(size_y));
+						glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+					}
+				}
+			}
 		}
 	}
 
@@ -3231,6 +3377,7 @@ void display_data::update_sprawl(sys::state& state) {
 		}
 	};
 
+	/*
 	railroad_vertices.clear();
 	railroad_starts.clear();
 	railroad_counts.clear();
@@ -3255,6 +3402,7 @@ void display_data::update_sprawl(sys::state& state) {
 		assert(railroad_counts.back() > 1);
 	}
 	assert(railroad_counts.size() == railroad_starts.size());
+	*/
 
 	if(!railroad_vertices.empty()) {
 		glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_railroad]);
@@ -4323,6 +4471,11 @@ void display_data::load_map(sys::state& state) {
 
 	textures[texture_river_body] = load_dds_texture(assets_dir, NATIVE("river.dds"));
 	ogl::set_gltex_parameters(textures[texture_river_body], GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_REPEAT);
+
+	textures[texture_train] = ogl::make_gl_texture(assets_dir, NATIVE("images/train.png"));
+	ogl::set_gltex_parameters(textures[texture_train], GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
+	textures[texture_ship] = ogl::make_gl_texture(assets_dir, NATIVE("images/cargo-ship.png"));
+	ogl::set_gltex_parameters(textures[texture_ship], GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
 
 	textures[texture_national_border] = load_dds_texture(assets_dir, NATIVE("nat_border.dds"));
 	ogl::set_gltex_parameters(textures[texture_national_border], GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_REPEAT, GL_CLAMP_TO_EDGE);

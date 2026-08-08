@@ -37,6 +37,7 @@
 #include "alice_ui.hpp"
 #include "commands.hpp"
 #include "dcon_oos_reporter_generated.hpp"
+#include "math_fns.hpp"
 
 namespace sys {
 
@@ -47,6 +48,17 @@ void state::start_state_selection(state_selection_data& data) {
 
 	if(ui_state.select_states_legend) {
 		ui_state.select_states_legend->impl_on_update(*this);
+	}
+}
+
+glm::vec2 put_in_local(glm::vec2 new_point, glm::vec2 base_point, float size_x) {
+	auto uadjx = std::abs(new_point.x - base_point.x);
+	auto ladjx = std::abs(new_point.x - size_x - base_point.x);
+	auto radjx = std::abs(new_point.x + size_x - base_point.x);
+	if(uadjx < ladjx) {
+		return uadjx < radjx ? new_point : glm::vec2{ new_point.x + size_x, new_point.y };
+	} else {
+		return ladjx < radjx ? glm::vec2{ new_point.x - size_x, new_point.y } : glm::vec2{ new_point.x + size_x, new_point.y };
 	}
 }
 
@@ -1863,6 +1875,22 @@ void state::open_diplomacy(dcon::nation_id target) {
 	sys::open_diplomacy_window(*this, target);
 }
 
+struct pixel_heap_member {
+	int x;
+	int y;
+	float dist;
+	float heur;
+
+	int8_t dx;
+	int8_t dy;
+	uint8_t speed;
+
+	auto operator<=>(const pixel_heap_member & other) const {
+		return (dist + heur) <=> (other.dist + other.heur);
+	}
+};
+
+
 void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day bookmark_date) {
 	auto root = get_root(common_fs);
 	auto common = open_directory(root, NATIVE("common"));
@@ -3654,6 +3682,323 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 
 	military::set_initial_leaders(*this);
 
+	province::restore_distances(*this);
+
+	// generate a road for every adjacency
+
+	assert(_CrtCheckMemory());
+
+	std::vector<int8_t> visited;
+	visited.resize(map_state.map_data.size_x * map_state.map_data.size_y);
+
+	int left_dirty = map_state.map_data.size_x * map_state.map_data.size_y;
+	int right_dirty = 0;
+
+	auto encode_ternary = [&](int8_t flag, int8_t dx, int8_t dy) -> int8_t {
+		return flag * 9 + dx * 3 + dy;
+	};
+
+	auto set_visited = [&](int idx, int8_t movement) {
+		visited[idx] = movement;
+		left_dirty = std::min(left_dirty, idx);
+		right_dirty = std::max(right_dirty, idx);
+	};
+
+	auto clear_visited = [&] () {
+		memset(&visited[left_dirty], 0, right_dirty - left_dirty * (sizeof(uint8_t)));
+	};
+
+	std::vector<pixel_heap_member> pixel_queue{ };
+
+
+	std::vector<float> terrain_cost{};
+	terrain_cost.resize(256);
+	terrain_cost[255] = 15.f;
+
+	auto max_cost = 0.f;
+	for(int terrain = 0; terrain < 64; terrain++) {
+		auto modifier = context.modifier_by_terrain_index[terrain];
+		if(modifier) {
+			auto& modifier_data = world.modifier_get_province_values(modifier);
+			auto move_cost_mod = 0.f;
+			for(uint32_t mod_index = 0; mod_index < sys::provincial_modifier_definition::modifier_definition_size; ++mod_index) {
+				if(!(modifier_data.offsets[mod_index]))
+					break; // no more modifier values
+
+				auto fixed_offset = modifier_data.offsets[mod_index];
+				auto modifier_amount = modifier_data.values[mod_index];
+				if(fixed_offset == sys::provincial_mod_offsets::movement_cost) {
+					move_cost_mod += modifier_amount;
+				}
+			}
+			terrain_cost[terrain] = move_cost_mod;
+			if(move_cost_mod > max_cost) {
+				max_cost = move_cost_mod;
+			}
+		} else {
+			terrain_cost[terrain] = 1.f;
+		}
+	}
+
+	// rescale so 1 remains the same while max turns into 10
+
+	for(int terrain = 0; terrain < 64; terrain++) {
+		terrain_cost[terrain] = std::max(0.05f, terrain_cost[terrain] + (terrain_cost[terrain] - 1.f) / (max_cost - 1.f) * 10.f);
+	}
+
+	auto step_count_hint = 10.f;
+
+	world.for_each_province_adjacency([&](auto adj) {
+		if((world.province_adjacency_get_type(adj) & province::border::impassible_bit) == province::border::impassible_bit) {
+			map_state.map_data.railroad_starts.push_back(GLint(map_state.map_data.railroad_vertices.size()));
+			map_state.map_data.railroad_counts.push_back(0);
+			return;
+		}
+
+		auto p1 = world.province_adjacency_get_connected_provinces(adj, 0);
+		auto p2 = world.province_adjacency_get_connected_provinces(adj, 1);
+
+		//if (p1.index() >= province_definitions.first_sea_province.index()) {
+		//	map_state.map_data.railroad_starts.push_back(GLint(map_state.map_data.railroad_vertices.size()));
+		//	map_state.map_data.railroad_counts.push_back(0);
+		//	return;
+		//}
+		//if (p2.index() >= province_definitions.first_sea_province.index()) {
+		//	map_state.map_data.railroad_starts.push_back(GLint(map_state.map_data.railroad_vertices.size()));
+		//	map_state.map_data.railroad_counts.push_back(0);
+		//	return;
+		//}
+		bool sea_route = false;
+		if(p2.index() >= province_definitions.first_sea_province.index() || p1.index() >= province_definitions.first_sea_province.index()) {
+			sea_route = true;
+		}
+
+		auto mid_point_1 = world.province_get_mid_point(p1);
+		auto mid_point_2 = world.province_get_mid_point(p2);
+
+		auto mid_point_1_b = world.province_get_mid_point_b(p1);
+		auto mid_point_2_b = world.province_get_mid_point_b(p2);
+
+		auto dist_y = abs(mid_point_2.y - mid_point_1.y);
+		auto dist_x = std::min(
+			abs(mid_point_2.x - mid_point_1.x),
+			std::min(
+				abs(mid_point_2.x - mid_point_1.x + map_state.map_data.size_x),
+				abs(mid_point_2.x - mid_point_1.x - map_state.map_data.size_x)
+			)
+		);
+
+		//auto base_step_x = 
+
+		//auto base_step =
+
+		uint8_t speed_direction = 0;
+		uint8_t speed_value = 1;
+
+		auto start_x = (int)mid_point_1.x;
+		auto start_y = (int)mid_point_1.y;
+		auto start_idx = start_x + start_y * map_state.map_data.size_x;
+
+		auto end_x = (int)mid_point_2.x;
+		auto end_y = (int)mid_point_2.y;
+		auto end_idx = end_x + end_y * map_state.map_data.size_x;
+
+		{
+			pixel_queue.clear();
+			pixel_heap_member pixel_start { start_x, start_y, 0.f, 0.f, 0, 0, 0  };
+			pixel_queue.emplace_back(pixel_start);
+		}
+
+		visited[start_idx] = encode_ternary(1, 0, 0);
+
+		//assert(_CrtCheckMemory());
+
+		auto handle_next = [&](int x, int y, int next_x, int next_y, float base_distance, int8_t direction, int8_t dx, int8_t dy, uint8_t speed, float prev_dist) {
+			auto next_idx = next_x + next_y * map_state.map_data.size_x;
+			if(!visited[next_idx]) {
+				for(int i = 1; i <= (int)speed; i++) {
+					auto nx = x + dx * i;
+					auto ny = y + dy * i;
+					auto idx_to_set = nx + ny * map_state.map_data.size_x;
+					set_visited(idx_to_set, direction);
+				}
+
+				set_visited(next_idx, direction);
+				auto local_terrain = map_state.map_data.terrain_id_map[next_idx];
+				auto modifier = context.modifier_by_terrain_index[local_terrain];
+				auto& modifier_data = world.modifier_get_province_values(modifier);
+				auto move_cost_mod = terrain_cost[local_terrain];
+				if(sea_route) {
+					move_cost_mod = 100.f;
+					if (local_terrain == 255) move_cost_mod = 1.f;
+				}
+				auto next_distance = prev_dist + base_distance * std::max(0.05f, (move_cost_mod * 20.f));
+				auto scaled_x = (float)next_x / (float)map_state.map_data.size_x;
+				auto scaled_y = (float)next_y / (float)map_state.map_data.size_y;
+
+				glm::vec3 new_world_pos;
+				float angle_x = 2 * scaled_x * math::pi;
+				new_world_pos.x = math::cos(angle_x);
+				new_world_pos.y = math::sin(angle_x);
+
+				float angle_y = scaled_y * math::pi;
+				new_world_pos.x *= math::sin(angle_y);
+				new_world_pos.y *= math::sin(angle_y);
+				new_world_pos.z = math::cos(angle_y);
+
+				auto local_heur = glm::distance(mid_point_2_b, new_world_pos) * 100.f;
+
+				pixel_heap_member to_add { next_x, next_y, next_distance, local_heur, dx, dy, uint8_t(std::min((int)speed, 20)) };
+				pixel_queue.push_back(to_add);
+				std::push_heap(pixel_queue.begin(), pixel_queue.end(), std::greater<>{});
+			}
+		};
+
+		while(true) {
+			// eliminate hopeless pixels
+			if(pixel_queue.size() >= 200) {
+				auto best_heuristic = pixel_queue[0].heur;
+				auto worst_heuristic = pixel_queue[0].heur;
+				for(size_t i = 0; i < pixel_queue.size(); i++) {
+					if(pixel_queue[i].heur > worst_heuristic) {
+						worst_heuristic = pixel_queue[i].heur;
+					}
+					if(pixel_queue[i].heur < best_heuristic) {
+						best_heuristic = pixel_queue[i].heur;
+					}
+				}
+				auto cutout = 0.25f * worst_heuristic + 0.75f * best_heuristic;
+
+				for(int i = (int)pixel_queue.size() - 1; i >= 0; i--) {
+					if(pixel_queue[i].heur > cutout){
+						pixel_queue.erase(pixel_queue.begin() + i);
+					}
+				}
+				std::make_heap(pixel_queue.begin(), pixel_queue.end());
+			}
+
+			auto best = pixel_queue[0];
+			std::pop_heap(pixel_queue.begin(), pixel_queue.end(), std::greater<>{});
+			pixel_queue.pop_back();
+
+			auto x = best.x;
+			auto y = best.y;
+			auto actual_distance = best.dist;
+			auto idx = best.x + best.y * map_state.map_data.size_x;
+
+			for(int8_t dx = -1; dx <= 1; dx++) {
+				for(int8_t dy = -1; dy <= 1; dy++) {
+					if(dx == 0 && dy == 0) {
+						continue;
+					}
+					if(best.speed > 2 && dx * best.dx + dy * best.dy <= 0 && best.heur > 1.f) {
+						continue;
+					}
+					auto dir = encode_ternary(0, dx, dy);
+					// make additional "grid skipping" attempt which is supposedly faster
+					/*
+					if(best.dx == dx && best.dy == dy && best.heur > 1.f) {
+						uint8_t next_speed = best.speed +1;
+						if(next_speed > 10) {
+							next_speed = 10;
+						}
+						auto next_x = x + dx * next_speed;
+						auto next_y = y + dy * next_speed;
+						if(next_y < 0 || next_y >= (int)map_state.map_data.size_y) {
+							continue;
+						}
+						next_x = (next_x + (int)map_state.map_data.size_x) % (int)map_state.map_data.size_x;
+						handle_next(x, y, next_x, next_y, math::sqrt((float)(dx * dx + dy * dy)) * next_speed, dir, dx, dy, next_speed, actual_distance);
+					}
+					*/
+					{
+						auto next_x = x + dx;
+						auto next_y = y + dy;
+						if(next_y < 0 || next_y >= (int)map_state.map_data.size_y) {
+							continue;
+						}
+						next_x = (next_x + (int)map_state.map_data.size_x) % (int)map_state.map_data.size_x;
+						handle_next(x, y, next_x, next_y, math::sqrt((float)(dx * dx + dy * dy)), dir, dx, dy, 1, actual_distance);
+					}
+				}
+			}
+
+			if(visited[end_idx]) {
+				break;
+			}
+		}
+
+		map_state.map_data.railroad_starts.push_back(GLint(map_state.map_data.railroad_vertices.size()));
+		float distance = 0.f;
+
+		int step = 0;
+
+		glm::vec2 current_pos{ end_x, end_y };
+
+
+		while(end_idx != start_idx && (int)(end_idx) >= 0) {
+
+			auto y = end_idx / map_state.map_data.size_x;
+			auto x = end_idx - y * map_state.map_data.size_x;
+
+			auto encoded_shift = (int)(visited[end_idx]);
+
+			auto dy = (encoded_shift + 9) % 3;
+			if (dy == 2) dy = -1;
+			auto dx = (encoded_shift - dy) / 3;
+
+			auto next_x = x - dx;
+			auto next_y = y - dy;
+
+			auto next_idx = next_x + next_y * map_state.map_data.size_x;
+
+			if(step % 3 != 0 && next_idx != (int)end_idx && step != 0) {
+				step++;
+				end_idx = next_idx;
+				continue;
+			}
+			step++;
+
+			auto ny = next_idx / map_state.map_data.size_x;
+			auto nx = next_idx - ny * map_state.map_data.size_x;
+			glm::vec2 next_vec { nx, ny };
+			glm::vec2 next_pos = put_in_local(next_vec, current_pos, float(map_state.map_data.size_x));
+			glm::vec2 prev_perpendicular = glm::normalize(next_pos - current_pos);
+
+			auto start_normal = glm::vec2(-prev_perpendicular.y, prev_perpendicular.x);
+			auto norm_pos = current_pos / glm::vec2(map_state.map_data.size_x, map_state.map_data.size_y);
+			auto norm_next = next_pos / glm::vec2(map_state.map_data.size_x, map_state.map_data.size_y);
+
+			auto prev_distance = distance;
+			distance += glm::length(next_pos - current_pos) / float(map_state.map_data.size_y);
+
+			map_state.map_data.railroad_vertices.emplace_back(map::textured_line_vertex{ norm_pos, +start_normal, 0.0f, prev_distance });//C
+			map_state.map_data.railroad_vertices.emplace_back(map::textured_line_vertex{ norm_pos, -start_normal, 1.0f, prev_distance });//D
+
+			map_state.map_data.railroad_vertices.emplace_back(map::textured_line_vertex{ norm_next, +start_normal, 0.0f, distance });
+			map_state.map_data.railroad_vertices.emplace_back(map::textured_line_vertex{ norm_next, -start_normal, 1.0f, distance });
+
+			end_idx = next_idx;
+			current_pos = next_pos;
+		}
+
+		glm::vec2 next_pos = put_in_local(mid_point_1, current_pos, float(map_state.map_data.size_x));
+		distance += glm::length(next_pos - current_pos) / float(map_state.map_data.size_y);
+		glm::vec2 prev_perpendicular = glm::normalize(mid_point_1 - current_pos);
+		auto start_normal = glm::vec2(-prev_perpendicular.y, prev_perpendicular.x);
+		auto norm_pos = current_pos / glm::vec2(map_state.map_data.size_x, map_state.map_data.size_y);
+		auto norm_next = next_pos / glm::vec2(map_state.map_data.size_x, map_state.map_data.size_y);
+		map_state.map_data.railroad_vertices.emplace_back(map::textured_line_vertex{ norm_pos, +start_normal, 0.0f, 0.f });//C
+		map_state.map_data.railroad_vertices.emplace_back(map::textured_line_vertex{ norm_pos, -start_normal, 1.0f, 0.f });//D
+		map_state.map_data.railroad_vertices.emplace_back(map::textured_line_vertex{ norm_next, +start_normal, 0.0f, distance });
+		map_state.map_data.railroad_vertices.emplace_back(map::textured_line_vertex{ norm_next, -start_normal, 1.0f, distance });
+
+		map_state.map_data.railroad_counts.push_back(GLsizei(map_state.map_data.railroad_vertices.size() - map_state.map_data.railroad_starts.back()));
+
+		clear_visited();
+	});
+
+	assert(_CrtCheckMemory());
 
 	// run pending triggers and effects
 	for(auto pending_decision : pending_decisions) {
@@ -3775,7 +4120,6 @@ void state::preload() {
 		m.set_pop_support(0.0f);
 		m.set_radicalism(0.0f);
 	}
-
 }
 
 void state::on_scenario_load() {
@@ -4226,6 +4570,7 @@ void state::fill_unsaved_data() { // reconstructs derived values that are not di
 	nations::update_ui_rankings(*this);
 
 	nations::monthly_flashpoint_update(*this);
+
 
 	//
 	// clear any pending messages from previously loaded saves

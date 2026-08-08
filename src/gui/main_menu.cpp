@@ -4111,6 +4111,7 @@ void main_menu_graphics_graphics_details_dropdown_t::on_update(sys::state& state
 	add_item(int32_t(sys::graphics_mode::ugly), text::produce_simple_string(state, "graphics_details_0"));
 	add_item(int32_t(sys::graphics_mode::classic), text::produce_simple_string(state, "graphics_details_1"));
 	add_item(int32_t(sys::graphics_mode::modern), text::produce_simple_string(state, "graphics_details_2"));
+	add_item(int32_t(sys::graphics_mode::modern_classic), text::produce_simple_string(state, "graphics_details_3"));
 	quiet_on_selection(state, int32_t(state.user_settings.graphics_mode));
 // END
 }
