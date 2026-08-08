@@ -3686,8 +3686,6 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 
 	// generate a road for every adjacency
 
-	assert(_CrtCheckMemory());
-
 	std::vector<int8_t> visited;
 	visited.resize(map_state.map_data.size_x * map_state.map_data.size_y);
 
@@ -3811,7 +3809,6 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 
 		visited[start_idx] = encode_ternary(1, 0, 0);
 
-		//assert(_CrtCheckMemory());
 
 		auto handle_next = [&](int x, int y, int next_x, int next_y, float base_distance, int8_t direction, int8_t dx, int8_t dy, uint8_t speed, float prev_dist) {
 			auto next_idx = next_x + next_y * map_state.map_data.size_x;
@@ -3998,7 +3995,6 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 		clear_visited();
 	});
 
-	assert(_CrtCheckMemory());
 
 	// run pending triggers and effects
 	for(auto pending_decision : pending_decisions) {
