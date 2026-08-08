@@ -3952,7 +3952,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 
 			auto next_idx = next_x + next_y * map_state.map_data.size_x;
 
-			if(step % 3 != 0 && next_idx != (int)end_idx && step != 0) {
+			if(step % 3 != 0 && next_idx != end_idx && step != 0) {
 				step++;
 				end_idx = next_idx;
 				continue;

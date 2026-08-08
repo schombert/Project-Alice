@@ -42,7 +42,7 @@ struct trade_particle {
 	int adj_index = -1;
 	int adj_count = 0;
 	int adj_direction = 1;
-	std::array<glm::vec2, 5> vagon_positions;
+	std::array<glm::vec2, 5> vagon_positions {} ;
 };
 struct screen_vertex {
 	screen_vertex(float x, float y) : position_(x, y){};
