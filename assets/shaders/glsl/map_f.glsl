@@ -261,32 +261,52 @@ vec4 get_land_political_modern() {
 vec4 get_land_political_gores() {
 	float s = space_coords.z;
 	float t = space_coords.y;
-
 	float h = space_coords.x;
-
-	float angle = atan(t, s);
-
-	float vertical_angle = asin(h);
-
-	float radius = sqrt(s * s + t *  t);
-
-	float equator_segment_x = fract(angle * 36.f / 2.f / PI);
-	float equator_segment_number = floor(angle * 36.f / 2.f / PI);
-	float vertical_segment = fract(vertical_angle * 2.f / PI * 8.f);
-	float vertical_segment_number = floor(vertical_angle * 2.f / PI * 8.f);
-
-	float horisontal_coord_before_cutting_paper = (equator_segment_x - 0.5f) * radius + 0.5f;
-
-	float line_width = 0.0075f;
-
-	float v1 = max(0, line_width - equator_segment_x * (1.f - equator_segment_x));
-	float v2 = max(0.f, line_width  - vertical_segment * (1.f - vertical_segment));
-	float line_mult = 1.f - (v1 + v2) * (v1 + v2) * 10000.f;
+	float angle = tex_coord.x * PI * 2.f;
+	float vertical_angle = (tex_coord.y - 0.5f) * PI; //asin(h);
+	float radius = cos(vertical_angle);
+	float big_line_divisor = 3.f;
+	float equator_segment_x = fract(angle * 48.f / 2.f / PI * big_line_divisor);
+	float equator_segment_number = mod(floor(angle * 48.f / 2.f / PI * big_line_divisor + 0.5f), 36.f);
+	float equator_segment_number_area = mod(floor(angle * 48.f / 2.f / PI * big_line_divisor), 36.f);
+	float vertical_segment = fract(vertical_angle * 2.f / PI * 12.f * big_line_divisor);
+	float vertical_segment_number = floor(vertical_angle * 2.f / PI * 12.f * big_line_divisor + 0.5f);
+	float vertical_segment_number_area = floor(vertical_angle * 2.f / PI * 12.f * big_line_divisor);
+	float horisontal_coord_before_cutting_paper = (equator_segment_x - 0.5f) * radius + 0.5f;		
+	float line_width = 0.015f / min(1.f, zoom / 6.f);	
+	float line_width_v = line_width;
+	float line_width_h = line_width;	
+	float softness_mult = (1.2f + abs(vertical_angle) / 2.f) / sqrt(min(1.f, zoom / 6.f));
+	float softness_mod = 1.f;
+	float inside_v = 1.f;
+	if (mod(round(equator_segment_number), 4.f) == 0.f) {
+		line_width_v = line_width_v * 3.f / 2.f;
+		inside_v = 0.f;
+	}
+	float inside_h = 1.f;
+	if (mod(round(vertical_segment_number), 4.f) == 0.f) {
+		line_width_h = line_width_h * 3.f / 2.f;
+		inside_h = 0.f;
+	}
+	float base_unit =  cos(vertical_angle);
+	float length_mult = 1.f / base_unit;
+	if (radius < 0.2f) {
+		length_mult = 1.f / radius;
+	}
+	float line_mult = 1.f;
+	float v1 = abs(fract(equator_segment_x + 0.5f) - 0.5f);
+	if (v1 < line_width_v * length_mult) {
+		line_mult = min(line_mult, 0.2f * softness_mult * (1.f + 0.5f * inside_v) + max(0.5f - zoom / 100.f, smootherstep(v1 / (line_width_v * length_mult))));
+	}	
+	float v2 = abs(fract(vertical_segment + 0.5f) - 0.5f);
+	if (v2 < line_width_h) {
+		line_mult = min(line_mult, 0.2f * softness_mult * (1.f + 0.5f * inside_h) + max(0.5f - zoom / 100.f, smootherstep(v2 / (line_width_h))));
+	}
 
 	vec4 wc = texture(watercolor, vec2(horisontal_coord_before_cutting_paper, vertical_segment) * 10.f);
 	vec4 wc_global = texture(watercolor, vec2(horisontal_coord_before_cutting_paper, vertical_segment) / 2.f);
 
-	float hatching = texture(hatching, vec2(horisontal_coord_before_cutting_paper * (mod(vertical_segment_number, 2.f) * 2.f - 1.f), vertical_segment * (mod(equator_segment_number, 2.f) * 2.f - 1.f)) * 20.f).r;
+	float hatching = texture(hatching, vec2(horisontal_coord_before_cutting_paper * (mod(vertical_segment_number_area, 2.f) * 2.f - 1.f), vertical_segment * (mod(equator_segment_number_area, 2.f) * 2.f - 1.f)) * 4.f).r;
 		
 	vec4 terrain = get_terrain_mix();
 	float is_land = terrain.a;
@@ -299,8 +319,10 @@ vec4 get_land_political_gores() {
 		prov_highlight = vec4(hatching, hatching, hatching, 1.f);
 	}
 	vec4 prov_color = texture(province_color, vec3(prov_id, 0.));
+	vec4 stripe_color = texture(province_color, vec3(prov_id, 1.));
+	//float stripeFactor = texture(stripes_texture, stripe_coord).a;
 	//vec4 base_color = vec4(1.f, 247.f / 255.f, 220.f / 255.f, 1.f) * 0.9f;
-	vec4 base_color = vec4(0.93, 0.90, 0.83, 1.f);
+	vec4 base_color = vec4(0.80, 0.76, 0.63, 1.f);
 	float gradient = sqrt(to_national_border);
 	
 	const vec3 GREYIFY = vec3( 0.212671, 0.715160, 0.072169 );
@@ -314,17 +336,20 @@ vec4 get_land_political_gores() {
 	float wc_g = dot(wc.xyz, GREYIFY);
 
 	float final_weight = min(1, sqrt(
-			weight_base
-			+ wc_g * weight_watercolor
-			+ weight_border * (1.f - gradient)
-			+ hatching * weight_hatching
-		));
+		weight_base
+		+ wc_g * weight_watercolor
+		+ weight_border * (1.f - gradient)
+		+ hatching * weight_hatching
+	));
 
+	if (stripe_color != prov_color) {
+		base_color = stripe_color * final_weight + base_color * (1.f - final_weight);
+	}
 	vec4 mixed_color = prov_color * final_weight + base_color * (1.f - final_weight);
 
 	//vec4 color = prov_color * wc
 
-	vec4 result = (mixed_color - 0.f * hatching) * min(1.f, 0.3f + line_mult * line_mult) * (0.85f + 0.05f * wc + 0.10f * dot(wc_global.xyz, GREYIFY));
+	vec4 result = (mixed_color - 0.f * hatching) * min(1.f, line_mult) * (0.85f + 0.05f * wc + 0.10f * dot(wc_global.xyz, GREYIFY)) * min(1.f, 0.2f + gradient);
 	result.a = is_land;
 
 	return result;
@@ -479,33 +504,53 @@ vec4 get_land() {
 vec4 get_water_gores() {
 	float s = space_coords.z;
 	float t = space_coords.y;
-
 	float h = space_coords.x;
-
-	float angle = atan(t, s);
-
-	float vertical_angle = asin(h);
-
-	float radius = sqrt(s * s + t *  t);
-
-	float equator_segment_x = fract(angle * 36.f / 2.f / PI);
-	float equator_segment_number = floor(angle * 36.f / 2.f / PI);
-	float vertical_segment = fract(vertical_angle * 2.f / PI * 8.f);
-	float vertical_segment_number = floor(vertical_angle * 2.f / PI * 8.f);
-
-	float horisontal_coord_before_cutting_paper = (equator_segment_x - 0.5f) * radius + 0.5f;
-
-	float line_width = 0.0075f;
-
-	float v1 = max(0, line_width - equator_segment_x * (1.f - equator_segment_x));
-	float v2 = max(0.f, line_width  - vertical_segment * (1.f - vertical_segment));
-	float line_mult = 1.f - (v1 + v2) * (v1 + v2) * 10000.f;
+	float angle = tex_coord.x * PI * 2.f;
+	float vertical_angle = (tex_coord.y - 0.5f) * PI; //asin(h);
+	float radius = cos(vertical_angle);
+	float big_line_divisor = 3.f;
+	float equator_segment_x = fract(angle * 48.f / 2.f / PI * big_line_divisor);
+	float equator_segment_number = mod(floor(angle * 48.f / 2.f / PI * big_line_divisor + 0.5f), 36.f);
+	float equator_segment_number_area = mod(floor(angle * 48.f / 2.f / PI * big_line_divisor), 36.f);
+	float vertical_segment = fract(vertical_angle * 2.f / PI * 12.f * big_line_divisor);
+	float vertical_segment_number = floor(vertical_angle * 2.f / PI * 12.f * big_line_divisor + 0.5f);
+	float vertical_segment_number_area = floor(vertical_angle * 2.f / PI * 12.f * big_line_divisor);
+	float horisontal_coord_before_cutting_paper = (equator_segment_x - 0.5f) * radius + 0.5f;		
+	float line_width = 0.015f / min(1.f, zoom / 6.f);	
+	float line_width_v = line_width;
+	float line_width_h = line_width;	
+	float softness_mult = (1.f + abs(vertical_angle) / 2.f) / sqrt(min(1.f, zoom / 6.f));
+	float softness_mod = 1.f;
+	float inside_v = 1.f;
+	if (mod(round(equator_segment_number), 4.f) == 0.f) {
+		line_width_v = line_width_v * 3.f / 2.f;
+		inside_v = 0.f;
+	}
+	float inside_h = 1.f;
+	if (mod(round(vertical_segment_number), 4.f) == 0.f) {
+		line_width_h = line_width_h * 3.f / 2.f;
+		inside_h = 0.f;
+	}
+	float base_unit =  cos(vertical_angle);
+	float length_mult = 1.f / base_unit;
+	if (radius < 0.2f) {
+		length_mult = 1.f / radius;
+	}
+	float line_mult = 1.f;
+	float v1 = abs(fract(equator_segment_x + 0.5f) - 0.5f);
+	if (v1 < line_width_v * length_mult) {
+		line_mult = min(line_mult, 0.2f * softness_mult * (1.f + 0.5f * inside_v) + max(0.5f - zoom / 100.f, smootherstep(v1 / (line_width_v * length_mult))));
+	}	
+	float v2 = abs(fract(vertical_segment + 0.5f) - 0.5f);
+	if (v2 < line_width_h) {
+		line_mult = min(line_mult, 0.2f * softness_mult * (1.f + 0.5f * inside_h) + max(0.5f - zoom / 100.f, smootherstep(v2 / (line_width_h))));
+	}
 
 	vec4 wc = texture(watercolor, vec2(horisontal_coord_before_cutting_paper, vertical_segment) * 10.f);
 	vec4 wc_global = texture(watercolor, vec2(horisontal_coord_before_cutting_paper, vertical_segment) / 2.f);
 
-	float hatching = 0.2f * texture(hatching, vec2(horisontal_coord_before_cutting_paper * (mod(vertical_segment_number, 2.f) * 2.f - 1.f), vertical_segment * (mod(equator_segment_number, 2.f) * 2.f - 1.f)) * 20.f).r;
-	return vec4(0.77f - hatching, 0.85f - hatching, 0.80f, 1.f) * (0.25f + 0.5f * wc + 0.25f * wc_global) * min(1.f, line_mult * line_mult);
+	float hatching = 0.4f * texture(hatching, vec2(horisontal_coord_before_cutting_paper * (mod(vertical_segment_number_area, 2.f) * 2.f - 1.f), vertical_segment * (mod(equator_segment_number_area, 2.f) * 2.f - 1.f)) * 4.f).r;
+	return vec4(0.57f - hatching, 0.65f - hatching, 0.70f, 1.f) * (0.25f + 0.5f * wc + 0.25f * wc_global) * vec4(0.2f + 0.8f * line_mult, 0.2f + 0.8f *line_mult, 1.f, 1.f);
 }
 
 vec4 get_water() {
