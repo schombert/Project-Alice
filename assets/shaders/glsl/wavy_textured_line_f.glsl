@@ -9,6 +9,7 @@ uniform vec3 light_direction;
 uniform float ignore_light;
 uniform float gamma;
 uniform vec2 screen_size;
+uniform float railroad_level;
 
 uniform sampler2D provinces_texture_sampler;
 uniform sampler2D province_fow;
@@ -20,10 +21,24 @@ vec4 gamma_correct(vec4 colour) {
 }
 
 void main() {
+	
+	float value = abs(0.5f - tex_coord);
+	vec2 prov_id = texture(provinces_texture_sampler, gl_FragCoord.xy / screen_size).xy;
+
+	if (ignore_light > 0.f) {
+		if (texture(provinces_sea_mask, prov_id).x > 0) {
+			frag_color = vec4(0.0f, 0.0f, 0.0f, sin(o_dist * 2.f));
+		} else {
+			float rail = max(0.f, sin(railroad_level * o_dist * 2.f));
+			rail = rail * rail;
+			frag_color = vec4(0.0f, 0.0f, 0.0f, (value) * (value) * 4.f + rail);
+		}
+		return ;
+	}
+
 	float darkness = max(0.f, -dot(light_direction, space_coords) + 0.1f);
 
 	float texture_mask = texture(line_texture, vec2(o_dist, tex_coord)).r;
-	vec2 prov_id = texture(provinces_texture_sampler, gl_FragCoord.xy / screen_size).xy;
 	if (texture(provinces_sea_mask, prov_id).x > 0 || (prov_id.x == 0.f && prov_id.y == 0.f)) {
 		discard;
 	}
@@ -33,7 +48,8 @@ void main() {
 	float dotted_line = max(0.f, sin(o_dist * 10.f) - 0.5f);
 	//float value = abs( (0.5f + sin(o_dist * 1.f) * 0.2) - tex_coord);
 
-	float value = abs(0.5f - tex_coord);
+
+	
 
 	vec3 inner_color = vec3(0.8f, 0.2, 0.2f);
 	if (ignore_light == 0.f) {

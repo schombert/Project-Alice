@@ -578,7 +578,7 @@ enum class color_blind_mode {
 };
 
 enum class graphics_mode {
-	ugly, classic, modern, total
+	ugly, classic, modern, modern_classic, total
 };
 
 

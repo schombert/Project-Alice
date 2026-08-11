@@ -39,6 +39,10 @@ struct trade_particle {
 	int trade_graph_node_current;
 	int trade_graph_node_prev = -1;
 	int trade_graph_node_next;
+	int adj_index = -1;
+	int adj_count = 0;
+	int adj_direction = 1;
+	std::array<glm::vec2, 5> vagon_positions {} ;
 };
 struct screen_vertex {
 	screen_vertex(float x, float y) : position_(x, y){};
@@ -363,7 +367,9 @@ public:
 	static constexpr uint32_t texture_printbrush = 28;
 	static constexpr uint32_t texture_hatching = 29;
 	static constexpr uint32_t texture_watercolor = 30;
-	static constexpr uint32_t texture_count = 31;
+	static constexpr uint32_t texture_train = 31;
+	static constexpr uint32_t texture_ship = 32;
+	static constexpr uint32_t texture_count = 33;
 	GLuint textures[texture_count] = { 0 };
 	// Texture Array
 	static constexpr uint32_t texture_array_terrainsheet = 0;
@@ -443,7 +449,8 @@ public:
 	static constexpr uint32_t uniform_printbrush = 49;
 	static constexpr uint32_t uniform_hatching = 50;
 	static constexpr uint32_t uniform_watercolor = 51;
-	static constexpr uint32_t uniform_count = 52;
+	static constexpr uint32_t uniform_railroad_level = 52;
+	static constexpr uint32_t uniform_count = 53;
 	GLint shader_uniforms[shader_count][uniform_count] = { };
 
 	// models: Textures for static meshes
