@@ -1121,7 +1121,7 @@ alice_mw_create_lp;我们需要?R$x$?W?Y领导力点数?W来添加
 alice_mw_controls_1;?Y右键点击?W以提拔?G所有?W可能的陆军将领
 alice_mw_controls_2;?Y右键点击?W以提拔?G所有?W可能的海军将领
 alice_daily_leadership_tt;$poptype$给予?G$value$?W领导力点数（占人口的?Y$fraction$?W，最佳为?Y$optimal$%?W）。溢出的领导力点数会自动消耗以产生新的将领。
-unit_current_supply;最近一天本部队接收到所需补给的?Y$val$%?W。\n我们可以从当前的补给消耗中获得的数量是：
+unit_current_supply;昨天本部队收到所需补给的 ?Y$val$%?W。\n当前的补给消耗中获得：
 unit_current_supply_high;$what$：?Y$val$?W/?Y$value$?! ?l（?W?G$total$%?W?l 需求满足度）
 unit_current_supply_mid;$what$：?Y$val$?!/?Y$value$?! ?l（?O$total$%?W?l 需求满足度）
 unit_current_supply_low;$what$：?Y$val$?!/?Y$value$?! ?l（?R$total$%?W?l 需求满足度）
@@ -1267,7 +1267,7 @@ rgo_desired_profit;最小
 rgo_employment;当前
 rgo_max_employment;最大
 rgo_saturation;%
-rgo_details_header;RGO信息
+rgo_details_header;RGO详情
 rgo_employment_header;雇佣
 rgo_profits_header;利润
 route_origin;路线起点
@@ -1339,8 +1339,8 @@ alice_budget_increase_button;值多10（shift+以精确控制）
 alice_budget_max;最大 $x$
 alice_budget_min;最小 $x$
 alice_budget_overlord;宗主税
-alice_budget_expand_tt;显示信息
-alice_budget_contract_tt;隐藏信息
+alice_budget_expand_tt;显示详情
+alice_budget_contract_tt;隐藏详情
 alice_budget_admin_eff1;行政
 alice_budget_admin_eff2;效率：
 alice_budget_chart_top;100%
@@ -1401,7 +1401,7 @@ alice_job_filter_header;职业
 alice_culture_filter_header;民族
 alice_religion_filter_header;宗教
 alice_location_filter_header;位置
-alice_pop_show_details;信息
+alice_pop_show_details;详情
 alice_demographics_window_header;人口统计
 alice_demographics_size_header;规模
 alice_demographics_job_header;职业
@@ -1410,7 +1410,7 @@ alice_demographics_location_header;位置
 alice_demographics_employment_header;雇佣
 alice_demographics_needs_header;需求
 alice_demographics_rebel_header;支持运动
-alice_pop_details_title;人群信息
+alice_pop_details_title;人群详情
 alice_pop_details_location;位置
 alice_pop_details_job;职业：
 alice_pop_details_mil;斗争性：
@@ -1678,7 +1678,7 @@ commodity_production_header;工厂生产链：投入/产出
 national_modifiers;国家修正
 modifier_min_land_upkeep;土地最低维护
 per_commodity;每个商品
-open_details;信息
+open_details;详情
 rgo;RGO
 province_prices;价格（相对）
 gdp_per_sector;GDP
@@ -1811,8 +1811,8 @@ alice_pop_details_en_short;日
 alice_pop_details_lx_short;奢
 alice_pop_details_need_weight;倾向
 alice_pop_details_need_weight_tooltip;预算优先级
-button_pop_budget;打开预算信息
-pop_budget_details;预算信息
+button_pop_budget;打开预算详情
+pop_budget_details;预算详情
 pop_budget_unemployment;失业补贴
 pop_budget_pension;退休补贴
 pop_budget_factory_ownership;工厂
@@ -1876,9 +1876,9 @@ production_sub_item_uses;使用
 production_sub_item_labor;劳动力
 production_sub_item_consumption;投入
 production_explain_view;生产——显示生产及其投入使用量。\n\n消费——显示消费数、使用该商品的工艺和任何投入不足的情况。\n\n雇佣——显示各行业劳动力和劳动力不足情况。\n\n专精——显示基本工艺和工厂专业化情况。
-production_explain_location;显示全国或一省信息。
+production_explain_location;显示全国或一省详情。
 production_explain_combine;汇总或分别显示工厂、工匠和RGO活动的同一商品数据。
-production_explain_filter;显示所有或特定的商品信息。
+production_explain_filter;显示所有或特定的商品详情。
 production_shortage_warn_inputs;投入不足
 production_shortage_warn_labor;劳动力不足
 production_max_output;最多产出
