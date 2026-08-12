@@ -775,8 +775,10 @@ void display_data::load_shaders(simple_fs::directory& root) {
 		shader_uniforms[i][uniform_is_national_border] = glGetUniformLocation(shaders[i], "is_national_border");
 		shader_uniforms[i][uniform_graphics_mode] = glGetUniformLocation(shaders[i], "graphics_mode");
 		shader_uniforms[i][uniform_color] = glGetUniformLocation(shaders[i], "color");
+		shader_uniforms[i][uniform_outline_color] = glGetUniformLocation(shaders[i], "outline_color");
 		shader_uniforms[i][uniform_glyphs] = glGetUniformLocation(shaders[i], "glyphs");
 		shader_uniforms[i][uniform_curves] = glGetUniformLocation(shaders[i], "curves");
+		shader_uniforms[i][uniform_bold_curves] = glGetUniformLocation(shaders[i], "bold_curves");
 		shader_uniforms[i][uniform_printbrush] = glGetUniformLocation(shaders[i], "printbrush");
 		shader_uniforms[i][uniform_hatching] = glGetUniformLocation(shaders[i], "hatching");
 		shader_uniforms[i][uniform_watercolor] = glGetUniformLocation(shaders[i], "watercolor");
@@ -1859,6 +1861,8 @@ void display_data::render(
 		//glDisable(GL_BLEND);
 
 		auto color_location = shader_uniforms[shader_text_line][uniform_color];
+		auto outline_color_location = shader_uniforms[shader_text_line][uniform_outline_color];
+
 		/*
 		if(state.user_settings.black_map_font)
 			glUniform4f(location, 0.0f, 0.0f, 0.0f, 1.0f);
@@ -1866,58 +1870,55 @@ void display_data::render(
 			glUniform4f(location, 1.0f, 1.0f, 1.0f, 1.0f);
 		*/
 
-		auto location = shader_uniforms[shader_text_line][uniform_glyphs];
-		glUniform1i(location, 0);
+		auto glyphs_location = shader_uniforms[shader_text_line][uniform_glyphs];
+		glUniform1i(glyphs_location, 0);
 
-		location = shader_uniforms[shader_text_line][uniform_curves];
-		glUniform1i(location, 1);
+		auto curves_location = shader_uniforms[shader_text_line][uniform_curves];
+		glUniform1i(curves_location, 1);
 
+		auto bold_curves_location = shader_uniforms[shader_text_line][uniform_bold_curves];
+		glUniform1i(bold_curves_location, 2);
 
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_BUFFER, state.font_collection.mfont.glyph_texture);
 
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_BUFFER, state.font_collection.mfont.curve_texture);
 
-		glUniform4f(color_location, 0.0f, 0.0f, 0.0f, 1.0f);
+		glActiveTexture(GL_TEXTURE2);
+		glBindTexture(GL_TEXTURE_BUFFER, state.font_collection.mfont.bold_curve_texture);
+
+		glActiveTexture(GL_TEXTURE0);
+
+		if(state.user_settings.black_map_font) {
+			glUniform4f(color_location, 0.0f, 0.0f, 0.0f, 1.0f);
+		} else {
+			glUniform4f(color_location, 0.9f, 0.9f, 0.9f, 0.8f);
+		}
+
+		glUniform4f(outline_color_location, 0.0f, 0.0f, 0.0f, 0.0f);
 
 		//if (zoom > map::zoom_very_close) {
-
-
-			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_BUFFER, state.font_collection.mfont.glyph_texture);
-
-			glActiveTexture(GL_TEXTURE1);
-			glBindTexture(GL_TEXTURE_BUFFER, state.font_collection.mfont.curve_texture);
-
-			glActiveTexture(GL_TEXTURE0);
-
-			glUniform4f(color_location, 0.0f, 0.0f, 0.0f, 1.0f);
-
 			glBindVertexArray(vao_array[vo_province_text_line]);
 			glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_province_text_line]);
 			glDrawArrays(GL_TRIANGLES, 0, (GLsizei)province_text_line_vertices.size());
-
 		//}
 
+		if(state.user_settings.black_map_font) {
+			glUniform4f(outline_color_location, 0.9f, 0.9f, 0.9f, 0.8f);
+		} else {
+			glUniform4f(outline_color_location, 0.0f, 0.0f, 0.0f, 1.0f);
+		}
+
 		if((!state.cheat_data.province_names || zoom < map::zoom_very_close) && !text_line_vertices.empty()) {
-			glUniform4f(color_location, 0.9f, 0.9f, 0.9f, 0.8f);
-
-			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_BUFFER, state.font_collection.mfont.bold_glyph_texture);
-
-			glActiveTexture(GL_TEXTURE1);
-			glBindTexture(GL_TEXTURE_BUFFER, state.font_collection.mfont.bold_curve_texture);
-
-			glActiveTexture(GL_TEXTURE0);
-
-			glBindVertexArray(vao_array[vo_bold_text_line]);
-			glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_bold_text_line]);
-			glDrawArrays(GL_TRIANGLES, 0, last_size_of_bold_text_line_vertices);
-
-			glUniform4f(color_location, 0.0f, 0.0f, 0.0f, 1.0f);
-
 			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_BUFFER, state.font_collection.mfont.glyph_texture);
 
 			glActiveTexture(GL_TEXTURE1);
 			glBindTexture(GL_TEXTURE_BUFFER, state.font_collection.mfont.curve_texture);
+
+			glActiveTexture(GL_TEXTURE2);
+			glBindTexture(GL_TEXTURE_BUFFER, state.font_collection.mfont.bold_curve_texture);
 
 			glActiveTexture(GL_TEXTURE0);
 
@@ -3418,7 +3419,7 @@ void display_data::update_sprawl(sys::state& state) {
 float desired_font_size_index(float curve_length, float text_extent) {
 	float size = (curve_length / text_extent) * 0.8f;
 	float font_size_index = std::round(5.f * log(size) / log(1.618034f));
-	if(font_size_index > 45.f) font_size_index = 45.f;
+	if(font_size_index > 30.f) font_size_index = 30.f;
 	if(font_size_index > 5.f) font_size_index = 5.f * std::round(font_size_index / 5.f);
 	return font_size_index;
 }
@@ -3442,8 +3443,7 @@ float get_max_glyph_height(sys::state& state, text_line_generator_data const& e)
 }
 
 void push_polynomial_text_to_vertex_array(sys::state& state, display_data& display_data, text_line_generator_data const& e,
-	std::vector<text_line_vertex>& out,
-	std::vector<text_line_vertex>& bold_out
+	std::vector<text_line_vertex>& out
 ) {
 	float size_x = (float)display_data.size_x;
 	float size_y = (float)display_data.size_y;
@@ -3586,7 +3586,7 @@ void push_polynomial_text_to_vertex_array(sys::state& state, display_data& displ
 		float x_bearing = float(gi.ft_x_bearing) * letter_scale;
 		float y_bearing = float(gi.ft_y_bearing) * letter_scale;
 
-		float expansion = 1.f;
+		float expansion = 2.f / 64.f;
 
 		auto embold_x = mult / 2.f;
 		auto embold_y = mult / 2.f;
@@ -3640,8 +3640,7 @@ void push_polynomial_text_to_vertex_array(sys::state& state, display_data& displ
 		auto& bold_gi = state.font_collection.mfont.bold_glyphs[glyphid];
 		float x_advance = float(e.text.glyph_info[i].x_advance) * letter_scale;
 
-		push_glyph(gi, e.text.glyph_info[i], out, 0.f);
-		push_glyph(bold_gi, e.text.glyph_info[i], bold_out, (float)text::map_outline_embolden / 64.f);
+		push_glyph(bold_gi, e.text.glyph_info[i], out, (float)text::map_outline_embolden / 64.f);
 
 		auto current_spacing = (i == glyph_count - 1) ? 0.f : letter_spacing_map;
 		float glyph_advance = x_advance * size / 64.f;
@@ -3665,8 +3664,6 @@ void push_polynomial_text_to_vertex_array(sys::state& state, display_data& displ
 void push_spherical_text_to_vertex_array(
 	sys::state& state, display_data& display_data, text_line_generator_data const& e,
 	std::vector<text_line_vertex>& out,
-	std::vector<text_line_vertex>& bold_out,
-	bool bold,
 	int size_limit, int min_size_cutoff, float opacity_mult
 ) {
 	float size_x = (float)display_data.size_x;
@@ -3800,19 +3797,19 @@ void push_spherical_text_to_vertex_array(
 		auto forward_sphere = sphere_tangent(sph_placement_runner, sph_direction);
 		auto up_sphere = sphere_R3::rotate(forward_sphere);
 
-		float expansion = 1.f;
+		float expansion = 2.f / 64.f;
 
 		float u0 = float(gi.ft_x_bearing) / (64.0f * text::dr_size) - expansion;
 		float v0 = float(gi.ft_y_bearing - gi.ft_height) / (64.0f * text::dr_size) - expansion;
-		float u1 = float(gi.ft_x_bearing + gi.ft_width) / (64.0f * text::dr_size) + expansion;
-		float v1 = float(gi.ft_y_bearing) / (64.0f * text::dr_size) + expansion;
+		float u1 = float(gi.ft_x_bearing + gi.ft_width) / (64.0f * text::dr_size) + 2.f * expansion;
+		float v1 = float(gi.ft_y_bearing) / (64.0f * text::dr_size) + 2.f * expansion;
 
 		auto embold_x = mult / 2.f;
 		auto embold_y = mult / 2.f;
 
 
 		auto left_base = sphere_shift(sph_placement_runner, sph_direction, -expansion * size - embold_x * size);
-		auto right_base = sphere_shift(sph_placement_runner, sph_direction, size / 64.f * glyph_width + expansion * size - embold_x * size);
+		auto right_base = sphere_shift(sph_placement_runner, sph_direction, size / 64.f * glyph_width + 2.f * expansion * size - embold_x * size);
 
 		/*
 		We want our great circle to be a central line -> we shift the bottom line by half of max glyph height "down".
@@ -3820,7 +3817,7 @@ void push_spherical_text_to_vertex_array(
 		Both lines have to be offset by y bearing (letter specific) and y offset (kerning specific)
 		*/
 
-		auto shift_up = (-max_glyph_height / 2.f + y_bearing - y_offset + expansion * 64.f) * size / 64.f - embold_y * size;
+		auto shift_up = (-max_glyph_height / 2.f + y_bearing - y_offset + 2.f * expansion * 64.f) * size / 64.f - embold_y * size;
 		auto shift_down = (-max_glyph_height / 2.f + y_bearing - y_offset - glyph_height - expansion * 64.f) * size / 64.f - embold_y * size;
 
 		sphere_R3::point left_up_point = { sphere_shift(left_base, up_sphere.data, shift_up) };
@@ -3847,8 +3844,7 @@ void push_spherical_text_to_vertex_array(
 		auto& gi = state.font_collection.mfont.glyphs[glyphid];
 		auto& bold_gi = state.font_collection.mfont.bold_glyphs[glyphid];
 		float x_advance = float(e.text.glyph_info[i].x_advance) * letter_scale;
-		push_glyph(gi, e.text.glyph_info[i], out, 0.f);
-		push_glyph(bold_gi, e.text.glyph_info[i], bold_out, (float)text::map_outline_embolden / 64.f);
+		push_glyph(bold_gi, e.text.glyph_info[i], out, (float)text::map_outline_embolden / 64.f);
 		auto current_spacing = (i == glyph_count - 1) ? 0.f : letter_spacing_map;
 		float glyph_advance = x_advance * size / 64.f;
 		float D = glyph_advance + current_spacing;
@@ -3859,7 +3855,6 @@ void push_spherical_text_to_vertex_array(
 void display_data::set_text_lines(sys::state& state) {
 	// Clear previous text line vertices
 	text_line_vertices.clear();
-	bold_text_line_vertices.clear();
 	for(const auto& e : text_data) {
 		// Skip invalid coefficients
 		if(!std::isfinite(e.coeff[0]) || !std::isfinite(e.coeff[1]) || !std::isfinite(e.coeff[2]) || !std::isfinite(e.coeff[3]))
@@ -3874,9 +3869,9 @@ void display_data::set_text_lines(sys::state& state) {
 		bool is_spherical = state.user_settings.map_label == sys::map_label_mode::spherical;
 
 		if(is_spherical) {
-			push_spherical_text_to_vertex_array(state, *this, e, text_line_vertices, bold_text_line_vertices, true, 70, -60, 1.f);
+			push_spherical_text_to_vertex_array(state, *this, e, text_line_vertices, -20, -60, 1.f);
 		} else {
-			push_polynomial_text_to_vertex_array(state, *this, e, text_line_vertices, bold_text_line_vertices);
+			push_polynomial_text_to_vertex_array(state, *this, e, text_line_vertices);
 		}
 	}
 }
@@ -3894,7 +3889,7 @@ void display_data::set_province_text_lines(sys::state& state) {
 		if(e.text.glyph_info.empty())
 			continue;
 
-		push_spherical_text_to_vertex_array(state, *this, e, province_text_line_vertices, province_text_line_vertices, false, -65, -90, 0.25f);
+		push_spherical_text_to_vertex_array(state, *this, e, province_text_line_vertices, -65, -90, 0.25f);
 		//push_spherical_text_to_vertex_array(state, *this, e, province_text_line_vertices, -40, -90, 0.25f);
 	}
 

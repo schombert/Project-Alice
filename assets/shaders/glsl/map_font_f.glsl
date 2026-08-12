@@ -9,8 +9,12 @@ struct Curve {
 };
 
 uniform isamplerBuffer glyphs;
+
 uniform samplerBuffer curves;
+uniform samplerBuffer bold_curves;
+
 uniform vec4 color;
+uniform vec4 outline_color;
 
 
 // Size of the window (in pixels) used for 1-dimensional anti-aliasing along each rays.
@@ -42,6 +46,14 @@ Curve loadCurve(int index) {
 	result.p0 = texelFetch(curves, 3*index+0).xy;
 	result.p1 = texelFetch(curves, 3*index+1).xy;
 	result.p2 = texelFetch(curves, 3*index+2).xy;
+	return result;
+}
+
+Curve loadBoldCurve(int index) {
+	Curve result;
+	result.p0 = texelFetch(bold_curves, 3*index+0).xy;
+	result.p1 = texelFetch(bold_curves, 3*index+1).xy;
+	result.p2 = texelFetch(bold_curves, 3*index+2).xy;
 	return result;
 }
 
@@ -80,7 +92,7 @@ float computeCoverage_real(float inverseDiameter, vec2 p0, vec2 p1, vec2 p2) {
 	}
 
 	float alpha = 0;
-	
+
 	if (t0 >= 0 && t0 < 1) {
 		float x = (a.x*t0 - 2.0*b.x)*t0 + c.x;
 		alpha += clamp(x * inverseDiameter + 0.5, 0, 1);
@@ -117,7 +129,7 @@ float computeCoverage(float inverseDiameter, vec2 p0, vec2 p1, vec2 p2) {
 		} else {
 			t0 = t;
 			t1 = -1.0;
-		}
+	}
 	
 
 	float alpha = 0;
@@ -125,12 +137,12 @@ float computeCoverage(float inverseDiameter, vec2 p0, vec2 p1, vec2 p2) {
 	if (t0 >= 0 && t0 < 1) {
 		float x = (a.x*t0 - 2.0*b.x)*t0 + c.x;
 		alpha += clamp(x * inverseDiameter + 0.5, 0, 1);
-	}
+		}
 
 	if (t1 >= 0 && t1 < 1) {
 		float x = (a.x*t1 - 2.0*b.x)*t1 + c.x;
 		alpha -= clamp(x * inverseDiameter + 0.5, 0, 1);
-	}
+		}
 
 	return alpha;
 }
@@ -141,18 +153,45 @@ vec2 rotate(vec2 v) {
 }
 
 void main() {
-	float alpha = 0;
+	float alpha_bold = 0.f;
+	float alpha = 0.f;
+
+	vec2 dtex_dpixel = fwidth(uv);
 
 	// Inverse of the diameter of a pixel in uv units for anti-aliasing.
-	vec2 inverseDiameter = 1.0 / (antiAliasingWindowSize * fwidth(uv));
+	vec2 inverseDiameter = 1.0 / (antiAliasingWindowSize * dtex_dpixel);
 
 	Glyph glyph = loadGlyph(bufferIndex);
+	vec2 adj_uv = uv;
+
+	float alpha_bold_upper_limit = max(0.f, 1.f - (dtex_dpixel.x / (2.f / 64.f) + dtex_dpixel.y / (2.f / 64.f)) * 0.25f);
+
+	if (outline_color.a > 0.f && alpha_bold_upper_limit > 0.f) {
+		for (int i = 0; i < glyph.count; i++) {
+			Curve curve = loadBoldCurve(glyph.start + i);
+
+			vec2 p0 = curve.p0 - uv;
+			vec2 p1 = curve.p1 - uv;
+			vec2 p2 = curve.p2 - uv;
+
+			alpha_bold += computeCoverage_real(inverseDiameter.x, p0, p1, p2);
+		}
+
+		alpha_bold = clamp(alpha_bold, 0.0, 1.0) * alpha_bold_upper_limit;
+		if (alpha_bold == 0.f) {
+			discard;
+		}
+		adj_uv -= 2.f / 64.f;
+	} else {
+		alpha_bold = 0.f;
+	}
+
 	for (int i = 0; i < glyph.count; i++) {
 		Curve curve = loadCurve(glyph.start + i);
 
-		vec2 p0 = curve.p0 - uv;
-		vec2 p1 = curve.p1 - uv;
-		vec2 p2 = curve.p2 - uv;
+		vec2 p0 = curve.p0 - adj_uv;
+		vec2 p1 = curve.p1 - adj_uv;
+		vec2 p2 = curve.p2 - adj_uv;
 
 		alpha += computeCoverage_real(inverseDiameter.x, p0, p1, p2);
 		if (enableSuperSamplingAntiAliasing) {
@@ -164,15 +203,11 @@ void main() {
 		alpha *= 0.5;
 	}
 
-	result = color * clamp(alpha * opacity * color.a, 0.0, 1.0);
+	alpha = clamp(alpha, 0.0, 1.0);
 
-	//alpha = clamp(alpha * opacity, 0.0, 1.0);
-	//result = color * alpha;
-
-
-	// float t = 1.0f;
-	// float k = 1.0f;
-	// if(glyph.count < 10) { t = 0.0f; }
-	// if(bufferIndex < 10) { k = 0.0f; }
-	// result = vec4(1.0, t, k, color.a) * alpha;
+	if (alpha > 0.f) {
+		result = color * alpha * opacity * color.a;
+	} else {
+		result = outline_color * alpha_bold * opacity * color.a;
+	}
 }
