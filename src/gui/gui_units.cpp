@@ -751,7 +751,7 @@ message_result grid_box::get(sys::state& state, Cyto::Any& payload) noexcept {
 
 void grid_box::open(sys::state& state, ui::xy_pair location, ui::xy_pair source_size, dcon::province_id p, bool port) {
 	if(!as_port) {
-		if(p.index() < state.province_definitions.first_sea_province.index()) {
+		if(p.index() < state.province_definitions.first_sea_province.index() && !port) {
 			auto pname = text::produce_simple_string(state, state.world.province_get_name(p));
 			auto arange = state.world.province_get_army_location(p);
 			if(int32_t(arange.end() - arange.begin()) <= 1)
