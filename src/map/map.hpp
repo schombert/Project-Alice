@@ -286,8 +286,6 @@ public:
 	//
 	std::vector<text_line_vertex> text_line_vertices;
 	GLsizei last_size_of_text_line_vertices = 0;
-	std::vector<text_line_vertex> bold_text_line_vertices;
-	GLsizei last_size_of_bold_text_line_vertices = 0;
 	std::vector<text_line_vertex> province_text_line_vertices;
 	std::vector<screen_vertex> drag_box_vertices;
 	std::vector<uint8_t> terrain_id_map;
@@ -450,7 +448,9 @@ public:
 	static constexpr uint32_t uniform_hatching = 50;
 	static constexpr uint32_t uniform_watercolor = 51;
 	static constexpr uint32_t uniform_railroad_level = 52;
-	static constexpr uint32_t uniform_count = 53;
+	static constexpr uint32_t uniform_bold_curves = 53;
+	static constexpr uint32_t uniform_outline_color = 54;
+	static constexpr uint32_t uniform_count = 55;
 	GLint shader_uniforms[shader_count][uniform_count] = { };
 
 	// models: Textures for static meshes

@@ -1388,19 +1388,7 @@ void commit_text_lines(sys::state& state, display_data& map_data) {
 			&map_data.text_line_vertices[0], 
 			GL_STATIC_DRAW
 		);
-		glBindBuffer(
-			GL_ARRAY_BUFFER,
-			map_data.vbo_array[map_data.vo_bold_text_line]
-		);
-		glBufferData(
-			GL_ARRAY_BUFFER,
-			sizeof(text_line_vertex)
-			* map_data.bold_text_line_vertices.size(),
-			&map_data.bold_text_line_vertices[0],
-			GL_STATIC_DRAW
-		);
 		map_data.last_size_of_text_line_vertices = (GLsizei)map_data.text_line_vertices.size();
-		map_data.last_size_of_bold_text_line_vertices = (GLsizei)map_data.bold_text_line_vertices.size();
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 	}
 }
