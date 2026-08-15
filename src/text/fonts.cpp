@@ -539,7 +539,7 @@ void font_at_size::create(FT_Library lib, FT_Byte* file_data, size_t file_size, 
 void font_manager::load_font(font& fnt, char const* file_data, uint32_t fz) {
 	fnt.file_data = std::unique_ptr<FT_Byte[]>(new FT_Byte[fz]);
 	fnt.file_size = fz;
-	memcpy(fnt.file_data.get(), file_data, fz);
+	std::memcpy(fnt.file_data.get(), file_data, fz);
 }
 
 float font_at_size::line_height(sys::state& state) const {
@@ -561,12 +561,9 @@ bool font::can_display(char32_t ch_in) const {
 	return FT_Get_Char_Index(sized_fonts.begin()->second.font_face, ch_in) != 0;
 }
 
-glyph_sub_offset& font_at_size:: get_glyph(uint16_t glyph_in, int32_t subpixel) {
-	return glyph_positions[(uint32_t(glyph_in) << 2) | uint32_t(subpixel & 3)];
-}
-void font_at_size::make_glyph(uint16_t glyph_in, int32_t subpixel) {
-	if(glyph_positions.find((uint32_t(glyph_in) << 2) | uint32_t(subpixel & 3)) != glyph_positions.end())
-		return;
+std::reference_wrapper<glyph_sub_offset> font_at_size::insert_or_find_glyph(uint16_t glyph_in, int32_t subpixel) {
+	if(auto const it = glyph_positions.find((uint32_t(glyph_in) << 2) | uint32_t(subpixel & 3)); it != glyph_positions.end())
+		return it->second;
 
 	// load all glyph metrics
 	if(glyph_in) {
@@ -586,8 +583,8 @@ void font_at_size::make_glyph(uint16_t glyph_in, int32_t subpixel) {
 		FT_Glyph g_result;
 		auto err = FT_Get_Glyph(font_face->glyph, &g_result);
 		if(err != 0) {
-			glyph_positions.insert_or_assign((uint32_t(glyph_in) << 2) | uint32_t(subpixel & 3), gso);
-			return;
+			auto const it = glyph_positions.insert_or_assign((uint32_t(glyph_in) << 2) | uint32_t(subpixel & 3), gso);
+			return it.first->second;
 		}
 		
 		FT_Bitmap const& bitmap = ((FT_BitmapGlyphRec*)g_result)->bitmap;
@@ -595,8 +592,8 @@ void font_at_size::make_glyph(uint16_t glyph_in, int32_t subpixel) {
 		assert(bitmap.rows <= 1024 && bitmap.width <= 1024);
 		if(bitmap.rows > 1024 || bitmap.width > 1024) { // too large to render
 			FT_Done_Glyph(g_result);
-			glyph_positions.insert_or_assign((uint32_t(glyph_in) << 2) | uint32_t(subpixel & 3), gso);
-			return;
+			auto const it = glyph_positions.insert_or_assign((uint32_t(glyph_in) << 2) | uint32_t(subpixel & 3), gso);
+			return it.first->second;
 		}
 		if(bitmap.width + internal_tx_line_xpos >= 1024) { // new line
 			internal_tx_line_xpos = 0;
@@ -648,8 +645,11 @@ void font_at_size::make_glyph(uint16_t glyph_in, int32_t subpixel) {
 			delete[] temp;
 		}
 		FT_Done_Glyph(g_result);
-		glyph_positions.insert_or_assign((uint32_t(glyph_in) << 2) | uint32_t(subpixel & 3), gso);
+
+		auto const it = glyph_positions.insert_or_assign((uint32_t(glyph_in) << 2) | uint32_t(subpixel & 3), gso);
+		return it.first->second;
 	}
+	std::abort(); //<-- should NOT call here ffs
 }
 
 stored_glyphs::stored_glyphs(sys::state& state, int32_t size, font_selection type, std::span<uint16_t> s, uint32_t details_offset, layout_details* d, uint16_t font_handle) {
@@ -947,7 +947,7 @@ void font_at_size::remake_cache(sys::state& state, font_selection type, stored_g
 
 				for(unsigned int j = 0; j < gcount; j++) { // Preload glyphs
 					total_x_advance += glyph_pos[j].x_advance / (text::fixed_to_fp * state.user_settings.ui_scale);
-					//make_glyph(uint16_t(glyph_info[j].codepoint));
+					//insert_or_find_glyph(uint16_t(glyph_info[j].codepoint));
 					txt.glyph_info.emplace_back(glyph_info[j], glyph_pos[j]);
 				}
 			}
@@ -1007,7 +1007,7 @@ void font_at_size::remake_bidiless_cache(sys::state& state, font_selection type,
 	hb_glyph_position_t* glyph_pos = hb_buffer_get_glyph_positions(hb_buf, &gcount);
 
 	for(unsigned int j = 0; j < gcount; j++) { // Preload glyphs
-		//make_glyph(uint16_t(glyph_info[j].codepoint));
+		//insert_or_find_glyph(uint16_t(glyph_info[j].codepoint));
 		txt.glyph_info.emplace_back(glyph_info[j], glyph_pos[j]);
 	}
 
@@ -1150,7 +1150,7 @@ float font_at_size::stateless_text_extent(float ui_scale, char const* codepoints
 	hb_glyph_position_t* glyph_pos = hb_buffer_get_glyph_positions(hb_buf, &glyph_count);
 	float x = 0.0f;
 	for(unsigned int i = 0; i < glyph_count; i++) {
-		make_glyph((uint16_t)glyph_info[i].codepoint, 0);
+		insert_or_find_glyph((uint16_t)glyph_info[i].codepoint, 0);
 		hb_codepoint_t glyphid = glyph_info[i].codepoint;
 		auto& gso = glyph_positions[glyphid << 2];
 		float x_advance = float(glyph_pos[i].x_advance) / text::fixed_to_fp;
