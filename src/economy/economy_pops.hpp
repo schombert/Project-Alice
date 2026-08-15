@@ -26,7 +26,8 @@ void update_consumption(
 	ve::vectorizable_buffer<float, dcon::pop_id>& demand_everyday,
 	ve::vectorizable_buffer<float, dcon::pop_id>& demand_luxury,
 	ve::vectorizable_buffer<float, dcon::pop_id>& demand_paid_education,
-	ve::vectorizable_buffer<float, dcon::pop_id>& subsistence_ratio
+	ve::vectorizable_buffer<float, dcon::pop_id>& subsistence_ratio,
+	std::vector<ve::vectorizable_buffer<float, dcon::pop_id>>& demand_consumption_category
 );
 void update_income_artisans(sys::state& state);
 void update_income_national_subsidy(sys::state& state);

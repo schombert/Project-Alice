@@ -36,7 +36,68 @@ extern "C" {
 	DCON_LUADLL_API uint8_t lua_get_gamerule_option_id_by_name(const char gamerule_option_name[]);
 	DCON_LUADLL_API bool lua_check_gamerule(int32_t gamerule_id, uint8_t opt_id);
 	DCON_LUADLL_API int32_t lua_get_active_gamerule_option(int32_t gamerule_id);
+	DCON_LUADLL_API int32_t lua_create_text_key(const char key[]);
 
+	DCON_LUADLL_API void lua_add_rgo_efficiency_commodity(int32_t target, int32_t commodity, float volume);
+	DCON_LUADLL_API void lua_add_factory_efficiency_commodity(int32_t target, int32_t commodity, float volume);
+	DCON_LUADLL_API void lua_add_factory_input_commodity(int32_t target, int32_t commodity, float volume);
+	DCON_LUADLL_API void lua_add_factory_cost_commodity(int32_t target, int32_t commodity, float volume);
+}
+
+//dcon::text_key find_or_add_key(sys::state& state, std::string_view key, bool as_unicode);
+
+int32_t lua_create_text_key(const char key[]) {
+	std::string key_str { key };
+	return text::find_or_add_key(*alice_state_ptr, key_str, true).index();
+}
+
+void lua_add_rgo_efficiency_commodity(int32_t target, int32_t commodity, float volume) {
+	auto t = dcon::commodity_id{ (dcon::commodity_id::value_base_t)target };
+	auto cid = dcon::commodity_id{ (dcon::commodity_id::value_base_t)commodity};
+	auto& efficiency = alice_state_ptr->world.commodity_get_rgo_efficiency_inputs(t);
+	for(uint8_t i = 0; i < efficiency.set_size; i++) {
+		if(!efficiency.commodity_type[i]) {
+			efficiency.commodity_type[i] = cid;
+			efficiency.commodity_amounts[i] = volume;
+			return;
+		}
+	}
+}
+void lua_add_factory_efficiency_commodity(int32_t target, int32_t commodity, float volume) {
+	auto t = dcon::factory_type_id{ (dcon::factory_type_id::value_base_t)target };
+	auto cid = dcon::commodity_id{ (dcon::commodity_id::value_base_t)commodity };
+	auto& efficiency = alice_state_ptr->world.factory_type_get_efficiency_inputs(t);
+	for(uint8_t i = 0; i < efficiency.set_size; i++) {
+		if(!efficiency.commodity_type[i]) {
+			efficiency.commodity_type[i] = cid;
+			efficiency.commodity_amounts[i] = volume;
+			return;
+		}
+	}
+}
+void lua_add_factory_input_commodity(int32_t target, int32_t commodity, float volume) {
+	auto t = dcon::factory_type_id{ (dcon::factory_type_id::value_base_t)target };
+	auto cid = dcon::commodity_id{ (dcon::commodity_id::value_base_t)commodity };
+	auto& cid_set = alice_state_ptr->world.factory_type_get_inputs(t);
+	for(uint8_t i = 0; i < cid_set.set_size; i++) {
+		if(!cid_set.commodity_type[i]) {
+			cid_set.commodity_type[i] = cid;
+			cid_set.commodity_amounts[i] = volume;
+			return;
+		}
+	}
+}
+void lua_add_factory_cost_commodity(int32_t target, int32_t commodity, float volume) {
+	auto t = dcon::factory_type_id{ (dcon::factory_type_id::value_base_t)target };
+	auto cid = dcon::commodity_id{ (dcon::commodity_id::value_base_t)commodity };
+	auto& cid_set = alice_state_ptr->world.factory_type_get_construction_costs(t);
+	for(uint8_t i = 0; i < cid_set.set_size; i++) {
+		if(!cid_set.commodity_type[i]) {
+			cid_set.commodity_type[i] = cid;
+			cid_set.commodity_amounts[i] = volume;
+			return;
+		}
+	}
 }
 
 void console_log(const char message[]) {

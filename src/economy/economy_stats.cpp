@@ -55,21 +55,25 @@ void t_register_demand(
 	ve::fp_vector amount
 	//economy_reason reason
 ) {
+#ifndef NDEBUG
 	ve::apply(
 		[](float amount) {
 			assert(std::isfinite(amount) && amount >= 0.f);
 		}, amount
 	);
+#endif
 	state.world.market_set_demand(
 		s,
 		commodity_type,
 		state.world.market_get_demand(s, commodity_type) + amount
 	);
+#ifndef NDEBUG
 	ve::apply(
 		[](float demand) {
 			assert(std::isfinite(demand) && demand >= 0.f);
 		}, state.world.market_get_demand(s, commodity_type)
 	);
+#endif
 }
 
 void register_demand(

@@ -793,7 +793,7 @@ void display_data::make_borders(sys::state& state, std::vector<uint8_t>& visited
 							edge_to_fix = (int)border_edges.size() - 1;
 
 
-							auto& prev_prev = border_edges[edge_to_fix  - 1];
+							//auto& prev_prev = border_edges[edge_to_fix  - 1];
 
 							assert(border_edges[edge_to_fix].offset > last_vertex_idx);
 						} else {

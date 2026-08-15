@@ -1509,12 +1509,24 @@ void  pop_details_main_ln_list_t::update(sys::state& state, layout_window_elemen
 	auto m = state.world.state_instance_get_market_from_local_market(s);
 
 	values.clear();
-	auto type = state.world.pop_get_poptype(main.for_pop);
-	for(auto c : state.world.in_commodity) {
-		auto v = state.world.pop_type_get_life_needs(type, c);
-		if(v > 0) {
-			add_needs_row(c.id, v, state.world.market_get_life_needs_weights(m, c));
+
+	if(state.world.consumption_category_size() == 0) {
+		auto type = state.world.pop_get_poptype(main.for_pop);
+		for(auto c : state.world.in_commodity) {
+			auto v = state.world.pop_type_get_life_needs(type, c);
+			if(v > 0) {
+				add_needs_row(c.id, v, state.world.market_get_life_needs_weights(m, c));
+			}
 		}
+	} else {
+		state.world.for_each_consumption_category([&](auto cat) {
+			for(auto c : state.world.in_commodity) {
+				auto v = state.world.consumption_category_get_weights(cat, c);
+				if(v > 0) {
+					add_needs_row(c.id, v, state.world.market_get_local_consumption_weights(m, c.id.index() + cat.index() * state.world.commodity_size()));
+				}
+			}
+		});
 	}
 // END
 	{
@@ -1651,13 +1663,14 @@ void  pop_details_main_en_list_t::update(sys::state& state, layout_window_elemen
 	auto l = state.world.pop_get_province_from_pop_location(main.for_pop);
 	auto s = state.world.province_get_state_membership(l);
 	auto m = state.world.state_instance_get_market_from_local_market(s);
-
-	values.clear();
-	auto type = state.world.pop_get_poptype(main.for_pop);
-	for(auto c : state.world.in_commodity) {
-		auto v = state.world.pop_type_get_everyday_needs(type, c);
-		if(v > 0) {
-			add_needs_row(c.id, v, state.world.market_get_everyday_needs_weights(m, c));
+	if(state.world.consumption_category_size() == 0) {
+		values.clear();
+		auto type = state.world.pop_get_poptype(main.for_pop);
+		for(auto c : state.world.in_commodity) {
+			auto v = state.world.pop_type_get_everyday_needs(type, c);
+			if(v > 0) {
+				add_needs_row(c.id, v, state.world.market_get_everyday_needs_weights(m, c));
+			}
 		}
 	}
 // END
@@ -1795,13 +1808,14 @@ void  pop_details_main_lx_list_t::update(sys::state& state, layout_window_elemen
 	auto l = state.world.pop_get_province_from_pop_location(main.for_pop);
 	auto s = state.world.province_get_state_membership(l);
 	auto m = state.world.state_instance_get_market_from_local_market(s);
-
-	values.clear();
-	auto type = state.world.pop_get_poptype(main.for_pop);
-	for(auto c : state.world.in_commodity) {
-		auto v = state.world.pop_type_get_luxury_needs(type, c);
-		if(v > 0) {
-			add_needs_row(c.id, v, state.world.market_get_luxury_needs_weights(m, c));
+	if(state.world.consumption_category_size() == 0) {
+		values.clear();
+		auto type = state.world.pop_get_poptype(main.for_pop);
+		for(auto c : state.world.in_commodity) {
+			auto v = state.world.pop_type_get_luxury_needs(type, c);
+			if(v > 0) {
+				add_needs_row(c.id, v, state.world.market_get_luxury_needs_weights(m, c));
+			}
 		}
 	}
 // END

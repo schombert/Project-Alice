@@ -412,6 +412,7 @@ struct scenario_building_context {
 	ankerl::unordered_dense::map<std::string, dcon::commodity_id> map_of_commodity_names;
 	ankerl::unordered_dense::map<std::string, dcon::factory_type_id> map_of_production_types;
 	ankerl::unordered_dense::map<std::string, dcon::factory_type_id> map_of_factory_names;
+	bool lua_factories;
 	ankerl::unordered_dense::map<std::string, pending_ideology_content> map_of_ideologies;
 	ankerl::unordered_dense::map<std::string, dcon::ideology_group_id> map_of_ideology_groups;
 	ankerl::unordered_dense::map<std::string, pending_option_content> map_of_ioptions;
