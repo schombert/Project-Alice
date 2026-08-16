@@ -3842,10 +3842,11 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			state.world.for_each_consumption_category([&](auto cat_id) {
 				auto cost = state.world.market_get_cost_per_consumption_category(local_market, cat_id);
 				auto actually_bought = state.world.market_get_satisfied_demand_ratio_per_consumption_category(local_market, cat_id);
-				auto refund = (1.f - actually_bought) * cost * demand_consumption_category[cat_id.index()].get(ids);
+				auto demanded = demand_consumption_category[cat_id.index()].get(ids);
+				auto refund = (1.f - actually_bought) * cost * demanded;
 				auto savings = state.world.pop_get_savings(ids);
 				state.world.pop_set_savings(ids, savings + refund);
-				total_satisfaction_from_categories = total_satisfaction_from_categories + actually_bought * state.world.consumption_category_get_satisfaction_score(cat_id);
+				total_satisfaction_from_categories = total_satisfaction_from_categories + actually_bought * demanded * state.world.consumption_category_get_satisfaction_score(cat_id);
 			});
 			auto satisfaction = state.world.pop_get_satisfaction(ids);
 			satisfaction = satisfaction * 0.999f + total_satisfaction_from_categories * 0.001f;
@@ -4444,13 +4445,15 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 				auto base_w = state.world.consumption_category_get_base_pressure(cat_id);
 				auto depends_on = state.world.consumption_category_get_scale_with(cat_id);
 
-				ve::fp_vector total_cost = 0.f;
+				ve::fp_vector max_cost = {0.f};
 				state.world.for_each_commodity([&](auto cid) {
 					auto price = state.world.market_get_price(market, cid);
 					auto consumption_weight = state.world.consumption_category_get_weights(cat_id, cid);
-					total_cost = total_cost + price * consumption_weight;
+					//if (consumption_weight == 0.f) return;
+					//total_cost = total_cost + price * consumption_weight;
+					max_cost = ve::max(max_cost, price * consumption_weight);
 				});
-				auto average_cost = total_cost / float(state.world.commodity_size());
+				//auto average_cost = total_cost / float(state.world.commodity_size());
 
 				ve::fp_vector total_weight = 0.f;
 				state.world.for_each_commodity([&](auto cid) {
@@ -4462,9 +4465,9 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 					auto change =
 						base_w
 						+ availability_w * availability
-						+ price_w * price * consumption_weight / average_cost;
+						+ price_w * price * consumption_weight / max_cost;
 					auto next = ve::select(
-						average_cost == 0.f || consumption_weight == 0.f,
+						max_cost == 0.f || consumption_weight == 0.f,
 						0.f,
 						ve::max(0.f, current + change * state.defines.alice_need_drift_speed)
 					);
