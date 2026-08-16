@@ -76,6 +76,7 @@ struct vectorized_budget_position {
 
 template<typename VALUE>
 struct vectorized_pops_budget {
+	std::vector<vectorized_budget_position<VALUE>> per_consumption_category{ };
 	vectorized_budget_position<VALUE> life_needs{};
 	vectorized_budget_position<VALUE> housing{ };
 	vectorized_budget_position<VALUE> everyday_needs{};

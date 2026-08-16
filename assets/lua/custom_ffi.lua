@@ -18,61 +18,104 @@ ffi.cdef[[
 	bool alice_at_war(int32_t nation_a, int32_t nation_b);
 
 	typedef struct {
-        int32_t good;
-        float amount;
-    } trade_good_container;
+		int32_t good;
+		float amount;
+	} trade_good_container;
 
-    typedef struct {
-        int32_t build_time;
-        int32_t default_organisation;
-        float maximum_speed;
-        float defence_or_hull;
-        float attack_or_gun_power;
-        float supply_consumption;
-        float support;
-        float siege_or_torpedo_attack;
-        float reconnaissance_or_fire_range;
-        float discipline_or_evasion;
-        float maneuver;
-    } unit_variable_stats;
+	typedef struct {
+		int32_t build_time;
+		int32_t default_organisation;
+		float maximum_speed;
+		float defence_or_hull;
+		float attack_or_gun_power;
+		float supply_consumption;
+		float support;
+		float siege_or_torpedo_attack;
+		float reconnaissance_or_fire_range;
+		float discipline_or_evasion;
+		float maneuver;
+	} unit_variable_stats;
 
-    unit_variable_stats* alice_get_unit_stats(int32_t unit_id);
+	unit_variable_stats* alice_get_unit_stats(int32_t unit_id);
 
-    void call_daily(const char function_name[]);
-    void remove_daily(const char function_name[]);
+	void call_daily(const char function_name[]);
+	void remove_daily(const char function_name[]);
 
-    void call_daily_battle(const char function_name[]);
-    void remove_daily_battle(const char function_name[]);
+	void call_daily_battle(const char function_name[]);
+	void remove_daily_battle(const char function_name[]);
 
-    void call_battle_end(const char function_name[]);
-    void remove_battle_end(const char function_name[]);
+	void call_battle_end(const char function_name[]);
+	void remove_battle_end(const char function_name[]);
 
-    void set_text(const char text[]);
-    int32_t local_player_nation();
+	void set_text(const char text[]);
+	int32_t local_player_nation();
 
-    void console_log(const char text[]);
+	void console_log(const char text[]);
 
-    int32_t lua_get_gamerule_id_by_name(const char gamerule_name[]);
+	int32_t lua_get_gamerule_id_by_name(const char gamerule_name[]);
 	int32_t lua_get_gamerule_option_id_by_name(const char gamerule_option_name[]);
 	bool lua_check_gamerule(int32_t gamerule_id, uint8_t opt_id);
 	int32_t lua_get_active_gamerule_option(int32_t gamerule_id);
-
-	
-	
-	
+	int32_t lua_create_text_key(const char key[]);
+	void lua_add_rgo_efficiency_commodity(int32_t target, int32_t commodity, float volume);
+	void lua_add_factory_efficiency_commodity(int32_t target, int32_t commodity, float volume);
+	void lua_add_factory_input_commodity(int32_t target, int32_t commodity, float volume);
+	void lua_add_factory_cost_commodity(int32_t target, int32_t commodity, float volume);
 ]]
 
+TEXT = {}
+
+---comment
+---@param key string
+---@return text_key
+function TEXT.create_key(key)
+	return ffi.C.lua_create_text_key(key)
+end
+
+FACTORY_TYPE_DATA = {}
+FACTORY_TYPE_DATA.COST = {}
+FACTORY_TYPE_DATA.INPUT = {}
+FACTORY_TYPE_DATA.EFFICIENCY = {}
+
+---@param target factory_type_id
+---@param commodity commodity_id
+---@param volume number
+function FACTORY_TYPE_DATA.COST.add(target, commodity, volume)
+	ffi.C.lua_add_factory_cost_commodity(target, commodity, volume);
+end
+---@param target factory_type_id
+---@param commodity commodity_id
+---@param volume number
+function FACTORY_TYPE_DATA.INPUT.add(target, commodity, volume)
+	ffi.C.lua_add_factory_input_commodity(target, commodity, volume);
+end
+---@param target factory_type_id
+---@param commodity commodity_id
+---@param volume number
+function FACTORY_TYPE_DATA.EFFICIENCY.add(target, commodity, volume)
+	ffi.C.lua_add_factory_efficiency_commodity(target, commodity, volume);
+end
+
+EFFICIENCY = {}
+EFFICIENCY.RGO = {}
+---comment
+---@param target commodity_id
+---@param commodity commodity_id
+---@param volume number
+function EFFICIENCY.RGO.add(target, commodity, volume)
+	ffi.C.lua_add_rgo_efficiency_commodity(target, commodity, volume);
+end
 
 STATE = {}
 
 ---@return nation_id
 function STATE.player()
-    return ffi.C.local_player_nation()
+	return ffi.C.local_player_nation()
 end
 
 ---@param text string
 function STATE.set_text(text)
-    return ffi.C.set_text(text)
+	return ffi.C.set_text(text)
 end
 
 
@@ -133,29 +176,29 @@ ON_ACTION = {}
 
 ---@param name string
 function ON_ACTION.add_daily_call(name)
-    ffi.C.call_daily(name)
+	ffi.C.call_daily(name)
 end
 ---@param name string
 function ON_ACTION.remove_daily_call(name)
-    ffi.C.remove_daily(name)
+	ffi.C.remove_daily(name)
 end
 ---@param name string
 function ON_ACTION.add_battle_call(name)
-    ffi.C.call_daily_battle(name)
+	ffi.C.call_daily_battle(name)
 end
 ---@param name string
 function ON_ACTION.remove_battle_call(name)
-    ffi.C.remove_daily_battle(name)
+	ffi.C.remove_daily_battle(name)
 end
 ---@param name string
 function ON_ACTION.add_battle_end_call(name)
-    ffi.C.call_battle_end(name)
+	ffi.C.call_battle_end(name)
 end
 ---@param name string
 function ON_ACTION.remove_battle_end_call(name)
-    ffi.C.remove_battle_end(name)
+	ffi.C.remove_battle_end(name)
 end
 ---@param name string
 function console_log(message)
-    ffi.C.console_log(message)
+	ffi.C.console_log(message)
 end

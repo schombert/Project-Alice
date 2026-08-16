@@ -2812,9 +2812,9 @@ void main_menu_misc_auto_save_dropdown_t::on_update(sys::state& state) noexcept 
 // BEGIN misc::auto_save_dropdown::update
 	clear_list();
 	add_item(int32_t(sys::autosave_frequency::none), text::produce_simple_string(state, "auto_save_0"));
-	add_item(int32_t(sys::autosave_frequency::daily), text::produce_simple_string(state, "auto_save_1"));
-	add_item(int32_t(sys::autosave_frequency::monthly), text::produce_simple_string(state, "auto_save_2"));
 	add_item(int32_t(sys::autosave_frequency::yearly), text::produce_simple_string(state, "auto_save_3"));
+	add_item(int32_t(sys::autosave_frequency::monthly), text::produce_simple_string(state, "auto_save_2"));
+	add_item(int32_t(sys::autosave_frequency::daily), text::produce_simple_string(state, "auto_save_1"));
 	quiet_on_selection(state, int32_t(state.user_settings.autosaves));
 // END
 }

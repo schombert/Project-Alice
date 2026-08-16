@@ -55,21 +55,25 @@ void t_register_demand(
 	ve::fp_vector amount
 	//economy_reason reason
 ) {
+#ifndef NDEBUG
 	ve::apply(
 		[](float amount) {
 			assert(std::isfinite(amount) && amount >= 0.f);
 		}, amount
 	);
+#endif
 	state.world.market_set_demand(
 		s,
 		commodity_type,
 		state.world.market_get_demand(s, commodity_type) + amount
 	);
+#ifndef NDEBUG
 	ve::apply(
 		[](float demand) {
 			assert(std::isfinite(demand) && demand >= 0.f);
 		}, state.world.market_get_demand(s, commodity_type)
 	);
+#endif
 }
 
 void register_demand(
@@ -1611,6 +1615,9 @@ nation_monetary_breakdown breakdown_nation_monetary_structure(sys::state& state,
 				result.pops_spending_life += pops::estimate_pop_spending_life(state, pop, c);
 				result.pops_spending_everyday += pops::estimate_pop_spending_everyday(state, pop, c);
 				result.pops_spending_luxury += pops::estimate_pop_spending_luxury(state, pop, c);
+				state.world.for_each_consumption_category([&](auto cat) {
+					result.pops_spending_categories += pops::estimate_pop_spending_category(state, cat, pop, c);
+				});
 			});
 
 			auto budget = pops::prepare_pop_budget(state, pop);

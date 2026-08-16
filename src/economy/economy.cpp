@@ -189,6 +189,12 @@ void initialize_needs_weights(sys::state& state, dcon::market_id n) {
 			state.world.market_set_luxury_needs_weights(n, c, 0.001f);
 		});
 	}
+	state.world.for_each_consumption_category([&](auto weights_id) {
+		state.world.for_each_commodity([&](dcon::commodity_id c) {
+			auto index = c.index() + weights_id.index() * state.world.commodity_size();
+			state.world.market_set_local_consumption_weights(n, index, 0.01f);
+		});
+	});
 }
 
 // todo: make priority different per commodity
@@ -2833,6 +2839,35 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 		}
 	});
 
+	// for new needs (much more elegant...)
+	state.world.execute_parallel_over_market([&](auto markets) {
+		state.world.for_each_consumption_category([&](auto cat_id) {
+			ve::fp_vector total {0.f};
+			state.world.for_each_commodity([&](auto c) {
+				auto price = state.world.market_get_price(markets, c);
+				auto index = c.index() + cat_id.index() * state.world.commodity_size();
+				auto consumption_weight = state.world.consumption_category_get_weights(cat_id, c);
+				auto w = state.world.market_get_local_consumption_weights(markets, index);
+#ifndef NDEBUG
+				ve::apply(
+					[](float amount) {
+							assert(std::isfinite(amount) && amount >= 0.f);
+					}, price* consumption_weight* w
+				);
+#endif
+				total = total + price * consumption_weight * w;
+			});
+#ifndef NDEBUG
+			ve::apply(
+				[](float amount) {
+					assert(std::isfinite(amount) && amount >= 0.f);
+				}, total
+			);
+#endif
+			state.world.market_set_cost_per_consumption_category(markets, cat_id, total);
+		});
+	});
+
 	// PROFILE
 	set_profile_point(state, "needs_costs");
 
@@ -2868,6 +2903,11 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 					state.world.market_set_life_needs_scale(ids, pt, 0.f);
 					state.world.market_set_everyday_needs_scale(ids, pt, 0.f);
 					state.world.market_set_luxury_needs_scale(ids, pt, 0.f);
+				});
+			});
+			state.world.execute_serial_over_market([&](auto ids) {
+				state.world.for_each_consumption_category([&](auto cat) {
+					state.world.market_set_demand_per_consumption_category(ids, cat, 0.f);
 				});
 			});
 			break;
@@ -2908,6 +2948,10 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 	auto demand_everyday = state.world.pop_make_vectorizable_float_buffer();
 	auto demand_luxury = state.world.pop_make_vectorizable_float_buffer();
 	auto demand_paid_education = state.world.pop_make_vectorizable_float_buffer();
+	std::vector<ve::vectorizable_buffer<float, dcon::pop_id>> demand_consumption_category {};
+	state.world.for_each_consumption_category([&](auto cat) {
+		demand_consumption_category.emplace_back(ve::vectorizable_buffer<float, dcon::pop_id>(state.world.pop_size()* state.world.consumption_category_size()));
+	});
 	auto satisfaction_from_subsistence = state.world.pop_make_vectorizable_float_buffer();
 
 	pops::update_consumption(
@@ -2924,7 +2968,8 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 		demand_everyday,
 		demand_luxury,
 		demand_paid_education,
-		satisfaction_from_subsistence
+		satisfaction_from_subsistence,
+		demand_consumption_category
 	);
 
 	set_profile_point(state, "pops_consumption");
@@ -3705,6 +3750,31 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 		}, pts);
 	});
 
+
+	/*
+	Here we do a much more simple and self-explanatory computation.
+	*/
+	if(state.world.consumption_category_size() != 0) {
+		state.world.execute_parallel_over_market([&](auto ids) {
+			state.world.for_each_consumption_category([&](auto cat_id) {
+				ve::fp_vector total_demanded{ 0.f };
+				ve::fp_vector total_bought{ 0.f };
+				state.world.for_each_commodity([&](auto c) {
+					auto price = state.world.market_get_price(ids, c);
+					auto index = c.index() + cat_id.index() * state.world.commodity_size();
+					auto consumption_weight = state.world.consumption_category_get_weights(cat_id, c);
+					auto w = state.world.market_get_local_consumption_weights(ids, index);
+					auto satisfied_demand = state.world.market_get_actual_probability_to_buy(ids, c);
+					total_demanded = total_demanded + price * consumption_weight * w;
+					total_bought = total_bought + satisfied_demand * price * consumption_weight * w;
+				});
+				state.world.market_set_satisfied_demand_ratio_per_consumption_category(ids, cat_id,
+					ve::select(total_demanded == 0.f, 0.f, total_bought / total_demanded)
+				);
+			});
+		});
+	}
+
 	sanity_check(state);
 
 	// update needs satisfaction depending on actually available goods and services:
@@ -3715,60 +3785,71 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 		auto local_market = state.world.state_instance_get_market_from_local_market(local_state);
 		auto local_nation = state.world.province_get_nation_from_province_ownership(province);
 		auto invalid = local_nation == dcon::nation_id {};
-
 		auto pop_type = state.world.pop_get_poptype(ids);
 
-		auto ln_satisfaction = ve::apply([&](auto market, auto pt) {
-			return state.world.market_get_satisfied_ratio_of_max_life_needs(market, pt);
-		}, local_market, pop_type);
-		auto en_satisfaction = ve::apply([&](auto market, auto pt) {
-			return state.world.market_get_satisfied_ratio_of_max_everyday_needs(market, pt);
-		}, local_market, pop_type);
-		auto lx_satisfaction = ve::apply([&](auto market, auto pt) {
-			return state.world.market_get_satisfied_ratio_of_max_luxury_needs(market, pt);
-		}, local_market, pop_type);
-
-		auto ln_spent = ve::apply([&](auto market, auto pt) {
-			return state.world.market_get_satisfied_ratio_of_demanded_life_needs(market, pt);
-		}, local_market, pop_type);
-		auto en_spent = ve::apply([&](auto market, auto pt) {
-			return state.world.market_get_satisfied_ratio_of_demanded_everyday_needs(market, pt);
-		}, local_market, pop_type);
-		auto lx_spent = ve::apply([&](auto market, auto pt) {
-			return state.world.market_get_satisfied_ratio_of_demanded_luxury_needs(market, pt);
-		}, local_market, pop_type);
-
-		// return money which were not actually spent
-		{
-			auto ln_cost = ve::apply([&](auto market, auto pt) {
-				return state.world.market_get_life_needs_costs(market, pt);
+		if (state.world.consumption_category_size() == 0) {
+			auto ln_satisfaction = ve::apply([&](auto market, auto pt) {
+				return state.world.market_get_satisfied_ratio_of_max_life_needs(market, pt);
 			}, local_market, pop_type);
-			auto en_cost = ve::apply([&](auto market, auto pt) {
-				return state.world.market_get_everyday_needs_costs(market, pt);
+			auto en_satisfaction = ve::apply([&](auto market, auto pt) {
+				return state.world.market_get_satisfied_ratio_of_max_everyday_needs(market, pt);
 			}, local_market, pop_type);
-			auto lx_cost = ve::apply([&](auto market, auto pt) {
-				return state.world.market_get_luxury_needs_costs(market, pt);
+			auto lx_satisfaction = ve::apply([&](auto market, auto pt) {
+				return state.world.market_get_satisfied_ratio_of_max_luxury_needs(market, pt);
 			}, local_market, pop_type);
 
-			auto pop_size = state.world.pop_get_size(ids);
-			auto unspent_money =
-				ln_cost * (1.f - ln_spent) * demand_life.get(ids)
-				+ en_cost * (1.f - en_spent) * demand_everyday.get(ids)
-				+ lx_cost * (1.f - lx_spent) * demand_luxury.get(ids);
+			auto ln_spent = ve::apply([&](auto market, auto pt) {
+				return state.world.market_get_satisfied_ratio_of_demanded_life_needs(market, pt);
+			}, local_market, pop_type);
+			auto en_spent = ve::apply([&](auto market, auto pt) {
+				return state.world.market_get_satisfied_ratio_of_demanded_everyday_needs(market, pt);
+			}, local_market, pop_type);
+			auto lx_spent = ve::apply([&](auto market, auto pt) {
+				return state.world.market_get_satisfied_ratio_of_demanded_luxury_needs(market, pt);
+			}, local_market, pop_type);
 
-			auto savings = state.world.pop_get_savings(ids);
-			state.world.pop_set_savings(ids, savings + unspent_money);
-		}
+			// return money which were not actually spent
+			{
+				auto ln_cost = ve::apply([&](auto market, auto pt) {
+					return state.world.market_get_life_needs_costs(market, pt);
+				}, local_market, pop_type);
+				auto en_cost = ve::apply([&](auto market, auto pt) {
+					return state.world.market_get_everyday_needs_costs(market, pt);
+				}, local_market, pop_type);
+				auto lx_cost = ve::apply([&](auto market, auto pt) {
+					return state.world.market_get_luxury_needs_costs(market, pt);
+				}, local_market, pop_type);
 
-		{
+				auto pop_size = state.world.pop_get_size(ids);
+				auto unspent_money =
+					ln_cost * (1.f - ln_spent) * demand_life.get(ids)
+					+ en_cost * (1.f - en_spent) * demand_everyday.get(ids)
+					+ lx_cost * (1.f - lx_spent) * demand_luxury.get(ids);
+
+				auto savings = state.world.pop_get_savings(ids);
+				state.world.pop_set_savings(ids, savings + unspent_money);
+			}
 			auto satisfaction = state.world.pop_get_satisfaction(ids);
-
 			auto satisfaction_gain =
 				ve::min(1.f, potential_ratio_life.get(ids) * ln_satisfaction)
 				+ ve::min(1.f, potential_ratio_everyday.get(ids) * en_satisfaction)
 				+ ve::min(1.f, potential_ratio_luxury.get(ids) * lx_satisfaction);
 			satisfaction = satisfaction * 0.999f + satisfaction_gain * 0.001f / 3.f;
 
+			state.world.pop_set_satisfaction(ids, satisfaction);
+		} else {
+			ve::fp_vector total_satisfaction_from_categories{ 0.f };
+			state.world.for_each_consumption_category([&](auto cat_id) {
+				auto cost = state.world.market_get_cost_per_consumption_category(local_market, cat_id);
+				auto actually_bought = state.world.market_get_satisfied_demand_ratio_per_consumption_category(local_market, cat_id);
+				auto demanded = demand_consumption_category[cat_id.index()].get(ids);
+				auto refund = (1.f - actually_bought) * cost * demanded;
+				auto savings = state.world.pop_get_savings(ids);
+				state.world.pop_set_savings(ids, savings + refund);
+				total_satisfaction_from_categories = total_satisfaction_from_categories + actually_bought * demanded * state.world.consumption_category_get_satisfaction_score(cat_id);
+			});
+			auto satisfaction = state.world.pop_get_satisfaction(ids);
+			satisfaction = satisfaction * 0.999f + total_satisfaction_from_categories * 0.001f;
 			state.world.pop_set_satisfaction(ids, satisfaction);
 		}
 
@@ -4355,7 +4436,69 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 		rebalance_needs_weights(state, mid);
 	});
 
+	// rebalance new needs
+	if(state.world.consumption_category_size() > 0) {
+		state.world.execute_parallel_over_market([&](auto market) {
+			state.world.for_each_consumption_category([&](auto cat_id){
+				auto price_w = state.world.consumption_category_get_price_pressure(cat_id);
+				auto availability_w = state.world.consumption_category_get_availability_pressure(cat_id);
+				auto base_w = state.world.consumption_category_get_base_pressure(cat_id);
+				auto depends_on = state.world.consumption_category_get_scale_with(cat_id);
 
+				ve::fp_vector max_cost = {0.f};
+				state.world.for_each_commodity([&](auto cid) {
+					auto price = state.world.market_get_price(market, cid);
+					auto consumption_weight = state.world.consumption_category_get_weights(cat_id, cid);
+					//if (consumption_weight == 0.f) return;
+					//total_cost = total_cost + price * consumption_weight;
+					max_cost = ve::max(max_cost, price * consumption_weight);
+				});
+				//auto average_cost = total_cost / float(state.world.commodity_size());
+
+				ve::fp_vector total_weight = 0.f;
+				state.world.for_each_commodity([&](auto cid) {
+					auto index = cid.index() + cat_id.index() * state.world.commodity_size();
+					auto consumption_weight = state.world.consumption_category_get_weights(cat_id, cid);
+					auto current = state.world.market_get_local_consumption_weights(market, index);
+					auto price = state.world.market_get_price(market, cid);
+					auto availability = state.world.market_get_expected_probability_to_buy(market, cid);
+					auto change =
+						base_w
+						+ availability_w * availability
+						+ price_w * price * consumption_weight / max_cost;
+					auto next = ve::select(
+						max_cost == 0.f || consumption_weight == 0.f,
+						0.f,
+						ve::max(0.f, current + change * state.defines.alice_need_drift_speed)
+					);
+#ifndef NDEBUG
+					ve::apply(
+						[](float amount) {
+								assert(std::isfinite(amount) && amount >= 0.f);
+						}, next
+					);
+#endif
+					state.world.market_set_local_consumption_weights(market, index, next);
+					total_weight = total_weight + next;
+				});
+
+				state.world.for_each_commodity([&](auto cid) {
+					auto index = cid.index() + cat_id.index() * state.world.commodity_size();
+					auto current = state.world.market_get_local_consumption_weights(market, index);
+
+					auto next = ve::select(total_weight == 0.f, 0.01f, current / total_weight);
+#ifndef NDEBUG
+					ve::apply(
+						[](float amount) {
+								assert(std::isfinite(amount) && amount >= 0.f);
+						}, next
+					);
+#endif
+					state.world.market_set_local_consumption_weights(market, index, next);
+				});
+			});
+		});
+	}
 
 	set_profile_point(state, "need weights");
 

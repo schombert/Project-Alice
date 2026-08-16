@@ -392,6 +392,15 @@ void  pop_budget_details_main_needs_t::update(sys::state& state, layout_window_e
 			add_consumption(cid, 2, cost, state.world.market_get_actual_probability_to_buy(market, cid));
 		}
 	});
+
+	state.world.for_each_consumption_category([&](auto cat) {
+		state.world.for_each_commodity([&](dcon::commodity_id cid) {
+			auto cost = economy::pops::estimate_pop_spending_category(state, cat, main.for_pop, cid);
+			if(cost > 0.001f) {
+				add_consumption(cid, (uint8_t)(cat.index()) + 3, cost, state.world.market_get_actual_probability_to_buy(market, cid));
+			}
+		});
+	});
 // END
 }
 measure_result  pop_budget_details_main_needs_t::place_item(sys::state& state, ui::non_owning_container_base* destination, size_t index, int32_t x, int32_t y, bool first_in_section, bool& alternate) {
@@ -524,6 +533,14 @@ void pop_budget_details_main_needs_s_value_t::on_update(sys::state& state) noexc
 	state.world.for_each_commodity([&](dcon::commodity_id cid) {
 		auto cost = economy::pops::estimate_pop_spending_luxury(state, main.for_pop, cid);
 		total += cost;
+	});
+
+	// categories
+	state.world.for_each_consumption_category([&](dcon::consumption_category_id cat){
+		state.world.for_each_commodity([&](dcon::commodity_id cid){
+			auto cost = economy::pops::estimate_pop_spending_category(state, cat, main.for_pop, cid);
+			total += cost;
+		});
 	});
 
 	set_text(state, text::format_money(total));
@@ -1915,6 +1932,8 @@ void pop_budget_details_consumption_name_t::on_update(sys::state& state) noexcep
 		modifier = text::produce_simple_string(state, "alice_pop_details_en_short");
 	} else if(consumption.category == 2) {
 		modifier = text::produce_simple_string(state, "alice_pop_details_lx_short");
+	} else {
+		modifier = std::to_string(consumption.category - 3);
 	}
 	auto commodity_name = text::produce_simple_string(state, state.world.commodity_get_name(consumption.cid));		
 	set_text(state, "(" + modifier + ")" + commodity_name);

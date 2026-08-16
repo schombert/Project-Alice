@@ -450,6 +450,7 @@ struct nation_monetary_breakdown {
 	float pops_spending_life = 0.f;
 	float pops_spending_everyday = 0.f;
 	float pops_spending_luxury = 0.f;
+	float pops_spending_categories = 0.f;
 	float pops_spending_housing = 0.f;
 	float pops_spending_education = 0.f;
 

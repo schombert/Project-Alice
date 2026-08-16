@@ -4436,6 +4436,51 @@ object {
 }
 
 object{
+	name { consumption_category }
+	storage_type{ contiguous }
+	size{ 250 }
+	tag{ scenario }
+
+	property {
+		name{ satisfaction_score }
+		type{float}
+		tag{scenario}
+	}
+
+	property {
+		name{ weights }
+		type{ array{commodity_id}{float} }
+		tag{ scenario }
+	}
+	property {
+		name{ base_pressure }
+		type{ float }
+		tag{ scenario }
+	}
+	property {
+		name{ price_pressure }
+		type{ float }
+		tag{ scenario }
+	}
+	property {
+		name{ availability_pressure }
+		type{ float }
+		tag{ scenario }
+	}
+	property {
+		name{buy_after}
+		type{ consumption_category_id }
+		tag{ scenario }
+	}
+	property {
+		name{scale_with}
+		type{ commodity_id }
+		tag{ scenario }
+	}
+}
+
+
+object{
 	name { market }
 	storage_type{ erasable }
 	size{ 6000 }
@@ -4640,7 +4685,32 @@ object{
 		type{ float }
 		tag{ save }
 	}
+	
+	property {
+		name{ local_consumption_weights }
+		type{ array{int32_t}{float} }
+		tag{ save }
+	}
+
+	property {
+		name{ demand_per_consumption_category }
+		type{ array{consumption_category_id}{float} }
+		tag{ save }
+	}
+
+	property {
+		name{ cost_per_consumption_category }
+		type{ array{consumption_category_id}{float} }
+		tag{ save }
+	}
+
+	property {
+		name{ satisfied_demand_ratio_per_consumption_category }
+		type{ array{consumption_category_id}{float} }
+		tag{ save }
+	}
 }
+
 
 relationship {
 	name{ local_market }
