@@ -60,6 +60,7 @@ float estimate_tax_spending(sys::state const& state, dcon::pop_id pop, float tax
 float estimate_pop_spending_life(sys::state const& state, dcon::pop_id pop, dcon::commodity_id cid);
 float estimate_pop_spending_everyday(sys::state const& state, dcon::pop_id pop, dcon::commodity_id cid);
 float estimate_pop_spending_luxury(sys::state const& state, dcon::pop_id pop, dcon::commodity_id cid);
+float estimate_pop_spending_category(sys::state const& state, dcon::consumption_category_id cat, dcon::pop_id pop, dcon::commodity_id cid);
 }
 
 float estimate_pops_consumption(sys::state const& state, dcon::commodity_id c, dcon::province_id p);

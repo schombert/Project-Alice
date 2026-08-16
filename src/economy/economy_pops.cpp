@@ -1893,6 +1893,31 @@ float estimate_pop_demand_internal_luxury(
 		* invention_factor;
 }
 
+float estimate_pop_demand_internal_category(
+	sys::state const& state, dcon::market_id m, dcon::consumption_category_id cat, dcon::commodity_id c, dcon::pop_id pop,
+	pops::vectorized_pops_budget<float>& budget
+) {
+	auto total = budget.per_consumption_category[cat.index()].demand_scale
+		* budget.per_consumption_category[cat.index()].satisfied_with_money_ratio
+		* state.world.market_get_local_consumption_weights(m, c.index() + cat.index() * state.world.commodity_size());
+
+	auto pop_size = state.world.pop_get_size(pop);
+	return total * pop_size
+		/ state.defines.alice_needs_scaling_factor;
+}
+float estimate_pop_spending_category(sys::state const& state, dcon::consumption_category_id cat, dcon::pop_id pop, dcon::commodity_id cid) {
+	auto pid = state.world.pop_get_province_from_pop_location(pop);
+	auto zone = state.world.province_get_state_membership(pid);
+	auto market = state.world.state_instance_get_market_from_local_market(zone);
+	auto budget = prepare_pop_budget(state, pop);
+	auto demand = estimate_pop_demand_internal_category(
+		state, market, cat, cid, pop, budget
+	);
+	auto actually_bought = state.world.market_get_actual_probability_to_buy(market, cid);
+	auto cost = economy::price(state, market, cid);
+	return demand * actually_bought * cost;
+}
+
 float estimate_pop_spending_life(sys::state const& state, dcon::pop_id pop, dcon::commodity_id cid) {
 	auto pid = state.world.pop_get_province_from_pop_location(pop);
 	auto nation = state.world.province_get_nation_from_province_ownership(pid);
@@ -2044,6 +2069,12 @@ float estimate_pops_consumption(sys::state const& state, dcon::commodity_id c, d
 		auto consumption_luxury = pops::estimate_pop_demand_internal_luxury(
 			state, c, pop, budget, luxury_mul, weight_luxury, invention_factor
 		);
+		state.world.for_each_consumption_category([&](auto cat) {
+			auto categories = pops::estimate_pop_demand_internal_category(
+				state, market, cat, c, pop, budget
+			);
+			total = total + categories;
+		});
 
 		total += consumption_life + consumption_everyday + consumption_luxury;
 	});
