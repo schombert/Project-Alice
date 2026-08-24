@@ -268,6 +268,7 @@ public:
 
 class technology_item_window : public window_element_base {
 	technology_item_button* tech_button = nullptr;
+	technology_name_text* tech_name = nullptr;
 	culture::tech_category category;
 
 public:
@@ -279,9 +280,31 @@ public:
 			tech_button = ptr.get();
 			return ptr;
 		} else if(name == "tech_name") {
-			return make_element_by_type<technology_name_text>(state, id);
+			auto ptr = make_element_by_type<technology_name_text>(state, id);
+			tech_name = ptr.get();
+			return ptr;
 		} else {
 			return nullptr;
+		}
+	}
+
+	void set_tree_scale(sys::state& state, float scale) noexcept {
+		auto const width = int16_t(std::max(1L, std::lround(194.0f * scale)));
+		auto const height = int16_t(std::max(1L, std::lround(39.0f * scale)));
+		base_data.size = xy_pair{ width, height };
+
+		if(tech_button) {
+			tech_button->base_data.position = xy_pair{ 0, 0 };
+			tech_button->base_data.size = xy_pair{ width, height };
+		}
+		if(tech_name) {
+			auto const text_x = int16_t(std::max(3L, std::lround(7.0f * scale)));
+			auto const text_y = int16_t(std::max(2L, std::lround(9.0f * scale)));
+			tech_name->base_data.position = xy_pair{ text_x, text_y };
+			tech_name->base_data.size = xy_pair{ int16_t(std::max<int32_t>(1, width - 2 * text_x)), int16_t(std::max<int32_t>(1, height - text_y)) };
+			// Rebuild through the specialised update, otherwise the GUI definition key
+			// ("TECH_NAME") replaces the technology's localized display name.
+			tech_name->impl_on_update(state);
 		}
 	}
 
@@ -808,11 +831,18 @@ class technology_tree_view : public window_element_base {
 	culture::tech_category active_category = culture::tech_category::army;
 	int32_t pan_x = 0;
 	int32_t pan_y = 0;
+	float zoom = 1.0f;
 
 	static constexpr int32_t horizontal_spacing = 218;
 	static constexpr int32_t vertical_spacing = 62;
 	static constexpr int32_t left_padding = 8;
 	static constexpr int32_t top_padding = 8;
+	static constexpr float minimum_zoom = 0.60f;
+	static constexpr float maximum_zoom = 1.35f;
+
+	int32_t scaled(int32_t value) const noexcept {
+		return int32_t(std::lround(float(value) * zoom));
+	}
 
 	bool belongs_to_active_category(sys::state& state, dcon::technology_id tech) const noexcept {
 		auto folder = state.world.technology_get_folder_index(tech);
@@ -826,8 +856,8 @@ class technology_tree_view : public window_element_base {
 			dcon::technology_id tech{ dcon::technology_id::value_base_t(index) };
 			if(!belongs_to_active_category(state, tech))
 				continue;
-			content_right = std::max(content_right, left_padding + int32_t(state.world.technology_get_tree_x(tech)) * horizontal_spacing + node->base_data.size.x);
-			content_bottom = std::max(content_bottom, top_padding + int32_t(state.world.technology_get_tree_y(tech)) * vertical_spacing + node->base_data.size.y);
+			content_right = std::max(content_right, left_padding + scaled(int32_t(state.world.technology_get_tree_x(tech)) * horizontal_spacing) + node->base_data.size.x);
+			content_bottom = std::max(content_bottom, top_padding + scaled(int32_t(state.world.technology_get_tree_y(tech)) * vertical_spacing) + node->base_data.size.y);
 		}
 
 		pan_x = std::clamp(pan_x, std::min(0, base_data.size.x - content_right), 0);
@@ -838,26 +868,37 @@ class technology_tree_view : public window_element_base {
 		clamp_pan(state);
 		for(auto const& [index, node] : technology_nodes) {
 			dcon::technology_id tech{ dcon::technology_id::value_base_t(index) };
-			node->base_data.position.x = int16_t(left_padding + int32_t(state.world.technology_get_tree_x(tech)) * horizontal_spacing + pan_x);
-			node->base_data.position.y = int16_t(top_padding + int32_t(state.world.technology_get_tree_y(tech)) * vertical_spacing + pan_y);
+			node->base_data.position.x = int16_t(left_padding + scaled(int32_t(state.world.technology_get_tree_x(tech)) * horizontal_spacing) + pan_x);
+			node->base_data.position.y = int16_t(top_padding + scaled(int32_t(state.world.technology_get_tree_y(tech)) * vertical_spacing) + pan_y);
 		}
+	}
+
+	void update_node_scales(sys::state& state) noexcept {
+		for(auto const& [index, node] : technology_nodes)
+			node->set_tree_scale(state, zoom);
 	}
 
 	void draw_connection(sys::state& state, technology_item_window const& prerequisite, technology_item_window const& technology,
 			bool unlocked, int32_t x, int32_t y) const noexcept {
-		float const r = unlocked ? 0.30f : 0.24f;
-		float const g = unlocked ? 0.72f : 0.24f;
-		float const b = unlocked ? 0.38f : 0.24f;
-		float const start_x = float(x + prerequisite.base_data.position.x + prerequisite.base_data.size.x);
+		float const r = unlocked ? 0.28f : 0.38f;
+		float const g = unlocked ? 0.82f : 0.38f;
+		float const b = unlocked ? 0.42f : 0.38f;
+		float const start_x = float(x + prerequisite.base_data.position.x + prerequisite.base_data.size.x + 1);
 		float const start_y = float(y + prerequisite.base_data.position.y + prerequisite.base_data.size.y / 2);
-		float const end_x = float(x + technology.base_data.position.x);
+		float const end_x = float(x + technology.base_data.position.x - 2);
 		float const end_y = float(y + technology.base_data.position.y + technology.base_data.size.y / 2);
-		float const middle_x = (start_x + end_x) * 0.5f;
+		float const middle_x = start_x + std::max(3.0f, (end_x - start_x) * 0.5f);
 
-		ogl::render_alpha_colored_rect(state, start_x, start_y - 1.0f, middle_x - start_x, 2.0f, r, g, b, 0.90f);
-		ogl::render_alpha_colored_rect(state, middle_x - 1.0f, std::min(start_y, end_y), 2.0f, std::abs(end_y - start_y) + 1.0f, r, g, b, 0.90f);
-		ogl::render_alpha_colored_rect(state, middle_x, end_y - 1.0f, end_x - middle_x, 2.0f, r, g, b, 0.90f);
-		ogl::render_alpha_colored_rect(state, end_x - 4.0f, end_y - 4.0f, 8.0f, 8.0f, r, g, b, 0.95f);
+		ogl::render_alpha_colored_rect(state, start_x, start_y - 1.0f, middle_x - start_x, 2.0f, r, g, b, 1.0f);
+		ogl::render_alpha_colored_rect(state, middle_x - 1.0f, std::min(start_y, end_y), 2.0f, std::abs(end_y - start_y) + 1.0f, r, g, b, 1.0f);
+		ogl::render_alpha_colored_rect(state, middle_x, end_y - 1.0f, end_x - middle_x, 2.0f, r, g, b, 1.0f);
+
+		// A compact triangular head keeps the direction visible without being covered by the target card.
+		for(int32_t i = 0; i != 5; ++i) {
+			auto const head_height = float(10 - 2 * i);
+			ogl::render_alpha_colored_rect(state, end_x - 7.0f + float(i) * 1.5f, end_y - head_height * 0.5f,
+				1.5f, head_height, r, g, b, 1.0f);
+		}
 	}
 
 public:
@@ -869,15 +910,24 @@ public:
 				return;
 			Cyto::Any payload = tech;
 			node->impl_set(state, payload);
+			node->set_tree_scale(state, zoom);
 			technology_nodes.emplace(tech.index(), node.get());
 			add_child_to_back(std::move(node));
 		});
+		for(auto const& [index, node] : technology_nodes) {
+			Cyto::Any category_payload = active_category;
+			node->impl_set(state, category_payload);
+		}
 		update_node_positions(state);
 	}
 
 	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
 		if(payload.holds_type<culture::tech_category>()) {
 			active_category = any_cast<culture::tech_category>(payload);
+			for(auto const& [index, node] : technology_nodes) {
+				Cyto::Any category_payload = active_category;
+				node->impl_set(state, category_payload);
+			}
 			pan_x = 0;
 			pan_y = 0;
 			update_node_positions(state);
@@ -928,7 +978,16 @@ public:
 	}
 
 	message_result on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override {
-		pan_y += int32_t(amount * 32.0f);
+		auto const old_zoom = zoom;
+		zoom = std::clamp(zoom + std::clamp(amount, -1.0f, 1.0f) * 0.10f, minimum_zoom, maximum_zoom);
+		if(zoom == old_zoom)
+			return message_result::consumed;
+
+		// Keep the technology underneath the cursor in place while zooming.
+		float const zoom_ratio = zoom / old_zoom;
+		pan_x = int32_t(std::lround(float(x - left_padding) - float(x - left_padding - pan_x) * zoom_ratio));
+		pan_y = int32_t(std::lround(float(y - top_padding) - float(y - top_padding - pan_y) * zoom_ratio));
+		update_node_scales(state);
 		update_node_positions(state);
 		return message_result::consumed;
 	}
