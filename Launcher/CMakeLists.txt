@@ -14,89 +14,31 @@ foreach(file ${TESTING})
 endforeach()
 
 if (WIN32)
-	add_executable(launch_alice WIN32	
+	add_executable(launch_alice WIN32
+		"${PROJECT_SOURCE_DIR}/src/gamerule/gamerule.cpp"
 		"${PROJECT_SOURCE_DIR}/src/launcher/launcher_main_win.cpp"
-		${ALICE_INCREMENTAL_SOURCES_LIST}
+		"${PROJECT_SOURCE_DIR}/src/gui/alice_ui.cpp"
+		"${PROJECT_SOURCE_DIR}/src/map/map_state.cpp"
+		"${PROJECT_SOURCE_DIR}/src/map/map_data_loading.cpp"
+		"${PROJECT_SOURCE_DIR}/src/map/map_borders.cpp"
+		"${PROJECT_SOURCE_DIR}/src/map/map.cpp"
+		"${PROJECT_SOURCE_DIR}/src/graphics/xac.cpp"
+		"${PROJECT_SOURCE_DIR}/src/alice.rc"
 		${LAUNCHER_ASSET_FILES})
 else()
-	add_executable(launch_alice		
+	add_executable(launch_alice
+		"${PROJECT_SOURCE_DIR}/src/gamerule/gamerule.cpp"
 		"${PROJECT_SOURCE_DIR}/src/launcher/launcher_main_nix.cpp"
-		${ALICE_INCREMENTAL_SOURCES_LIST}
+		"${PROJECT_SOURCE_DIR}/src/gui/alice_ui.cpp"
+		"${PROJECT_SOURCE_DIR}/src/map/map_state.cpp"
+		"${PROJECT_SOURCE_DIR}/src/map/map_data_loading.cpp"
+		"${PROJECT_SOURCE_DIR}/src/map/map_borders.cpp"
+		"${PROJECT_SOURCE_DIR}/src/map/map.cpp"
+		"${PROJECT_SOURCE_DIR}/src/graphics/xac.cpp"
 		${LAUNCHER_ASSET_FILES})
 endif()
 
-target_compile_definitions(launch_alice PUBLIC ALICE_NO_ENTRY_POINT=1)
-target_compile_definitions(launch_alice PUBLIC INCREMENTAL=1)
-
-set_target_properties(
-	launch_alice
-	PROPERTIES
-	UNITY_BUILD_MODE GROUP
-)
-
-set_source_files_properties(${PROJECT_SOURCE_DIR}/src/lunasvg/plutovg-blend.c PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
-set_source_files_properties(${PROJECT_SOURCE_DIR}/src/lunasvg/plutovg-canvas.c PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
-set_source_files_properties(${PROJECT_SOURCE_DIR}/src/lunasvg/plutovg-font.c PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
-set_source_files_properties(${PROJECT_SOURCE_DIR}/src/lunasvg/plutovg-ft-math.c PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
-set_source_files_properties(${PROJECT_SOURCE_DIR}/src/lunasvg/plutovg-ft-raster.c PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
-set_source_files_properties(${PROJECT_SOURCE_DIR}/src/lunasvg/plutovg-ft-stroker.c PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
-set_source_files_properties(${PROJECT_SOURCE_DIR}/src/lunasvg/plutovg-matrix.c PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
-set_source_files_properties(${PROJECT_SOURCE_DIR}/src/lunasvg/plutovg-paint.c PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
-set_source_files_properties(${PROJECT_SOURCE_DIR}/src/lunasvg/plutovg-path.c PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
-set_source_files_properties(${PROJECT_SOURCE_DIR}/src/lunasvg/plutovg-rasterize.c PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
-set_source_files_properties(${PROJECT_SOURCE_DIR}/src/lunasvg/plutovg-surface.c PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
-
-# System headers
-target_precompile_headers(launch_alice
-	PRIVATE <stddef.h>
-	PRIVATE <stdint.h>
-	PRIVATE <assert.h>
-	PRIVATE <stdarg.h>
-	PRIVATE <stdlib.h>
-	PRIVATE <math.h>
-	PRIVATE <signal.h>
-	PRIVATE <ctype.h>
-	PRIVATE <vector>
-	PRIVATE <queue>		
-	PRIVATE <array>
-	PRIVATE <optional>
-	PRIVATE <memory>
-	PRIVATE <variant>
-	PRIVATE <string>
-	PRIVATE <string_view>
-	PRIVATE <charconv>
-	PRIVATE <algorithm>
-	PRIVATE <iterator>
-	PRIVATE <functional>
-	PRIVATE <atomic>
-	PRIVATE <chrono>
-	PRIVATE <tuple>
-	PRIVATE <type_traits>
-	PRIVATE <new>
-	PRIVATE <limits>
-	PRIVATE <iterator>
-	PRIVATE <utility>
-	PRIVATE <shared_mutex>
-	PRIVATE <cstdlib>
-	PRIVATE <cstddef>
-	PRIVATE <cstdint>
-	PRIVATE <cassert>
-	PRIVATE <cstdarg>
-	PRIVATE <cmath>
-	PRIVATE <limits>
-)
-
-target_precompile_headers(launch_alice
-	PRIVATE [["simple_fs.hpp"]]
-	PRIVATE [["constants.hpp"]]
-	PRIVATE [["unordered_dense.h"]]
-	PRIVATE [["dcon_generated.hpp"]]
-	PRIVATE [["container_types.hpp"]]
-	PRIVATE [["parsers_declarations.hpp"]]
-	PRIVATE [["cyto_any.hpp"]]
-	PRIVATE [["date_interface.hpp"]]
-	PRIVATE [["stb_image.h"]]
-)
+target_compile_definitions(launch_alice PUBLIC ALICE_NO_ENTRY_POINT)
 
 if (WIN32)
 	target_link_libraries(launch_alice PRIVATE ${PROJECT_SOURCE_DIR}/libs/LLVM-C.lib)
@@ -112,3 +54,5 @@ target_link_libraries(launch_alice INTERFACE libglew_static)
 target_link_libraries(launch_alice INTERFACE stb_image)
 target_link_libraries(launch_alice INTERFACE freetype)
 target_link_libraries(launch_alice INTERFACE harfbuzz)
+
+target_precompile_headers(launch_alice REUSE_FROM Alice)

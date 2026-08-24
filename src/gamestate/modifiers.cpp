@@ -7,7 +7,6 @@
 #include "province_templates.hpp"
 #include "triggers.hpp"
 #include "ve_scalar_extensions.hpp"
-#include "economy.hpp"
 
 namespace sys {
 

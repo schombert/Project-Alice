@@ -710,14 +710,11 @@ public:
 
 			bool attacker_filter = ((state.local_player_nation == state.primary_crisis_attacker) != is_concession);
 			auto wargoalslist = (attacker_filter) ? state.crisis_attacker_wargoals : state.crisis_defender_wargoals;
-			for(uint32_t i = 0; i < wargoalslist.size(); i++) {
-				auto wg = wargoalslist[i];
+			for(auto wg : wargoalslist) {
 				if(wg.cb) {
-					// is this wargoal selected?
-					if(wargoals[i]) {
-						total += military::peace_cost(state, retrieve<dcon::war_id>(state, parent), wg.cb, wg.added_by, wg.target_nation, wg.secondary_nation, wg.state, wg.wg_tag);
-					}
-				} else {
+					total += military::peace_cost(state, retrieve<dcon::war_id>(state, parent), wg.cb, wg.added_by, wg.target_nation, wg.secondary_nation, wg.state, wg.wg_tag);
+				}
+				else {
 					break;
 				}
 			}
@@ -725,19 +722,13 @@ public:
 			payload.emplace<offer_cost>(offer_cost{ total });
 			return message_result::consumed;
 		} else if(payload.holds_type<send_offer>()) {
-
-			bool attacker_filter = ((state.local_player_nation == state.primary_crisis_attacker) != is_concession);
-			auto wargoalslist = (attacker_filter) ? state.crisis_attacker_wargoals : state.crisis_defender_wargoals;
-
 			command::start_crisis_peace_offer(state, state.local_player_nation, is_concession);
-			for(uint32_t i = 0; i < wargoalslist.size(); i++) {
-				auto wg = wargoalslist[i];
+
+			for(auto wg : state.crisis_attacker_wargoals) {
 				if(wg.cb) {
-					// is this wargoal selected?
-					if(wargoals[i]) {
-						command::add_to_crisis_peace_offer(state, state.local_player_nation, wg.added_by, wg.target_nation, wg.cb, wg.state, wg.wg_tag, wg.secondary_nation);
-					}
-				} else {
+					command::add_to_crisis_peace_offer(state, state.local_player_nation, wg.added_by, wg.target_nation, wg.cb, wg.state, wg.wg_tag, wg.secondary_nation);
+				}
+				else {
 					break;
 				}
 			}
@@ -748,15 +739,24 @@ public:
 			return message_result::consumed;
 		} else if(payload.holds_type<test_acceptance>()) { // test_acceptance
 			auto target = state.local_player_nation == state.primary_crisis_attacker ? state.primary_crisis_defender : state.primary_crisis_attacker;
-			bool existing_wargoal = false;
+			bool missing_wargoal = false;
 
 			bool attacker_filter = ((state.local_player_nation == state.primary_crisis_attacker) != is_concession);
 			auto wargoalslist = (attacker_filter) ? state.crisis_attacker_wargoals : state.crisis_defender_wargoals;
 			for(uint32_t i = 0; i < wargoals.size(); ++i) {
-				existing_wargoal = existing_wargoal || wargoals[i];
+				missing_wargoal = missing_wargoal || !wargoals[i];
 			}
 
-			bool acceptance = ai::will_accept_crisis_peace_offer(state, target, is_concession, !existing_wargoal);
+			for(auto wg : state.crisis_attacker_wargoals) {
+				if(wg.cb) {
+					command::add_to_crisis_peace_offer(state, state.local_player_nation, wg.added_by, wg.target_nation, wg.cb, wg.state, wg.wg_tag, wg.secondary_nation);
+				}
+				else {
+					break;
+				}
+			}
+
+			bool acceptance = ai::will_accept_crisis_peace_offer(state, target, is_concession, missing_wargoal);
 
 			payload.emplace<test_acceptance>(test_acceptance{ acceptance });
 			return message_result::consumed;

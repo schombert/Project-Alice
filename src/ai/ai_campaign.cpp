@@ -1,9 +1,8 @@
 #include "ai_campaign.hpp"
 #include "ai_campaign_values.hpp"
 #include "ai_types.hpp"
-#include "prng.hpp"
-#include "system_state.hpp"
 #include "commands.hpp"
+#include "prng.hpp"
 
 namespace ai {
 
@@ -137,26 +136,13 @@ void update_ai_research(sys::state& state) {
 		std::vector<potential_techs> potential;
 
 		for(auto tid : state.world.in_technology) {
-			if(state.world.nation_get_active_technologies(n, tid))
-				continue; // Already researched
-
-			if(state.current_date.to_ymd(state.start_date).year >= state.world.technology_get_year(tid)) {
-				// Research technologies costing LP (military doctrines) only if can research it immediately
-				if(culture::effective_technology_lp_cost(state, year, n, tid) > state.world.nation_get_leadership_points(n)) {
-					continue;
-				}
-				// Technologies costing RP:
-				// Find previous technology before this one
-				dcon::technology_id prev_tech = dcon::technology_id(dcon::technology_id::value_base_t(tid.id.index() - 1));
-				// Previous technology is from the same folder so we have to check that we have researched it beforehand
-				if(tid.id.index() != 0 && state.world.technology_get_folder_index(prev_tech) == state.world.technology_get_folder_index(tid)) {
-					// Only allow if all previously researched techs are researched
-					if(state.world.nation_get_active_technologies(n, prev_tech))
-						potential.push_back(potential_techs{ tid, 0.0f });
-				} else { // first tech in folder
-					potential.push_back(potential_techs{ tid, 0.0f });
-				}
-			}
+			// Uses the same explicit prerequisite graph as the player-facing command.
+			if(!command::can_start_research(state, n, tid))
+				continue;
+			// Research technologies costing LP (military doctrines) only if can research it immediately.
+			if(culture::effective_technology_lp_cost(state, year, n, tid) > state.world.nation_get_leadership_points(n))
+				continue;
+			potential.push_back(potential_techs{ tid, 0.0f });
 		}
 
 		for(auto& pt : potential) { // weight techs
@@ -182,8 +168,8 @@ void update_ai_research(sys::state& state) {
 				base *= 2.0f;
 			}
 
-			auto cost = (float) std::pow(std::max(1.0f, culture::effective_technology_rp_cost(state, year, n, pt.id)), 2);
-			pt.weight = (rng::get_random(state, id * pt.id.value) % 100) * base / cost;
+			auto cost = std::max(1.0f, culture::effective_technology_rp_cost(state, year, n, pt.id));
+			pt.weight = base / cost;
 		}
 		auto rval = rng::get_random(state, id);
 		std::sort(potential.begin(), potential.end(), [&](potential_techs& a, potential_techs& b) {

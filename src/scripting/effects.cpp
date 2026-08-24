@@ -10,12 +10,6 @@
 #include "script_constants.hpp"
 #include "nations.hpp"
 #include "nations_templates.hpp"
-#include "demographics_templates.hpp"
-#include "province.hpp"
-#include "money.hpp"
-#include "diplomatic_messages.hpp"
-#include "economy.hpp"
-#include "events.hpp"
 
 namespace effect {
 

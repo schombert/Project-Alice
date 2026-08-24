@@ -1,6 +1,5 @@
 #include "ai_types.hpp"
 #include "ai_campaign_values.hpp"
-#include "system_state.hpp"
 
 namespace ai {
 
@@ -126,7 +125,7 @@ float estimate_additional_offensive_strength(sys::state& state, dcon::nation_id 
 			continue;
 
 		auto other = dr.get_related_nations(0) != n ? dr.get_related_nations(0) : dr.get_related_nations(1);
-		if(other.get_overlord_as_subject().get_ruler() != n && military::can_use_cb_against<false>(state, other, target) && !military::has_truce_with(state, other, target))
+		if(other.get_overlord_as_subject().get_ruler() != n && military::can_use_cb_against(state, other, target) && !military::has_truce_with(state, other, target))
 			value += estimate_strength(state, other);
 	}
 	return value * state.defines.alice_ai_offensive_strength_overestimate;

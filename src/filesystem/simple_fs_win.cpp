@@ -13,8 +13,6 @@
 #include "Shlobj.h"
 #include <cstdlib>
 
-#include "icu.h"
-
 #pragma comment(lib, "Shlwapi.lib")
 
 namespace simple_fs {
@@ -153,19 +151,7 @@ bool contains_non_ascii(native_char const* str) {
 }
 } // namespace impl
 
-std::u16string utf8_to_utf16(std::string_view str);
-
-
 std::vector<unopened_file> list_files(directory const& dir, native_char const* extension) {
-	UErrorCode icu_error = U_ZERO_ERROR;
-	//const UNormalizer2 * normalizer = unorm2_getNFKCCasefoldInstance(&icu_error);
-	//if(!U_SUCCESS(icu_error)) {
-	//	abort();
-	//}
-	UCollator* collator = ucol_open(ULOC_US, &icu_error);
-	if(!U_SUCCESS(icu_error)) {
-		abort();
-	}
 	std::vector<unopened_file> accumulated_results;
 	if(dir.parent_system) {
 		for(size_t i = dir.parent_system->ordered_roots.size(); i-- > 0;) {
@@ -180,22 +166,14 @@ std::vector<unopened_file> list_files(directory const& dir, native_char const* e
 			auto find_handle = FindFirstFileExW(appended_path.c_str(), FindExInfoBasic, &find_result, FindExSearchNameMatch, NULL, FIND_FIRST_EX_LARGE_FETCH);
 			if(find_handle != INVALID_HANDLE_VALUE) {
 				do {
-					if(!(find_result.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) {
-						if(
-							auto search_result = std::find_if(accumulated_results.begin(), accumulated_results.end(),
-								[n = find_result.cFileName](auto const& f) {
-									return f.file_name.compare(n) == 0;
-								}
-							);
-							search_result == accumulated_results.end()
-						) {
-							accumulated_results.emplace_back(
-								dir.parent_system->ordered_roots[i]
-								+ dir.relative_path
-								+ NATIVE("\\")
-								+ find_result.cFileName,
-								find_result.cFileName
-							);
+					if(!(find_result.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) && !impl::contains_non_ascii(find_result.cFileName)) {
+						if(auto search_result = std::find_if(accumulated_results.begin(), accumulated_results.end(),
+									 [n = find_result.cFileName](auto const& f) { return f.file_name.compare(n) == 0; });
+								search_result == accumulated_results.end()) {
+
+							accumulated_results.emplace_back(dir.parent_system->ordered_roots[i] + dir.relative_path + NATIVE("\\") +
+																									 find_result.cFileName,
+									find_result.cFileName);
 						}
 					}
 				} while(FindNextFileW(find_handle, &find_result) != 0);
@@ -208,35 +186,21 @@ std::vector<unopened_file> list_files(directory const& dir, native_char const* e
 		auto find_handle = FindFirstFileExW(appended_path.c_str(), FindExInfoBasic, &find_result, FindExSearchNameMatch, NULL, FIND_FIRST_EX_LARGE_FETCH);
 		if(find_handle != INVALID_HANDLE_VALUE) {
 			do {
-				if(!(find_result.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) {
+				if(!(find_result.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) && !impl::contains_non_ascii(find_result.cFileName)) {
 					accumulated_results.emplace_back(dir.relative_path + NATIVE("\\") + find_result.cFileName, find_result.cFileName);
 				}
 			} while(FindNextFileW(find_handle, &find_result) != 0);
 			FindClose(find_handle);
 		}
 	}
-	std::sort(accumulated_results.begin(), accumulated_results.end(), [&collator](unopened_file const& a, unopened_file const& b) {
-		// code is left there so one could reference it in case of need
-		//UErrorCode error;
-		//UChar* normal_form_a_null_terminated = nullptr;
-		//unorm2_normalize(normalizer, utf8_to_utf16(native_to_utf8(a.file_name)).c_str(), -1, normal_form_a_null_terminated, 0, &error);
-		//UChar* normal_form_b_null_terminated = nullptr;
-		//unorm2_normalize(normalizer, utf8_to_utf16(native_to_utf8(b.file_name)).c_str(), -1, normal_form_b_null_terminated, 0, &error);
-
-		return ucol_strcoll(
-			collator,
-			utf8_to_utf16(native_to_utf8(a.file_name)).c_str(), -1,
-			utf8_to_utf16(native_to_utf8(b.file_name)).c_str(), -1
-		) == UCOL_LESS;
+	std::sort(accumulated_results.begin(), accumulated_results.end(), [](unopened_file const& a, unopened_file const& b) {
+		return std::lexicographical_compare(std::begin(a.file_name), std::end(a.file_name), std::begin(b.file_name),
+				std::end(b.file_name),
+				[](native_char const& char1, native_char const& char2) { return tolower(char1) < tolower(char2); });
 	});
 	return accumulated_results;
 }
 std::vector<directory> list_subdirectories(directory const& dir) {
-	UErrorCode icu_error = U_ZERO_ERROR;
-	UCollator* collator = ucol_open(ULOC_US, &icu_error);
-	if(!U_SUCCESS(icu_error)) {
-		abort();
-	}
 	std::vector<directory> accumulated_results;
 	if(dir.parent_system) {
 		for(size_t i = dir.parent_system->ordered_roots.size(); i-- > 0;) {
@@ -277,12 +241,10 @@ std::vector<directory> list_subdirectories(directory const& dir) {
 			FindClose(find_handle);
 		}
 	}
-	std::sort(accumulated_results.begin(), accumulated_results.end(), [&collator](directory const& a, directory const& b) {
-		return ucol_strcoll(
-			collator,
-			utf8_to_utf16(native_to_utf8(a.relative_path)).c_str(), -1,
-			utf8_to_utf16(native_to_utf8(b.relative_path)).c_str(), -1
-		) == UCOL_LESS;
+	std::sort(accumulated_results.begin(), accumulated_results.end(), [](directory const& a, directory const& b) {
+		return std::lexicographical_compare(std::begin(a.relative_path), std::end(a.relative_path), std::begin(b.relative_path),
+				std::end(b.relative_path),
+				[](native_char const& char1, native_char const& char2) { return tolower(char1) < tolower(char2); });
 	});
 	return accumulated_results;
 }
@@ -293,19 +255,6 @@ directory open_directory(directory const& dir, native_string_view directory_name
 
 native_string get_full_name(directory const& dir) {
 	return dir.relative_path;
-}
-
-native_string get_mod_save_dir_name(const simple_fs::file_system& fs) {
-	auto mod_roots = simple_fs::list_roots(fs);
-	native_string save_dir;
-	for(const auto& root : mod_roots) {
-		size_t found = root.find_last_of(NATIVE("\\"));
-		if(found == native_string::npos) {
-			continue;
-		}
-		save_dir += root.substr(found + 1);
-	}
-	return save_dir;
 }
 
 native_string get_dir_name(directory const& dir) {
@@ -483,7 +432,7 @@ directory get_or_create_settings_directory() {
 	return directory(nullptr, base_path);
 }
 
-directory get_or_create_save_game_directory(native_string mod_dir) {
+directory get_or_create_save_game_directory() {
 	wchar_t* local_path_out = nullptr;
 	native_string base_path;
 	if(SHGetKnownFolderPath(FOLDERID_Documents, 0, nullptr, &local_path_out) == S_OK) {
@@ -494,10 +443,6 @@ directory get_or_create_save_game_directory(native_string mod_dir) {
 		CreateDirectoryW(base_path.c_str(), nullptr);
 		base_path += NATIVE("\\saved games");
 		CreateDirectoryW(base_path.c_str(), nullptr);
-		if(mod_dir.length() > 0) {
-			base_path += (NATIVE("\\") + mod_dir);
-			CreateDirectoryW(base_path.c_str(), nullptr);
-		}
 	}
 	return directory(nullptr, base_path);
 }
@@ -665,10 +610,6 @@ std::string utf16_to_utf8(std::u16string_view str) {
 	return std::string("");
 }
 
-native_string utf16_to_native(std::u16string_view str) {
-	return std::wstring((wchar_t const*)str.data(), str.length());
-}
-
 std::string remove_double_backslashes(std::string_view data_in) {
 	std::string res;
 	res.reserve(data_in.size());
@@ -684,16 +625,6 @@ std::string remove_double_backslashes(std::string_view data_in) {
 	return res;
 }
 
-native_string remove_file_extension(const native_string& str) {
-	size_t found = str.find_last_of(NATIVE("."));
-	if(found != native_string::npos) {
-		return native_string(str, 0, found);
-	}
-	else {
-		return native_string(str);
-	}
-}
-
 native_string correct_slashes(native_string_view path) {
 	native_string res;
 	res.reserve(path.size());
@@ -702,29 +633,4 @@ native_string correct_slashes(native_string_view path) {
 	}
 	return res;
 }
-std::vector<char> fileseperators_from_native_to_standard_copy(const std::vector<char>& input) {
-	// Native seperator in Windows is the standard one
-	return std::vector<char>{ input};
-}
-std::vector<char> fileseperators_from_standard_to_native_copy(const std::vector<char>& input) {
-	// Native seperator in Windows is the standard one
-	return std::vector<char>{ input};
-}
-
-void fileseperators_from_native_to_standard(std::vector<char>& input) {
-	// Native seperator in Windows is the standard one
-	return;
-}
-void fileseperators_from_standard_to_native(std::vector<char>& input) {
-	// Native seperator in Windows is the standard one
-	return;
-}
-
-
-void standardize_newlines(std::string& input) {
-	// Standard is \n only, so remove \r's that windows likes to add
-	std::erase(input, '\r');
-}
-
-
 } // namespace simple_fs

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "gui_common_elements.hpp"
 #include "gui_element_types.hpp"
 #include <string_view>
 

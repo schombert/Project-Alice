@@ -1,6 +1,4 @@
-#include "system_state.hpp"
 #include "gui_error_window.hpp"
-#include "gui_templates.hpp"
 
 namespace ui {
 

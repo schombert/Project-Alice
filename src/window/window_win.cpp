@@ -4,7 +4,6 @@
 #include "resource.h"
 #include "system_state.hpp"
 #include "gui_element_base.hpp"
-#include "user_interactions.hpp"
 
 #ifndef UNICODE
 #define UNICODE
@@ -387,7 +386,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 		return 0;
 	}
 	case WM_MOUSEWHEEL: {
-		sys::on_mouse_wheel(*state, state->mouse_x_position, state->mouse_y_position, get_current_modifiers(), (float)(GET_WHEEL_DELTA_WPARAM(wParam)) / 120.0f);
+		state->on_mouse_wheel(state->mouse_x_position, state->mouse_y_position, get_current_modifiers(), (float)(GET_WHEEL_DELTA_WPARAM(wParam)) / 120.0f);
 		return 0;
 	}
 	case WM_KEYDOWN: // fallthrough
@@ -537,15 +536,15 @@ void create_window(sys::state& game_state, creation_parameters const& params) {
 
 	change_cursor(game_state, cursor_type::busy);
 	game_state.on_create();
-	change_cursor(game_state, cursor_type::normal_cancel_busy);
+	change_cursor(game_state, cursor_type::normal);
 
 	
 
 	MSG msg;
 	// pump message loop
 	while(true) {
-		std::shared_lock lock(game_state.game_state_resetting_lock);
-		game_state.game_state_resetting_cv.wait(lock, [&] { return !game_state.yield_game_state_resetting_lock; });
+		std::unique_lock lock(game_state.ui_lock);
+		game_state.ui_lock_cv.wait(lock, [&] { return !game_state.yield_ui_lock; });
 		if(PeekMessageW(&msg, 0, 0, 0, PM_REMOVE)) {
 			if(msg.message == WM_QUIT) {
 				break;
@@ -567,16 +566,7 @@ void change_cursor(sys::state& state, cursor_type type) {
 	auto root = simple_fs::get_root(state.common_fs);
 	auto gfx_dir = simple_fs::open_directory(root, NATIVE("gfx"));
 	auto cursors_dir = simple_fs::open_directory(gfx_dir, NATIVE("cursors"));
-	HCURSOR curr_cursor = GetCursor();
-	// Only cancel the "busy" cursor if "normal_cancel_busy" type is passed. Otherwise random mouse clicks may cancel it early
-	if(curr_cursor == state.win_ptr->cursors[uint8_t(cursor_type::busy)]) {
-		if(type == cursor_type::normal_cancel_busy) {
-			type = cursor_type::normal;
-		}
-		else {
-			return;
-		}
-	}
+
 	if(state.win_ptr->cursors[uint8_t(type)] == HCURSOR(NULL)) {
 		native_string_view fname = NATIVE("normal.cur");
 		switch(type) {

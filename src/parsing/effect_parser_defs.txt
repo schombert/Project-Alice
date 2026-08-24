@@ -149,7 +149,7 @@ ef_change_party_position
 
 ef_change_factory_limit
 	trade_good                       value     text                           member_fn
-	value                            value     int                          member
+	value                            value     float                          member
 
 ef_random_list
 	#any                            extern      add_to_random_list  member_fn
@@ -366,5 +366,5 @@ event_option
 gamerule_option
 	name                  value      text								 member_fn
 	default_option                  value      bool								 member
-	on_select			  value	    text  											 member_fn
-	on_deselect			  value	    text  											 member_fn
+	on_select						extern	   make_gamerule_effect					 member
+	on_deselect						extern	   make_gamerule_effect					 member

@@ -3,8 +3,9 @@
 #include "gui_common_elements.hpp"
 #include "gui_element_types.hpp"
 #include "triggers.hpp"
-#include "gui_listbox_templates.hpp"
-#include "gui_templates.hpp"
+#include <algorithm>
+#include <cmath>
+#include <unordered_map>
 
 namespace ui {
 
@@ -802,6 +803,137 @@ public:
 	}
 };
 
+class technology_tree_view : public window_element_base {
+	std::unordered_map<uint32_t, technology_item_window*> technology_nodes;
+	culture::tech_category active_category = culture::tech_category::army;
+	int32_t pan_x = 0;
+	int32_t pan_y = 0;
+
+	static constexpr int32_t horizontal_spacing = 218;
+	static constexpr int32_t vertical_spacing = 62;
+	static constexpr int32_t left_padding = 8;
+	static constexpr int32_t top_padding = 8;
+
+	bool belongs_to_active_category(sys::state& state, dcon::technology_id tech) const noexcept {
+		auto folder = state.world.technology_get_folder_index(tech);
+		return state.culture_definitions.tech_folders[folder].category == active_category;
+	}
+
+	void clamp_pan(sys::state& state) noexcept {
+		int32_t content_right = base_data.size.x;
+		int32_t content_bottom = base_data.size.y;
+		for(auto const& [index, node] : technology_nodes) {
+			dcon::technology_id tech{ dcon::technology_id::value_base_t(index) };
+			if(!belongs_to_active_category(state, tech))
+				continue;
+			content_right = std::max(content_right, left_padding + int32_t(state.world.technology_get_tree_x(tech)) * horizontal_spacing + node->base_data.size.x);
+			content_bottom = std::max(content_bottom, top_padding + int32_t(state.world.technology_get_tree_y(tech)) * vertical_spacing + node->base_data.size.y);
+		}
+
+		pan_x = std::clamp(pan_x, std::min(0, base_data.size.x - content_right), 0);
+		pan_y = std::clamp(pan_y, std::min(0, base_data.size.y - content_bottom), 0);
+	}
+
+	void update_node_positions(sys::state& state) noexcept {
+		clamp_pan(state);
+		for(auto const& [index, node] : technology_nodes) {
+			dcon::technology_id tech{ dcon::technology_id::value_base_t(index) };
+			node->base_data.position.x = int16_t(left_padding + int32_t(state.world.technology_get_tree_x(tech)) * horizontal_spacing + pan_x);
+			node->base_data.position.y = int16_t(top_padding + int32_t(state.world.technology_get_tree_y(tech)) * vertical_spacing + pan_y);
+		}
+	}
+
+	void draw_connection(sys::state& state, technology_item_window const& prerequisite, technology_item_window const& technology,
+			bool unlocked, int32_t x, int32_t y) const noexcept {
+		float const r = unlocked ? 0.30f : 0.24f;
+		float const g = unlocked ? 0.72f : 0.24f;
+		float const b = unlocked ? 0.38f : 0.24f;
+		float const start_x = float(x + prerequisite.base_data.position.x + prerequisite.base_data.size.x);
+		float const start_y = float(y + prerequisite.base_data.position.y + prerequisite.base_data.size.y / 2);
+		float const end_x = float(x + technology.base_data.position.x);
+		float const end_y = float(y + technology.base_data.position.y + technology.base_data.size.y / 2);
+		float const middle_x = (start_x + end_x) * 0.5f;
+
+		ogl::render_alpha_colored_rect(state, start_x, start_y - 1.0f, middle_x - start_x, 2.0f, r, g, b, 0.90f);
+		ogl::render_alpha_colored_rect(state, middle_x - 1.0f, std::min(start_y, end_y), 2.0f, std::abs(end_y - start_y) + 1.0f, r, g, b, 0.90f);
+		ogl::render_alpha_colored_rect(state, middle_x, end_y - 1.0f, end_x - middle_x, 2.0f, r, g, b, 0.90f);
+		ogl::render_alpha_colored_rect(state, end_x - 4.0f, end_y - 4.0f, 8.0f, 8.0f, r, g, b, 0.95f);
+	}
+
+public:
+	void on_create(sys::state& state) noexcept override {
+		window_element_base::on_create(state);
+		state.world.for_each_technology([&](dcon::technology_id tech) {
+			auto node = make_element_by_type<technology_item_window>(state, "tech_window");
+			if(!node)
+				return;
+			Cyto::Any payload = tech;
+			node->impl_set(state, payload);
+			technology_nodes.emplace(tech.index(), node.get());
+			add_child_to_back(std::move(node));
+		});
+		update_node_positions(state);
+	}
+
+	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<culture::tech_category>()) {
+			active_category = any_cast<culture::tech_category>(payload);
+			pan_x = 0;
+			pan_y = 0;
+			update_node_positions(state);
+			return message_result::consumed;
+		}
+		return message_result::unseen;
+	}
+
+	mouse_probe impl_probe_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
+		if(x < 0 || y < 0 || x >= base_data.size.x || y >= base_data.size.y)
+			return mouse_probe{ nullptr, xy_pair{ int16_t(x), int16_t(y) } };
+		return window_element_base::impl_probe_mouse(state, x, y, type);
+	}
+
+	void impl_render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		ogl::scissor_box clip{ state, x, y, base_data.size.x, base_data.size.y };
+		window_element_base::impl_render(state, x, y);
+	}
+
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		for(auto const& [index, node] : technology_nodes) {
+			dcon::technology_id tech{ dcon::technology_id::value_base_t(index) };
+			if(!node->is_visible())
+				continue;
+			for(auto prerequisite : state.world.technology_get_prerequisites(tech)) {
+				auto it = technology_nodes.find(prerequisite.index());
+				if(it == technology_nodes.end() || !it->second->is_visible())
+					continue;
+				draw_connection(state, *it->second, *node,
+						state.world.nation_get_active_technologies(state.local_player_nation, prerequisite), x, y);
+			}
+		}
+	}
+
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
+		return message_result::consumed;
+	}
+
+	message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override {
+		state.ui_state.drag_target = this;
+		return message_result::consumed;
+	}
+
+	void on_drag(sys::state& state, int32_t oldx, int32_t oldy, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override {
+		pan_x += x - oldx;
+		pan_y += y - oldy;
+		update_node_positions(state);
+	}
+
+	message_result on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override {
+		pan_y += int32_t(amount * 32.0f);
+		update_node_positions(state);
+		return message_result::consumed;
+	}
+};
+
 class technology_window : public generic_tabbed_window<culture::tech_category> {
 	technology_selected_tech_window* selected_tech_win = nullptr;
 	dcon::technology_id tech_id{};
@@ -822,75 +954,9 @@ public:
 			add_child_to_front(std::move(ptr));
 		}
 
-		// Collect folders by category; the order in which we add technology groups and stuff
-		// will be determined by this:
-		// Order of category
-		// **** Order of folders within category
-		// ******** Order of appearance of technologies that have said folder?
-		std::vector<std::vector<size_t>> folders_by_category(tech_categories.size());
-		for(size_t i = 0; i < state.culture_definitions.tech_folders.size(); i++) {
-			auto const& folder = state.culture_definitions.tech_folders[i];
-			folders_by_category[static_cast<size_t>(folder.category)].push_back(i);
-		}
-		// Now obtain the x-offsets of each folder (remember only one category of folders
-		// is ever shown at a time)
-		std::vector<size_t> folder_x_offset(state.culture_definitions.tech_folders.size(), 0);
-		for(auto const& folder_category : folders_by_category) {
-			size_t y_offset = 0;
-			for(auto const folder_index : folder_category)
-				folder_x_offset[folder_index] = y_offset++;
-		}
-		// Technologies per folder (used for positioning!!!)
-		std::vector<size_t> items_per_folder(state.culture_definitions.tech_folders.size(), 0);
-
-		xy_pair base_group_offset =
-			state.ui_defs.gui[state.ui_state.defs_by_name.find(state.lookup_key("tech_group_offset"))->second.definition].position;
-		xy_pair base_tech_offset = state.ui_defs.gui[state.ui_state.defs_by_name.find(state.lookup_key("tech_offset"))->second.definition].position;
-
-		for(auto cat : tech_categories) {
-			// Add tech group names
-			int16_t group_count = 0;
-			for(auto const& folder : state.culture_definitions.tech_folders) {
-				if(folder.category != cat)
-					continue;
-
-				auto ptr = make_element_by_type<technology_tech_group_window>(state,
-						state.ui_state.defs_by_name.find(state.lookup_key("tech_group"))->second.definition);
-
-				ptr->category = cat;
-				Cyto::Any payload = culture::folder_info(folder);
-				ptr->impl_set(state, payload);
-
-				ptr->base_data.position.x = static_cast<int16_t>(base_group_offset.x + (group_count * ptr->base_data.size.x));
-				ptr->base_data.position.y = base_group_offset.y;
-				++group_count;
-				add_child_to_front(std::move(ptr));
-			}
-
-			// Add technologies
-			state.world.for_each_technology([&](dcon::technology_id tid) {
-				auto tech = dcon::fatten(state.world, tid);
-				size_t folder_id = static_cast<size_t>(tech.get_folder_index());
-				const auto& folder = state.culture_definitions.tech_folders[folder_id];
-				if(folder.category != cat)
-					return;
-
-				auto ptr = make_element_by_type<technology_item_window>(state,
-						state.ui_state.defs_by_name.find(state.lookup_key("tech_window"))->second.definition);
-
-				Cyto::Any payload = tid;
-				ptr->impl_set(state, payload);
-
-				ptr->base_data.position.x =
-					static_cast<int16_t>(base_group_offset.x + (folder_x_offset[folder_id] * ptr->base_data.size.x));
-				// 16px spacing between tech items, 109+16 base offset
-				ptr->base_data.position.y =
-					static_cast<int16_t>(base_group_offset.y + base_tech_offset.y +
-															 (static_cast<int16_t>(items_per_folder[folder_id]) * ptr->base_data.size.y));
-				items_per_folder[folder_id]++;
-				add_child_to_front(std::move(ptr));
-			});
-		}
+		auto tree = make_element_by_type<technology_tree_view>(state, "tech_tree_view");
+		if(tree)
+			add_child_to_front(std::move(tree));
 
 		// Properly setup technology displays...
 		Cyto::Any payload = active_tab;

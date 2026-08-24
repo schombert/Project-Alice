@@ -1,7 +1,6 @@
 #include "system_state.hpp"
 #include "unit_tooltip.hpp"
 #include "ai.hpp"
-#include "map_tooltip.hpp"
 
 namespace ui {
 
@@ -142,65 +141,18 @@ void single_unit_tooltip(sys::state& state, text::columnar_layout& contents, dco
 }
 
 void populate_armies(sys::state& state, text::columnar_layout& contents, dcon::province_id prov) {
-	uint32_t army_count = 0;
 	auto fat = dcon::fatten(state.world, prov);
-	auto armies_on_prov = fat.get_army_location();
-#ifndef NDEBUG
-	std::vector<dcon::army_id> armies;
-#endif // !NDEBUG
-	for(auto armyloc : armies_on_prov) {
-		// display a maximum of 10 units in tooltip to avoid wall of text
-		if(army_count >= ui::max_units_in_province_tooltip) {
-			text::substitution_map sub;
-			uint32_t total_prov_army_count  = uint32_t(armies_on_prov.end() - armies_on_prov.begin());
-			text::add_to_substitution_map(sub, text::variable_type::x, total_prov_army_count - army_count);
-			auto box = text::open_layout_box(contents);
-			auto resolved = text::resolve_string_substitution(state, "alice_extra_armies_tooltip", sub);
-			text::add_unparsed_text_to_layout_box(state, contents, box, resolved);
-			text::close_layout_box(contents, box);
-			break; 
-		}
+	for(auto armyloc : fat.get_army_location()) {
 		auto army = armyloc.get_army();
 		single_unit_tooltip(state, contents, army);
-#ifndef NDEBUG
-		bool selected = false;
-		for(auto item : state.selected_armies) {
-			if (item == army.id) selected = true;
-		}
-		if (!selected) armies.push_back(army);
-#endif // !NDEBUG
-		army_count++;
 	}
-
-#ifndef NDEBUG
-	if(state.selected_armies.size() >= 1) {
-		auto probability = ai::estimate_win_probability(state, state.selected_armies, armies);
-		auto box = text::open_layout_box(contents);
-		text::add_to_layout_box(state,contents, box, text::format_percentage(probability));
-		text::close_layout_box(contents, box);
-	}
-#endif // !NDEBUG
 }
 
 void populate_navies(sys::state& state, text::columnar_layout& contents, dcon::province_id prov) {
-	uint32_t navy_count = 0;
 	auto fat = dcon::fatten(state.world, prov);
-	auto navies_on_prov = fat.get_navy_location();
-	for(auto navyloc : navies_on_prov) {
-		// display a maximum of 10 units in tooltip to avoid wall of text
-		if(navy_count >= ui::max_units_in_province_tooltip) {
-			text::substitution_map sub;
-			uint32_t total_prov_navy_count = uint32_t(navies_on_prov.end() - navies_on_prov.begin());
-			text::add_to_substitution_map(sub, text::variable_type::x, total_prov_navy_count - navy_count);
-			auto box = text::open_layout_box(contents);
-			auto resolved = text::resolve_string_substitution(state, "alice_extra_navies_tooltip", sub);
-			text::add_unparsed_text_to_layout_box(state, contents, box, resolved);
-			text::close_layout_box(contents, box);
-			break;
-		}
+	for(auto navyloc : fat.get_navy_location()) {
 		auto navy = navyloc.get_navy();
 		single_unit_tooltip(state, contents, navy);
-		navy_count++;
 	}
 }
 

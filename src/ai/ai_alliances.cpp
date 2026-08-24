@@ -1,7 +1,5 @@
 #include "ai_alliances.hpp"
 #include "ai_campaign_values.hpp"
-#include "system_state.hpp"
-#include "commands.hpp"
 
 namespace ai {
 

@@ -56,7 +56,6 @@ aaedev@gmail.com 2012
 #endif
 
 #include "parsers.hpp"
-#include "parsers_declarations.hpp"
 
 namespace parsers {
 struct bmfont_file_context {

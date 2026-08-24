@@ -11,7 +11,6 @@
 #include "map_modes.hpp"
 #include <glm/glm.hpp>
 #include "alice_ui.hpp"
-#include "game_scene.hpp"
 
 namespace ui {
 
@@ -866,7 +865,16 @@ public:
 class minimap_menu_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
-		alice_ui::display_at_front<alice_ui::make_main_menu_base>(state);
+		if(!state.ui_state.main_menu) {
+			auto window = make_element_by_type<main_menu_window>(state, "alice_main_menu");
+			state.ui_state.main_menu = window.get();
+			state.ui_state.root->add_child_to_front(std::move(window));
+		} else if(state.ui_state.main_menu->is_visible()) {
+			state.ui_state.main_menu->set_visible(state, false);
+		} else {
+			state.ui_state.main_menu->set_visible(state, true);
+			state.ui_state.root->move_child_to_front(state.ui_state.main_menu);
+		}
 	}
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::tooltip;
@@ -1080,7 +1088,7 @@ public:
 
 	message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override {
 		auto minimap_size = glm::vec2(base_data.size.x, base_data.size.y);
-		state.map_state.set_pos({glm::vec2(x, y) / minimap_size});
+		state.map_state.set_pos(glm::vec2(x, y) / minimap_size);
 		return message_result::consumed;
 	}
 

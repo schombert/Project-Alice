@@ -1,7 +1,7 @@
 #pragma once
 
 #include "container_types.hpp"
-#include "dcon_generated_ids.hpp"
+#include "dcon_generated.hpp"
 #include "commands.hpp"
 
 namespace ui {
@@ -12,17 +12,15 @@ struct province_tile {
 	dcon::province_id province{};
 	dcon::administration_id local_administration{};
 	bool capital_administration = false;
-	bool tax_collector_tile = false;
+	bool no_administration_tile = false;
 	dcon::market_id market{};
-	bool is_rgo = false;
-	bool is_resource_potential = false;
+	dcon::commodity_id rgo_commodity{};
+	dcon::commodity_id potential_commodity{};
 	dcon::factory_id factory{};
 	dcon::regiment_id regiment{};
 	dcon::factory_construction_id factory_construction{};
 	bool has_province_building = false;
 	economy::province_building_type province_building = economy::province_building_type::railroad;
-	dcon::commodity_id commodity{};
-	bool is_civilian_port = false;
 };
 
 std::vector<province_tile> retrieve_province_tiles(sys::state& state, dcon::province_id p);

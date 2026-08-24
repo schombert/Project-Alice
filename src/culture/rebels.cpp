@@ -8,7 +8,6 @@
 #include "politics.hpp"
 #include "province_templates.hpp"
 #include "prng.hpp"
-#include "province.hpp"
 
 namespace rebel {
 
@@ -998,8 +997,8 @@ void rebel_hunting_check(sys::state& state) {
 						rebel_hunters[i] = rebel_hunters.back();
 						rebel_hunters.pop_back();
 						break;
-					} else if(auto path = province::make_land_unit_path(state, state.world.army_get_location_from_army_location(a), closest_prov, faction_owner, a); path.size() > 0) {
-						military::set_army_path(state, a, path, faction_owner);
+					} else if(auto path = province::make_land_path(state, state.world.army_get_location_from_army_location(a), closest_prov, faction_owner, a); path.size() > 0) {
+						military::move_army_fast(state, a, path, faction_owner);
 
 						rebel_hunters[i] = rebel_hunters.back();
 						rebel_hunters.pop_back();
@@ -1020,7 +1019,7 @@ void rebel_hunting_check(sys::state& state) {
 			&& a.get_location_from_army_location() != a.get_ai_province()
 			&& a.get_location_from_army_location().get_province_control().get_nation() == a.get_location_from_army_location().get_province_ownership().get_nation())
 		{
-			if(auto path_valid = military::move_army_ai(state, a, a.get_ai_province(), a.get_army_control().get_controller()); !path_valid) {
+			if(auto path_valid = military::move_army_fast(state, a, a.get_ai_province(), a.get_army_control().get_controller()); !path_valid) {
 				state.world.army_set_ai_province(a, state.world.army_get_location_from_army_location(a));
 			}
 		}
@@ -1051,17 +1050,9 @@ void rebel_risings_check(sys::state& state) {
 			for(auto pop : rf.get_pop_rebellion_membership()) {
 				if(counter == 0)
 					break;
-				auto location = pop.get_pop().get_province_from_pop_location();
-				if(
-					pop_demographics::get_militancy(state, pop.get_pop()) >= state.defines.mil_to_join_rising
-					&&
-					// prevent pops at occupied locations from starting rebellion
-					(
-						location.get_nation_from_province_control() == location.get_nation_from_province_ownership()
-						||
-						!location.get_nation_from_province_control()
-					)
-				) {
+
+				if(pop_demographics::get_militancy(state, pop.get_pop()) >= state.defines.mil_to_join_rising) {
+					auto location = pop.get_pop().get_province_from_pop_location();
 
 					// this is the logic we would use if we were creating rebel regiments
 					auto max_count = int32_t(state.world.pop_get_size(pop.get_pop()) * rebel_size_reduction / (province::is_overseas(state, pop.get_pop().get_province_from_pop_location()) ? (state.defines.pop_min_size_for_regiment_colony_multiplier * state.defines.pop_size_per_regiment) : state.defines.pop_size_per_regiment));

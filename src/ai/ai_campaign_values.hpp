@@ -1,6 +1,5 @@
 #pragma once
-#include "dcon_generated_ids.hpp"
-#include "text.hpp"
+#include "dcon_generated.hpp"
 
 namespace sys {
 struct state;

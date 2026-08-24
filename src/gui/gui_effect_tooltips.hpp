@@ -1,7 +1,4 @@
 #pragma once
-#include "system_state_forward.hpp"
-#include "text.hpp"
-#include "dcon_generated_ids.hpp"
 
 namespace ui {
 

@@ -10,7 +10,6 @@ map_projection;Projection
 map_projection_globe;Orthographic
 map_projection_flat;Equirectangular
 map_projection_globe_perspective;Vertical
-map_projection_globe_stereographic;Stereographic
 dm_popup_label;Diplomatic message as popups
 ui_scale;UI scale
 zoom_mode_label;Zoom style
@@ -53,12 +52,10 @@ map_label_0;None
 map_label_1;Linear
 map_label_2;Quadratic
 map_label_3;Cubic
-map_label_4;Spherical
 antialiasing_label;Antialiasing
-spoilers_label;Extra detailed tooltips
+spoilers_label;Spoilers
 graphics_details_label;Graphics
 graphics_details_0;Ugly
 graphics_details_1;Classic
 graphics_details_2;Modern
-graphics_details_3;Gores
 disband_confirmation_label;Unit disband confirmation

@@ -2,14 +2,6 @@
 
 #include <chrono>
 
-#include "constants.hpp"
-#include "system_state_forward.hpp"
-
-namespace ui {
-class element_base;
-}
-
-
 struct ITfThreadMgr;
 
 namespace window {
@@ -37,14 +29,6 @@ public:
 }
 
 #ifdef _WIN64
-
-#ifndef UNICODE
-#define UNICODE
-#endif
-#define NOMINMAX
-#define WIN32_LEAN_AND_MEAN
-#include "Windows.h"
-
 typedef struct HWND__* HWND;
 typedef struct HDC__* HDC;
 
@@ -109,8 +93,7 @@ enum class cursor_type : uint8_t {
 	hostile_move,
 	friendly_move,
 	no_move,
-	text,
-	normal_cancel_busy
+	text
 };
 void change_cursor(sys::state& state, cursor_type type);
 

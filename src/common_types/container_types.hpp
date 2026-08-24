@@ -1,12 +1,7 @@
 #pragma once
 
 #include <vector>
-#include <type_traits>
-#include "unordered_dense.h"
-#include "dcon_generated_ids.hpp"
-#include "container_types_dcon.hpp"
-
-
+#include "dcon_generated.hpp"
 
 namespace sys {
 struct state; // this is here simply to declare the state struct in a very general location
@@ -95,8 +90,48 @@ inline uint32_t hsv_to_rgb(hsv v) {
 	);
 }
 
+struct value_modifier_segment {
+	float factor = 0.0f;
+	dcon::trigger_key condition;
+	uint16_t padding = 0;
+};
+static_assert(sizeof(value_modifier_segment) ==
+	sizeof(value_modifier_segment::factor)
+	+ sizeof(value_modifier_segment::condition)
+	+ sizeof(value_modifier_segment::padding));
+
+struct value_modifier_description {
+	float factor = 0.0f;
+	float base = 0.0f;
+	uint16_t first_segment_offset = 0;
+	uint16_t segments_count = 0;
+};
+static_assert(sizeof(value_modifier_description) ==
+	sizeof(value_modifier_description::factor)
+	+ sizeof(value_modifier_description::base)
+	+ sizeof(value_modifier_description::first_segment_offset)
+	+ sizeof(value_modifier_description::segments_count));
+
+struct event_option {
+	dcon::text_key name;
+	dcon::value_modifier_key ai_chance;
+	dcon::effect_key effect;
+};
+static_assert(sizeof(event_option) ==
+	sizeof(event_option::name)
+	+ sizeof(event_option::ai_chance)
+	+ sizeof(event_option::effect));
 
 
+
+
+
+struct gamerule_option {
+	dcon::text_key name;
+	dcon::effect_key on_select;
+	dcon::effect_key on_deselect;
+
+};
 
 
 
@@ -159,43 +194,7 @@ struct gamerule_hash {
 	}
 };
 
-struct nation_hash {
-	using is_avalanching = void;
-
-	nation_hash() {
-	}
-
-	auto operator()(dcon::nation_id p) const noexcept -> uint64_t {
-		int32_t index = p.index();
-		return ankerl::unordered_dense::hash<int32_t>()(index);
-	}
-};
-
 } // namespace sys
-
-// Mainly just used to hold the command handlers in a constexpr array with map-like syntax
-template<typename enum_type, typename value_type> requires std::is_enum<enum_type>::value
-class enum_array {
-private:
-	typedef std::underlying_type<enum_type>::type underlying_valuetype;
-	static constexpr underlying_valuetype MAX_INDEX = std::numeric_limits<underlying_valuetype>::max();
-	std::array<std::optional<value_type>, static_cast<size_t>(MAX_INDEX) + 1> data;
-public:
-	constexpr enum_array(const std::initializer_list<std::pair<enum_type, value_type>> initializer) {
-		for(auto& item : initializer) {
-			data[static_cast<size_t>(item.first)] = std::optional<value_type>{ item.second };
-		}
-	}
-	constexpr const std::optional<value_type>& operator[](enum_type index) const {
-		return data[static_cast<size_t>(index)];
-		/*if(*item) {
-			return &item->value();
-		}
-		else {
-			return nullptr;
-		}*/
-	}
-};
 
 template<typename value_type, typename tag_type, typename allocator = std::allocator<value_type>>
 class tagged_vector {
@@ -260,20 +259,8 @@ public:
 	auto begin() {
 		return storage.begin();
 	}
-	auto rbegin() {
-		return storage.rbegin();
-	}
-	auto rbegin() const {
-		return storage.rbegin();
-	}
 	auto end() {
 		return storage.end();
-	}
-	auto rend() const {
-		return storage.rend();
-	}
-	auto rend() {
-		return storage.rend();
 	}
 	auto size() const {
 		return storage.size();
@@ -306,166 +293,36 @@ public:
 	}
 };
 
-// A fixed-size array wrapper which implements a vector-like interface for keeping track of size.
-template<typename data_type, size_t capacity>
-class fixed_size_vector {
-private:
-	size_t storage_size;
-	std::array<data_type, capacity> _storage{};
-public:
+namespace economy {
 
-	using iterator = std::array<data_type, capacity>::iterator;
-	using const_iterator = std::array<data_type, capacity>::const_iterator;
-	using reverse_iterator = std::array<data_type, capacity>::reverse_iterator;
-	using const_reverse_iterator = std::array<data_type, capacity>::const_reverse_iterator;
+struct commodity_set {
+	static constexpr uint32_t set_size = 8;
 
-	constexpr fixed_size_vector() {
-		storage_size = 0;
-	}
-
-	constexpr fixed_size_vector(const std::initializer_list<data_type> initializer) {
-		assert(initializer.size() <= capacity);
-		storage_size = initializer.size();
-		std::copy(initializer.begin(), initializer.end(), data());
-	}
-	constexpr fixed_size_vector(const fixed_size_vector& obj) {
-		_storage(obj._storage);
-		storage_size = obj.storage_size;
-	}
-
-	constexpr fixed_size_vector(fixed_size_vector&& obj) {
-		_storage(std::move(obj._storage));
-		storage_size = obj.storage_size;
-	}
-
-	fixed_size_vector& operator=(fixed_size_vector<data_type, capacity> const& other) noexcept {
-		_storage = other._storage;
-		storage_size = other.storage_size;
-		return *this;
-	}
-	fixed_size_vector& operator=(fixed_size_vector<data_type, capacity>&& other) noexcept {
-		_storage = std::move(other._storage);
-		storage_size = other.storage_size;
-		return *this;
-	}
-
-	constexpr size_t total_capacity() const {
-		return capacity;
-	}
-
-
-	const data_type* data() const {
-		return _storage.data();
-	}
-	data_type* data() {
-		return _storage.data();
-	}
-
-
-	constexpr data_type const& operator[](size_t index) const {
-		assert(index < size());
-		return _storage[index];
-	}
-	constexpr data_type& operator[](size_t index) {
-		assert(index < size());
-		return _storage[index];
-	}
-	// This will remove the element at the given index by moving it to the end of the collection and then popping it
-	constexpr void remove_at(size_t index) {
-		assert(index < size());
-		std::swap(_storage[index], _storage[size() - 1]);
-		pop_back();
-	}
-	// This will remove the given iterator element by moving it to the end of the collection and then popping it
-	constexpr void remove_at(const_iterator iterator) {
-		size_t index = iterator - begin();
-		remove_at(index);
-	}
-
-	constexpr void clear() {
-		_storage.fill(data_type{});
-		storage_size = 0;
-	}
-
-	constexpr auto begin() const {
-		return _storage.begin();
-	}
-	constexpr auto begin() {
-		return _storage.begin();
-	}
-	constexpr auto end() const {
-		return const_iterator(data(), size());
-	}
-	constexpr auto end() {
-		return iterator(data(), size());
-	}
-	constexpr auto rbegin() {
-		return reverse_iterator(end());
-	}
-	constexpr auto rbegin() const {
-		return const_reverse_iterator(end());
-	}
-	constexpr auto rend() const {
-		return const_reverse_iterator(begin());
-	}
-	constexpr auto rend() {
-		return reverse_iterator(begin());
-	}
-	constexpr size_t size() const {
-		return storage_size;
-	}
-	constexpr void resize(size_t new_size) {
-		if(new_size < size()) {
-			std::fill_n(&_storage[new_size], size() - new_size, data_type{ });
-		}
-		storage_size = new_size;
-	}
-	constexpr void pop_back() {
-		assert(size() != 0);
-		_storage[size() - 1] = data_type{ };
-		storage_size--;
-	}
-	// Returns true if there were enough capacity to add the item, false if not
-	constexpr bool push_back(data_type&& v) {
-		if(size() != capacity) {
-			_storage[size()] = std::move(v);
-			storage_size++;
-			return true;
-		}
-		else {
-			return false;
-		}
-	}
-	// Returns true if there were enough capacity to add the item, false if not
-	constexpr bool push_back(const data_type& v) {
-		if(size() != capacity) {
-			_storage[size()] = v;
-			storage_size++;
-			return true;
-		} else {
-			return false;
-		}
-	}
-	constexpr data_type& back() {
-		return _storage[size() -1];
-	}
-	constexpr data_type const& back() const {
-		return _storage[size() - 1];
-	}
-	constexpr data_type& front() {
-		return _storage.front();
-	}
-	constexpr data_type const& front() const {
-		return _storage.front();
-	}
-
+	float commodity_amounts[set_size] = {0.0f};
+	dcon::commodity_id commodity_type[set_size] = {dcon::commodity_id{}};
 };
+static_assert(sizeof(commodity_set) ==
+	sizeof(commodity_set::commodity_amounts)
+	+ sizeof(commodity_set::commodity_type));
 
+struct small_commodity_set {
+	static constexpr uint32_t set_size = 6;
+
+	float commodity_amounts[set_size] = {0.0f};
+	dcon::commodity_id commodity_type[set_size] = {dcon::commodity_id{}};
+	uint16_t padding = 0;
+};
+static_assert(sizeof(small_commodity_set) ==
+	sizeof(small_commodity_set::commodity_amounts)
+	+ sizeof(small_commodity_set::commodity_type)
+	+ sizeof(small_commodity_set::padding));
+
+} // namespace economy
 
 namespace sys {
 
 struct checksum_key {
-	static constexpr uint32_t key_size = 32;
+	static constexpr uint32_t key_size = 64;
 	uint8_t key[key_size] = { 0 };
 
 	bool is_equal(const checksum_key& a) noexcept {
@@ -487,6 +344,67 @@ struct checksum_key {
 };
 static_assert(sizeof(checksum_key) == sizeof(checksum_key::key));
 
+template<size_t _Size>
+struct player_value {
+	std::array<uint8_t, _Size> data = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+
+	std::string_view to_string_view() const noexcept {
+		for(uint32_t i = 0; i < sizeof(data); i++) {
+			if(data[i] == ' ' || data[i] == '\0') {
+				return std::string_view{ reinterpret_cast<const char*>(&data[0]), uint32_t(i) };
+			}
+		}
+		return std::string_view{ reinterpret_cast<const char*>(&data[0]), sizeof(data) };
+	}
+
+	player_value<_Size> from_string_view(std::string_view sv) noexcept {
+		size_t length_to_copy = std::min(sv.size(), data.size());
+		sv.copy(reinterpret_cast<char*>(data.data()), length_to_copy);
+		return *this;
+	}
+
+	bool is_equal(player_value<_Size> other) {
+		return other.data == data;
+	}
+
+	std::string to_string() const noexcept {
+		return std::string(to_string_view());
+	}
+
+	bool empty() noexcept {
+		return data[0] == ' ' || data[0] == '\0';
+	}
+
+	void append(char c) noexcept {
+		for(uint32_t i = 0; i < sizeof(data); i++) {
+			if(data[i] == ' ' || data[i] == '\0') {
+				data[i] = c;
+				return;
+			}
+		}
+	}
+
+	char pop() noexcept {
+		for(uint32_t i = 1; i < sizeof(data); i++) {
+			if(data[i] == ' ' || data[i] == '\0') {
+				auto pop = data[i - 1];
+				data[i - 1] = ' ';
+				return pop;
+			}
+		}
+		return ' ';
+	}
+};
+
+using player_name = player_value<24>;
+using player_password_salt = player_value<24>;
+using player_password_hash = player_value<64>;
+using player_password_raw = player_value<24>;
+
+static_assert(sizeof(player_name) == sizeof(player_name::data));
+static_assert(sizeof(player_password_salt) == sizeof(player_password_salt::data));
+static_assert(sizeof(player_password_hash) == sizeof(player_password_hash::data));
+static_assert(sizeof(player_password_raw) == sizeof(player_password_raw::data));
 
 struct macro_builder_template {
 	static constexpr uint32_t max_types = 48;
@@ -570,10 +488,6 @@ struct full_wg {
 	dcon::national_identity_id wg_tag;
 	dcon::state_definition_id state;
 	dcon::cb_type_id cb;
-
-	bool operator==(const full_wg& other) const = default;
-	bool operator!=(const full_wg& other) const = default;
-
 };
 
 struct aui_pending_bytes {
@@ -582,54 +496,3 @@ struct aui_pending_bytes {
 };
 
 } // namespace sys
-
-
-namespace ui {
-
-struct chat_message {
-	dcon::nation_id source{};
-	bool targets_everyone = true; // Whether this message is a public message which targets everyone (and the message will be marked as such), or a private message
-	std::string body;
-	// the reason the sender name is a unique_ptr and not a string or simple array is cause the Cyto:Any has a space limit of 64 bytes which it becomes encapsulated in later, and together with the body the struct will overflow with a array of size 24.
-	std::unique_ptr<sys::player_name> sender_name;
-
-	chat_message() {
-		sender_name = std::make_unique<sys::player_name>();
-	}
-	chat_message(const chat_message& m) {
-		sender_name = std::make_unique<sys::player_name>();
-		source = m.source;
-		targets_everyone = m.targets_everyone;
-		body = m.body;
-		memcpy(sender_name.get(), m.sender_name.get(), 24);
-	}
-	chat_message(chat_message&&) = default;
-	chat_message& operator=(const chat_message& m) {
-		if(this == &m)
-			return *this;
-		source = m.source;
-		targets_everyone = m.targets_everyone;
-		body = m.body;
-		memcpy(sender_name.get(), m.sender_name.get(), 24);
-		return *this;
-	}
-	chat_message& operator=(chat_message&&) = default;
-	~chat_message() {
-	}
-
-	bool operator==(chat_message const& o) const {
-		return source == o.source && body == o.body && targets_everyone == o.targets_everyone;
-	}
-	bool operator!=(chat_message const& o) const {
-		return !(*this == o);
-	}
-	void set_sender_name(const sys::player_name& name) {
-		sender_name.reset(new sys::player_name{ name });
-	}
-	sys::player_name& get_sender_name() const {
-		return *sender_name;
-	}
-};
-}
-
-

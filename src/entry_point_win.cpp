@@ -1,13 +1,11 @@
+#include "system_state.hpp"
+#include "serialization.hpp"
+
 #ifndef UNICODE
 #define UNICODE
 #endif
 #define NOMINMAX
 #define WIN32_LEAN_AND_MEAN
-
-#include "system_state.hpp"
-#include "game_scene.hpp"
-#include "serialization.hpp"
-#include "parsers_declarations.hpp"
 
 #include <Windows.h>
 #include <shellapi.h>
@@ -35,7 +33,7 @@ void signal_abort_handler(int) {
 		si.cb = sizeof(si);
 		PROCESS_INFORMATION pi;
 		ZeroMemory(&pi, sizeof(pi));
-		// Start the child process.
+		// Start the child process. 
 		if(CreateProcessW(
 			L"dbg_alice.exe",   // Module name
 			NULL, // Command line
@@ -152,7 +150,6 @@ int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPWSTR
 
 				auto root = get_root(fs_root);
 				auto common = open_directory(root, NATIVE("common"));
-				auto save_dir = simple_fs::get_mod_save_dir_name(fs_root);
 
 				parsers::bookmark_context bookmark_context;
 				if(auto f = open_file(common, NATIVE("bookmarks.txt")); f) {
@@ -181,7 +178,6 @@ int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPWSTR
 					err.accumulated_warnings.clear();
 					//
 					auto inner_game_state = std::make_unique<sys::state>();
-					inner_game_state->mod_save_dir = save_dir;
 					simple_fs::add_root(inner_game_state->common_fs, L".");
 
 					inner_game_state->load_scenario_data(err, bookmark_context.bookmark_dates[date_index].date_);
@@ -256,7 +252,7 @@ int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPWSTR
 				} else if(native_string(parsed_cmd[i]) == NATIVE("-name")) {
 					if(i + 1 < num_params) {
 						std::string nickname = simple_fs::native_to_utf8(native_string(parsed_cmd[i + 1]));
-						memcpy(&game_state.network_state.nickname.data, nickname.c_str(), std::min<size_t>(nickname.length(), sizeof(game_state.network_state.nickname.data)));
+						memcpy(&game_state.network_state.nickname.data, nickname.c_str(), std::min<size_t>(nickname.length(), 8));
 						i++;
 					}
 				} else if(native_string(parsed_cmd[i]) == NATIVE("-password")) {
@@ -348,18 +344,8 @@ int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPWSTR
 				game_state.game_loop();
 			}
 		} else {
-			std::thread update_thread([&]() { 
-				game_state.game_loop(); 
-			});
-			std::thread ui_cache_update([&]() {
-				game_state.ui_cached_data.process_update(game_state); 
-			});
-			std::thread graphics_cache_update([&](){
-				game_state.map_state.update_cache(game_state);
-			});
-			std::thread map_labels_update([&]() {
-				game_state.map_state.update_map_labels(game_state);
-			});
+			std::thread update_thread([&]() { game_state.game_loop(); });
+			std::thread ui_cache_update([&]() { game_state.ui_cached_data.process_update(game_state); });
 
 			// entire game runs during this line
 			window::create_window(game_state, window::creation_parameters{ 1024, 780, window::window_state::maximized, game_state.user_settings.prefer_fullscreen });
@@ -367,8 +353,6 @@ int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPWSTR
 
 			update_thread.join();
 			ui_cache_update.join();
-			graphics_cache_update.join();
-			map_labels_update.join();
 		}
 
 		network::finish(game_state, true);

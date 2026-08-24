@@ -4,7 +4,6 @@
 #include "military.hpp"
 #include "ai_campaign_values.hpp"
 #include "ai_alliances.hpp"
-#include "diplomatic_messages.hpp"
 
 namespace ui {
 
@@ -330,7 +329,7 @@ public:
 			text::add_line_with_condition(state, contents, "alice_command_units_condition_2", asker_wars.begin() != asker_wars.end() && target_wars.begin() != target_wars.end());
 		}
 
-		if(gamerule::check_gamerule(state, state.hardcoded_gamerules.command_units, uint8_t(gamerule::command_units_settings::disabled))) {
+		if(state.network_mode == sys::network_mode_type::single_player) {
 			text::add_line_with_condition(state, contents, "alice_command_units_condition_4", false);
 		}
 
@@ -833,7 +832,7 @@ public:
 				return false;  // cannot declare war on own sphereling
 			}
 			return !(state.local_player_nation == target ||
-				!military::can_use_cb_against<false>(state, state.local_player_nation, target) ||
+				!military::can_use_cb_against(state, state.local_player_nation, target) ||
 				state.world.nation_get_diplomatic_points(state.local_player_nation) < state.defines.declarewar_diplomatic_cost ||
 				military::are_in_common_war(state, state.local_player_nation, target) ||
 				nations::are_allied(state, state.local_player_nation, target) ||
@@ -902,7 +901,7 @@ public:
 			if(state.defines.declarewar_diplomatic_cost > 0) {
 				text::add_line_with_condition(state, contents, "war_explain_3", state.world.nation_get_diplomatic_points(state.local_player_nation) >= state.defines.declarewar_diplomatic_cost, text::variable_type::x, int64_t(state.defines.declarewar_diplomatic_cost));
 			}
-			text::add_line_with_condition(state, contents, "war_explain_2", military::can_use_cb_against<false>(state, state.local_player_nation, target));
+			text::add_line_with_condition(state, contents, "war_explain_2", military::can_use_cb_against(state, state.local_player_nation, target));
 			text::add_line_with_condition(state, contents, "war_explain_4", !military::are_in_common_war(state, state.local_player_nation, target));
 			auto target_ol_rel = state.world.nation_get_overlord_as_subject(target);
 			auto overlord = state.world.overlord_get_ruler(target_ol_rel);

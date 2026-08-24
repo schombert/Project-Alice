@@ -1,6 +1,5 @@
 #pragma once
-#include "dcon_generated_ids.hpp"
-#include "system_state_forward.hpp"
+#include "dcon_generated.hpp"
 
 namespace rebel {
 

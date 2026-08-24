@@ -1,5 +1,5 @@
 #pragma once
-#include "dcon_generated_ids.hpp"
+#include "dcon_generated.hpp"
 
 namespace ai {
 enum ai_strategies {

@@ -3,7 +3,6 @@
 #include "gui_element_types.hpp"
 #include "gui_commodity_filters_window.hpp"
 #include "gui_production_enum.hpp"
-#include "economy_factory_view.hpp"
 
 namespace ui {
 

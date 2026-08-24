@@ -1,7 +1,6 @@
 #pragma once
 
 #include <stdint.h>
-#include "native_types.hpp"
 
 #ifdef _WIN64
 #include "sound_win.hpp"

@@ -1,5 +1,4 @@
 #pragma once
-#include "system_state_forward.hpp"
 
 namespace economy {
 

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "script_constants.hpp"
-#include "dcon_generated_ids.hpp"
+#include "dcon_generated.hpp"
 #include "container_types.hpp"
 
 namespace trigger {

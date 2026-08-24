@@ -17,35 +17,7 @@ guiTypes = {
 		buttonFont = "vic_18_black"
 		Orientation = "LOWER_LEFT"
 	}
-	
-	windowType = {
-		name = "show_all_saves_setting_container"
-		extends = "lobby"
-		position = {  0 -410 }
-		size = { 212 32 }
-		Orientation = "LOWER_LEFT"
-		
-		iconType = {
-			name = "background"
-			position = { 0 0 }
-			spriteType = "GFX_frontend_scenario_entry"
-			
-		}
-		checkboxType = {
-			name = "show_all_saves_checkbox"
-			position = { 6 6 }
-			quadTextureSprite = "GFX_checkbox_default"
-		}
-		instantTextBoxType = {
-			name = "show_all_saves_label"
-			position = { -48 7 }
-			font = "vic_18_black"
-			text = "alice_show_all_saves_text"
-			maxsize = { 212 32 }
-			format = right
-		}
-	}
-	
+
 	instantTextBoxType = { 
 			name = "state_location_name"
 			extends = "state_info"
@@ -1163,145 +1135,6 @@ guiTypes = {
 				quadTextureSprite = "GFX_checkbox_default"
 			}
 		}
-		
-		
-		windowType = {
-			name ="alice_save_menu"
-			backGround=""
-			position = { x=0 y =0 }	
-			size = { 352 432}
-			moveable = 0
-			dontRender = ""
-			horizontalBorder= ""
-			verticalBorder= ""
-			upsound = ""
-			downsound = ""
-			fullscreen=no
-			
-			iconType = {
-				name = "background"
-				spriteType = "GFX_menu"
-				position = {  0 0 }
-				Orientation = "UPPER_LEFT"
-			}
-			iconType = {
-				name ="menu_savebg"
-				spriteType = "GFX_menu_savebg"
-				position = { x= 61 y = 58 }
-				Orientation = "UPPER_LEFT"
-			}
-			
-			listboxType = {
-				name ="games"
-				#position = { x=61 y =89}
-				position = { x=71 y =99}
-				#backGround="SandboxFloaterBackground"
-				backGround=""
-				size = { x=244 y =192}
-				spacing = 2
-				scrollbartype = "standardlistbox_slider"
-				borderSize = {x = 10 y = 10}
-				Orientation = "UPPER_LEFT"
-			}
-			
-			instantTextBoxType= {
-				position = {x = 56 y = 63 }
-				name = "savegame_label"
-				font = "vic_22_black"
-				borderSize = {x = 0 y = 0}	
-				maxWidth = 256
-				maxHeight = 18
-				text = "MENU_BAR_SAVE_GAME"	
-				orientation = "UPPER_LEFT"
-				format = centre
-			}
-			
-			guiButtonType = {
-				name = "save"
-				position = { x = 94 y = 319 }
-				quadTextureSprite ="GFX_button_standard_177"	
-				tooltip = ""
-				tooltipText =""
-				delayedTooltipText = ""
-				buttonText = "MENU_BAR_SAVE"
-				buttonFont = "vic_18_black"
-			}
-			checkboxType = {
-				name = "show_all_saves_checkbox"
-				position = { x = 49 y = 329}
-				quadTextureSprite = "GFX_checkbox_default"
-				buttonText = ""
-			}
-			instantTextBoxType= {
-				position = {x = 29 y = 349 }
-				name = "show_all_saves_label"
-				font = "Arial12"
-				maxWidth = 208
-				maxHeight = 18
-				borderSize = {x = 0 y = 0}	
-				text = "alice_show_all_saves_text"	
-				format = left
-			}
-			
-			guiButtonType = {
-				name = "cancel"
-				position = { x = 94 y = 352 }
-				quadTextureSprite ="GFX_button_standard_177"	
-				tooltip = ""
-				tooltipText =""
-				delayedTooltipText = ""
-				buttonText = "MENU_BAR_CLOSE"
-				buttonFont = "vic_18_black"
-				shortcut = "ESCAPE"
-			}
-
-			instantTextBoxType= {
-				position = {x = 74 y = 282 }
-				name = "filename_label"
-				font = "Arial12"
-				borderSize = {x = 8 y = 0}	
-				maxWidth = 228
-				maxHeight = 18
-				text = "alice_save_input_filename_label"	
-				orientation = "UPPER_LEFT"
-				format = centre
-			}
-			
-			editBoxType = {
-				position = { x = 52 y = 289 }
-				name = "game_name"
-				textureFile = "gfx\\interface\\small_tiles_dialog.dds"
-				font = "Arial12_bold"
-				borderSize = { x = 8 y = 2  }	
-				size = { x=260 y=32 }
-				text = ""	
-				orientation = "UPPER_LEFT"
-			}
-			
-		}
-		
-		
-	}
-	
-	windowType = {
-		name = "alice_main_menu_savegame_entry"
-		backGround=""
-		position = { x=0 y=0 }	
-		size = { x=128 y= 24 }
-		moveable = 0
-		dontRender = ""
-		horizontalBorder= ""
-		verticalBorder= ""
-		fullScreen = no
-		
-		checkboxType = {
-			name = "game"
-			position = { x=-6 y =-10}
-			quadTextureSprite ="GFX_save_list_button"
-			buttonText = ""
-			buttonFont = "vic_18_black"
-		}
-		
 	}
 
 	guiButtonType = {
@@ -3785,6 +3618,24 @@ guiTypes = {
 			orientation = "UPPER_LEFT"
 			format = left
 		}
+
+		guiButtonType = {
+			position = { 370 2 }
+			name = "us_button"
+			quadTextureSprite = "GFX_alice_message_type"
+		}
+
+		guiButtonType = {
+			position = { 490 2 }
+			name = "interesting_button"
+			quadTextureSprite = "GFX_alice_message_type"
+		}
+
+		guiButtonType = {
+			position = { 610 2 }
+			name = "other_button"
+			quadTextureSprite = "GFX_alice_message_type"
+		}
 	}
 
 	windowType = {
@@ -3913,13 +3764,6 @@ guiTypes = {
 			text = ""
 			maxsize = { 160 18 }
 			fixedsize = yes
-			Orientation = "UPPER_LEFT"
-		}
-		iconType =
-		{
-			name = "warning"
-			spriteType = "GFX_closebutton"
-			position = { 185 8 }
 			Orientation = "UPPER_LEFT"
 		}
 	}
@@ -5260,14 +5104,6 @@ guiTypes = {
 		textureFile = ""
 		font = "vic_18_black"
 	}
-	
-	iconType = {
-            name = "private_message_toggle"
-			extends = "ingame_multiplayer_entry"
-            spriteType = "GFX_messageicon_icon"
-            position = { x=6 y =5}
-            Orientation = "UPPER_LEFT"
-        } 
 
 	guiButtonType = {
 		name = "button_ban"
@@ -5292,15 +5128,6 @@ guiTypes = {
 		position = { x= 147 y = 23 }
 		quadTextureSprite = "GFX_gunboats"	
 	}
-
-	windowType = {
-		name = "local_factories_view"
-		extends = "province_view"
-		position = { 435 -505 }
-		size = { 700 528 }
-		Orientation = "LOWER_LEFT"
-	}
-
     windowType = {
         name = "local_economy_view"
         extends = "province_view"
@@ -5417,16 +5244,7 @@ guiTypes = {
 
 	guiButtonType = {
         name = "toggle-tiles-province"
-        position = { x=405 y=90}
-        quadTextureSprite ="button-economy-province"
-        buttonText = ""
-        buttonFont = "vic_18_black"
-		extends = "province_view"
-    }
-
-	guiButtonType = {
-        name = "toggle-market-province"
-        position = { x=405 y=130}
+        position = { x=405 y=100}
         quadTextureSprite ="button-economy-province"
         buttonText = ""
         buttonFont = "vic_18_black"
@@ -5435,35 +5253,17 @@ guiTypes = {
 
 	windowType = {
         name = "province_tiles_window"
-        position = { 452 0 }
+        position = { 445 0 }
         size = { 288 288 }
-		iconType = {
-			position = { x=-6 y=-6 }	
-			name = "background"
-			spriteType = "provincetilesbg"
-			size = { 314 314 }
-		}
-    }
-
-	windowType = {
-        name = "province_market_window"
-        position = { 447 0 }
-        size = { 288 350 }
     }
 
 	iconType = {
-		position = { x=0 y=0 }	
-		size = { x=36 y=36 }
-		name = "province_tiles_tile"
-		spriteType = "provincetiles"
+			position = { x=0 y=0 }	
+			size = { x=36 y=36 }
+			name = "province_tiles_tile"
+			spriteType = "provincetiles"
 	}
-	iconType = {
-		position = { x=0 y=0 }	
-		size = { x=36 y=36 }
-		name = "province_market_tile"
-		spriteType = "province_markettiles"
-	}
-	
+
 	iconType = {
 			position = { x=16 y=16 }	
 			size = { x=20 y=20 }
@@ -5472,17 +5272,10 @@ guiTypes = {
 	}
 
 	iconType = {
-			position = { x=15 y=15 }	
+			position = { x=14 y=14 }	
 			size = { x=22 y=22 }
 			name = "province_tiles_tile_subicon_unit"
 			spriteType = "GFX_unit_strip"
-	}
-
-	iconType = {
-			position = { x=1 y=1 }	
-			size = { x=30 y=30 }
-			name = "province_market_tile_subicon_commodity"
-			spriteType = "GFX_resources"
 	}
 
 	windowType = {

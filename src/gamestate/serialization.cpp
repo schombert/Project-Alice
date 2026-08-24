@@ -1,4 +1,4 @@
-#include "dcon_generated_ids.hpp"
+#include "dcon_generated.hpp"
 #include "system_state.hpp"
 #include "serialization.hpp"
 #include <random>
@@ -55,40 +55,32 @@ void read_mod_path(uint8_t const* ptr_in, uint8_t const* lim, native_string& pat
 	memcpy(&length, ptr_in, sizeof(uint32_t));
 	ptr_in += sizeof(uint32_t);
 
-	if(size_t(lim - ptr_in) < sizeof(uint32_t) + length * sizeof(char))
+	if(size_t(lim - ptr_in) < sizeof(uint32_t) + length * sizeof(native_char))
 		return;
 
-	const char* path_char_ptr = reinterpret_cast<const char*>(ptr_in);
-	auto path_str = std::string{ path_char_ptr, length };
-	path_out =  simple_fs::utf8_to_native(path_str);
+	path_out = native_string(native_string_view(reinterpret_cast<native_char const*>(ptr_in), length));
 }
 uint8_t const* load_mod_path(uint8_t const* ptr_in, sys::state& state) {
 	uint32_t length = 0;
 	memcpy(&length, ptr_in, sizeof(uint32_t));
 	ptr_in += sizeof(uint32_t);
-	const char* path_char_ptr = reinterpret_cast<const char *>(ptr_in);
-	auto path_str = std::string{ path_char_ptr, length };
-	auto native_str = simple_fs::utf8_to_native(path_str);
-	auto str_view = native_string_view{ native_str };
 
-	simple_fs::restore_state(state.common_fs, str_view);
-	return ptr_in + length * sizeof(char);
+	simple_fs::restore_state(state.common_fs, native_string_view(reinterpret_cast<native_char const*>(ptr_in), length));
+	return ptr_in + length * sizeof(native_char);
 }
 uint8_t* write_mod_path(uint8_t* ptr_in, native_string const& path_in) {
-	auto uf8_path = simple_fs::native_to_utf8(path_in);
-	uint32_t length = uint32_t(uf8_path.length());
+	uint32_t length = uint32_t(path_in.length());
 	memcpy(ptr_in, &length, sizeof(uint32_t));
 	ptr_in += sizeof(uint32_t);
-	memcpy(ptr_in, uf8_path.c_str(), length * sizeof(char));
-	ptr_in += length * sizeof(char);
+	memcpy(ptr_in, path_in.c_str(), length * sizeof(native_char));
+	ptr_in += length * sizeof(native_char);
 	return ptr_in;
 }
 size_t sizeof_mod_path(native_string const& path_in) {
-	auto uf8_path = simple_fs::native_to_utf8(path_in);
 	size_t sz = 0;
-	uint32_t length = uint32_t(uf8_path.length());
+	uint32_t length = uint32_t(path_in.length());
 	sz += sizeof(uint32_t);
-	sz += length * sizeof(char);
+	sz += length * sizeof(native_char);
 	return sz;
 }
 
@@ -142,38 +134,20 @@ uint8_t const* with_decompressed_section(uint8_t const* ptr_in, T const& functio
 	return ptr_in + sizeof(uint32_t) * 2 + section_length;
 }
 
-
-uint8_t const* read_handwritten_scenario_section(uint8_t const* ptr_in, uint8_t const* section_end, sys::state& state, bool exclude_local_handwritten_fields = false) {
+uint8_t const* read_scenario_section(uint8_t const* ptr_in, uint8_t const* section_end, sys::state& state) {
 	// hand-written contribution
-	{  // lua script
-		ptr_in = deserialize(ptr_in, state.lua_combined_script);
-		ptr_in = deserialize(ptr_in, state.lua_game_loop_script);
-		ptr_in = deserialize(ptr_in, state.lua_ui_script);
-	}
 	{ // map
 		ptr_in = memcpy_deserialize(ptr_in, state.map_state.map_data.size_x);
 		ptr_in = memcpy_deserialize(ptr_in, state.map_state.map_data.size_y);
 		ptr_in = memcpy_deserialize(ptr_in, state.map_state.map_data.world_circumference);
-		if(!exclude_local_handwritten_fields) {
-			ptr_in = deserialize(ptr_in, state.map_state.map_data.river_vertices);
-			ptr_in = deserialize(ptr_in, state.map_state.map_data.river_starts);
-			ptr_in = deserialize(ptr_in, state.map_state.map_data.river_counts);
-			ptr_in = deserialize(ptr_in, state.map_state.map_data.coastal_vertices);
-			ptr_in = deserialize(ptr_in, state.map_state.map_data.coastal_starts);
-			ptr_in = deserialize(ptr_in, state.map_state.map_data.coastal_counts);
-			ptr_in = deserialize(ptr_in, state.map_state.map_data.railroad_vertices);
-			ptr_in = deserialize(ptr_in, state.map_state.map_data.railroad_starts);
-			ptr_in = deserialize(ptr_in, state.map_state.map_data.railroad_counts);
-			ptr_in = deserialize(ptr_in, state.map_state.map_data.province_border_vertices);
-			ptr_in = deserialize(ptr_in, state.map_state.map_data.province_border_starts);
-			ptr_in = deserialize(ptr_in, state.map_state.map_data.province_border_counts);
-			ptr_in = deserialize(ptr_in, state.map_state.map_data.state_border_vertices);
-			ptr_in = deserialize(ptr_in, state.map_state.map_data.state_border_starts);
-			ptr_in = deserialize(ptr_in, state.map_state.map_data.state_border_counts);
-			ptr_in = deserialize(ptr_in, state.map_state.map_data.border_edges);
-			ptr_in = deserialize(ptr_in, state.map_state.map_data.border_nodes);
-			ptr_in = deserialize(ptr_in, state.map_state.map_data.adj_index_to_border_edge);
-		}
+		ptr_in = deserialize(ptr_in, state.map_state.map_data.river_vertices);
+		ptr_in = deserialize(ptr_in, state.map_state.map_data.river_starts);
+		ptr_in = deserialize(ptr_in, state.map_state.map_data.river_counts);
+		ptr_in = deserialize(ptr_in, state.map_state.map_data.coastal_vertices);
+		ptr_in = deserialize(ptr_in, state.map_state.map_data.coastal_starts);
+		ptr_in = deserialize(ptr_in, state.map_state.map_data.coastal_counts);
+		ptr_in = deserialize(ptr_in, state.map_state.map_data.border_vertices);
+		ptr_in = deserialize(ptr_in, state.map_state.map_data.borders);
 		ptr_in = deserialize(ptr_in, state.map_state.map_data.terrain_id_map);
 		ptr_in = deserialize(ptr_in, state.map_state.map_data.province_id_map);
 		ptr_in = deserialize(ptr_in, state.map_state.map_data.province_area);
@@ -235,11 +209,9 @@ uint8_t const* read_handwritten_scenario_section(uint8_t const* ptr_in, uint8_t 
 		ptr_in = memcpy_deserialize(ptr_in, state.military_definitions.irregular);
 	}
 	{ // national definitions
-		if(!exclude_local_handwritten_fields) {
-			ptr_in = deserialize(ptr_in, state.national_definitions.flag_variable_names);
-			ptr_in = deserialize(ptr_in, state.national_definitions.global_flag_variable_names);
-			ptr_in = deserialize(ptr_in, state.national_definitions.variable_names);
-		}
+		ptr_in = deserialize(ptr_in, state.national_definitions.flag_variable_names);
+		ptr_in = deserialize(ptr_in, state.national_definitions.global_flag_variable_names);
+		ptr_in = deserialize(ptr_in, state.national_definitions.variable_names);
 		ptr_in = deserialize(ptr_in, state.national_definitions.triggered_modifiers);
 		ptr_in = memcpy_deserialize(ptr_in, state.national_definitions.rebel_id);
 		ptr_in = memcpy_deserialize(ptr_in, state.national_definitions.very_easy_player);
@@ -309,9 +281,7 @@ uint8_t const* read_handwritten_scenario_section(uint8_t const* ptr_in, uint8_t 
 	{ // provincial definitions
 		ptr_in = deserialize(ptr_in, state.province_definitions.canals);
 		ptr_in = deserialize(ptr_in, state.province_definitions.canal_provinces);
-		if(!exclude_local_handwritten_fields) {
-			ptr_in = deserialize(ptr_in, state.province_definitions.terrain_to_gfx_map);
-		}
+		ptr_in = deserialize(ptr_in, state.province_definitions.terrain_to_gfx_map);
 		ptr_in = memcpy_deserialize(ptr_in, state.province_definitions.first_sea_province);
 		ptr_in = memcpy_deserialize(ptr_in, state.province_definitions.europe);
 		ptr_in = memcpy_deserialize(ptr_in, state.province_definitions.asia);
@@ -328,25 +298,17 @@ uint8_t const* read_handwritten_scenario_section(uint8_t const* ptr_in, uint8_t 
 	ptr_in = deserialize(ptr_in, state.effect_data_indices);
 	ptr_in = deserialize(ptr_in, state.value_modifier_segments);
 	ptr_in = deserialize(ptr_in, state.value_modifiers);
-	if(!exclude_local_handwritten_fields) {
-		ptr_in = deserialize(ptr_in, state.key_data);
-		simple_fs::fileseperators_from_standard_to_native(state.key_data);
-		ptr_in = deserialize(ptr_in, state.untrans_key_to_text_sequence);
-	}
+	ptr_in = deserialize(ptr_in, state.key_data);
+	ptr_in = deserialize(ptr_in, state.untrans_key_to_text_sequence);
 	ptr_in = memcpy_deserialize(ptr_in, state.hardcoded_gamerules);
 
-	if(!exclude_local_handwritten_fields){ // ui definitions
+	{ // ui definitions
 		ptr_in = deserialize(ptr_in, state.ui_defs.gfx);
 		ptr_in = deserialize(ptr_in, state.ui_defs.textures);
 		ptr_in = deserialize(ptr_in, state.ui_defs.gui);
 		ptr_in = deserialize(ptr_in, state.font_collection.font_names);
 		ptr_in = deserialize(ptr_in, state.ui_defs.extensions);
 	}
-	return ptr_in;
-}
-
-uint8_t const* read_scenario_section(uint8_t const* ptr_in, uint8_t const* section_end, sys::state& state, bool exclude_local_handwritten_fields) {
-	ptr_in = read_handwritten_scenario_section(ptr_in, section_end, state, exclude_local_handwritten_fields);
 
 	// data container
 
@@ -356,39 +318,20 @@ uint8_t const* read_scenario_section(uint8_t const* ptr_in, uint8_t const* secti
 
 	return section_end;
 }
-
-
-uint8_t* write_handwritten_scenario_section(uint8_t* ptr_in, sys::state& state, bool exclude_local_handwritten_fields = false) {
+uint8_t* write_scenario_section(uint8_t* ptr_in, sys::state& state) {
 	// hand-written contribution
-	{  // lua script
-		ptr_in = serialize(ptr_in, state.lua_combined_script);
-		ptr_in = serialize(ptr_in, state.lua_game_loop_script);
-		ptr_in = serialize(ptr_in, state.lua_ui_script);
-	}
 	{ // map
 		ptr_in = memcpy_serialize(ptr_in, state.map_state.map_data.size_x);
 		ptr_in = memcpy_serialize(ptr_in, state.map_state.map_data.size_y);
 		ptr_in = memcpy_serialize(ptr_in, state.map_state.map_data.world_circumference);
-		if(!exclude_local_handwritten_fields) {
-			ptr_in = serialize(ptr_in, state.map_state.map_data.river_vertices);
-			ptr_in = serialize(ptr_in, state.map_state.map_data.river_starts);
-			ptr_in = serialize(ptr_in, state.map_state.map_data.river_counts);
-			ptr_in = serialize(ptr_in, state.map_state.map_data.coastal_vertices);
-			ptr_in = serialize(ptr_in, state.map_state.map_data.coastal_starts);
-			ptr_in = serialize(ptr_in, state.map_state.map_data.coastal_counts);
-			ptr_in = serialize(ptr_in, state.map_state.map_data.railroad_vertices);
-			ptr_in = serialize(ptr_in, state.map_state.map_data.railroad_starts);
-			ptr_in = serialize(ptr_in, state.map_state.map_data.railroad_counts);
-			ptr_in = serialize(ptr_in, state.map_state.map_data.province_border_vertices);
-			ptr_in = serialize(ptr_in, state.map_state.map_data.province_border_starts);
-			ptr_in = serialize(ptr_in, state.map_state.map_data.province_border_counts);
-			ptr_in = serialize(ptr_in, state.map_state.map_data.state_border_vertices);
-			ptr_in = serialize(ptr_in, state.map_state.map_data.state_border_starts);
-			ptr_in = serialize(ptr_in, state.map_state.map_data.state_border_counts);
-			ptr_in = serialize(ptr_in, state.map_state.map_data.border_edges);
-			ptr_in = serialize(ptr_in, state.map_state.map_data.border_nodes);
-			ptr_in = serialize(ptr_in, state.map_state.map_data.adj_index_to_border_edge);
-		}
+		ptr_in = serialize(ptr_in, state.map_state.map_data.river_vertices);
+		ptr_in = serialize(ptr_in, state.map_state.map_data.river_starts);
+		ptr_in = serialize(ptr_in, state.map_state.map_data.river_counts);
+		ptr_in = serialize(ptr_in, state.map_state.map_data.coastal_vertices);
+		ptr_in = serialize(ptr_in, state.map_state.map_data.coastal_starts);
+		ptr_in = serialize(ptr_in, state.map_state.map_data.coastal_counts);
+		ptr_in = serialize(ptr_in, state.map_state.map_data.border_vertices);
+		ptr_in = serialize(ptr_in, state.map_state.map_data.borders);
 		ptr_in = serialize(ptr_in, state.map_state.map_data.terrain_id_map);
 		ptr_in = serialize(ptr_in, state.map_state.map_data.province_id_map);
 		ptr_in = serialize(ptr_in, state.map_state.map_data.province_area);
@@ -450,11 +393,9 @@ uint8_t* write_handwritten_scenario_section(uint8_t* ptr_in, sys::state& state, 
 		ptr_in = memcpy_serialize(ptr_in, state.military_definitions.irregular);
 	}
 	{ // national definitions
-		if(!exclude_local_handwritten_fields) {
-			ptr_in = serialize(ptr_in, state.national_definitions.flag_variable_names);
-			ptr_in = serialize(ptr_in, state.national_definitions.global_flag_variable_names);
-			ptr_in = serialize(ptr_in, state.national_definitions.variable_names);
-		}
+		ptr_in = serialize(ptr_in, state.national_definitions.flag_variable_names);
+		ptr_in = serialize(ptr_in, state.national_definitions.global_flag_variable_names);
+		ptr_in = serialize(ptr_in, state.national_definitions.variable_names);
 		ptr_in = serialize(ptr_in, state.national_definitions.triggered_modifiers);
 		ptr_in = memcpy_serialize(ptr_in, state.national_definitions.rebel_id);
 		ptr_in = memcpy_serialize(ptr_in, state.national_definitions.very_easy_player);
@@ -524,9 +465,7 @@ uint8_t* write_handwritten_scenario_section(uint8_t* ptr_in, sys::state& state, 
 	{ // provincial definitions
 		ptr_in = serialize(ptr_in, state.province_definitions.canals);
 		ptr_in = serialize(ptr_in, state.province_definitions.canal_provinces);
-		if(!exclude_local_handwritten_fields) {
-			ptr_in = serialize(ptr_in, state.province_definitions.terrain_to_gfx_map);
-		}
+		ptr_in = serialize(ptr_in, state.province_definitions.terrain_to_gfx_map);
 		ptr_in = memcpy_serialize(ptr_in, state.province_definitions.first_sea_province);
 		ptr_in = memcpy_serialize(ptr_in, state.province_definitions.europe);
 		ptr_in = memcpy_serialize(ptr_in, state.province_definitions.asia);
@@ -543,26 +482,17 @@ uint8_t* write_handwritten_scenario_section(uint8_t* ptr_in, sys::state& state, 
 	ptr_in = serialize(ptr_in, state.effect_data_indices);
 	ptr_in = serialize(ptr_in, state.value_modifier_segments);
 	ptr_in = serialize(ptr_in, state.value_modifiers);
-	if(!exclude_local_handwritten_fields) {
-		ptr_in = serialize(ptr_in, simple_fs::fileseperators_from_native_to_standard_copy(state.key_data));
-		ptr_in = serialize(ptr_in, state.untrans_key_to_text_sequence);
-	}
+	ptr_in = serialize(ptr_in, state.key_data);
+	ptr_in = serialize(ptr_in, state.untrans_key_to_text_sequence);
 	ptr_in = memcpy_serialize(ptr_in, state.hardcoded_gamerules);
 
-	if(!exclude_local_handwritten_fields){ // ui definitions
+	{ // ui definitions
 		ptr_in = serialize(ptr_in, state.ui_defs.gfx);
 		ptr_in = serialize(ptr_in, state.ui_defs.textures);
 		ptr_in = serialize(ptr_in, state.ui_defs.gui);
 		ptr_in = serialize(ptr_in, state.font_collection.font_names);
 		ptr_in = serialize(ptr_in, state.ui_defs.extensions);
 	}
-	return ptr_in;
-}
-
-
-
-uint8_t* write_scenario_section(uint8_t* ptr_in, sys::state& state, bool exclude_local_handwritten_fields) {
-	ptr_in = write_handwritten_scenario_section(ptr_in, state, exclude_local_handwritten_fields);
 
 	dcon::load_record result = state.world.make_serialize_record_store_scenario();
 	std::byte* start = reinterpret_cast<std::byte*>(ptr_in);
@@ -570,52 +500,30 @@ uint8_t* write_scenario_section(uint8_t* ptr_in, sys::state& state, bool exclude
 
 	return reinterpret_cast<uint8_t*>(start);
 }
-
-size_t sizeof_handwritten_scenario_section(sys::state& state, bool exclude_local_handwritten_fields = false) {
+scenario_size sizeof_scenario_section(sys::state& state) {
 	size_t sz = 0;
 
 	// hand-written contribution
-	{
-		sz += serialize_size(state.lua_combined_script);
-		sz += serialize_size(state.lua_game_loop_script);
-		sz += serialize_size(state.lua_ui_script);
-	}
 	{ // map
 		sz += sizeof(state.map_state.map_data.size_x);
 		sz += sizeof(state.map_state.map_data.size_y);
 		sz += sizeof(state.map_state.map_data.world_circumference);
-		if(!exclude_local_handwritten_fields) {
-			sz += serialize_size(state.map_state.map_data.river_vertices);
-			sz += serialize_size(state.map_state.map_data.river_starts);
-			sz += serialize_size(state.map_state.map_data.river_counts);
-			sz += serialize_size(state.map_state.map_data.coastal_vertices);
-			sz += serialize_size(state.map_state.map_data.coastal_starts);
-			sz += serialize_size(state.map_state.map_data.coastal_counts);
-			sz += serialize_size(state.map_state.map_data.railroad_vertices);
-			sz += serialize_size(state.map_state.map_data.railroad_starts);
-			sz += serialize_size(state.map_state.map_data.railroad_counts);
-			sz += serialize_size(state.map_state.map_data.province_border_vertices);
-			sz += serialize_size(state.map_state.map_data.province_border_starts);
-			sz += serialize_size(state.map_state.map_data.province_border_counts);
-			sz += serialize_size(state.map_state.map_data.state_border_vertices);
-			sz += serialize_size(state.map_state.map_data.state_border_starts);
-			sz += serialize_size(state.map_state.map_data.state_border_counts);
-			sz += serialize_size(state.map_state.map_data.border_edges);
-			sz += serialize_size(state.map_state.map_data.border_nodes);
-			sz += serialize_size(state.map_state.map_data.adj_index_to_border_edge);
-		}
+		sz += serialize_size(state.map_state.map_data.river_vertices);
+		sz += serialize_size(state.map_state.map_data.river_starts);
+		sz += serialize_size(state.map_state.map_data.river_counts);
+		sz += serialize_size(state.map_state.map_data.coastal_vertices);
+		sz += serialize_size(state.map_state.map_data.coastal_starts);
+		sz += serialize_size(state.map_state.map_data.coastal_counts);
+		sz += serialize_size(state.map_state.map_data.border_vertices);
+		sz += serialize_size(state.map_state.map_data.borders);
 		sz += serialize_size(state.map_state.map_data.terrain_id_map);
 		sz += serialize_size(state.map_state.map_data.province_id_map);
 		sz += serialize_size(state.map_state.map_data.province_area);
 		sz += serialize_size(state.map_state.map_data.province_area_km2);
 		sz += serialize_size(state.map_state.map_data.diagonal_borders);
 	}
-	{
-		sz += sizeof(parsing::defines);
-	}
-	{
-		sz += sizeof(economy::global_economy_state);
-	}
+	{ sz += sizeof(parsing::defines); }
+	{ sz += sizeof(economy::global_economy_state); }
 	{ // culture definitions
 		sz += serialize_size(state.culture_definitions.party_issues);
 		sz += serialize_size(state.culture_definitions.political_issues);
@@ -663,11 +571,9 @@ size_t sizeof_handwritten_scenario_section(sys::state& state, bool exclude_local
 		sz += sizeof(state.military_definitions.irregular);
 	}
 	{ // national definitions
-		if(!exclude_local_handwritten_fields) {
-			sz += serialize_size(state.national_definitions.flag_variable_names);
-			sz += serialize_size(state.national_definitions.global_flag_variable_names);
-			sz += serialize_size(state.national_definitions.variable_names);
-		}
+		sz += serialize_size(state.national_definitions.flag_variable_names);
+		sz += serialize_size(state.national_definitions.global_flag_variable_names);
+		sz += serialize_size(state.national_definitions.variable_names);
 		sz += serialize_size(state.national_definitions.triggered_modifiers);
 		sz += sizeof(state.national_definitions.rebel_id);
 		sz += sizeof(state.national_definitions.very_easy_player);
@@ -737,9 +643,7 @@ size_t sizeof_handwritten_scenario_section(sys::state& state, bool exclude_local
 	{ // provincial definitions
 		sz += serialize_size(state.province_definitions.canals);
 		sz += serialize_size(state.province_definitions.canal_provinces);
-		if(!exclude_local_handwritten_fields) {
-			sz += serialize_size(state.province_definitions.terrain_to_gfx_map);
-		}
+		sz += serialize_size(state.province_definitions.terrain_to_gfx_map);
 		sz += sizeof(state.province_definitions.first_sea_province);
 		sz += sizeof(state.province_definitions.europe);
 		sz += sizeof(state.province_definitions.asia);
@@ -756,28 +660,17 @@ size_t sizeof_handwritten_scenario_section(sys::state& state, bool exclude_local
 	sz += serialize_size(state.effect_data_indices);
 	sz += serialize_size(state.value_modifier_segments);
 	sz += serialize_size(state.value_modifiers);
-	if(!exclude_local_handwritten_fields) {
-		sz += serialize_size(state.key_data);
-		sz += serialize_size(state.untrans_key_to_text_sequence);
-	}
+	sz += serialize_size(state.key_data);
+	sz += serialize_size(state.untrans_key_to_text_sequence);
 	sz += sizeof(state.hardcoded_gamerules);
 
-	if(!exclude_local_handwritten_fields){ // ui definitions
+	{ // ui definitions
 		sz += serialize_size(state.ui_defs.gfx);
 		sz += serialize_size(state.ui_defs.textures);
 		sz += serialize_size(state.ui_defs.gui);
 		sz += serialize_size(state.font_collection.font_names);
 		sz += serialize_size(state.ui_defs.extensions);
 	}
-	return sz;
-
-}
-
-scenario_size sizeof_scenario_section(sys::state& state, bool exclude_local_handwritten_fields) {
-	size_t sz = 0;
-
-	// hand-written contribution
-	sz += sizeof_handwritten_scenario_section(state, exclude_local_handwritten_fields);
 
 	// data container contribution
 	dcon::load_record loaded = state.world.make_serialize_record_store_scenario();
@@ -787,13 +680,11 @@ scenario_size sizeof_scenario_section(sys::state& state, bool exclude_local_hand
 	return scenario_size{ sz + szb, sz };
 }
 
-uint8_t const* read_handwritten_save_section(uint8_t const* ptr_in, uint8_t const* section_end, sys::state& state, bool exclude_local_handwritten_fields = false) {
+uint8_t const* read_save_section(uint8_t const* ptr_in, uint8_t const* section_end, sys::state& state) {
 	// hand-written contribution
-	if(!exclude_local_handwritten_fields) {
-		ptr_in = deserialize(ptr_in, state.unit_names);
-		ptr_in = deserialize(ptr_in, state.unit_names_indices);
-		ptr_in = memcpy_deserialize(ptr_in, state.local_player_nation);
-	}
+	ptr_in = deserialize(ptr_in, state.unit_names);
+	ptr_in = deserialize(ptr_in, state.unit_names_indices);
+	ptr_in = memcpy_deserialize(ptr_in, state.local_player_nation);
 	ptr_in = memcpy_deserialize(ptr_in, state.current_date);
 	ptr_in = memcpy_deserialize(ptr_in, state.game_seed);
 	ptr_in = memcpy_deserialize(ptr_in, state.current_crisis_state);
@@ -816,9 +707,7 @@ uint8_t const* read_handwritten_save_section(uint8_t const* ptr_in, uint8_t cons
 	ptr_in = deserialize(ptr_in, state.pending_p_event);
 	ptr_in = deserialize(ptr_in, state.pending_f_p_event);
 	ptr_in = memcpy_deserialize(ptr_in, state.pending_messages);
-	if(!exclude_local_handwritten_fields) {
-		ptr_in = deserialize(ptr_in, state.player_data_cache);
-	}
+	ptr_in = deserialize(ptr_in, state.player_data_cache);
 	ptr_in = deserialize(ptr_in, state.future_n_event);
 	ptr_in = deserialize(ptr_in, state.future_p_event);
 
@@ -830,11 +719,6 @@ uint8_t const* read_handwritten_save_section(uint8_t const* ptr_in, uint8_t cons
 		ptr_in = memcpy_deserialize(ptr_in, state.military_definitions.great_wars_enabled);
 		ptr_in = memcpy_deserialize(ptr_in, state.military_definitions.world_wars_enabled);
 	}
-	return ptr_in;
-}
-
-uint8_t const* read_save_section(uint8_t const* ptr_in, uint8_t const* section_end, sys::state& state, bool exclude_local_handwritten_fields) {
-	ptr_in = read_handwritten_save_section(ptr_in, section_end, state, exclude_local_handwritten_fields);
 
 	// data container contribution
 
@@ -851,13 +735,11 @@ uint8_t const* read_save_section(uint8_t const* ptr_in, uint8_t const* section_e
 	return section_end;
 }
 
-uint8_t* write_handwritten_save_section(uint8_t* ptr_in, sys::state& state, bool exclude_local_handwritten_fields = false) {
+uint8_t* write_save_section(uint8_t* ptr_in, sys::state& state) {
 	// hand-written contribution
 	ptr_in = serialize(ptr_in, state.unit_names);
 	ptr_in = serialize(ptr_in, state.unit_names_indices);
-	if(!exclude_local_handwritten_fields) {
-		ptr_in = memcpy_serialize(ptr_in, state.local_player_nation);
-	}
+	ptr_in = memcpy_serialize(ptr_in, state.local_player_nation);
 	ptr_in = memcpy_serialize(ptr_in, state.current_date);
 	ptr_in = memcpy_serialize(ptr_in, state.game_seed);
 	ptr_in = memcpy_serialize(ptr_in, state.current_crisis_state);
@@ -873,16 +755,14 @@ uint8_t* write_handwritten_save_section(uint8_t* ptr_in, sys::state& state, bool
 	ptr_in = memcpy_serialize(ptr_in, state.last_crisis_end_date);
 	ptr_in = serialize(ptr_in, state.crisis_defender_wargoals);
 	ptr_in = serialize(ptr_in, state.crisis_attacker_wargoals);
-	ptr_in = memcpy_serialize(ptr_in, state.inflation);
+ 	ptr_in = memcpy_serialize(ptr_in, state.inflation);
 	ptr_in = serialize(ptr_in, state.great_nations);
 	ptr_in = serialize(ptr_in, state.pending_n_event);
 	ptr_in = serialize(ptr_in, state.pending_f_n_event);
 	ptr_in = serialize(ptr_in, state.pending_p_event);
 	ptr_in = serialize(ptr_in, state.pending_f_p_event);
 	ptr_in = memcpy_serialize(ptr_in, state.pending_messages);
-	if(!exclude_local_handwritten_fields) {
-		ptr_in = serialize(ptr_in, state.player_data_cache);
-	}
+	ptr_in = serialize(ptr_in, state.player_data_cache);
 	ptr_in = serialize(ptr_in, state.future_n_event);
 	ptr_in = serialize(ptr_in, state.future_p_event);
 
@@ -893,11 +773,6 @@ uint8_t* write_handwritten_save_section(uint8_t* ptr_in, sys::state& state, bool
 		ptr_in = memcpy_serialize(ptr_in, state.military_definitions.great_wars_enabled);
 		ptr_in = memcpy_serialize(ptr_in, state.military_definitions.world_wars_enabled);
 	}
-	return ptr_in;
-}
-
-uint8_t* write_save_section(uint8_t* ptr_in, sys::state& state, bool exclude_local_handwritten_fields) {
-	ptr_in = write_handwritten_save_section(ptr_in, state, exclude_local_handwritten_fields);
 
 	// data container contribution
 	dcon::load_record loaded = state.world.make_serialize_record_store_save();
@@ -906,17 +781,14 @@ uint8_t* write_save_section(uint8_t* ptr_in, sys::state& state, bool exclude_loc
 
 	return reinterpret_cast<uint8_t*>(start);
 }
-
-size_t sizeof_handwritten_save_section(sys::state& state, bool exclude_local_handwritten_fields = false) {
+size_t sizeof_save_section(sys::state& state) {
 	size_t sz = 0;
 
 	// hand-written contribution
 
 	sz += serialize_size(state.unit_names);
 	sz += serialize_size(state.unit_names_indices);
-	if(!exclude_local_handwritten_fields) {
-		sz += sizeof(state.local_player_nation);
-	}
+	sz += sizeof(state.local_player_nation);
 	sz += sizeof(state.current_date);
 	sz += sizeof(state.game_seed);
 	sz += sizeof(state.current_crisis_state);
@@ -939,9 +811,7 @@ size_t sizeof_handwritten_save_section(sys::state& state, bool exclude_local_han
 	sz += serialize_size(state.pending_p_event);
 	sz += serialize_size(state.pending_f_p_event);
 	sz += sizeof(state.pending_messages);
-	if(!exclude_local_handwritten_fields) {
-		sz += serialize_size(state.player_data_cache);
-	}
+	sz += serialize_size(state.player_data_cache);
 	sz += serialize_size(state.future_n_event);
 	sz += serialize_size(state.future_p_event);
 
@@ -952,46 +822,9 @@ size_t sizeof_handwritten_save_section(sys::state& state, bool exclude_local_han
 		sz += sizeof(state.military_definitions.great_wars_enabled);
 		sz += sizeof(state.military_definitions.world_wars_enabled);
 	}
-	return sz;
-}
-
-size_t sizeof_save_section(sys::state& state, bool exclude_local_handwritten_fields) {
-	size_t sz = 0;
-
-	sz += sizeof_handwritten_save_section(state, exclude_local_handwritten_fields);
 
 	// data container contribution
 	dcon::load_record loaded = state.world.make_serialize_record_store_save();
-	sz += state.world.serialize_size(loaded);
-
-	return sz;
-}
-
-uint8_t const* read_entire_mp_state(uint8_t const* ptr_in, uint8_t const* section_end, sys::state& state, bool exclude_local_handwritten_fields) {
-
-	ptr_in = read_handwritten_scenario_section(ptr_in, section_end, state, exclude_local_handwritten_fields);
-	ptr_in = read_handwritten_save_section(ptr_in, section_end, state, exclude_local_handwritten_fields);
-	dcon::load_record loaded;
-	std::byte const* start = reinterpret_cast<std::byte const*>(ptr_in);
-	state.world.deserialize(start, reinterpret_cast<std::byte const*>(section_end), loaded);
-	return section_end;
-}
-uint8_t* write_entire_mp_state(uint8_t* ptr_in, sys::state& state, bool exclude_local_handwritten_fields) {
-	ptr_in = write_handwritten_scenario_section(ptr_in, state, exclude_local_handwritten_fields);
-	ptr_in = write_handwritten_save_section(ptr_in, state, exclude_local_handwritten_fields);
-
-
-	dcon::load_record result = state.world.make_serialize_record_store_mp_checksum_excluded();
-	std::byte* start = reinterpret_cast<std::byte*>(ptr_in);
-	state.world.serialize(start, result);
-
-	return reinterpret_cast<uint8_t*>(start);
-}
-size_t sizeof_entire_mp_state(sys::state& state, bool exclude_local_handwritten_fields) {
-	size_t sz = 0;
-	sz += sizeof_handwritten_scenario_section(state, exclude_local_handwritten_fields);
-	sz += sizeof_handwritten_save_section(state, exclude_local_handwritten_fields);
-	dcon::load_record loaded = state.world.make_serialize_record_store_mp_checksum_excluded();
 	sz += state.world.serialize_size(loaded);
 
 	return sz;
@@ -1023,7 +856,7 @@ uint8_t const* read_mp_data(uint8_t const* ptr_in, uint8_t const* section_end, s
 	dcon::load_record loaded;
 	std::byte const* start = reinterpret_cast<std::byte const*>(ptr_in);
 	state.world.deserialize(start, reinterpret_cast<std::byte const*>(section_end), loaded);
-
+	
 	return section_end;
 }
 
@@ -1048,10 +881,6 @@ void write_scenario_file(sys::state& state, native_string_view name, uint32_t co
 	scenario_header header;
 	header.count = count;
 	header.timestamp = uint64_t(std::time(nullptr));
-	std::string save_dir_utf8 = simple_fs::native_to_utf8(state.mod_save_dir);
-	memcpy(header.mod_save_dir, save_dir_utf8.data(), std::min(save_dir_utf8.length(), sizeof(header.mod_save_dir)));
-	// Set last character to null incase the mod dir was 128 characters or more, to create the null-terminated string
-	header.mod_save_dir[127] = 0;
 
 	auto scenario_space = sizeof_scenario_section(state);
 	size_t save_space = sizeof_save_section(state);
@@ -1118,7 +947,6 @@ bool try_read_scenario_file(sys::state& state, native_string_view name) {
 		state.scenario_counter = header.count;
 		state.scenario_time_stamp = header.timestamp;
 		state.scenario_checksum = header.checksum;
-		state.mod_save_dir = simple_fs::utf8_to_native( std::string( header.mod_save_dir));
 		state.loaded_save_file = NATIVE("");
 		state.loaded_scenario_file = name;
 
@@ -1126,8 +954,6 @@ bool try_read_scenario_file(sys::state& state, native_string_view name) {
 
 		buffer_pos = with_decompressed_section(buffer_pos,
 				[&](uint8_t const* ptr_in, uint32_t length) { read_scenario_section(ptr_in, ptr_in + length, state); });
-
-		state.on_scenario_load();
 
 		return true;
 	} else {
@@ -1157,7 +983,6 @@ bool try_read_scenario_and_save_file(sys::state& state, native_string_view name)
 		state.scenario_counter = header.count;
 		state.scenario_time_stamp = header.timestamp;
 		state.scenario_checksum = header.checksum;
-		state.mod_save_dir = simple_fs::utf8_to_native(std::string(header.mod_save_dir));
 
 		state.loaded_save_file = NATIVE("");
 		state.loaded_scenario_file = name;
@@ -1242,20 +1067,6 @@ std::string make_time_string(uint64_t value) {
 	return result;
 }
 
-std::string get_default_save_name(sys::state& state, save_type type) {
-	auto ymd_date = state.current_date.to_ymd(state.start_date);
-	if(type == sys::save_type::autosave) {
-		return "autosave_" + std::to_string(state.autosave_counter) + ".bin";
-	}
-	else if(type == sys::save_type::bookmark) {
-		return  "bookmark_" + make_time_string(uint64_t(std::time(nullptr))) + "-" + std::to_string(ymd_date.year) + "-" + std::to_string(ymd_date.month) + "-" + std::to_string(ymd_date.day) + ".bin";
-	}
-	else {
-		auto tag = state.world.nation_get_identity_from_identity_holder(state.local_player_nation);
-		return make_time_string(uint64_t(std::time(nullptr))) + "-" + nations::int_to_tag(state.world.national_identity_get_identifying_int(tag)) + "-" + std::to_string(ymd_date.year) + "-" + std::to_string(ymd_date.month) + "-" + std::to_string(ymd_date.day) + ".bin";
-	}
-}
-
 void write_save_file(sys::state& state, save_type type, std::string const& name, const std::string& file_name) {
 	save_header header;
 	header.count = state.scenario_counter;
@@ -1267,25 +1078,12 @@ void write_save_file(sys::state& state, save_type type, std::string const& name,
 	header.cgov = state.world.nation_get_government_type(state.local_player_nation);
 	header.d = state.current_date;
 
-	auto default_save_name = get_default_save_name(state, type);
-
-	if(!name.empty()) {
-		memcpy(header.save_name, name.c_str(), std::min(name.length(), size_t(63)));
-		if(name.length() < 63) {
-			header.save_name[name.length()] = 0;
-		} else {
-			header.save_name[63] = 0;
-		}
+	memcpy(header.save_name, name.c_str(), std::min(name.length(), size_t(31)));
+	if(name.length() < 31) {
+		header.save_name[name.length()] = 0;
+	} else {
+		header.save_name[31] = 0;
 	}
-	else {
-		memcpy(header.save_name, default_save_name.c_str(), std::min(default_save_name.length(), size_t(63)));
-		if(default_save_name.length() < 63) {
-			header.save_name[default_save_name.length()] = 0;
-		} else {
-			header.save_name[63] = 0;
-		}
-	}
-
 
 	size_t save_space = sizeof_save_section(state);
 
@@ -1305,20 +1103,24 @@ void write_save_file(sys::state& state, save_type type, std::string const& name,
 
 	auto total_size_used = buffer_position - temp_buffer;
 
-	auto sdir = simple_fs::get_or_create_save_game_directory(state.mod_save_dir);
+	auto sdir = simple_fs::get_or_create_save_game_directory();
 
 	if(type == sys::save_type::autosave) {
-		simple_fs::write_file(sdir, simple_fs::utf8_to_native(default_save_name), reinterpret_cast<char*>(temp_buffer), uint32_t(total_size_used));
+		simple_fs::write_file(sdir, native_string(NATIVE("autosave_")) + simple_fs::utf8_to_native(std::to_string(state.autosave_counter)) + native_string(NATIVE(".bin")), reinterpret_cast<char*>(temp_buffer), uint32_t(total_size_used));
 		state.autosave_counter = (state.autosave_counter + 1) % sys::max_autosaves;
 	} else if(type == sys::save_type::bookmark) {
-		simple_fs::write_file(sdir, simple_fs::utf8_to_native( default_save_name), reinterpret_cast<char*>(temp_buffer), uint32_t(total_size_used));
+		auto ymd_date = state.current_date.to_ymd(state.start_date);
+		auto base_str = "bookmark_" + make_time_string(uint64_t(std::time(nullptr))) + "-" + std::to_string(ymd_date.year) + "-" + std::to_string(ymd_date.month) + "-" + std::to_string(ymd_date.day) + ".bin";
+		simple_fs::write_file(sdir, simple_fs::utf8_to_native(base_str), reinterpret_cast<char*>(temp_buffer), uint32_t(total_size_used));
 	} else {
 		if(!file_name.empty()) {
 			auto base_str = file_name + ".bin";
 			simple_fs::write_file(sdir, simple_fs::utf8_to_native(base_str), reinterpret_cast<char*>(temp_buffer), uint32_t(total_size_used));
 		}
 		else {
-			simple_fs::write_file(sdir, simple_fs::utf8_to_native(default_save_name), reinterpret_cast<char*>(temp_buffer), uint32_t(total_size_used));
+			auto ymd_date = state.current_date.to_ymd(state.start_date);
+			auto base_str = make_time_string(uint64_t(std::time(nullptr))) + "-" + nations::int_to_tag(state.world.national_identity_get_identifying_int(header.tag)) + "-" + std::to_string(ymd_date.year) + "-" + std::to_string(ymd_date.month) + "-" + std::to_string(ymd_date.day) + ".bin";
+			simple_fs::write_file(sdir, simple_fs::utf8_to_native(base_str), reinterpret_cast<char*>(temp_buffer), uint32_t(total_size_used));
 		}
 	}
 	delete[] temp_buffer;
@@ -1381,8 +1183,8 @@ void write_save_file(sys::state& state, save_type type, std::string const& name,
 		state.cheat_data.supply_dump_buffer.clear();
 	}
 }
-bool try_read_save_file(sys::state& state, native_string_view name, bool ignore_checksum) {
-	auto dir = simple_fs::get_or_create_save_game_directory(state.mod_save_dir);
+bool try_read_save_file(sys::state& state, native_string_view name) {
+	auto dir = simple_fs::get_or_create_save_game_directory();
 	auto save_file = open_file(dir, name);
 	if(save_file) {
 		save_header header;
@@ -1404,13 +1206,8 @@ bool try_read_save_file(sys::state& state, native_string_view name, bool ignore_
 		//	return false;
 		//if(state.scenario_time_stamp != header.timestamp)
 		//	return false;
-		// 
-		// check the checksum if we dont want to ignore it, and refuse to load if it mismatches
-		if(!ignore_checksum) {
-			if(!state.scenario_checksum.is_equal(header.checksum))
-				return false;
-		}
-		
+		if(!state.scenario_checksum.is_equal(header.checksum))
+			return false;
 
 		state.loaded_save_file = name;
 
