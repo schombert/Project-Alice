@@ -1596,20 +1596,8 @@ bool is_losing_colonial_race(sys::state& state, dcon::nation_id n) {
 
 bool sphereing_progress_is_possible(sys::state& state, dcon::nation_id n) {
 	for(auto it : state.world.nation_get_gp_relationship_as_great_power(n)) {
-		if((it.get_status() & influence::is_banned) == 0) {
-			if(it.get_influence() >= state.defines.increaseopinion_influence_cost
-				&& (influence::level_mask & it.get_status()) != influence::level_in_sphere
-				&& (influence::level_mask & it.get_status()) != influence::level_friendly) {
-				return true;
-			} else if(!(it.get_influence_target().get_in_sphere_of()) &&
-								it.get_influence() >= state.defines.addtosphere_influence_cost) {
-				return true;
-			} else if(it.get_influence_target().get_in_sphere_of() &&
-								(influence::level_mask & it.get_status()) == influence::level_friendly &&
-								it.get_influence() >= state.defines.removefromsphere_influence_cost) {
-				return true;
-			}
-		}
+		if((it.get_status() & influence::priority_mask) != influence::priority_zero)
+			return true;
 	}
 	return false;
 }
@@ -2582,14 +2570,9 @@ bool other_nation_is_influencing(sys::state& state, dcon::nation_id target, dcon
 }
 
 bool can_accumulate_influence_with(sys::state& state, dcon::nation_id gp, dcon::nation_id target, dcon::gp_relationship_id rel) {
-	if((state.world.gp_relationship_get_status(rel) & influence::is_banned) != 0)
-		return false;
 	if(military::has_truce_with(state, gp, target) && state.world.nation_get_in_sphere_of(target) != gp )
 		return false;
 	if(military::are_at_war(state, gp, target))
-		return false;
-	if(state.world.gp_relationship_get_influence(rel) >= state.defines.max_influence
-		&& !other_nation_is_influencing(state, target, rel))
 		return false;
 	return true;
 }
@@ -2633,11 +2616,38 @@ float get_avg_total_literacy(sys::state& state, dcon::nation_id n) {
 }
 
 void update_influence(sys::state& state) {
+	// Keep the new thresholds relative to the existing, serialized influence cap.
+	// Adding fields to parsing::defines would make previously generated scenarios
+	// unreadable by the game client.
+	auto const influence_decay = state.defines.max_influence * 0.001f;
+	auto const sphere_control_lead = state.defines.max_influence * 0.30f;
+	auto const sphere_transfer_owner_influence = state.defines.max_influence * 0.70f;
+
+	// The old opinion and sabotage flags are deliberately no longer game mechanics.
+	// Keep level_in_sphere as a compatibility mirror for scripts and saved games; every
+	// other opinion level is reset to neutral so it cannot affect influence competition.
 	for(auto rel : state.world.in_gp_relationship) {
-		if(rel.get_penalty_expires_date() == state.current_date) {
-			rel.set_status(rel.get_status() & ~(influence::is_banned | influence::is_discredited));
+		if(!rel.get_great_power().get_is_great_power()) {
+			rel.set_status(uint8_t(rel.get_status() & ~(influence::is_banned | influence::is_discredited | influence::level_mask | influence::priority_mask)));
+			rel.set_influence(0.0f);
+			continue;
+		}
+
+		auto clean_status = uint8_t(rel.get_status() & ~(influence::is_banned | influence::is_discredited | influence::level_mask));
+		if(rel.get_influence_target().get_in_sphere_of() == rel.get_great_power())
+			clean_status = uint8_t(clean_status | influence::level_in_sphere);
+		rel.set_status(clean_status);
+
+		if((clean_status & influence::priority_mask) == influence::priority_zero) {
+			rel.set_influence(std::max(0.0f, rel.get_influence() - influence_decay));
 		}
 	}
+
+	struct daily_gain {
+		dcon::gp_relationship_id rel;
+		float amount;
+	};
+	std::vector<daily_gain> gains;
 
 	for(auto& grn : state.great_nations) {
 		dcon::nation_fat_id n = fatten(state.world, grn.nation);
@@ -2676,7 +2686,7 @@ void update_influence(sys::state& state) {
 
 			/*
 			This influence value does not translate directly into influence with the target nation. Instead it is first multiplied
-			by the following factor: 1 + define:DISCREDIT_INFLUENCE_GAIN_FACTOR (if discredited) +
+			by the following factor: 1 +
 			define:NEIGHBOUR_BONUS_INFLUENCE_PERCENT (if the nations are adjacent) +
 			define:SPHERE_NEIGHBOUR_BONUS_INFLUENCE_PERCENT (if some member of the influencing nation's sphere is adjacent but not
 			the influencing nation itself) + define:OTHER_CONTINENT_BONUS_INFLUENCE_PERCENT (if the influencing nation and the
@@ -2699,10 +2709,8 @@ void update_influence(sys::state& state) {
 					auto gp_invest = state.world.unilateral_relationship_get_foreign_investment(
 						state.world.get_unilateral_relationship_by_unilateral_pair(rel.get_influence_target(), n));
 
-					float discredit_factor =
-							(rel.get_status() & influence::is_discredited) != 0 ? state.defines.discredit_influence_gain_factor : 0.0f;
 					float neighbor_factor = bool(state.world.get_nation_adjacency_by_nation_adjacency_pair(n, rel.get_influence_target()))
-																			? state.defines.neighbour_bonus_influence_percent
+																	? state.defines.neighbour_bonus_influence_percent
 																			: 0.0f;
 					float sphere_neighbor_factor = nations::has_sphere_neighbour(state, n, rel.get_influence_target())
 						? state.defines.sphere_neighbour_bonus_influence_percent
@@ -2726,34 +2734,101 @@ void update_influence(sys::state& state) {
 						? std::max(1.0f - (rel.get_influence_target().get_industrial_score() + rel.get_influence_target().get_military_score() + prestige_score(state, rel.get_influence_target())) / gp_score,  0.0f)
 						: 0.0f;
 
-					float total_multiplier = 1.0f + discredit_factor + neighbor_factor + sphere_neighbor_factor + continent_factor + puppet_factor + relationship_factor + investment_factor + pop_factor + score_factor;
+					float total_multiplier = 1.0f + neighbor_factor + sphere_neighbor_factor + continent_factor + puppet_factor + relationship_factor + investment_factor + pop_factor + score_factor;
 
 					auto gain_amount = base_shares * total_multiplier;
+					if(gain_amount > 0.0f)
+						gains.push_back(daily_gain{ rel.id, gain_amount });
+				}
+			}
+		}
+	}
 
-					/*
-					Any influence that accumulates beyond the max (define:MAX_INFLUENCE) will be subtracted from the influence of
-					the great power with the most influence (other than the influencing nation).
-					*/
+	for(auto const& gain : gains) {
+		auto old_value = state.world.gp_relationship_get_influence(gain.rel);
+		state.world.gp_relationship_set_influence(gain.rel, old_value + gain.amount);
+	}
 
-					rel.set_influence(rel.get_influence() + std::max(0.0f, gain_amount));
-					if(rel.get_influence() > state.defines.max_influence) {
-						auto overflow = rel.get_influence() - state.defines.max_influence;
-						rel.set_influence(state.defines.max_influence);
-						dcon::gp_relationship_id other_rel;
-						for(auto orel : rel.get_influence_target().get_gp_relationship_as_influence_target()) {
-							if(orel != rel) {
-								if(orel.get_influence() > state.world.gp_relationship_get_influence(other_rel)) {
-									other_rel = orel;
-								}
-							}
-						}
+	// Resolve overflow target by target. Pressure is collected first and applied together,
+	// so the result does not depend on great-power iteration order.
+	for(auto target : state.world.in_nation) {
+		if(target.get_is_great_power())
+			continue;
 
-						if(other_rel) {
-							auto& orl_i = state.world.gp_relationship_get_influence(other_rel);
-							state.world.gp_relationship_set_influence(other_rel, std::max(0.0f, orl_i - overflow));
-						}
+		struct pressure_change {
+			dcon::gp_relationship_id rel;
+			float amount;
+		};
+		std::vector<pressure_change> pressure;
+		auto sphere_owner = target.get_in_sphere_of().id;
+		if(sphere_owner && !state.world.nation_get_is_great_power(sphere_owner)) {
+			remove_from_sphere(state, target.id, influence::level_neutral);
+			sphere_owner = dcon::nation_id{};
+		}
+
+		for(auto rel : target.get_gp_relationship_as_influence_target()) {
+			auto current = rel.get_influence();
+			if(current <= state.defines.max_influence)
+				continue;
+
+			auto overflow = current - state.defines.max_influence;
+			rel.set_influence(state.defines.max_influence);
+
+			dcon::gp_relationship_id pressure_target;
+			if(sphere_owner && rel.get_great_power().id != sphere_owner) {
+				pressure_target = state.world.get_gp_relationship_by_gp_influence_pair(target, sphere_owner);
+			} else {
+				for(auto other : target.get_gp_relationship_as_influence_target()) {
+					if(other == rel)
+						continue;
+					if(!pressure_target || other.get_influence() > state.world.gp_relationship_get_influence(pressure_target) ||
+						(other.get_influence() == state.world.gp_relationship_get_influence(pressure_target) &&
+							other.get_great_power().id.index() < state.world.gp_relationship_get_great_power(pressure_target).index())) {
+						pressure_target = other.id;
 					}
 				}
+			}
+
+			if(pressure_target)
+				pressure.push_back(pressure_change{ pressure_target, overflow });
+		}
+
+		for(auto const& change : pressure) {
+			auto current = state.world.gp_relationship_get_influence(change.rel);
+			state.world.gp_relationship_set_influence(change.rel, std::max(0.0f, current - change.amount));
+		}
+
+		dcon::gp_relationship_id leader;
+		dcon::gp_relationship_id runner_up;
+		for(auto rel : target.get_gp_relationship_as_influence_target()) {
+			if(!leader || rel.get_influence() > state.world.gp_relationship_get_influence(leader) ||
+				(rel.get_influence() == state.world.gp_relationship_get_influence(leader) &&
+					rel.get_great_power().id.index() < state.world.gp_relationship_get_great_power(leader).index())) {
+				runner_up = leader;
+				leader = rel.id;
+			} else if(!runner_up || rel.get_influence() > state.world.gp_relationship_get_influence(runner_up) ||
+				(rel.get_influence() == state.world.gp_relationship_get_influence(runner_up) &&
+					rel.get_great_power().id.index() < state.world.gp_relationship_get_great_power(runner_up).index())) {
+				runner_up = rel.id;
+			}
+		}
+
+		if(!leader)
+			continue;
+
+		auto leader_influence = state.world.gp_relationship_get_influence(leader);
+		auto runner_up_influence = runner_up ? state.world.gp_relationship_get_influence(runner_up) : 0.0f;
+		auto leader_gp = state.world.gp_relationship_get_great_power(leader);
+
+		if(!sphere_owner) {
+			if(leader_influence >= state.defines.max_influence && leader_influence - runner_up_influence >= sphere_control_lead)
+				sphere_nation(state, target.id, leader_gp);
+		} else if(leader_gp != sphere_owner) {
+			auto owner_rel = state.world.get_gp_relationship_by_gp_influence_pair(target, sphere_owner);
+			auto owner_influence = owner_rel ? state.world.gp_relationship_get_influence(owner_rel) : 0.0f;
+			if(leader_influence >= state.defines.max_influence && owner_influence <= sphere_transfer_owner_influence) {
+				remove_from_sphere(state, target.id, influence::level_neutral);
+				sphere_nation(state, target.id, leader_gp);
 			}
 		}
 	}
@@ -3754,63 +3829,9 @@ void adjust_influence(sys::state& state, dcon::nation_id great_power, dcon::nati
 }
 
 void adjust_influence_with_overflow(sys::state& state, dcon::nation_id great_power, dcon::nation_id target, float delta) {
-	if(state.world.nation_get_owned_province_count(great_power) == 0 || state.world.nation_get_owned_province_count(target) == 0)
-		return;
-	if(great_power == target)
-		return;
-	if(state.world.nation_get_is_great_power(target) || !state.world.nation_get_is_great_power(great_power))
-		return;
-
-	auto rel = state.world.get_gp_relationship_by_gp_influence_pair(target, great_power);
-	if(!rel) {
-		rel = state.world.force_create_gp_relationship(target, great_power);
-	}
-	auto& inf = state.world.gp_relationship_get_influence(rel);
-	state.world.gp_relationship_set_influence(rel, inf + delta);
-
-	while(inf < 0) {
-		if(state.world.nation_get_in_sphere_of(target) == great_power) {
-			state.world.gp_relationship_set_influence(rel, inf + state.defines.addtosphere_influence_cost);
-			auto l = state.world.gp_relationship_get_status(rel);
-			nations::remove_from_sphere(state, target, uint8_t(nations::influence::decrease_level(l)));
-
-		} else {
-			state.world.gp_relationship_set_influence(rel, inf + state.defines.increaseopinion_influence_cost);
-
-			auto& l = state.world.gp_relationship_get_status(rel);
-			state.world.gp_relationship_set_status(rel, uint8_t(nations::influence::decrease_level(l)));
-		}
-	}
-
-	while(inf > state.defines.max_influence) {
-		// if already sphered, set influence to max
-		if((state.world.gp_relationship_get_status(rel) & influence::level_mask) == influence::level_in_sphere) {
-			state.world.gp_relationship_set_influence(rel, state.defines.max_influence);
-		}
-		else if((state.world.gp_relationship_get_status(rel) & influence::level_mask) == influence::level_friendly) {
-			// if in someone else's sphere, spend overflow influence to remove them from it first
-			if(bool(state.world.nation_get_in_sphere_of(target)) && state.world.nation_get_in_sphere_of(target) != great_power) {
-				state.world.gp_relationship_set_influence(rel, inf - state.defines.removefromsphere_influence_cost);
-				auto affected_gp = state.world.nation_get_in_sphere_of(target);
-				// the target was in a previous GP's sphere, update their state
-				auto orel = state.world.get_gp_relationship_by_gp_influence_pair(target, affected_gp);
-				auto l = state.world.gp_relationship_get_status(orel);
-				nations::remove_from_sphere(state, target, uint8_t(nations::influence::decrease_level(l)));
-
-			}
-			// if they arent in a sphere, use overflow influence to spehere them
-			else {
-				nations::sphere_nation(state, target, great_power);
-				state.world.gp_relationship_set_influence(rel, inf - state.defines.addtosphere_influence_cost);
-			}
-		}
-		else {
-			state.world.gp_relationship_set_influence(rel, inf - state.defines.increaseopinion_influence_cost);
-
-			auto& l = state.world.gp_relationship_get_status(rel);
-			state.world.gp_relationship_set_status(rel, uint8_t(nations::influence::increase_level(l)));
-		}
-	}
+	// Scripted effects may still grant influence, but sphere changes are always resolved
+	// by the daily competition pass above rather than by legacy opinion tiers.
+	adjust_influence(state, great_power, target, delta);
 }
 
 void adjust_foreign_investment(sys::state& state, dcon::nation_id great_power, dcon::nation_id target, float delta) {

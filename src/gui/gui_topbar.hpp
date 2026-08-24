@@ -1902,29 +1902,11 @@ public:
 			bool added_increase_header = false;
 
 			for(auto it : state.world.nation_get_gp_relationship_as_great_power(n)) {
-				if((it.get_status() & nations::influence::is_banned) == 0) {
-					if(it.get_influence() >= state.defines.increaseopinion_influence_cost
-						&& (nations::influence::level_mask & it.get_status()) != nations::influence::level_in_sphere
-						&& (nations::influence::level_mask & it.get_status()) != nations::influence::level_friendly) {
-
-						if(!added_increase_header)
-							text::add_line(state, contents, std::string_view("countryalert_canincreaseopinion"));
-						added_increase_header = true;
-						text::nation_name_and_flag(state, it.get_influence_target(), contents, 15);
-					} else if(!(it.get_influence_target().get_in_sphere_of()) &&
-										it.get_influence() >= state.defines.addtosphere_influence_cost) {
-						if(!added_increase_header)
-							text::add_line(state, contents, std::string_view("countryalert_canincreaseopinion"));
-						added_increase_header = true;
-						text::nation_name_and_flag(state, it.get_influence_target(), contents, 15);
-					} else if(it.get_influence_target().get_in_sphere_of()
-						&& (nations::influence::level_mask & it.get_status()) == nations::influence::level_friendly &&
-										it.get_influence() >= state.defines.removefromsphere_influence_cost) {
-						if(!added_increase_header)
-							text::add_line(state, contents, std::string_view("countryalert_canincreaseopinion"));
-						added_increase_header = true;
-						text::nation_name_and_flag(state, it.get_influence_target(), contents, 15);
-					}
+				if((it.get_status() & nations::influence::priority_mask) != nations::influence::priority_zero) {
+					if(!added_increase_header)
+						text::add_line(state, contents, std::string_view("countryalert_canincreaseopinion"));
+					added_increase_header = true;
+					text::nation_name_and_flag(state, it.get_influence_target(), contents, 15);
 				}
 			}
 			bool added_reb_header = false;

@@ -5041,7 +5041,8 @@ void state::single_game_tick() {
 			rebel::rebel_hunting_check(*this);
 			break;
 		case 13:
-			ai::perform_influence_actions(*this);
+			// Sphere contests resolve inside nations::update_influence; the AI only
+			// chooses priorities during its regular strategic update.
 			break;
 		case 14:
 			ai::update_focuses(*this);

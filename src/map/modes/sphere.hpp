@@ -86,10 +86,10 @@ std::vector<uint32_t> get_selected_sphere_color(sys::state& state) {
 				} else {
 					auto master_rel_id = state.world.get_gp_relationship_by_gp_influence_pair(owner, master);
 					if(bool(master_rel_id)) {
-						auto master_rel_status = state.world.gp_relationship_get_status(master_rel_id);
 						auto master_rel_inf = state.world.gp_relationship_get_influence(master_rel_id);
+						auto is_sphere_member = owner.get_in_sphere_of() == master;
 
-						if(master_rel_status == nations::influence::level_in_sphere || master_rel_inf != 0) {
+						if(is_sphere_member || master_rel_inf != 0) {
 							owner.for_each_gp_relationship_as_influence_target([&](dcon::gp_relationship_id rel_id) {
 								// Has more than one influencer
 								if(rel_id != master_rel_id && state.world.gp_relationship_get_influence(rel_id) != 0 &&
@@ -98,7 +98,7 @@ std::vector<uint32_t> get_selected_sphere_color(sys::state& state) {
 								}
 							});
 
-							if(master_rel_status == nations::influence::level_in_sphere) {
+							if(is_sphere_member) {
 								color = sphere_color;
 							} else if(master_rel_inf != 0) {
 								color = inf_color;

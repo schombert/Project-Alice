@@ -586,21 +586,38 @@ void sphere_map_tt_box(sys::state& state, text::columnar_layout& contents, dcon:
 				text::localised_format_box(state, contents, box, std::string_view("sphere_of_infl_is_in_sphere"), sub);
 			}
 
-			bool bHasDisplayedHeader = false;
-			for(auto gpr : fat.get_nation_from_province_ownership().get_gp_relationship_as_influence_target()) {
-				if(!bHasDisplayedHeader) {
-					text::add_line_break_to_layout_box(state, contents, box);
-					text::localised_single_sub_box(state, contents, box, std::string_view("sphere_of_infl_is_infl_by"), text::variable_type::country, fat.get_nation_from_province_ownership());
-					text::add_line_break_to_layout_box(state, contents, box);
-					bHasDisplayedHeader = true;
+			dcon::gp_relationship_id leader;
+			dcon::gp_relationship_id runner_up;
+			auto owner = fat.get_nation_from_province_ownership();
+			for(auto gpr : owner.get_gp_relationship_as_influence_target()) {
+				if(!leader || gpr.get_influence() > state.world.gp_relationship_get_influence(leader) ||
+					(gpr.get_influence() == state.world.gp_relationship_get_influence(leader) &&
+						gpr.get_great_power().id.index() < state.world.gp_relationship_get_great_power(leader).index())) {
+					runner_up = leader;
+					leader = gpr.id;
+				} else if(!runner_up || gpr.get_influence() > state.world.gp_relationship_get_influence(runner_up) ||
+					(gpr.get_influence() == state.world.gp_relationship_get_influence(runner_up) &&
+						gpr.get_great_power().id.index() < state.world.gp_relationship_get_great_power(runner_up).index())) {
+					runner_up = gpr.id;
 				}
-				text::add_to_layout_box(state, contents, box, gpr.get_great_power().id, text::text_color::yellow);
-				text::add_to_layout_box(state, contents, box, (
-					" (" +
-					text::format_float(gpr.get_influence(), 0) +
-					")"
-					), text::text_color::white);
+			}
+
+			if(leader) {
 				text::add_line_break_to_layout_box(state, contents, box);
+				text::localised_single_sub_box(state, contents, box, std::string_view("sphere_of_infl_is_infl_by"), text::variable_type::country, owner);
+				text::add_line_break_to_layout_box(state, contents, box);
+				auto add_contender = [&](dcon::gp_relationship_id rel) {
+					text::add_to_layout_box(state, contents, box, state.world.gp_relationship_get_great_power(rel), text::text_color::yellow);
+					text::add_to_layout_box(state, contents, box, " (" + text::format_float(state.world.gp_relationship_get_influence(rel), 0) + ")", text::text_color::white);
+					text::add_line_break_to_layout_box(state, contents, box);
+				};
+				add_contender(leader);
+				if(runner_up)
+					add_contender(runner_up);
+
+				auto player_rel = state.world.get_gp_relationship_by_gp_influence_pair(owner, state.local_player_nation);
+				if(player_rel && player_rel != leader && player_rel != runner_up)
+					add_contender(player_rel);
 			}
 		}
 		text::close_layout_box(contents, box);

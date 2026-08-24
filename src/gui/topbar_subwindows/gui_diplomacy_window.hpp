@@ -515,10 +515,6 @@ void explain_influence(sys::state& state, dcon::nation_id target, text::columnar
 
 	auto rel = fatten(state.world, state.world.get_gp_relationship_by_gp_influence_pair(target, state.local_player_nation));
 
-	if((state.world.gp_relationship_get_status(rel) & nations::influence::is_banned) != 0) {
-		text::add_line(state, contents, "influence_explain_1");
-		return;
-	}
 	if(military::has_truce_with(state, state.local_player_nation, target) && state.world.nation_get_in_sphere_of(target) != state.local_player_nation) {
 		text::add_line(state, contents, "influence_explain_2");
 		return;
@@ -539,9 +535,6 @@ void explain_influence(sys::state& state, dcon::nation_id target, text::columnar
 		auto gp_invest = state.world.unilateral_relationship_get_foreign_investment(
 			state.world.get_unilateral_relationship_by_unilateral_pair(target, n));
 
-		float discredit_factor = (rel.get_status() & nations::influence::is_discredited) != 0
-			? state.defines.discredit_influence_gain_factor
-			: 0.0f;
 		float neighbor_factor = bool(state.world.get_nation_adjacency_by_nation_adjacency_pair(n, target))
 			? state.defines.neighbour_bonus_influence_percent
 			: 0.0f;
@@ -572,7 +565,7 @@ void explain_influence(sys::state& state, dcon::nation_id target, text::columnar
 			? std::max(1.0f - (state.world.nation_get_industrial_score(target) + state.world.nation_get_military_score(target) + nations::prestige_score(state, target)) / gp_score, 0.0f)
 			: 0.0f;
 
-		float total_multiplier = 1.0f + discredit_factor + neighbor_factor + sphere_neighbor_factor + continent_factor + puppet_factor + relationship_factor + investment_factor + pop_factor + score_factor;
+		float total_multiplier = 1.0f + neighbor_factor + sphere_neighbor_factor + continent_factor + puppet_factor + relationship_factor + investment_factor + pop_factor + score_factor;
 
 		auto gain_amount = std::max(0.0f, base_shares * total_multiplier);
 
@@ -592,13 +585,10 @@ void explain_influence(sys::state& state, dcon::nation_id target, text::columnar
 
 		text::add_line(state, contents, "influence_explain_8", text::variable_type::x, text::fp_two_places{ base_shares });
 
-		if(discredit_factor != 0 || neighbor_factor != 0 || sphere_neighbor_factor != 0 || continent_factor != 0 || puppet_factor != 0 || relationship_factor != 0 || investment_factor != 0 || pop_factor != 0 || score_factor != 0) {
+		if(neighbor_factor != 0 || sphere_neighbor_factor != 0 || continent_factor != 0 || puppet_factor != 0 || relationship_factor != 0 || investment_factor != 0 || pop_factor != 0 || score_factor != 0) {
 
 			text::add_line(state, contents, "influence_explain_9");
 
-			if(discredit_factor != 0) {
-				text::add_line(state, contents, "influence_explain_10", text::variable_type::x, text::fp_two_places{ discredit_factor }, 15);
-			}
 			if(neighbor_factor != 0) {
 				text::add_line(state, contents, "influence_explain_11", text::variable_type::x, text::fp_two_places{ neighbor_factor }, 15);
 			}
@@ -1189,9 +1179,7 @@ class gp_detail_banned : public image_element_base {
 public:
 	bool show = false;
 	void on_update(sys::state& state) noexcept override {
-		auto gp = nations::get_nth_great_power(state, uint16_t(retrieve<gp_detail_num>(state, parent).value));
-		auto target = retrieve<dcon::nation_id>(state, parent);
-		show = (state.world.gp_relationship_get_status(state.world.get_gp_relationship_by_gp_influence_pair(target, gp)) & nations::influence::is_banned) != 0;
+		show = false;
 	}
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return show ? tooltip_behavior::variable_tooltip : tooltip_behavior::no_tooltip;
@@ -1214,9 +1202,7 @@ class gp_detail_discredited : public image_element_base {
 public:
 	bool show = false;
 	void on_update(sys::state& state) noexcept override {
-		auto gp = nations::get_nth_great_power(state, uint16_t(retrieve<gp_detail_num>(state, parent).value));
-		auto target = retrieve<dcon::nation_id>(state, parent);
-		show = (state.world.gp_relationship_get_status(state.world.get_gp_relationship_by_gp_influence_pair(target, gp)) & nations::influence::is_discredited) != 0;
+		show = false;
 	}
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return show ? tooltip_behavior::variable_tooltip : tooltip_behavior::no_tooltip;
@@ -1240,8 +1226,41 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		auto gp = nations::get_nth_great_power(state, uint16_t(retrieve<gp_detail_num>(state, parent).value));
 		auto target = retrieve<dcon::nation_id>(state, parent);
+		auto rel = state.world.get_gp_relationship_by_gp_influence_pair(target, gp);
+		if(!rel) {
+			set_text(state, std::string{});
+			return;
+		}
 
-		set_text(state, text::get_influence_level_name(state, state.world.gp_relationship_get_status(state.world.get_gp_relationship_by_gp_influence_pair(target, gp))));
+		if(state.world.nation_get_in_sphere_of(target) == gp) {
+			set_text(state, text::produce_simple_string(state, "in_sphere"));
+			return;
+		}
+
+		dcon::gp_relationship_id leader;
+		dcon::gp_relationship_id runner_up;
+		for(auto other : state.world.nation_get_gp_relationship_as_influence_target(target)) {
+			if(!leader || other.get_influence() > state.world.gp_relationship_get_influence(leader) ||
+				(other.get_influence() == state.world.gp_relationship_get_influence(leader) &&
+					other.get_great_power().id.index() < state.world.gp_relationship_get_great_power(leader).index())) {
+				runner_up = leader;
+				leader = other.id;
+			} else if(!runner_up || other.get_influence() > state.world.gp_relationship_get_influence(runner_up) ||
+				(other.get_influence() == state.world.gp_relationship_get_influence(runner_up) &&
+					other.get_great_power().id.index() < state.world.gp_relationship_get_great_power(runner_up).index())) {
+				runner_up = other.id;
+			}
+		}
+
+		if(leader && state.world.gp_relationship_get_great_power(leader) == gp) {
+			auto lead = state.world.gp_relationship_get_influence(leader) -
+				(runner_up ? state.world.gp_relationship_get_influence(runner_up) : 0.0f);
+			set_text(state, std::string("Leader +") + text::format_float(lead, 1));
+		} else if(state.world.gp_relationship_get_influence(rel) > 0.0f) {
+			set_text(state, std::string("Contesting"));
+		} else {
+			set_text(state, std::string{});
+		}
 	}
 };
 class great_power_influence_detail : public simple_text_element_base {
@@ -1288,10 +1307,9 @@ public:
 			return make_element_by_type<great_power_influence_detail>(state, id);
 		} else if(name == "nongp_country_invest") {
 			return make_element_by_type<great_power_investment_detail>(state, id);
-		} else if(name == "country_discredited") {
-			return make_element_by_type<gp_detail_discredited>(state, id);
-		} else if(name == "country_banned_embassy") {
-			return make_element_by_type<gp_detail_banned>(state, id);
+		} else if(name == "country_discredited" || name == "country_banned_embassy") {
+			// These legacy icon slots remain empty; no texture or layout changes are needed.
+			return nullptr;
 		}
 
 		return nullptr;
@@ -1714,7 +1732,7 @@ public:
 				auto rel_w_defender = state.world.get_gp_relationship_by_gp_influence_pair(defender, state.local_player_nation);
 				auto inf = state.world.gp_relationship_get_status(rel_w_defender) & nations::influence::level_mask;
 
-				text::add_line_with_condition(state, contents, "intervene_17", inf == nations::influence::level_friendly);
+				text::add_line_with_condition(state, contents, "intervene_17", inf == nations::influence::level_friendly || inf == nations::influence::level_in_sphere);
 
 				text::add_line_with_condition(state, contents, "intervene_7", !state.world.war_get_is_crisis_war(w));
 				text::add_line_with_condition(state, contents, "intervene_9", !B);
@@ -2355,16 +2373,17 @@ inline static diplomacy_action_btn_logic* leftcolumnlogics[DiplomaticActionsRows
 	&diplomacy_action_command_units_button_s
 };
 inline static diplomacy_action_btn_logic* rightcolumnlogics[DiplomaticActionsRows] = {
-	&diplomacy_action_discredit_button_s,
-	&diplomacy_action_expel_advisors_button_s,
-	&diplomacy_action_ban_embassy_button_s,
-	&diplomacy_action_increase_opinion_button_s,
-	&diplomacy_action_decrease_opinion_button_s,
-	&diplomacy_action_add_to_sphere_button_s,
 	&diplomacy_action_remove_from_sphere_button_s,
 	&diplomacy_action_justify_war_button_s,
 	&diplomacy_action_state_transfer_button_s,
-	&diplomacy_action_embargo_s
+	&diplomacy_action_embargo_s,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr
 };
 
 class diplomacy_action_btn_left : public button_element_base {

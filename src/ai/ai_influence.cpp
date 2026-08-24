@@ -17,8 +17,8 @@ void update_influence_priorities(sys::state& state) {
 		} else {
 			auto& status = gprl.get_status();
 			gprl.set_status(uint8_t(status & ~nations::influence::priority_mask));
-			if((status & nations::influence::level_mask) == nations::influence::level_in_sphere) {
-				gprl.set_status(uint8_t(status | nations::influence::priority_one));
+			if(gprl.get_influence_target().get_in_sphere_of() == gprl.get_great_power()) {
+				gprl.set_status(uint8_t(gprl.get_status() | nations::influence::priority_one));
 			}
 		}
 	}
@@ -153,43 +153,4 @@ void update_influence_priorities(sys::state& state) {
 	}
 }
 
-void perform_influence_actions(sys::state& state) {
-	for(auto gprl : state.world.in_gp_relationship) {
-		if(gprl.get_great_power().get_is_player_controlled()) {
-			// nothing -- player GP
-		} else {
-			if((gprl.get_status() & nations::influence::is_banned) != 0)
-				continue; // can't do anything with a banned nation
-
-			if(military::are_at_war(state, gprl.get_great_power(), gprl.get_influence_target()))
-				continue; // can't do anything while at war
-
-			auto clevel = (nations::influence::level_mask & gprl.get_status());
-			if(clevel == nations::influence::level_in_sphere)
-				continue; // already in sphere
-
-			auto current_sphere = gprl.get_influence_target().get_in_sphere_of();
-
-			if(state.defines.increaseopinion_influence_cost <= gprl.get_influence() && clevel != nations::influence::level_friendly) {
-				assert(command::can_increase_opinion(state, gprl.get_great_power(), gprl.get_influence_target()));
-				command::execute_increase_opinion(state, gprl.get_great_power(), gprl.get_influence_target());
-			} else if(state.defines.removefromsphere_influence_cost <= gprl.get_influence() && current_sphere /* && current_sphere != gprl.get_great_power()*/ && clevel == nations::influence::level_friendly) { // condition taken care of by check above
-				assert(command::can_remove_from_sphere(state, gprl.get_great_power(), gprl.get_influence_target(), gprl.get_influence_target().get_in_sphere_of()));
-				command::execute_remove_from_sphere(state, gprl.get_great_power(), gprl.get_influence_target(), gprl.get_influence_target().get_in_sphere_of());
-			} else if(state.defines.addtosphere_influence_cost <= gprl.get_influence() && !current_sphere && clevel == nations::influence::level_friendly) {
-				assert(command::can_add_to_sphere(state, gprl.get_great_power(), gprl.get_influence_target()));
-				command::execute_add_to_sphere(state, gprl.get_great_power(), gprl.get_influence_target());
-				//De-sphere countries we have wargoals against, desphering countries need to check for going over infamy
-			} else if(military::can_use_cb_against(state, gprl.get_great_power(), gprl.get_influence_target())
-				&& state.defines.removefromsphere_influence_cost <= gprl.get_influence()
-				&& current_sphere
-				&& clevel == nations::influence::level_friendly
-				&& (state.world.nation_get_infamy(gprl.get_great_power()) + state.defines.removefromsphere_infamy_cost) < state.defines.badboy_limit
-			) {
-				assert(command::can_remove_from_sphere(state, gprl.get_great_power(), gprl.get_influence_target(), gprl.get_influence_target().get_in_sphere_of()));
-				command::execute_remove_from_sphere(state, gprl.get_great_power(), gprl.get_influence_target(), gprl.get_influence_target().get_in_sphere_of());
-			}
-		}
-	}
-}
 }

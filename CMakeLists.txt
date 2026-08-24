@@ -155,6 +155,12 @@ add_subdirectory(FifInterfaceGenerator EXCLUDE_FROM_ALL)
 add_library(AliceCommon INTERFACE)
 target_compile_definitions(AliceCommon INTERFACE "PROJECT_ROOT=\"${PROJECT_SOURCE_DIR}\"")
 if(WIN32)
+	if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+		# MSBuild batches Alice's large source files into one cl.exe invocation.
+		# /MP lets MSVC compile that batch concurrently and honours the host's
+		# normal processor limit.
+		target_compile_options(AliceCommon INTERFACE /MP)
+	endif()
 	# string(REPLACE "/GR" "" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
 	# string(REPLACE "/W3" "" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
 	# string(REPLACE "/MDd" "" CMAKE_CXX_FLAGS_DEBUG ${CMAKE_CXX_FLAGS_DEBUG})
