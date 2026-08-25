@@ -669,6 +669,17 @@ influence_explain_15;$x$ от наших отношений
 influence_explain_16;$x$ от наших инвестиций в страну
 influence_explain_17;$x$ от размера целевой нации
 influence_explain_18;$x$ из нашей относительной оценки
+great_power_influence_tooltip;Влияние $country$ в $country2$: $x$ / $y$
+great_power_influence_status_sphere;Статус: в сфере влияния
+great_power_influence_status_leader;Статус: лидер
+great_power_influence_status_contesting;Статус: соперничает
+great_power_influence_status_idle;Статус: не влияет
+great_power_influence_leader;Лидер: $country$ ($x$)
+great_power_influence_gap;Отставание от лидера: $x$
+great_power_influence_no_daily_gain;Ежедневное изменение: 0.00
+great_power_investment_tooltip;Иностранные инвестиции $country$ в $country2$: $x$
+great_power_investment_share;Доля всех иностранных инвестиций: $x$
+great_power_investment_influence_modifier;Модификатор влияния от инвестиций: $x$
 until_date;Until $x$
 add_wg_1;You can't add a war goal against yourself
 add_wg_2;You are at war

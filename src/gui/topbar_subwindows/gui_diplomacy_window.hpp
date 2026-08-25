@@ -490,12 +490,12 @@ public:
 	}
 };
 
-void explain_influence(sys::state& state, dcon::nation_id target, text::columnar_layout& contents) {
+void explain_influence(sys::state& state, dcon::nation_id influencer, dcon::nation_id target, text::columnar_layout& contents) {
 	int32_t total_influence_shares = 0;
-	auto n = fatten(state.world, state.local_player_nation);
+	auto n = fatten(state.world, influencer);
 
-	for(auto rel : state.world.nation_get_gp_relationship_as_great_power(state.local_player_nation)) {
-		if(nations::can_accumulate_influence_with(state, state.local_player_nation, rel.get_influence_target(), rel)) {
+	for(auto rel : state.world.nation_get_gp_relationship_as_great_power(influencer)) {
+		if(nations::can_accumulate_influence_with(state, influencer, rel.get_influence_target(), rel)) {
 			switch(rel.get_status() & nations::influence::priority_mask) {
 			case nations::influence::priority_one:
 				total_influence_shares += 1;
@@ -513,13 +513,13 @@ void explain_influence(sys::state& state, dcon::nation_id target, text::columnar
 		}
 	}
 
-	auto rel = fatten(state.world, state.world.get_gp_relationship_by_gp_influence_pair(target, state.local_player_nation));
+	auto rel = fatten(state.world, state.world.get_gp_relationship_by_gp_influence_pair(target, influencer));
 
-	if(military::has_truce_with(state, state.local_player_nation, target) && state.world.nation_get_in_sphere_of(target) != state.local_player_nation) {
+	if(military::has_truce_with(state, influencer, target) && state.world.nation_get_in_sphere_of(target) != influencer) {
 		text::add_line(state, contents, "influence_explain_2");
 		return;
 	}
-	if(military::are_at_war(state, state.local_player_nation, target)) {
+	if(military::are_at_war(state, influencer, target)) {
 		text::add_line(state, contents, "influence_explain_3");
 		return;
 	}
@@ -531,7 +531,7 @@ void explain_influence(sys::state& state, dcon::nation_id target, text::columnar
 		float gp_score = n.get_industrial_score() + n.get_military_score() + nations::prestige_score(state, n);
 		float base_shares = nations::get_base_shares(state, rel, total_gain, total_influence_shares);
 
-		float total_fi = nations::get_foreign_investment(state, n);
+		float total_fi = nations::get_foreign_investment(state, target);
 		auto gp_invest = state.world.unilateral_relationship_get_foreign_investment(
 			state.world.get_unilateral_relationship_by_unilateral_pair(target, n));
 
@@ -614,6 +614,8 @@ void explain_influence(sys::state& state, dcon::nation_id target, text::columnar
 				text::add_line(state, contents, "influence_explain_18", text::variable_type::x, text::fp_two_places{ score_factor }, 15);
 			}
 		}
+	} else {
+		text::add_line(state, contents, "great_power_influence_no_daily_gain");
 	}
 }
 
@@ -716,7 +718,7 @@ public:
 		} else if(nations::is_great_power(state, nation_id)) {
 			text::add_line(state, contents, "diplomacy_cannot_set_prio_gp");
 		} else {
-			explain_influence(state, nation_id, contents);
+			explain_influence(state, state.local_player_nation, nation_id, contents);
 		}
 			
 		auto box = text::open_layout_box(contents, 0);
@@ -1271,6 +1273,58 @@ public:
 
 		set_text(state, text::format_float(state.world.gp_relationship_get_influence(state.world.get_gp_relationship_by_gp_influence_pair(target, gp)), 1));
 	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto gp = nations::get_nth_great_power(state, uint16_t(retrieve<gp_detail_num>(state, parent).value));
+		auto target = retrieve<dcon::nation_id>(state, parent);
+		auto rel = state.world.get_gp_relationship_by_gp_influence_pair(target, gp);
+		auto influence = state.world.gp_relationship_get_influence(rel);
+
+		text::add_line(state, contents, "great_power_influence_tooltip",
+			text::variable_type::country, gp,
+			text::variable_type::country2, target,
+			text::variable_type::x, text::fp_two_places{ influence },
+			text::variable_type::y, text::fp_two_places{ state.defines.max_influence });
+
+		dcon::gp_relationship_id leader;
+		dcon::gp_relationship_id runner_up;
+		for(auto other : state.world.nation_get_gp_relationship_as_influence_target(target)) {
+			if(!leader || other.get_influence() > state.world.gp_relationship_get_influence(leader) ||
+				(other.get_influence() == state.world.gp_relationship_get_influence(leader) &&
+					other.get_great_power().id.index() < state.world.gp_relationship_get_great_power(leader).index())) {
+				runner_up = leader;
+				leader = other.id;
+			} else if(!runner_up || other.get_influence() > state.world.gp_relationship_get_influence(runner_up) ||
+				(other.get_influence() == state.world.gp_relationship_get_influence(runner_up) &&
+					other.get_great_power().id.index() < state.world.gp_relationship_get_great_power(runner_up).index())) {
+				runner_up = other.id;
+			}
+		}
+
+		if(state.world.nation_get_in_sphere_of(target) == gp) {
+			text::add_line(state, contents, "great_power_influence_status_sphere");
+		} else if(leader && state.world.gp_relationship_get_great_power(leader) == gp) {
+			text::add_line(state, contents, "great_power_influence_status_leader");
+		} else if(influence > 0.0f) {
+			text::add_line(state, contents, "great_power_influence_status_contesting");
+		} else {
+			text::add_line(state, contents, "great_power_influence_status_idle");
+		}
+
+		if(leader && state.world.gp_relationship_get_great_power(leader) != gp) {
+			auto leader_influence = state.world.gp_relationship_get_influence(leader);
+			text::add_line(state, contents, "great_power_influence_leader",
+				text::variable_type::country, state.world.gp_relationship_get_great_power(leader),
+				text::variable_type::x, text::fp_two_places{ leader_influence });
+			text::add_line(state, contents, "great_power_influence_gap",
+				text::variable_type::x, text::fp_two_places{ std::max(0.0f, leader_influence - influence) });
+		}
+
+		text::add_line_break_to_layout(state, contents);
+		explain_influence(state, gp, target, contents);
+	}
 };
 class great_power_investment_detail : public simple_text_element_base {
 public:
@@ -1279,6 +1333,26 @@ public:
 		auto target = retrieve<dcon::nation_id>(state, parent);
 
 		set_text(state, text::format_money(state.world.unilateral_relationship_get_foreign_investment(state.world.get_unilateral_relationship_by_unilateral_pair(target, gp))));
+	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto gp = nations::get_nth_great_power(state, uint16_t(retrieve<gp_detail_num>(state, parent).value));
+		auto target = retrieve<dcon::nation_id>(state, parent);
+		auto investment = state.world.unilateral_relationship_get_foreign_investment(
+			state.world.get_unilateral_relationship_by_unilateral_pair(target, gp));
+		auto total_investment = nations::get_foreign_investment(state, target);
+		auto investment_share = total_investment > 0.0f ? investment / total_investment : 0.0f;
+
+		text::add_line(state, contents, "great_power_investment_tooltip",
+			text::variable_type::country, gp,
+			text::variable_type::country2, target,
+			text::variable_type::x, text::fp_currency{ investment });
+		text::add_line(state, contents, "great_power_investment_share",
+			text::variable_type::x, text::fp_percentage{ investment_share });
+		text::add_line(state, contents, "great_power_investment_influence_modifier",
+			text::variable_type::x, text::fp_percentage{ state.defines.investment_influence_defense * investment_share });
 	}
 };
 

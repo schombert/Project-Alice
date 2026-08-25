@@ -2759,7 +2759,12 @@ void update_influence(sys::state& state) {
 			dcon::gp_relationship_id rel;
 			float amount;
 		};
+		struct overflow_source {
+			dcon::gp_relationship_id rel;
+			float amount;
+		};
 		std::vector<pressure_change> pressure;
+		std::vector<overflow_source> overflows;
 		auto sphere_owner = target.get_in_sphere_of().id;
 		if(sphere_owner && !state.world.nation_get_is_great_power(sphere_owner)) {
 			remove_from_sphere(state, target.id, influence::level_neutral);
@@ -2771,26 +2776,28 @@ void update_influence(sys::state& state) {
 			if(current <= state.defines.max_influence)
 				continue;
 
-			auto overflow = current - state.defines.max_influence;
+			overflows.push_back(overflow_source{ rel.id, current - state.defines.max_influence });
 			rel.set_influence(state.defines.max_influence);
+		}
 
-			dcon::gp_relationship_id pressure_target;
-			if(sphere_owner && rel.get_great_power().id != sphere_owner) {
-				pressure_target = state.world.get_gp_relationship_by_gp_influence_pair(target, sphere_owner);
-			} else {
-				for(auto other : target.get_gp_relationship_as_influence_target()) {
-					if(other == rel)
-						continue;
-					if(!pressure_target || other.get_influence() > state.world.gp_relationship_get_influence(pressure_target) ||
-						(other.get_influence() == state.world.gp_relationship_get_influence(pressure_target) &&
-							other.get_great_power().id.index() < state.world.gp_relationship_get_great_power(pressure_target).index())) {
-						pressure_target = other.id;
-					}
-				}
+		// Overflow represents diplomatic pressure. Spread it over every rival in
+		// proportion to their current influence, so a third contender cannot gain
+		// for free while only the leading rival is being pushed back.
+		for(auto const& source : overflows) {
+			float competing_influence = 0.0f;
+			for(auto other : target.get_gp_relationship_as_influence_target()) {
+				if(other.id != source.rel)
+					competing_influence += other.get_influence();
 			}
 
-			if(pressure_target)
-				pressure.push_back(pressure_change{ pressure_target, overflow });
+			if(competing_influence <= 0.0f)
+				continue;
+
+			for(auto other : target.get_gp_relationship_as_influence_target()) {
+				if(other.id == source.rel || other.get_influence() <= 0.0f)
+					continue;
+				pressure.push_back(pressure_change{ other.id, source.amount * other.get_influence() / competing_influence });
+			}
 		}
 
 		for(auto const& change : pressure) {

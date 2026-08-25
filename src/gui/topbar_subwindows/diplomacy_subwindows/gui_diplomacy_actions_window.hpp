@@ -1752,10 +1752,9 @@ public:
 			return make_element_by_type<select_gp_choice_button>(state, id);
 		} else if(name == "country_selected") {
 			return make_element_by_type<select_gp_selection_icon>(state, id);
-		} else if(name == "country_discredited") {
-			return make_element_by_type<select_gp_discredited>(state, id);
-		} else if(name == "country_banned_embassy") {
-			return make_element_by_type<select_gp_banned>(state, id);
+		} else if(name == "country_discredited" || name == "country_banned_embassy") {
+			// Influence sabotage has been removed; keep the legacy GUI slots empty.
+			return nullptr;
 		} else if(name == "country_opinion") {
 			return make_element_by_type<select_gp_opinion_detail>(state, id);
 		} else if(name == "country_influence") {

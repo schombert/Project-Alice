@@ -780,6 +780,17 @@ influence_explain_15;$x$ from our relationship
 influence_explain_16;$x$ from our investment in the nation
 influence_explain_17;$x$ from the size of the target nation
 influence_explain_18;$x$ from our relative score
+great_power_influence_tooltip;$country$ influence in $country2$: $x$ / $y$
+great_power_influence_status_sphere;Status: In sphere of influence
+great_power_influence_status_leader;Status: Leader
+great_power_influence_status_contesting;Status: Contesting
+great_power_influence_status_idle;Status: Not influencing
+great_power_influence_leader;Leader: $country$ ($x$)
+great_power_influence_gap;Gap to leader: $x$
+great_power_influence_no_daily_gain;Daily change: 0.00
+great_power_investment_tooltip;$country$ foreign investment in $country2$: $x$
+great_power_investment_share;Share of all foreign investment: $x$
+great_power_investment_influence_modifier;Influence modifier from investment: $x$
 until_date;Until $x$
 add_wg_1;You can't add a war goal against yourself
 add_wg_2;You are at war

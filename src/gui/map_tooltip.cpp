@@ -586,38 +586,36 @@ void sphere_map_tt_box(sys::state& state, text::columnar_layout& contents, dcon:
 				text::localised_format_box(state, contents, box, std::string_view("sphere_of_infl_is_in_sphere"), sub);
 			}
 
-			dcon::gp_relationship_id leader;
-			dcon::gp_relationship_id runner_up;
 			auto owner = fat.get_nation_from_province_ownership();
-			for(auto gpr : owner.get_gp_relationship_as_influence_target()) {
-				if(!leader || gpr.get_influence() > state.world.gp_relationship_get_influence(leader) ||
-					(gpr.get_influence() == state.world.gp_relationship_get_influence(leader) &&
-						gpr.get_great_power().id.index() < state.world.gp_relationship_get_great_power(leader).index())) {
-					runner_up = leader;
-					leader = gpr.id;
-				} else if(!runner_up || gpr.get_influence() > state.world.gp_relationship_get_influence(runner_up) ||
-					(gpr.get_influence() == state.world.gp_relationship_get_influence(runner_up) &&
-						gpr.get_great_power().id.index() < state.world.gp_relationship_get_great_power(runner_up).index())) {
-					runner_up = gpr.id;
-				}
+			struct contender {
+				dcon::nation_id nation;
+				float influence;
+			};
+			std::vector<contender> contenders;
+			contenders.reserve(state.great_nations.size());
+			for(auto const& great_nation : state.great_nations) {
+				auto rel = state.world.get_gp_relationship_by_gp_influence_pair(owner, great_nation.nation);
+				auto influence = rel ? state.world.gp_relationship_get_influence(rel) : 0.0f;
+				contenders.push_back(contender{ great_nation.nation, influence });
 			}
 
-			if(leader) {
+			std::sort(contenders.begin(), contenders.end(), [](auto const& a, auto const& b) {
+				if(a.influence != b.influence)
+					return a.influence > b.influence;
+				return a.nation.index() < b.nation.index();
+			});
+
+			if(!contenders.empty()) {
 				text::add_line_break_to_layout_box(state, contents, box);
 				text::localised_single_sub_box(state, contents, box, std::string_view("sphere_of_infl_is_infl_by"), text::variable_type::country, owner);
 				text::add_line_break_to_layout_box(state, contents, box);
-				auto add_contender = [&](dcon::gp_relationship_id rel) {
-					text::add_to_layout_box(state, contents, box, state.world.gp_relationship_get_great_power(rel), text::text_color::yellow);
-					text::add_to_layout_box(state, contents, box, " (" + text::format_float(state.world.gp_relationship_get_influence(rel), 0) + ")", text::text_color::white);
+				auto add_contender = [&](contender const& contender) {
+					text::add_to_layout_box(state, contents, box, contender.nation, text::text_color::yellow);
+					text::add_to_layout_box(state, contents, box, " (" + text::format_float(contender.influence, 0) + ")", text::text_color::white);
 					text::add_line_break_to_layout_box(state, contents, box);
 				};
-				add_contender(leader);
-				if(runner_up)
-					add_contender(runner_up);
-
-				auto player_rel = state.world.get_gp_relationship_by_gp_influence_pair(owner, state.local_player_nation);
-				if(player_rel && player_rel != leader && player_rel != runner_up)
-					add_contender(player_rel);
+				for(auto const& contender : contenders)
+					add_contender(contender);
 			}
 		}
 		text::close_layout_box(contents, box);
