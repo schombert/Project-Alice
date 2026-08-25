@@ -990,6 +990,7 @@ alice_unit_disable_rebel_hunt;Прекратить охоту на повста�
 alice_regiment_battle_info;$m$ $name$ ?Y$type$?!\nОрганизация: ?Y$organisation$?W\nСила: ?Y$strength$?W
 understaffed_regiment;?RЭтот батальон не полон и имеет лишь $value$ солдат!?W
 tech_queue_explain;Нажатие с ?YSHIFT?W добавляет в очередь, ?YRight-click?W исключает
+technology_prerequisites;Требования:
 alice_province_building_build;Нажатие с ?YSHIFT?W построит во всей ?Gпровинции?W.\n?YSHIFT-Right-click?W построит во всей стране ?Gcountry?W.
 commodity_shortage;?RНехватка товара
 commodity_surplus;?GИзбыток товара

@@ -2539,11 +2539,11 @@ void u16_text_element_base::render(sys::state& state, int32_t x, int32_t y) noex
 
 void simple_body_text::on_create(sys::state& state) noexcept {
 	if(base_data.get_element_type() == element_type::button) {
-		set_text(state, text::produce_simple_string(state, base_data.data.button.txt));
 		black_text = text::is_black_from_font_id(base_data.data.button.font_handle);
+		set_text(state, text::produce_simple_string(state, base_data.data.button.txt));
 	} else if(base_data.get_element_type() == element_type::text) {
-		set_text(state, text::produce_simple_string(state, base_data.data.text.txt));
 		black_text = text::is_black_from_font_id(base_data.data.text.font_handle);
+		set_text(state, text::produce_simple_string(state, base_data.data.text.txt));
 	}
 }
 void simple_body_text::set_text(sys::state& state, std::string const& new_text) {

@@ -241,6 +241,21 @@ public:
 			text::close_layout_box(contents, box);
 		}
 		technology_description(state, contents, content);
+		auto prerequisites = state.world.technology_get_prerequisites(content);
+		if(prerequisites.begin() != prerequisites.end()) {
+			text::add_line_break_to_layout(state, contents);
+			text::add_line(state, contents, "technology_prerequisites");
+			for(auto prerequisite : prerequisites) {
+				auto const researched = state.world.nation_get_active_technologies(state.local_player_nation, prerequisite);
+				auto box = text::open_layout_box(contents, 15);
+				text::add_to_layout_box(state, contents, box,
+					researched ? text::embedded_icon::check : text::embedded_icon::xmark);
+				text::add_space_to_layout_box(state, contents, box);
+				text::add_to_layout_box(state, contents, box, state.world.technology_get_name(prerequisite),
+					researched ? text::text_color::green : text::text_color::red);
+				text::close_layout_box(contents, box);
+			}
+		}
 		{
 			auto box = text::open_layout_box(contents, 0);
 			text::localised_format_box(state, contents, box, "tech_queue_explain");
@@ -883,9 +898,10 @@ class technology_tree_view : public window_element_base {
 		float const r = unlocked ? 0.28f : 0.38f;
 		float const g = unlocked ? 0.82f : 0.38f;
 		float const b = unlocked ? 0.42f : 0.38f;
-		float const start_x = float(x + prerequisite.base_data.position.x + prerequisite.base_data.size.x + 1);
+		// The connector is deliberately flush with both card edges.
+		float const start_x = float(x + prerequisite.base_data.position.x + prerequisite.base_data.size.x);
 		float const start_y = float(y + prerequisite.base_data.position.y + prerequisite.base_data.size.y / 2);
-		float const end_x = float(x + technology.base_data.position.x - 2);
+		float const end_x = float(x + technology.base_data.position.x);
 		float const end_y = float(y + technology.base_data.position.y + technology.base_data.size.y / 2);
 		float const middle_x = start_x + std::max(3.0f, (end_x - start_x) * 0.5f);
 
@@ -893,7 +909,7 @@ class technology_tree_view : public window_element_base {
 		ogl::render_alpha_colored_rect(state, middle_x - 1.0f, std::min(start_y, end_y), 2.0f, std::abs(end_y - start_y) + 1.0f, r, g, b, 1.0f);
 		ogl::render_alpha_colored_rect(state, middle_x, end_y - 1.0f, end_x - middle_x, 2.0f, r, g, b, 1.0f);
 
-		// A compact triangular head keeps the direction visible without being covered by the target card.
+		// The original compact arrow head now ends exactly at the target-card edge.
 		for(int32_t i = 0; i != 5; ++i) {
 			auto const head_height = float(10 - 2 * i);
 			ogl::render_alpha_colored_rect(state, end_x - 7.0f + float(i) * 1.5f, end_y - head_height * 0.5f,
@@ -998,103 +1014,10 @@ class technology_window : public generic_tabbed_window<culture::tech_category> {
 	dcon::technology_id tech_id{};
 	invention_sort_type invention_sort = invention_sort_type::type;
 public:
-	void on_create(sys::state& state) noexcept override {
-		generic_tabbed_window::on_create(state);
-
-		auto tech_categories = culture::get_active_tech_categories(state);
-
-		xy_pair folder_offset = state.ui_defs.gui[state.ui_state.defs_by_name.find(state.lookup_key("folder_offset"))->second.definition].position;
-		for(auto curr_folder : tech_categories) {
-			auto ptr = make_element_by_type<technology_folder_tab_button>(state,
-					state.ui_state.defs_by_name.find(state.lookup_key("folder_window"))->second.definition);
-			ptr->set_category(state, curr_folder);
-			ptr->base_data.position = folder_offset;
-			folder_offset.x += ptr->base_data.size.x;
-			add_child_to_front(std::move(ptr));
-		}
-
-		auto tree = make_element_by_type<technology_tree_view>(state, "tech_tree_view");
-		if(tree)
-			add_child_to_front(std::move(tree));
-
-		// Properly setup technology displays...
-		Cyto::Any payload = active_tab;
-		impl_set(state, payload);
-
-		set_visible(state, false);
-	}
-
-	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
-		if(name == "main_bg") {
-			return make_element_by_type<image_element_base>(state, id);
-		} else if(name == "bg_tech") {
-			return make_element_by_type<draggable_target>(state, id);
-		} else if(name == "close_button") {
-			return make_element_by_type<generic_close_button>(state, id);
-		} else if(name == "administration") {
-			return make_element_by_type<simple_body_text>(state, id);
-		} else if(name == "current_research") {
-			return make_element_by_type<simple_body_text>(state, id);
-		} else if(name == "administration_type") {
-			return make_element_by_type<national_tech_school>(state, id);
-		} else if(name == "research_progress") {
-			return make_element_by_type<nation_technology_research_progress>(state, id);
-		} else if(name == "research_progress_name") {
-			return make_element_by_type<nation_current_research_text>(state, id);
-		} else if(name == "research_progress_category") {
-			return make_element_by_type<technology_research_progress_category_text>(state, id);
-		} else if(name == "selected_tech_window") {
-			auto ptr = make_element_by_type<technology_selected_tech_window>(state, id);
-			selected_tech_win = ptr.get();
-			return ptr;
-		} else if(name == "sort_by_type") {
-			auto ptr = make_element_by_type<technology_sort_by_type_button>(state, id);
-			ptr->base_data.position.y -= 1; // Nudge
-			return ptr;
-		} else if(name == "sort_by_name") {
-			return make_element_by_type<technology_sort_by_name_button>(state, id);
-		} else if(name == "sort_by_percent") {
-			auto ptr = make_element_by_type<technology_sort_by_percent_button>(state, id);
-			ptr->base_data.position.y -= 1; // Nudge
-			return ptr;
-		} else if(name == "inventions") {
-			return make_element_by_type<technology_possible_invention_listbox>(state, id);
-		} else {
-			return nullptr;
-		}
-	}
-
-	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
-		if(payload.holds_type<culture::tech_category>()) {
-			active_tab = any_cast<culture::tech_category>(payload);
-			for(auto& c : children)
-				c->impl_set(state, payload);
-			return message_result::consumed;
-		} else if(payload.holds_type<technology_select_tech>()) {
-			tech_id = any_cast<technology_select_tech>(payload).tech_id;
-			selected_tech_win->impl_on_update(state);
-			return message_result::consumed;
-		}
-		return message_result::unseen;
-	}
-
-	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
-		if(payload.holds_type<dcon::technology_id>()) {
-			payload.emplace<dcon::technology_id>(tech_id);
-			return message_result::consumed;
-		} else if(payload.holds_type<dcon::nation_id>()) {
-			payload.emplace<dcon::nation_id>(state.local_player_nation);
-			return message_result::consumed;
-		} else if(payload.holds_type<element_selection_wrapper<invention_sort_type>>()) {
-			invention_sort = any_cast<element_selection_wrapper<invention_sort_type>>(payload).data;
-			impl_on_update(state);
-			return message_result::consumed;
-		} else if(payload.holds_type<invention_sort_type>()) {
-			payload = invention_sort;
-			return message_result::consumed;
-		}
-		return message_result::unseen;
-	}
+	void on_create(sys::state& state) noexcept override;
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override;
+	message_result set(sys::state& state, Cyto::Any& payload) noexcept override;
+	message_result get(sys::state& state, Cyto::Any& payload) noexcept override;
 };
 
 } // namespace ui

@@ -1163,6 +1163,7 @@ alice_unit_disable_rebel_hunt;Stop hunting rebels
 alice_regiment_battle_info;$m$ $name$ ?Y$type$?!\nOrganisation: ?Y$organisation$?W\nStrength: ?Y$strength$?W
 understaffed_regiment;?RThis regiment is understaffed and will only have $value$ soldiers!?W
 tech_queue_explain;Press ?YSHIFT?W to add to queue, ?YRight-click?W to remove
+technology_prerequisites;Requirements:
 alice_province_building_build;?YSHIFT?W to build on the entire ?Gstate?W.\n?YSHIFT-Right-click?W to build on the entire ?Gcountry?W.
 commodity_shortage;?RThere is a shortage of this commodity
 commodity_surplus;?GThere is a surplus of this commodity

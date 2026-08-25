@@ -760,4 +760,100 @@ message_result technology_item_window::set(sys::state& state, Cyto::Any& payload
 	}
 	return message_result::unseen;
 }
+
+void technology_window::on_create(sys::state& state) noexcept {
+	generic_tabbed_window::on_create(state);
+
+	auto tech_categories = culture::get_active_tech_categories(state);
+
+	xy_pair folder_offset = state.ui_defs.gui[state.ui_state.defs_by_name.find(state.lookup_key("folder_offset"))->second.definition].position;
+	for(auto curr_folder : tech_categories) {
+		auto ptr = make_element_by_type<technology_folder_tab_button>(state,
+				state.ui_state.defs_by_name.find(state.lookup_key("folder_window"))->second.definition);
+		ptr->set_category(state, curr_folder);
+		ptr->base_data.position = folder_offset;
+		folder_offset.x += ptr->base_data.size.x;
+		add_child_to_front(std::move(ptr));
+	}
+
+	auto tree = make_element_by_type<technology_tree_view>(state, "tech_tree_view");
+	if(tree)
+		add_child_to_front(std::move(tree));
+
+	Cyto::Any payload = active_tab;
+	impl_set(state, payload);
+
+	set_visible(state, false);
+}
+
+std::unique_ptr<element_base> technology_window::make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept {
+	if(name == "main_bg") {
+		return make_element_by_type<image_element_base>(state, id);
+	} else if(name == "bg_tech") {
+		return make_element_by_type<draggable_target>(state, id);
+	} else if(name == "close_button") {
+		return make_element_by_type<generic_close_button>(state, id);
+	} else if(name == "administration") {
+		return make_element_by_type<simple_body_text>(state, id);
+	} else if(name == "current_research") {
+		return make_element_by_type<simple_body_text>(state, id);
+	} else if(name == "administration_type") {
+		return make_element_by_type<national_tech_school>(state, id);
+	} else if(name == "research_progress") {
+		return make_element_by_type<nation_technology_research_progress>(state, id);
+	} else if(name == "research_progress_name") {
+		return make_element_by_type<nation_current_research_text>(state, id);
+	} else if(name == "research_progress_category") {
+		return make_element_by_type<technology_research_progress_category_text>(state, id);
+	} else if(name == "selected_tech_window") {
+		auto ptr = make_element_by_type<technology_selected_tech_window>(state, id);
+		selected_tech_win = ptr.get();
+		return ptr;
+	} else if(name == "sort_by_type") {
+		auto ptr = make_element_by_type<technology_sort_by_type_button>(state, id);
+		ptr->base_data.position.y -= 1;
+		return ptr;
+	} else if(name == "sort_by_name") {
+		return make_element_by_type<technology_sort_by_name_button>(state, id);
+	} else if(name == "sort_by_percent") {
+		auto ptr = make_element_by_type<technology_sort_by_percent_button>(state, id);
+		ptr->base_data.position.y -= 1;
+		return ptr;
+	} else if(name == "inventions") {
+		return make_element_by_type<technology_possible_invention_listbox>(state, id);
+	}
+	return nullptr;
+}
+
+message_result technology_window::set(sys::state& state, Cyto::Any& payload) noexcept {
+	if(payload.holds_type<culture::tech_category>()) {
+		active_tab = any_cast<culture::tech_category>(payload);
+		for(auto& c : children)
+			c->impl_set(state, payload);
+		return message_result::consumed;
+	} else if(payload.holds_type<technology_select_tech>()) {
+		tech_id = any_cast<technology_select_tech>(payload).tech_id;
+		selected_tech_win->impl_on_update(state);
+		return message_result::consumed;
+	}
+	return message_result::unseen;
+}
+
+message_result technology_window::get(sys::state& state, Cyto::Any& payload) noexcept {
+	if(payload.holds_type<dcon::technology_id>()) {
+		payload.emplace<dcon::technology_id>(tech_id);
+		return message_result::consumed;
+	} else if(payload.holds_type<dcon::nation_id>()) {
+		payload.emplace<dcon::nation_id>(state.local_player_nation);
+		return message_result::consumed;
+	} else if(payload.holds_type<element_selection_wrapper<invention_sort_type>>()) {
+		invention_sort = any_cast<element_selection_wrapper<invention_sort_type>>(payload).data;
+		impl_on_update(state);
+		return message_result::consumed;
+	} else if(payload.holds_type<invention_sort_type>()) {
+		payload = invention_sort;
+		return message_result::consumed;
+	}
+	return message_result::unseen;
+}
 } // namespace ui
