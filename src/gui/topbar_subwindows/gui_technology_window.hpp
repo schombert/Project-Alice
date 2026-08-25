@@ -1028,7 +1028,7 @@ public:
 		if(name == "main_bg") {
 			return make_element_by_type<image_element_base>(state, id);
 		} else if(name == "bg_tech") {
-			return make_element_by_type<opaque_element_base>(state, id);
+			return make_element_by_type<draggable_target>(state, id);
 		} else if(name == "close_button") {
 			return make_element_by_type<generic_close_button>(state, id);
 		} else if(name == "administration") {
