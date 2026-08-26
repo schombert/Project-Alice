@@ -1036,10 +1036,16 @@ public:
 	}
 };
 
+struct population_chart_source {
+	std::vector<dcon::pop_id> const* pops = nullptr;
+};
+
 template<typename T, bool Multiple>
 class pop_distribution_piechart : public piechart<T> {
 	void iterate_one_pop(sys::state& state, dcon::pop_id pop_id) {
 		auto const weight_fn = [&](T id, float weight) {
+			if(weight <= 0.0f)
+				return;
 			auto it = std::find_if(this->distribution.begin(), this->distribution.end(), [id](auto& e) { return e.key == id;  });
 			if(it != this->distribution.end())
 				it->value += weight;
@@ -1048,12 +1054,14 @@ class pop_distribution_piechart : public piechart<T> {
 		};
 
 		if constexpr(std::is_same_v<T, dcon::issue_option_id>) {
+			auto size = float(state.world.pop_get_size(pop_id));
 			for(auto iopt : state.world.in_issue_option) {
-				weight_fn(iopt, pop_demographics::get_demo(state, pop_id, pop_demographics::to_key(state, iopt)));
+				weight_fn(iopt, pop_demographics::get_demo(state, pop_id, pop_demographics::to_key(state, iopt)) * size);
 			}
 		} else if constexpr(std::is_same_v<T, dcon::ideology_id>) {
+			auto size = float(state.world.pop_get_size(pop_id));
 			for(auto iopt : state.world.in_ideology) {
-				weight_fn(iopt, pop_demographics::get_demo(state, pop_id, pop_demographics::to_key(state, iopt)));
+				weight_fn(iopt, pop_demographics::get_demo(state, pop_id, pop_demographics::to_key(state, iopt)) * size);
 			}
 		} else if constexpr(std::is_same_v<T, dcon::political_party_id>) {
 			auto prov_id = state.world.pop_location_get_province(state.world.pop_get_pop_location_as_pop(pop_id));
@@ -1089,15 +1097,26 @@ protected:
 
 		if(piechart<T>::parent) {
 			if constexpr(Multiple) {
-				//auto& pop_list = get_pop_window_list(state);
-				//for(auto const pop_id : pop_list)
-				//	iterate_one_pop(state, pop_id);
+				auto source = retrieve<population_chart_source>(state, state.ui_state.population_subwindow);
+				if(source.pops) {
+					for(auto const pop_id : *source.pops)
+						iterate_one_pop(state, pop_id);
+				}
 			} else {
 				iterate_one_pop(state, retrieve<dcon::pop_id>(state, piechart<T>::parent));
 			}
 		}
 
 		piechart<T>::update_chart(state);
+
+		if(piechart<T>::parent) {
+			std::vector<std::pair<T, float>> legend;
+			legend.reserve(piechart<T>::distribution.size());
+			for(auto const& entry : piechart<T>::distribution)
+				legend.emplace_back(entry.key, entry.value);
+			Cyto::Any payload = std::move(legend);
+			piechart<T>::parent->impl_set(state, payload);
+		}
 	}
 
 public:
@@ -1186,6 +1205,17 @@ public:
 	}
 	void on_update(sys::state& state) noexcept override {
 		
+	}
+
+	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<std::vector<std::pair<T, float>>>()) {
+			if(distrib_listbox) {
+				distrib_listbox->row_contents = any_cast<std::vector<std::pair<T, float>>>(payload);
+				distrib_listbox->update(state);
+			}
+			return message_result::consumed;
+		}
+		return message_result::unseen;
 	}
 };
 
@@ -2762,6 +2792,9 @@ public:
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
 		if(payload.holds_type<pop_list_filter>()) {
 			payload.emplace<pop_list_filter>(filter);
+			return message_result::consumed;
+		} else if(payload.holds_type<population_chart_source>()) {
+			payload.emplace<population_chart_source>(population_chart_source{ country_pop_listbox ? &country_pop_listbox->row_contents : nullptr });
 			return message_result::consumed;
 		} else if(payload.holds_type<pop_left_side_expand_action>()) {
 			auto expand_action = any_cast<pop_left_side_expand_action>(payload);
