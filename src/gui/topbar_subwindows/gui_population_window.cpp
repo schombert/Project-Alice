@@ -6,7 +6,6 @@
 
 namespace ui {
 
-/*
 void pop_national_focus_button::button_action(sys::state& state) noexcept {
 	if(parent) {
 		Cyto::Any payload = dcon::state_instance_id{};
@@ -19,6 +18,6 @@ void pop_national_focus_button::button_action(sys::state& state) noexcept {
 		pop_window->move_child_to_front(pop_window->nf_win);
 		pop_window->impl_on_update(state);
 	}
-}*/
+}
 
 } // namespace ui

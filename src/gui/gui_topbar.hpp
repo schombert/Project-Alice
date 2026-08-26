@@ -2131,8 +2131,7 @@ public:
 			return btn;
 		} else if(name == "topbarbutton_pops") {
 			auto btn = make_element_by_type<topbar_population_view_button>(state, id);
-			//auto tab = make_element_by_type<population_window>(state, "country_pop");
-			auto tab = alice_ui::make_demographicswindow_main(state);
+			auto tab = make_element_by_type<population_window>(state, "country_pop");
 			tab->set_visible(state, false);
 			btn->topbar_subwindow = tab.get();
 

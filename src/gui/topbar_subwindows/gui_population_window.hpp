@@ -10,19 +10,38 @@
 #include "demographics.hpp"
 #include "economy_stats.hpp"
 
-namespace ui {
-
-/*
+namespace alice_ui {
 void describe_conversion(sys::state& state, text::columnar_layout& contents, dcon::pop_id ids);
 void describe_migration(sys::state& state, text::columnar_layout& contents, dcon::pop_id ids);
 void describe_colonial_migration(sys::state& state, text::columnar_layout& contents, dcon::pop_id ids);
 void describe_emigration(sys::state& state, text::columnar_layout& contents, dcon::pop_id ids);
-void describe_promotion_demotion(sys::state& state, text::columnar_layout& contents, dcon::pop_id ids);
+void describe_promotion(sys::state& state, text::columnar_layout& contents, dcon::pop_id ids);
+void describe_demotion(sys::state& state, text::columnar_layout& contents, dcon::pop_id ids);
 void describe_con(sys::state& state, text::columnar_layout& contents, dcon::pop_id ids);
 void describe_mil(sys::state& state, text::columnar_layout& contents, dcon::pop_id ids);
 void describe_lit(sys::state& state, text::columnar_layout& contents, dcon::pop_id ids);
 void describe_growth(sys::state& state, text::columnar_layout& contents, dcon::pop_id ids);
 void describe_assimilation(sys::state& state, text::columnar_layout& contents, dcon::pop_id ids);
+}
+
+namespace ui {
+
+using alice_ui::describe_conversion;
+using alice_ui::describe_migration;
+using alice_ui::describe_colonial_migration;
+using alice_ui::describe_emigration;
+using alice_ui::describe_promotion;
+using alice_ui::describe_demotion;
+using alice_ui::describe_con;
+using alice_ui::describe_mil;
+using alice_ui::describe_lit;
+using alice_ui::describe_growth;
+using alice_ui::describe_assimilation;
+
+inline void describe_promotion_demotion(sys::state& state, text::columnar_layout& contents, dcon::pop_id ids) {
+	describe_promotion(state, contents, ids);
+	describe_demotion(state, contents, ids);
+}
 
 class popwin_state_population : public state_population_text {
 public:
@@ -2764,6 +2783,5 @@ public:
 
 	friend class pop_national_focus_button;
 };
-*/
 
 } // namespace ui
