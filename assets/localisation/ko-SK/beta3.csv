@@ -1,0 +1,25 @@
+#;
+COLONIAL_RANGE;식민 거리: §G+$VAL$§W
+MODIFIER_LOCAL_SHIP_BUILD;지역 함선 건조 시간
+CB_ALLOWED_ANNEX;합병 허용
+CB_ALLOWED_ADD_TO_SPHERE;세력권 편입
+CB_ALLOWED_RELEASE_PUPPET;괴뢰국 해방
+CB_ALLOWED_STATUS_QUO;현상 유지로 복귀
+CB_ALLOWED_TRANSFER_PROVINCES;프로빈스 할양
+CB_ALLOWED_PRESTIGE;위신 감소
+CB_ALLOWED_CONCESSION;패배 인정
+MAINTENANCE_DESC;필요 유지 보수 상품:
+MISSING_MAINTENANCE;공장이 유지 보수 상품을 공급받지 못하여 산출량이 §R$PERC$§W로 감소했습니다
+PROCEED;진행
+ENDGAME_HEADLINE;게임 오버
+ENDGAME_DESC;중대한 100년이 지났고 우리는 현대에 진입했습니다. 세계는 근본적으로 다른 곳이 되었는데, 당신의 국가는 어떠했습니까?
+NEEDS_BOUGHT;오늘의 예상 수요:
+TOTAL_NEEDS_BOUGHT;예상 수요 비용:
+TOTAL_SOLD_FOR;어제 우리는 $NUM$개의 §Y$GOOD$§W을(를) 생산하여 $CASH$¤에 판매했습니다
+COULDNT_AFFORD;어제 공장이 모든 투입재를 구매할 여력이 되지 않았습니다
+INPUT_LACKING;시장에 공장의 투입재 수요를 충족할 만큼 충분한 §Y$GOOD$§W이(가) 없습니다
+OUTPUT_WASTED;어제 생산된 $PRODUCED$개의 §Y$GOOD$§W 중 $NUM$개가 판매되지 않았습니다
+TRADE_CONFIRM_DESC;수동 무역을 설정하면 구매 비용을 감당하기 위해 대출을 받게 될 수도 있습니다.
+BUDGET_TAX_EFFICIENCY;조세 효율: §Y$VALUE$%§W
+BUDGET_TAX_EFFECT;실효 세율: §Y$VALUE$%§W
+LEADERSHIP_EFFECT;지휘력: §G$VALUE$§W.\n

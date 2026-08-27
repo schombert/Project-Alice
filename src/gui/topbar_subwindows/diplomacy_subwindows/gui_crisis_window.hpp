@@ -424,7 +424,7 @@ private:
 		for(auto n : state.world.in_nation) {
 			auto ni = state.world.nation_get_identity_from_identity_holder(n);
 
-			if(military::cb_instance_conditions_satisfied(state, state.local_player_nation, target, cb, target_state, ni, n)) {
+			if(military::cb_instance_conditions_satisfied<false>(state, state.local_player_nation, target, cb, target_state, ni, n)) {
 				seldata.selectable_identities.push_back(ni);
 			}
 		}
@@ -604,6 +604,17 @@ protected:
 			}
 		}
 		update(state);
+	}
+};
+
+class overlapping_full_wg_icon : public listbox_row_element_base<sys::full_wg> {
+public:
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "wargoal_icon") {
+			return make_element_by_type<full_wg_icon>(state, id);
+		} else {
+			return nullptr;
+		}
 	}
 };
 

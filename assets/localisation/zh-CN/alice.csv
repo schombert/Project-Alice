@@ -3,7 +3,7 @@ uh_support_for_blank;上议院支持 $text$
 up_to;达到
 scaled_support;支持率 $text$
 scaled_unemployment;失业率
-stockpile_of;储备量 $text$
+stockpile_of;库存量 $text$
 create_general;新将领已产生
 create_admiral;新海军将领已产生
 add_war_goal;添加 $text$ 战争目标针对 $nation$
@@ -31,7 +31,7 @@ make_slave_pop;成为?Y奴隶?W
 research_points;研究点数
 change_tech_school;科研学派变成 ?Y$text$?W
 change_government_to;政体变成 ?Y$text$?W
-add_to_treasury;添加到国库
+add_to_treasury;收入国库
 war_exhaustion;厌战度
 become_blank;成为 ?Y$text$?W
 player_control_change;玩家操作国家变成 $text$
@@ -68,7 +68,7 @@ free_slave_state;成为自由区
 free_slave_pop;解放奴隶
 hold_election;举行选举
 issue_change;$issue$ 变成 $text$
-add_relative_income;最后收入到国库
+add_relative_income;收入国库
 make_neutral;解除所有同盟，释放所有附庸
 pop_size;人群规模
 move_pop_to;人群移动到 $text$
@@ -464,7 +464,7 @@ work;工作
 available_for;适于：
 support;支持
 percentage;比例
-stockpile;储备
+stockpile;库存
 this_nat_religion;此国国教
 from_nat_religion;来自此国国教
 event_show_requirements;此事件的条件：
@@ -548,11 +548,10 @@ pop_prom_1;?Y升职系数：?!
 pop_prom_2;来自国家焦点：?G$val$
 pop_prom_3;0（由于国家焦点）
 pop_prom_4;?Y降职系数：?!
-pop_prom_5;这个人群正在升职，因为升职系数大于降职系数
-pop_prom_6;这个人群正在降职，因为降职系数大于升职系数
-pop_prom_7;由于这两个因子都是负数，此人群将维持现状
-pop_prom_8;可能升职人数=人群规模*升职规模（$x$）*升职系数（$val$）*行政效率（$y$）
-pop_prom_9;可能降职人数=人群规模*降职规模（$x$）*降职系数（$val$）
+pop_prom_5;由于降职因子为负，该人群当前不降职
+pop_prom_7;由于升职因子为负，该人群当前不升职
+pop_prom_8;升职人数 = 人群规模 * 升职规模（$x$）* 升职因子（$val$）
+pop_prom_9;降职人数 = 人群规模 * 降职规模（$x$）* 降职因子（$val$）
 pop_con_1;每月觉醒度变化：
 pop_con_2;总计：
 pop_con_3;来自奢侈品满足度：?G+$x$
@@ -602,9 +601,9 @@ pop_growth_6;当地生活条件 $x$ 减去 最低生活条件 $y$，总乘数为
 pop_growth_7;和 基础人群增长值 $x$
 pop_growth_8;人口的生活必需系数 $x$（生活必需满足度 $y$ 减去 最低饱腹 $val$）
 pop_growth_9;由于饥饿，人口增长受到?Y$x$?W的惩罚。饥饿是由人口的生活需求满足度（当前为?Y$y$?W）低于?Y$val$?W的饥饿限制引起的。
-pop_growth_10;饥饿惩罚的计算方法是首先取最大饥饿惩罚值（?Y$x$?W）并将其与所有增长修正值（?Y$val$?W）相加，得到?Y惩罚规模?W（?Y$y$?W），其最小可能结果为?Y$x$?W。
-pop_growth_11;然后，从人口的生活需求满足度中减去饥饿限制（?Y$x$?W），并将其除以饥饿限制（?Y$x$?W），最大可能结果为0。这给出了?Y饥饿因子?W（?Y$y$?W）。
-pop_growth_12;最后，将?Y饥饿因子?W（?Y$x$?W）和?Y惩罚规模?W（?Y$y$?W）相乘，得到人口增长的净惩罚值（?Y$val$?W），然后将其与其余的修正值相加。
+pop_growth_10;饥饿惩罚的计算方法是首先取最大饥饿惩罚值（?Y$x$?W）并将其与所有增长修正值（?Y$val$?W）相加，得到?Y惩罚规模?W（?Y$y$?W），其最小可能结果为 ?Y$x$?W。
+pop_growth_11;然后，从人口的生活需求满足度中减去饥饿限制（?Y$x$?W），并将其 ÷ 饥饿限制（?Y$x$?W），最大可能结果为0。这给出了?Y饥饿因子 ?W（?Y$y$?W）。
+pop_growth_12;最后，将 ?Y饥饿因子?W（?Y$x$?W）和 ?Y惩罚规模?W（?Y$y$?W）相乘，得到人口增长的惩罚净值（?Y$val$?W），然后将其与其余的修正值相加。
 pop_assim_1;每月人群同化：$x$
 pop_assim_2;奴隶不被同化
 pop_assim_3;可接受民族人群不被同化
@@ -626,26 +625,26 @@ pop_conver_6;国内传教率修正：$x$
 pop_conver_7;当地传教率修正：$x$
 pop_conver_8;动态传教因子：$x$
 pop_issue_attraction_1;议题吸引力：$x$
-pop_issue_attraction_2;此改革目前不能
+pop_issue_attraction_2;此改革当前不能
 pop_issue_attraction_3;政治观点吸引力是以下因子的结果：
 pop_issue_attraction_4;社会改革诉求国内修正：$x$
 pop_issue_attraction_5;政治改革诉求国内修正：$x$
 pop_issue_attraction_6;政见吸引力：$x$
 pop_ideology_attraction_1;意识形态吸引力：$x$
-pop_ideology_attraction_2;此意识形态目前不能
-trade_setting_drawing;使用库存
-trade_setting_filling;补充库存
-trade_setting_stable;不储备
+pop_ideology_attraction_2;此意识形态当前不能
+trade_setting_drawing;库存使用
+trade_setting_filling;库存买入
+trade_setting_stable;不库存
 trade_commodity_report_1;当前全球需求：$x$
 trade_commodity_report_2;当前全球生产：$x$
 trade_commodity_report_3;当前全球消费：$x$
 trade_commodity_report_4;全球市场数量：$x$
-trade_fill;补充
-trade_use;采购
-trade_stockpile_target;库存目标数量
-trade_stockpile_current;当前储备：
+trade_fill;买入
+trade_use;卖出
+trade_stockpile_target;库存目标
+trade_stockpile_current;当前库存：
 diplomacy_wx_1;每月厌战性：
-influence_explain_1;我们目前被禁止影响并且没有积累此国的影响力
+influence_explain_1;我们当前被禁止影响并且没有积累此国的影响力
 influence_explain_2;我们无法影响与我们达成休战协议的国家
 influence_explain_3;我们无法影响与我国交战的国家
 influence_explain_4;我们每天与所有国家一起积累 $x$ 影响力。
@@ -691,10 +690,10 @@ military_score_explain_2;可招募部队：$x$
 military_score_explain_3;已招募部队：$x$
 military_score_explain_4;是否解除武装（惩罚因子：$x$）
 military_score_explain_5;补给消耗修正：$x$
-military_score_explain_6;平均陆军单位分数：$x$
+military_score_explain_6;陆军平均分：$x$
 military_score_explain_7;将领总数：$x$
-industry_score_explain_2;以下外国投资同样相加（权重系数 $x$）：
-industry_score_explain_3;$y$在$x$
+industry_score_explain_2;外国投资 相加（权重系数 $x$）：
+industry_score_explain_3;$y$ 在 $x$
 war_goal_1;添加者：$x$
 war_goal_2;目标：$x$
 war_goal_3;要求地区：$x$
@@ -732,7 +731,7 @@ iaction_explain_5;你是列强
 iaction_explain_6;不是列强目标
 state_transfer_di;地区转让
 state_transfer_button;地区转让
-state_transfer_offer;$actor$正提供给我们地区：
+state_transfer_offer;$actor$ 正提供给我们地区：
 state_transfer_desc;转移一个地区的所有权给另一个国家，比超越一个游戏的谈判范围更有用
 state_transfer_explain_1;目标国是玩家
 state_transfer_explain_2;当前无危机
@@ -744,13 +743,13 @@ cancel_ally_explain_1;你不能取消自己盟约
 cancel_ally_explain_2;拥有至少 $x$ 外交点
 cancel_ally_explain_3;你已结盟
 cancel_ally_explain_4;你不能再加入一场战争
-cancel_ally_explain_5;你不能是目标国傀儡
+cancel_ally_explain_5;你不能是目标国附庸
 ally_explain_1;你不能与自己结盟
 ally_explain_2;你至少有 $x$ 外交点
-ally_explain_3;你目前不可能结盟
+ally_explain_3;你当前不可能结盟
 ally_explain_4;你不能同列强当危机中时
 ally_explain_5;你不能是附属国
-ally_explain_6;你目前不能是战时目标
+ally_explain_6;你当前不能是战时目标
 ally_explain_7;AI会接受
 ally_explain_8;目标不能是附属国
 call_ally_explain_1;你有此国盟约，或是其宗主。
@@ -786,10 +785,10 @@ w_sub_explain_4;目标正处于战争
 invention_bulb_1;这个发明现在不能被发现
 invention_bulb_2;现在可以发现这个发明
 invention_bulb_3;这个发明已经被发现了
-not_implemented;这个特征目前不可能被实现
+not_implemented;这个特征当前不可能被实现
 inc_op_explain_1;这个国家对你的评价低于友好
 add_sphere_explain_1;这个国家对你有一个友好的评价
-add_sphere_explain_2;此国目前不能被纳入其他列强的势力范围
+add_sphere_explain_2;此国当前不能被纳入其他列强的势力范围
 rem_sphere_explain_1;此国正处于一个列强的势力范围内
 rem_sphere_explain_2;这个国家对你有一个友好的评价
 rem_sphere_explain_3;此国正处于你的势力范围内
@@ -911,7 +910,7 @@ chat_player_switch;$playername$ 选择了 $country$
 chat_player_oos;$playername$ 已断开连接！
 alice_status_stream;存档处理进度：$value$
 alice_play_pending_client;$playername$ 未准备
-alice_stockpile_button_0_0;国家仓储可以作为您日常经济商业活动的调节物，在 ?G绿色?W 线看到价格上涨，和 ?R红?W 线下降，像往常一样 我 ?Y不是?W 一个折线图，所以不总是被注意到：）
+alice_stockpile_button_0_0;国家库存可以作为您日常经济商业活动的调节物，在 ?G绿色?W 线看到价格上涨，和 ?R红?W 线下降，像往常一样 我 ?Y不是?W 一个折线图，所以不总是被注意到：）
 alice_stockpile_button_1_0;如果你点了我十次你什么都得不到，相信我，别再点我了，?R否则?W……
 alice_stockpile_button_1_1;我明白了，好吧，现在我不会继续说，因为我知道你会一直点击，直到我说些 ?Y不同?W 的话，不过那也太无聊了
 alice_stockpile_button_1_2;好吧，我无法阻止你，但是或许这个可以？
@@ -925,7 +924,7 @@ alice_load_unload_2;军队运输中
 alice_load_unload_3;运输舰队停靠
 alice_load_unload_4;军队运输中
 alice_load_unload_5;舰队停靠
-alice_unload_fleet;卸载所有此舰队运输的部队
+alice_unload_fleet;卸载此舰队运输的所有部队
 auto_save_lb;自动保存频率
 auto_save_1;每日
 auto_save_2;每月
@@ -959,7 +958,7 @@ alice_state_select_title;选择地区
 press_esc_to_cancel;按下 ?YESC?! 以取消
 fort_build_tt_1;当地正在你控制下
 fort_build_tt_2;当地未受围攻
-fort_build_tt_3;目前等级 $x$，+当地建造困难修正 $n$，低于最高等级 $y$
+fort_build_tt_3;当前等级 $x$，+当地建造困难修正 $n$，低于最高等级 $y$
 nb_build_tt_1;当地是沿海省份
 nb_build_tt_2;此地区没有海军基地
 rr_build_tt_1;我国执政党允许政府建设铁路
@@ -980,7 +979,7 @@ alice_regiment_battle_info;$m$ $name$ ?Y$type$?!\n组织度： ?Y$organisation$?
 understaffed_regiment;?RT这个团人手不足并且只有 $value$ 名士兵!?W
 tech_queue_explain;按?YSHIFT?W 加入队列，?Y右键?W 移除
 alice_province_building_build;?YSHIFT?W 建造在整个 ?G地区?W。\n?YSHIFT-右键?W 建造在整个?G国家?W。
-commodity_shortage;?R此商品短缺
+commodity_shortage;?R此商品不足
 commodity_surplus;?G此商品过剩
 alice_trade_flow_produced;?Y国内生产
 alice_trade_flow_consumed;?Y国内消费
@@ -989,7 +988,7 @@ alice_trade_flow_piechart_producers;生产者
 alice_trade_flow_piechart_consumers;消费者
 alice_trade_flow_piechart_workforce;投资者
 alice_diplo_release_subject;释放属国
-alice_diplo_release_subject_desc;释放我们的一个附属国，使他们不再是我们的属国，联盟需要单独解除
+alice_diplo_release_subject_desc;释放我们的一个附属国，使他们不再是我们的属国，联盟需要单独解除。
 alice_diplo_release_subject_0;是我们的属国
 kill_leader;杀死将领
 annex_null;成为无主省份
@@ -1023,7 +1022,7 @@ et_on_add;将本战争目标添加到战争中会产生以下效果：
 et_on_po_accepted;接受有此战争目标的和平提议会产生以下效果：
 alice_no_possible_units;没有可用的单位能够被建造，并且没有正在建造的单位
 alice_debt_spending;取消或启用债务消费
-alice_loan_size;我们目前的最大贷款是$x$ 贷款规模超越它会导致我们走向破产
+alice_loan_size;我们当前的最大贷款是$x$ 贷款规模超越它会导致我们走向破产
 alice_currently_bankrupt;我国正处于破产状态（直到$x$）
 alice_no_loans_possible;我们现在无法贷款
 alice_rf_demands_enforced_trigger;如果以下为真，叛军将只强迫服从他们的要求：
@@ -1031,7 +1030,7 @@ alice_rf_demands_enforced_effect;如果叛军强迫实施了他们的要求那�
 alice_rf_siege_won_trigger;如果叛军赢得了一场围城战，以下会被检查是否生效，比如在你的首都 $x$：
 alice_rf_siege_won_effect;如果上述所有情况为真，那么以下影响会产生，比如你首都 $x$：
 may_month_name;5月
-alice_ca_cant_influence;我们目前无法增加或减少其他国家的评价
+alice_ca_cant_influence;我们当前无法增加或减少其他国家的评价
 alice_gp_status_regain_expiration;如果我们不能成为第 ?Y$x$?W 名或更高排名的国家，到 ?Y$date$?W!，我们将失去 ?Y列强?W 地位！
 alice_mil_decay_description;自然衰减 ?G-$x$
 alice_con_decay_description;自然衰减 ?R-$x$
@@ -1056,7 +1055,7 @@ alice_budget_scaled_10;社会支出：?R$value$
 alice_budget_scaled_11;军事支出：?R$value$
 alice_budget_scaled_12;国内投资：?R$value$
 alice_budget_scaled_13;海外支出：?R$value$
-alice_budget_scaled_14;储备补充：?R$value$
+alice_budget_scaled_14;库存买入：?R$value$
 alice_budget_scaled_15;战争援助：?R$value$
 alice_budget_scaled_16;外交投资：?G$value$
 alice_budget_scaled_17;黄金产出：?G$value$
@@ -1069,14 +1068,14 @@ alice_spending_factory_construction;工厂建设在 $name$：?R$cost$?W
 alice_spending_unit;在此单位上的总花费，取决于 $name$： ?R$cost$?W
 alice_spending_unit_1;此单位总花费：?R$cost$?W
 alice_spending_total;?Y总费用：?W
-alice_spending_commodity;?R$cost$?W - 需要$name$（$val$）的$need$
+alice_spending_commodity;?R$cost$?W - 需要 $name$（$val$）的$need$
 alice_spending_commodity_2;?R$cost$?W - 买入 $need$ 的 $name$（以 $val$ 为单位相乘）。进度：$x$/$y$
 alice_recommended_build;?G建议建造此工厂?W
 alice_factory_bonus;将获得 ?Y$x$?W 奖励，如果：
 alice_factory_inputs;投入所需：
 alice_factory_input_item;?R$cost$?W - 需要$name$（$val$）的$need$
-alice_factory_base_workforce;基础劳力?Y$x$?W
-alice_factory_total_bonus;总和大约为?Y$x$?W
+alice_factory_base_workforce;基础劳动力 ?Y$x$?W
+alice_factory_total_bonus;总和约为 ?Y$x$?W
 alice_slider_controls;?Y左键?W 增加 ?Y$value$?W\n?YSHIFT+左键?W 增加 ?Y$x$?W\n?YSHIFT+右键?W 增加到最大值
 alice_slider_controls_2;?Y左键?W 减少 ?Y$value$?W\n?YSHIFT+左键?W 减少 ?Y$x$?W\n?YSHIFT+右键?W 减少到最小值
 explain_colonial_points;列强和次强会积累殖民点。
@@ -1104,7 +1103,7 @@ alice_factory_worker_1;雇佣：?G$x$?W
 alice_factory_worker_2;失业：?R$x$?W
 alice_rgo_unemployment_country_alert;下列地区有失业者：
 pop_promote_info_on_sel_2;$val$ 下月预计 $who$ 到 $where$
-alice_readme;?G欢迎来到 Project Alice！?W\nProject Alice 是你最喜欢的维多利亚时代游戏的模仿（而不是模拟！）。我们调整了一些机制，使其更易被新玩家理解，也使游戏更动态，更具娱乐性，修复了旧有漏洞（如危机），并实现了新的生活条件功能。\n?G新功能!?W\n?Y地球仪?W：?G褒?W?R贬?W不一，如果你不喜欢就关掉吧！\n?Y科技队列?W：SHIFT+右键将科技加入研发队列！（单击右键取消）\n?Y国内投资?W：与其在单个项目上投资，不如一气呵成\n?Y性能?W：每秒的滴答数（不是FPS）至少快了 10 倍\n?Y检查器?W：在您的模组中获取覆盖错误和警告，轻松发现错误和错字\n?Y部队模板?W：使用我们的部队模板构建由不同兵种组成的部队模板\n?Y11 种新的地图模式?W：宗教，要塞，职业情况，诸如此类\n?Y全国建造?W：SHIFT+右键在全国进行建造！\n?G控制?W：\n?YTAB?W：打开聊天窗口\n?YESC?W：打开主菜单和设置菜单\n?Y波浪符（`或~）?W：打开控制台\n?G享受游戏吧！=^w^=?W
+alice_readme;?G欢迎来到 Project Alice！?W\nProject Alice 是你最喜欢的维多利亚时代游戏的重新构想。我们调整了一些机制，游戏更加动态性和娱乐性。\n?G新功能!?W\n?Y地球仪?W：?G褒?W?R贬?W不一，如果你不喜欢就关掉吧！\n?Y科技队列?W：SHIFT+右键将科技加入研发队列！（单击右键取消）\n?Y国内投资?W：与其在单个项目上投资，不如一气呵成\n?Y性能?W：10 倍 每秒滴答数（不是FPS）\n?Y检查器?W：在您的模组中获取覆盖错误和警告，轻松发现错误和错字\n?Y部队模板?W：使用我们的部队模板构建由不同兵种组成的部队模板\n?Y11 种新的地图模式?W：宗教，要塞，职业情况，诸如此类\n?Y全国建造?W：SHIFT+右键在全国进行建造！\n?G控制?W：\n?YTAB?W：打开聊天窗口\n?YESC?W：打开主菜单和设置菜单\n?Y波浪符（`或~）?W：打开控制台\n?G享受游戏吧！=^w^=?W
 alice_nf_controls;?Y左键点击?W以选择或替代\n?Y右键点击?W以移除
 unit_controls_tooltip_1;?Y左键?W选择（取消选择其它）\n?YSHIFT+左键?W增加到选择中
 unit_controls_tooltip_2;?Y右键点击一个省份?W以局部撤退（?G循环/轮流?W）到当地
@@ -1122,14 +1121,14 @@ alice_mw_create_lp;我们需要?R$x$?W?Y领导力点数?W来添加
 alice_mw_controls_1;?Y右键点击?W以提拔?G所有?W可能的陆军将领
 alice_mw_controls_2;?Y右键点击?W以提拔?G所有?W可能的海军将领
 alice_daily_leadership_tt;$poptype$给予?G$value$?W领导力点数（占人口的?Y$fraction$?W，最佳为?Y$optimal$%?W）。溢出的领导力点数会自动消耗以产生新的将领。
-unit_current_supply;最近一天本部队接收到所需补给的?Y$val$%?W。\n我们可以从当前的补给消耗中获得的数量是：
+unit_current_supply;昨天本部队收到所需补给的 ?Y$val$%?W。\n当前的补给消耗中获得：
 unit_current_supply_high;$what$：?Y$val$?W/?Y$value$?! ?l（?W?G$total$%?W?l 需求满足度）
 unit_current_supply_mid;$what$：?Y$val$?!/?Y$value$?! ?l（?O$total$%?W?l 需求满足度）
 unit_current_supply_low;$what$：?Y$val$?!/?Y$value$?! ?l（?R$total$%?W?l 需求满足度）
 alice_crisis_inactive;当前没有可用危机
 alice_crisis_finding_attacker;为当前危机寻找进攻者
 alice_crisis_finding_defender;为当前危机寻找防御者
-alice_crisis_heating_up;危机升温中，目前处于?R$temperature$?W
+alice_crisis_heating_up;危机升温中，当前处于?R$temperature$?W
 alice_last_crisis;上次危机发生于 $date$（危机之间有$time$月冷静期）
 alice_crisis_par_1;?R进攻者们?W：
 alice_crisis_par_2;?B防守方?W：
@@ -1221,7 +1220,7 @@ alice_battleplanner_new_army_group;创建集团军群
 alice_battleplanner_delete_army_group;删除集团军群
 fab_explain_8;没有休战
 alice_reform_support_header;此改革的政治支持率（总支持率达到或超过 50% 才能进行改革）
-alice_no_current_support;目前这项改革尚未得到政治支持
+alice_no_current_support;当前这项改革尚未得到政治支持
 alice_unciv_reform_cost;改革花费：$x$
 trade_global_data;世界
 trade_nation_data;国内
@@ -1232,8 +1231,8 @@ price;价格
 supply;供应
 demand;需求
 balance;结余
-market_stockpiles;库存
-national_stockpile;政府储备
+market_stockpiles;市场库存
+national_stockpile;政府库存
 government_need;政府采购
 factory_need;工厂投入
 pop_need;需求缺口
@@ -1241,7 +1240,7 @@ rgo_production;RGO产出
 artisan_production;工匠产出
 factory_production;工厂产出
 artisan_distribution;工匠优先级
-produced_nation;仓储
+produced_nation;库存
 consumed_nation;消费
 nation_name;国家
 demanded_nation;需求
@@ -1268,7 +1267,7 @@ rgo_desired_profit;最小
 rgo_employment;当前
 rgo_max_employment;最大
 rgo_saturation;%
-rgo_details_header;RGO细节
+rgo_details_header;RGO详情
 rgo_employment_header;雇佣
 rgo_profits_header;利润
 route_origin;路线起点
@@ -1340,8 +1339,8 @@ alice_budget_increase_button;值多10（shift+以精确控制）
 alice_budget_max;最大 $x$
 alice_budget_min;最小 $x$
 alice_budget_overlord;宗主税
-alice_budget_expand_tt;显示细节
-alice_budget_contract_tt;隐藏细节
+alice_budget_expand_tt;显示详情
+alice_budget_contract_tt;隐藏详情
 alice_budget_admin_eff1;行政
 alice_budget_admin_eff2;效率：
 alice_budget_chart_top;100%
@@ -1402,16 +1401,16 @@ alice_job_filter_header;职业
 alice_culture_filter_header;民族
 alice_religion_filter_header;宗教
 alice_location_filter_header;位置
-alice_pop_show_details;细节
+alice_pop_show_details;详情
 alice_demographics_window_header;人口统计
 alice_demographics_size_header;规模
 alice_demographics_job_header;职业
 alice_demographics_religion_header;宗教
 alice_demographics_location_header;位置
-alice_demographics_employment_header;就业
+alice_demographics_employment_header;雇佣
 alice_demographics_needs_header;需求
 alice_demographics_rebel_header;支持运动
-alice_pop_details_title;人群细节
+alice_pop_details_title;人群详情
 alice_pop_details_location;位置
 alice_pop_details_job;职业：
 alice_pop_details_mil;斗争性：
@@ -1419,7 +1418,7 @@ alice_pop_details_con;觉醒度：
 alice_pop_details_lit;识字率：
 alice_pop_details_religion;宗教：
 alice_pop_details_culture;民族：
-alice_pop_details_employment;就业：
+alice_pop_details_employment;雇佣：
 alice_pop_details_income;净收入：
 alice_pop_details_growth;增长：
 alice_pop_details_assim;同化：
@@ -1567,18 +1566,18 @@ employment_type_basic_education;雇佣类型：?Y基本教育?W
 employment_type_high_education_and_accepted;雇佣类型：?Y公认高等教育?W
 employment_type_high_education;雇佣类型：?Y高等教育?W
 alice_trade_attractiveness;贸易路线吸引
-trade_center;贸易中心
-trade_center_desc;贸易中心管理市场内部和国际市场之间的贸易，购买所需库存并向邻居出售多余商品。
-trade_center_employment;贸易中心雇员：?Y$value$?W
+trade_center;市场
+trade_center_desc;市场管理市场内部和国际市场之间的贸易，购买所需库存并向邻居出售多余商品。
+trade_center_employment;市场雇员：?Y$value$?W
 trade_centre_max_throughput;最大量：?Y$value$?W
 local_admin;当地行政
 capital_admin;首都行政
 local_admin_spending;成本预计：?Y$value$?W
 target_employment;目标雇佣：?Y$value$?W
-employment_satisfaction;就业满足度：?Y$value$?W
+employment_satisfaction;就业度：?Y$value$?W
 wage;工资：?Y$value$?W
 local_admin_efficiency;地方行政部是低于首都的 ?Y$value$?W。
-tax_collection_rate;征税率：?Y$value$?W
+tax_collection_rate;征税率：?Y$value$?!
 poor_potential;贫困阶级潜在税收：?Y$value$?W
 mid_potential;中产阶级潜在税收：?Y$value$?W
 rich_potential;富裕阶级潜在税收：?Y$value$?W
@@ -1600,18 +1599,17 @@ trade_centre_imports_value;进口价值：?Y$val$
 trade_centre_exports_volume;出口量：?Y$val$
 trade_centre_exports_value;出口价值：?Y$val$
 trade_centre_trade_routes_profit;从贸易路线中获利：?Y$val$
-trade_centre_money;资金储备：?Y$val$
+trade_centre_money;结余：?Y$val$
 administration_tile;当地行政
 market_tile;当地市场
 alice_sort_pops;种族
 alice_sort_states;地区
 alice_topbar_avg_literacy_in_states;非殖民地人口 ?Y$x$?W 是平均?Y识字率?W
 employment_type_guild_education;雇佣类型：?Y行会教育?W
-employment_type_basic_education;雇佣类型：?Y基本教育?W
 employment_type_no_education;雇佣类型：?Y无教育?W
 pop_literacy_spending; 人群教育预算 ?Y$val$?W。
 pop_literacy_spending_required;最高教育支出：?Y$val$?W。
-pop_literacy_spending_public;?Y$val$?W 由公共教育预算支付。
+pop_literacy_spending_public;?Y$val$?W 由公立教育预算支付。
 pop_literacy_spending_ratio;满足度：?Y$x$?W。
 pop_literacy_spending_result_success;如 ?Y$x$?W 高于 ?Y$y$?W，识字率会提高 ?Y$val$?W
 pop_literacy_spending_result_failure;如 ?Y$x$?W 低于 ?Y$y$?W，识字率会降低 ?Y$val$?W
@@ -1637,22 +1635,22 @@ factory_hiring_rate_secondary;我们预计工厂会尝试?G雇佣更多?W ?Y$val
 factory_firing_rate_unqualified;我们预计工厂会尝试?R解雇?W ?Y$value$?W ?Y非熟练工人?W。（当前目标：?Y$x$?W）
 factory_firing_rate_primary;我们预计工厂会尝试?R解雇?W ?Y$value$?W ?Y技工?W。（当前目标：?Y$x$?W）
 factory_firing_rate_secondary;我们预计工厂会尝试?R解雇?W ?Y$value$?W ?Y经理和职员?W。（当前目标：?Y$x$?W）
-factory_hired_unqualified;工厂雇佣了 ?Y$value$?W ?Y非熟练工人?W来处理简单的手工任务。一位?Y非熟练工人?W仅提供?Y技工?W产出的 ?R$x$?W。
+factory_hired_unqualified;工厂雇佣了 ?Y$value$?W ?Y非熟练工人?W来处理简单的手工任务。一位?Y非熟练工人?W 仅提供 ?Y技工?W 产出的 ?R$x$?W。
 factory_hired_primary;工厂雇佣了 ?Y$value$?W ?Y技工?W。
 factory_hired_secondary;工厂雇佣了 ?Y$value$?W ?Y经理和职员?W。他们使工厂产出乘以 ?G$x$?W。
 factory_throughput_explanation;吞吐量是衡量工厂原始效率的指标。它以?G产品单位?W来衡量的。吞吐量驱动了投入消耗和产品产出。吞吐量的唯一来源是?G雇佣单位?W，由?Y非熟练工人?W和?Y技工?W生产。先进技术可增加每个工人的?G产品单位?W产出。吞吐量当前修正：?G$val$?W。因此，当前 ?Y$y$?W 雇佣单位产出 ?Y$x$?W（?Y$y$?W 的 ?G$val$?W） 产品单位。根本上，吞吐量的增加使资本家在相同工资下更少雇佣工人。
-factory_throughput_base;在 Project Alice 中，工厂只能从当地市场获得商品。这意味着，在游戏早期，有些商品难以获得。为部分补偿它，有一个?G$val$?W 基础乘数到吞吐量。
-factory_throughput_modifiers;当前技术和其他修正提供的吞吐量乘数：?G$val$?W。
+factory_throughput_base;在 Project Alice 中，工厂投资效率商品才能从技术中获得国家乘数。当前投资为产量提供 ?G$val$?W 基础乘数。
+factory_throughput_modifiers;当地条件提供吞吐量乘数：?G$val$?W
 factory_input_multiplier_explanation;投入乘数是最强的行业相关乘数，因为它不受回报递减。相反，你越多推积它，它就越强。当前乘数：?G$val$?W。
 factory_input_multiplier_competition;当地资本家之间的竞争，鼓励工厂提高效率，只消耗所需投入：?G$val$?W。
 factory_input_multiplier_scale; 较小工厂需要精益生产（lean）和避免浪费才能生存。因此，当前工厂乘数：?G$val$?W。
 factory_input_multiplier_specialisation;私人和国家机构的科学、政治和法律优先事项（legal priorities）一致，为此行业提供投入乘数：?G$val$?W。
 factory_input_multiplier_modifiers;各种技术和发明使这家工厂享受额外投入乘数：?G$val$?W。
-factory_output_multiplier_explanation;产出乘数是一个强大的乘数，但受到回报递减。当前工厂输出乘数：?G$val$?W。
+factory_output_multiplier_explanation;产出乘数是一个强大的乘数，但受到回报递减。当前工厂产出乘数：?G$val$?W。
 factory_output_multiplier_lack_of_inputs;由于投入缺乏，这家工厂产出乘以 ?R$val$?W。
-factory_output_multiplier_efficiency_inputs;为实现全功率输出，工厂必须消耗特殊投入效率。当前无法做到这点，受到 ?R$val$?W 惩罚乘数。
-factory_output_multiplier_secondary_workers;雇佣的 ?Y经理和职员?W 为工厂提供 ?G$val$?W 产出乘数。
-factory_output_multiplier_modifiers;各种技术和发明提供了额外 ?G$val$?W 产出乘数。
+factory_output_multiplier_efficiency_inputs;为实现全功率产出，工厂必须消耗特殊投入效率。当前无法做到这点，受到 ?R$val$?W 惩罚乘数。
+factory_output_multiplier_secondary_workers;在 Alice 中，技术产出乘数有代价。受雇的?Y经理和工程师?W负责高效组织和维护机器。当前，他们为工厂提供 ?G$val$?W 的产出乘数。
+factory_output_multiplier_modifiers;各种技术和发明提供额外 ?G$val$?W 乘数。
 giving_modifier;这会提供以下修正：
 religion_nation_modifier;多数人自称 ?Y$NAME$?!
 when;当时：
@@ -1680,9 +1678,9 @@ commodity_production_header;工厂生产链：投入/产出
 national_modifiers;国家修正
 modifier_min_land_upkeep;土地最低维护
 per_commodity;每个商品
-open_details;细节
+open_details;详情
 rgo;RGO
-province_prices;全球溢价 %
+province_prices;价格（相对）
 gdp_per_sector;GDP
 gdp_share;GDP溢价 %
 province_labor;劳工
@@ -1693,14 +1691,14 @@ gdp_artisans;二级产业（手工业）：
 gdp_selected;所选省份GDP
 gdp_rest;国内其他省份GDP
 market_report;?Y$province$?W 当地市场出口贸易
-market_prices_report;?Y$province$?W 当地市场价格
+market_prices_report;?Y$province$?W 市场价格
 rgo_report;?Y$province$?W 资源运营
 trade_balance;结余
 rgo_details_name;名称
 rgo_efficiency_super_header;效率
 rgo_efficiency_value;%
 rgo_efficiency_cost;成本
-local_price;本地
+local_price;当地
 median_price;全球均价
 ratio_to_median;%
 change_price;变化
@@ -1734,7 +1732,7 @@ alice_declarewar_truce_with_explain;?Y$NATION$?W：休战于 ?Y$TARGET$?W。持�
 alice_command_units_condition_1;?Y$NATION$?W 是我附庸
 alice_command_units_condition_2;你和目标处于战时。
 alice_command_units_condition_3;目标是非玩家
-alice_command_units_condition_4;玩单人游戏
+alice_command_units_condition_4;游戏规则中已启用
 free_trade_di;自由贸易协议
 free_trade_offer;$actor$ 提供了一项自由贸易协议，允许我们在 $years$ 年内免税贸易。
 alice_original_war_participant_not_in_war;?Y$NATION$?W 不再参战
@@ -1745,8 +1743,8 @@ pop_project;人群计划
 state_project;地区建筑
 delete_factory;摧毁工厂
 trade_route_volume_profit_score;利润评分：?Y$val$?W（取决于基础率变化）总计：
-trade_route_volume_profit_score_export;出口评分：?Y$val$?W。出口利润 ?Y$x$?W 除以 我方出口价格 ?Y$y$?W
-trade_route_volume_profit_score_import;进口评分：?Y$val$?W。减去（进口利润 ?Y$x$?W 除以 对方出口价格 ?Y$y$?W）
+trade_route_volume_profit_score_export;出口评分：?Y$val$?W。出口利润 ?Y$x$?W ÷ 我方出口价格 ?Y$y$?W
+trade_route_volume_profit_score_import;进口评分：?Y$val$?W。减去（进口利润 ?Y$x$?W ÷ 对方出口价格 ?Y$y$?W）
 trade_route_volume_base_change;基础变化预计：?Y$val$?W（利润评分 乘以 扩张乘数）
 trade_route_volume_decay;衰减：?Y$val$?W（防止贸易量偏离合理范围，逐渐减少低利润路线的贸易量。）
 export;出口额
@@ -1789,3 +1787,240 @@ alice_gamerule_auto_concession_peace;自动接受无条件投降
 alice_gamerule_auto_concession_peace_desc;设置战时一方达成所有战争目标或一百分即强制和谈，无法拒绝。
 alice_gamerule_auto_concession_peace_opt_cannot_reject;被迫无条件投降
 alice_gamerule_auto_concession_peace_opt_can_reject;无条件投降可被拒绝
+alice_national_identity_select_title;选择国籍
+alice_savegame_incompatible_warning;?R该存档不来自当前场景，可能存在错误、加载失败或游戏崩溃。?W
+alice_show_all_saves_text;显示所有存档
+alice_show_all_saves_tooltip;在存档列表中显示所有存档（包括可能不兼容的）。
+alice_save_input_filename_label;存档文件名（空白为默认名称）：
+province_has_workers;省份总劳动力
+province_has_available_workers;省份可用劳动力
+nation_is_factory_type_active;必要科技已被研发
+payback_time;投资回收期：?Y$x$?!
+construction_cost;建筑成本：?Y$x$?!
+output_value;产出价值：?Y$x$?!
+input_value;投入价值：?Y$x$?!
+profitability;投入产出比：?Y$x$?!
+ports_size;港口规模
+alice_infrastructure_tab;基础设施
+activated_by_tech:被科技激活 ?Y$x$?!
+economy_overview_header;经济概览
+alice_extra_armies_tooltip;+ ?Y$x$?W 更多陆军
+alice_extra_navies_tooltip;+ ?Y$x$?W 更多海军
+alice_pop_details_ln_short;必
+alice_pop_details_en_short;日
+alice_pop_details_lx_short;奢
+alice_pop_details_need_weight;倾向
+alice_pop_details_need_weight_tooltip;预算优先级
+button_pop_budget;打开预算详情
+pop_budget_details;预算详情
+pop_budget_unemployment;失业补贴
+pop_budget_pension;退休补贴
+pop_budget_factory_ownership;工厂
+pop_budget_rgo_ownership;RGO分红
+pop_budget_national_pay;政府工资
+pop_budget_business;投资分红
+pop_budget_guild;行会
+pop_budget_trade;贸易
+pop_budget_tax;纳税
+pop_budget_investment;投资
+pop_budget_education;教育
+pop_budget_wages_header;工资收入
+pop_budget_income;收入
+pop_budget_spending;支出
+pop_budget_needs;需求
+zoom_slowest;最慢
+zoom_slow;慢
+zoom_medium;中
+zoom_fast;快
+zoom_fastest;最快
+amsg_embargod;该国已被禁运
+save_name_label;文件名称（空白=自动）
+save_warning_tooltip;名称重复
+province_market_header;商品：?Y$good$?!
+province_market_market;市场：?Y$name$?!
+province_market_price;价格：?Y$val$?!
+province_market_supply;供应：?G$val$?!
+province_market_demand;需求：?R$val$?!
+province_market_production;生产：?G$val$?!
+province_market_consumption;消费：?R$val$?!
+province_market_stockpiles;库存：?Y$val$?!
+province_market_balance;结余：?Y$val$?!
+province_market_trade_in;进口：?G$val$?!
+province_market_trade_out;出口：?R$val$?!
+province_market_trade_balance;贸易结余：?Y$val$?!
+civilian_port;民用港
+civilian_port_size;规模：?Y$val$?!
+production_window_title;生产
+production_combine_types_toggle;折叠类型
+production_table_name_header;名称
+production_table_size_header;规模
+production_table_amount_header;数量
+economy_data_toggle_tooltip;经济概览显示了该省的经济数据汇总。
+province_tiles_toggle_tooltip;省份图块显示该省的所有建筑，包括行政机构、港口、工厂、RGOs、要塞、铁路、军营等。
+province_market_toggle_tooltip;当地市场标签显示省级市场的数据，包括价格、供需、生产和消费、库存、进出口等。
+production_category_production;生产
+production_category_consumption;消费
+production_category_employment;雇佣
+production_category_details;专精
+production_location_national;所有省份
+production_filter_all;所有商品
+production_about_combined;汇总
+production_about_factory;工厂
+production_about_artisan;工匠
+production_about_rgo;RGOs
+production_about_factory_one;工厂
+production_about_artisan_one;工匠
+production_about_rgo_one;RGO
+production_sub_item_inputs;投入
+production_sub_item_uses;使用
+production_sub_item_labor;劳动力
+production_sub_item_consumption;投入
+production_explain_view;生产——显示生产及其投入使用量。\n\n消费——显示消费数、使用该商品的工艺和任何投入不足的情况。\n\n雇佣——显示各行业劳动力和劳动力不足情况。\n\n专精——显示基本工艺和工厂专业化情况。
+production_explain_location;显示全国或一省详情。
+production_explain_combine;汇总或分别显示工厂、工匠和RGO活动的同一商品数据。
+production_explain_filter;显示所有或特定的商品详情。
+production_shortage_warn_inputs;投入不足
+production_shortage_warn_labor;劳动力不足
+production_max_output;最多产出
+production_max_employment;最多劳动力
+production_spec_label;专业化
+production_spec_compare;等级
+production_spec_priority_label;优先级
+production_spec_rankings_header;领先者
+admin_production;该行政管理产生 ?Y$value$?! 控制力，并扩张到邻近省份。
+province_control_scale;可用控制力：?Y$value$?!
+province_control_scale_trade_incoming;?G+$value$ 控制通过贸易来自 $prov$?!
+province_control_scale_trade_outgoing;?R-$value$ 转移通过贸易来自 $prov$?!
+province_control_scale_from_state_capital;?G+$value$ 控制来自 $prov$?!
+province_control_scale_to_state_capital;?R-$value$ 控制转移到 $prov$?!
+province_control_scale_adjacency_received;?G+$value$ 控制来自邻近 $prov$?!
+province_control_scale_adjacency_sent;?R-$value$ 控制转移到邻近 $prov$?!
+province_control_change;控制率变化预计：?Y$value$?!
+province_control_decay;控制力衰减预计：?Y$value$?!
+admin_cost_of_province;省份行政控制力成本：?Y$value$?!
+admin_cost_of_province_area;按面积计算：?Y$value$?!
+admin_cost_of_province_population;按人口计算：?Y$value$?!
+admin_cost_of_province_coastal;?G-$value$ 海岸线?!
+admin_cost_of_province_river;?G-$value$ 主要河流?!
+tax_collection_rate_capital_base;首都基础：?Y$value$?!
+tax_collection_rate_control;来自控制：?Y$value$?!
+tax_collection_rate_efficiency;收税效率修正 ?Y$value$?!
+production_rh_state_population;地区人群
+production_rh_state_consumption;最多消费
+production_rh_state_production;最多生产
+production_directive_header;建筑指令
+production_directive_explain;若干建筑指令可在地区或全国发布，调整优先级和建筑开支。点击所需指令，然后点击任一高亮地区以分配它。点击已分布的指令以移除。
+production_directive_national_header;国家指令
+production_directive_national_tt;国家指令作用于全国建筑。各地指令的优先级高于国家指令。
+directive_description_fmoney;利润优先
+directive_description_fpeople;雇佣优先
+directive_description_fspecial;专业化领先工厂优先
+directive_description_fupgrade;升级现有工厂优先
+directive_description_fnone;不建造升级工厂
+directive_description_rail;尽力建设升级铁路
+directive_description_naval;尽力建设升级海军基地
+directive_description_forts;尽力建设升级边界要塞
+directive_description_commodity;扩大生产优先 ?Y$x$?W
+pop_migration_culture;人群倾向于迁移到其文化核心地区：$x$
+chat_timed_out;$playername$ 超时
+disconnected_message_header;断开连接
+disconnected_message_name_taken;名称被占用。试试别的名称。
+disconnected_message_incorrect_password;大厅密码错误
+disconnected_message_timed_out;连接超时
+disconnected_message_kicked;你被主持请出大厅
+disconnected_message_banned;你被主持禁入大厅
+disconnected_message_on_banlist;你已被禁入大厅
+disconnected_message_game_ended;游戏结束了
+disconnected_message_game_full;大厅太多玩家
+disconnected_message_invalid_command_received_client;网络错误：收到主机发布的错误或无效命令。查看日志。
+private_message_btn_disabled_tooltip;别自言自语了
+private_message_button_tooltip;点击切换是否接受聊天
+player_loaded_status;准备
+player_loading_status;加载
+player_oos_status;结果偏差（OOS）
+alice_gamerule_fog_of_war_opt_disabled_for_observer;战争迷雾对观察者关闭
+alice_gamerule_command_units;战时指挥AI附庸单位
+alice_gamerule_command_units_opt_disabled;禁用
+alice_gamerule_command_units_opt_enabled;启用
+alice_gamerule_command_units_desc;玩家战时是否可指挥AI附庸单位
+trade_centre_estimated_money;下次采购预计：?Y$val$
+trade_centre_estimated_change;变化预计：?Y$val$
+trade_centre_import;进口商品采购：?Y$val$
+trade_centre_export;出口盈亏：?Y$val$
+trade_centre_sold;销售收入：?Y$val$
+trade_centre_bought;当地商品采购：?Y$val$
+trade_centre_investments;人群贸易预算：?Y$val$
+trade_centre_dividents;投资者分红：?Y$val$
+trade_centre_factories;工厂采购：?Y$val$
+trade_centre_rgo;RGO采购：?Y$val$
+trade_centre_services;私营公共服务工资：?Y$val$
+pop_prom_housing_multiplier;城市住房不足阻碍人群升职和乘数变化 $val$
+urban_size;城市规模
+private_education_owners;教师工资 ?Y$val$?!
+port_owners;当地港口 ?Y$val$?!
+housing_owners;房东 ?Y$val$?!
+map_projection_globe_stereographic;球极投影
+alice_unit_crossing_modifier;单位因邻近单位修正获得 ?Y$x$?W 战斗骰子修正
+alice_river_penalty_mod_tooltip;?Y$COUNT$?W 个单位因渡河获得 ?Y$NUM$?W 修正
+alice_strait_penalty_mod_tooltip;?Y$COUNT$?W 个单位因跨海峡或登陆受到 ?Y$NUM$?W 修正
+alice_battle_wide_roll_mod_tooltip;?Y整场战斗骰子修正?W
+alice_unit_specific_roll_mod_tooltip;?Y单位特定骰子修正?W
+alice_num_units_dug_in_tooltip;?Y$COUNT$?W 个单位在 ?Y$NUM$?W 堑壕级别设防
+alice_num_units_targeting_dug_in_tooltip;?Y$COUNT$?W 个单位攻击已设防单位，获得 ?Y$NUM$?W 骰子修正
+alice_unit_dug_in;单位设防级别 ?Y$NUM$?W
+alice_unit_targeting_dug_in_modifier;单位在攻击设防单位时获得 ?Y$NUM$?W 战斗骰子修正
+pop_literacy_spending_actually_spent;当地教育满足度：?Y$val$?W.
+private_education_price;教育价 ?Y$val$?!
+port_price;当地港口价 ?Y$val$?!
+housing_price;住房价 ?Y$val$?!
+housing_supply;住房供应 ?Y$val$?!
+housing_demand;住房需求 ?Y$val$?!
+rgo_bank;RGO 结余 ?Y$val$?W
+rgo_bank_in;RGOs 生产盈利 ?Y$val$?W
+rgo_bank_out;RGOs 人群分红 ?Y$val$?W
+factory_bank;工厂结余 ?Y$val$?W
+factory_bank_in;工厂生产盈利 ?Y$val$?W
+factory_bank_out;工厂人群分红 ?Y$val$?W
+colonial_crisis;殖民危机
+add_wargoal_wargoal_count;当继续时会添加 ?Y$COUNT$?W 战争目标
+artisan_bank;工匠结余 ?Y$val$?W
+artisan_profit;工匠利润 ?Y$val$?W
+factory_throughput_subsistence;当地城市住房条件和“大城市”心理效应以 ?R$val$?W 调整吞吐量
+factory_stats_wage_no_education;非熟练工资
+factory_stats_wage_basic_education;熟练工资
+factory_stats_wage_high_education;专家工资
+factory_historical_profitability_unqualified;历史上，我们雇佣了 ?Y$val$?W 非熟练工人在高盈利期。
+factory_historical_unprofitability_unqualified;历史上，我们雇佣了 ?Y$val$?W 非熟练工人在不盈利期。
+factory_historical_profitability_primary;历史上，我们雇佣了 ?Y$val$?W 熟练工人在高盈利期。
+factory_historical_unprofitability_primary;历史上，我们雇佣了?Y$val$?W 熟练工人在不盈利期。
+factory_historical_profitability_secondary;历史上，我们雇佣了?Y$val$?W 专家在高盈利期。
+factory_historical_unprofitability_secondary;历史上，我们雇佣了 ?Y$val$?W 专家在不盈利期。
+commodity_volume;产量
+monetary_transaction_volume;货币交易量
+transaction_success_probability;实际交易概率
+factory_output;产出
+factory_inputs;投入
+factory_expected_profit;预期利润
+province_factories_report;?Y$province$?W 工厂
+net_profit_label;净利润
+total_sold_label;卖出
+total_bought_label;买入
+total_wage_label;工资
+total_employment_label;总雇佣
+target_employment_tooltip;目标雇佣
+max_total_employment;最大雇佣
+pop_project_target_label;投资目标
+no_factory_type;无
+subsidies_label;补贴
+effective_output_tooltip;有效产出（产出 ÷ 基础产出）
+subsidies_explanation_tooltip;补贴总量来自国家预算。工厂依有效产出按比例受到补贴。你可设置补贴在更新的生产界面通过指令。
+factory_investments_header;投资
+total_investments_label;总计
+investment_efficiency_tooltip;工具、效率输入和机器
+investment_expansion_tooltip;扩张
+private_education_supply_1;私立教育供应 ?Y$val$?!
+private_education_supply_2;公立教育供应 ?Y$val$?!
+private_education_demand_1;公立教育需求 ?Y$val$?!
+private_education_demand_2;私立教育需求 ?Y$val$?!
+private_education_size_public;公立教育规模 ?Y$val$?!
+private_education_size_private;私立教育规模 ?Y$val$?!

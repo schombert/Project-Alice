@@ -1,7 +1,7 @@
 #pragma once
 
 #include "date_interface.hpp"
-#include "dcon_generated.hpp"
+#include "dcon_generated_ids.hpp"
 #include "system_state.hpp"
 #include <string_view>
 

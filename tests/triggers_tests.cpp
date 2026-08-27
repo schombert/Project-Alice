@@ -34,7 +34,6 @@ TEST_CASE("trigger scope recursion", "[trigger_tests]") {
 		REQUIRE(2 == blockade_count);
 	}
 }
-/*
 TEST_CASE("effect scope recursion", "[effect_tests]") {
 	{
 		std::vector<uint16_t> t;

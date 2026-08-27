@@ -1,0 +1,303 @@
+WARSUBSIDIES_DI;전쟁 보조금 제안
+CANCEL_WARSUBSIDIES_DI;전쟁 보조금 취소
+ASKMILITARYACCESS_DI;군사 통행권 요청
+CANCELASKMILITARYACCESS_DI;군사 통행권 요청 취소
+GIVEMILITARYACCESS_DI;군사 통행권 제공
+CANCELGIVEMILITARYACCESS_DI;군사 통행권 제공 취소
+ALLIANCE_DI;동맹 제안
+CANCELALLIANCE_DI;동맹 파기
+CALLALLY_DI;동맹국 호출
+DISCREDIT_DI;신용 훼손
+EXPELADVISORS_DI;고문 추방
+BANEMBASSY_DI;대사관 폐쇄
+INCREASEOPINION_DI;의견 향상
+DECREASEOPINION_DI;의견 하락
+ADDTOSPHERE_DI;세력권 편입
+REMOVEFROMSPHERE_DI;세력권에서 제외
+INCREASERELATION_DI;관계 개선
+DECREASERELATION_DI;관계 악화
+GUNBOAT_DI;포함 외교
+WAR_DI;전쟁
+WARGOAL_DI;전쟁 목표 추가
+PEACE_DI;평화 제안
+TOPBAR_LEADERSHIP_MAX;이미 지휘력의 최대치인 §Y$MAX$§W에 도달하여 더 이상 지휘력이 축적되지 않습니다.\n
+IS_MOBILIZED_IRO;(예비역이 동원됨)
+ADD_CRIME;§Y$NAME$§W을(를) 얻습니다.\n
+TOPBAR_WAR_PLUS;그리고 그들의 위성국 및 자치령.\n
+CANTBUILD_FORCEDISARM;우리는 군비를 강제 제한하는 평화 조약 하에 있으므로 새로운 군사 부대를 창설할 수 없습니다.
+SOME_LIFE_NEEDS;생필품 욕구 일부 충족됨
+TOPBAR_AVG_CHANGE;다음 달 동안 $VAL$§W만큼 변동할 것으로 예상됩니다.
+TECH_DAILY_RESEARCHPOINTS_BASE_TOOLTIP;일일 기본 연구 점수: §Y$VALUE$§W
+TECH_DAILY_RESEARCHPOINTS_TOTAL_TOOLTIP;일일 연구 점수: §G+$VALUE$§W
+TECH_DAILY_RESEARCHPOINTS_TOOLTIP;$POPTYPE$이(가) §G$VALUE$§W의 연구 점수를 제공합니다.\n(인구의 §Y$FRACTION$%§W, 최적 비율은 $OPTIMAL$%입니다.)
+average_literacy;문해율
+MODIFIER_RESEARCH_POINTS;연구 점수
+gas;가스 공격
+COMBAT_GAS;적에게 가스 공격을 방어할 기술이 없을 때 가스 공격은 파괴적인 결과를 낳을 수 있습니다.
+MAY_GAS_ATTACK;가스 공격 사용 가능\n
+MAY_GAS_DEFEND;가스 공격 방어 가능\n
+IMMIGRANTS_FROM;$NAME$에서 §G$VAL$§W명의 이민자가 유입되었습니다.
+EMIGRANTS_TO;§R$VAL$§W명이 $NAME$(으)로 이민을 떠났습니다.
+PW_ALL_FOCUSES_USED;모든 국가 중점이 이미 사용 중입니다.
+HAS_NO_FACTORIES;공장이 없음.\n
+HAS_FACTORIES;공장이 있음.\n
+RETREAT_DELAY_IRO;자발적인 후퇴가 가능해질 때까지 아직 §Y$VAL$§W일이 남았습니다.
+PW_CANTCOLONIZE;아직 이곳을 식민지화할 수 없습니다.
+IS_COLONIAL_STATE_POPVIEW;식민 주
+CULTURE_IS_NOT;다음 문화가 아님:
+CULTURE_IS;문화가 다음과 같음:
+INVALID_WARTARGET_TROOPS_IN_THEM;우리 부대가 그들의 국경 내에 있습니다.
+WEX_EFFECTS;현재 효과
+NOBODY_CAN_VOTE_HERE;아무도 투표할 수 없습니다.
+NOT_ABLE_TO_REINFORCE;이 POP은 규모가 너무 작아 이 여단을 충원할 수 없습니다.
+POP_SIZE_UNITVIEW;이 POP의 인구는 §Y$VAL$§W명이며, §Y$ALLOWED$§W개 여단을 유지할 수 있습니다. 현재 §Y$CURRENT$§W개 여단을 보유하고 있습니다..
+MAX_REINF_UNITVIEW;§G100%§W 속도로 충원 중입니다.
+POP_IMPACT_UNITVIEW;예비군의 손실로 인해 이 부대는 §Y$VAL$%§W 속도로 충원 중입니다.
+MOB_IS_REINFORCE;동원된 부대는 §Y50%§W 속도로 충원됩니다.
+EVTNAME60120;연방주의 강화
+EVTDESC60120;문화적 민족주의의 정서가 $COUNTRY$ 전역을 휩쓸면서, 사람들은 $CULTURE_GROUP_UNION$에 있는 우리 문화적 형제들과의 통일을 열렬히 부르짖기 시작했습니다. 그들이 합병 청원에 반대할 것이라 의심할 여지는 거의 없습니다.
+EVTOPTA60120;그렇게 하자
+EVTNAME60130;$FROMCOUNTRY$의 합병 청원
+EVTDESC60130;대중적인 민족주의 정서의 고조에 따라, $FROMCOUNTRY_ADJ$ 정부는 $CAPITAL$의 우리 당국에 그들이 영구적인 연합으로 $COUNTRY$에 합류할 수 있도록 허락해 달라는 공식적인 요청을 제출했습니다. 이 결정에 반대할 이유는 거의 없어 보입니다.
+EVTOPTA60130;받아들이자
+EVTOPTB60130;절대 안 돼, $FROMCOUNTRY_ADJ$ 쓰레기들
+ATPEACE;평화
+NORMAL_WAR_RUDEBOI_NAME;$ORDER$ $FIRST$의 $SECOND$ 억제 전쟁
+AGRESSION_WAR_RUDEBOI_NAME;$ORDER$ $FIRST$의 $SECOND$ 억제 전쟁
+rude_boy;억제
+rude_boy_desc;국제 사회에서 문명국으로서의 처신을 저버린 다른 §Y국가§W의 야욕을 대폭 축소하도록 강제합니다.
+rude_boy_setup;$RECIPIENT$의 영토, 위신, 군사력을 축소하여 국가를 억제합니다.
+rude_boy_short;$RECIPIENT$ 억제
+POP_DETAILS_EXPENSES;지출:
+CONFIRM_CREATE_VASSAL;국가 해방
+CONFIRM_CREATE_VASSAL_DESC;§Y$COUNTRY$§W을(를) §Y$TYPE$§W(으)로 해방하시겠습니까?\n §Y$COUNTRY$§W은(는) 다음 §Y$NUM$§W개의 프로빈스를 획득합니다: §Y$PROVINCES$§W.
+egyptian_excavations;이집트 발굴
+egyptian_excavations_desc;우리 국가가 왕가의 계곡에서 고고학적 발굴을 주도하고 있습니다.
+POP_DETAILS_EXPENSES;지출:
+red_shirts_title;붉은 셔츠단
+red_shirts_name;가리발디의 붉은 셔츠단
+red_shirts_desc;붉은 셔츠단(Camicie rosse)은 수많은 이탈리아 국가들로 분열된 상태에서 통일 민족 국가를 세우기 위해 투쟁한 주세페 가리발디 휘하에서 복무한 의용군을 부르는 이름이었으며, 가리발디와 그의 부하들이 입었던 붉은 셔츠에서 그 이름이 유래했습니다. 국내외에서 엄청난 인기를 누리며 자유의 투사로 여겨진 카리스마 넘치는 가리발디는 사르데냐 왕관 아래 이탈리아의 통일을 이루는 데 핵심적인 역할을 했습니다. 이탈리아 범민족주의자인 이들은 이탈리아의 통일을 위해 싸웁니다.
+red_shirts_army;붉은 셔츠 1천인 원정대
+EVTNAME11103;1천인 원정대!
+EVTDESC11103;$MONARCHTITLE$! 저명한 이탈리아의 자유 투사 주세페 가리발디와 그의 '1천인 원정대'가 $FROMCOUNTRY$의 정부를 붕괴시키고 정권을 장악했다는 소식이 막 도착했습니다. 이 억센 자유의 투사가 가는 곳마다 환희에 찬 이탈리아 군중들이 이탈리아를 상징하는 삼색기를 마구 흔들면서 온 이탈리아의 해방자로서 그를 맞이하러 나왔습니다. 이 반도에서 우리의 지배적인 위치를 고려하여, $FROMCOUNTRY$에 새로 구성된 정부는 자신들이 신생 이탈리아 내에서 $COUNTRY$의 주도적인 위치를 당연히 인정한다는 뜻을 전해 왔습니다.
+EVTOPTA11103;이탈리아 통일 운동 만세!
+EVTOPTB11103;이 남자는 누구이고, 나에게 무엇을 원하는가?
+CB_DESC_HEAD;이 전쟁 명분으로 요구할 수 있는 사항:
+CB_ALLOWED_DISARMAMENT;무장 해제
+CB_ALLOWED_REPARATIONS;전쟁 배상금
+CB_ALLOWED_STATES;영토 할양
+TRADE_DISABLED_AUTOMATE;이 상품 유형의 무역은 자동화되어 있습니다. 설정을 변경하려면 자동화를 끄십시오.
+AUTOMATE_TRADE_CHECK;이 상품 유형의 무역 자동화
+TECHNOLOGYVIEW_RESEARCH_TOOLTIP;우리는 현재 §Y$TECH$§W을(를) 연구 중입니다.\n현재 속도로 진행할 경우, 프로젝트는 §Y$DATE$§W에 완료될 예정입니다.
+INCREASERELATION_THEY_ACCEPT_4;우리의 관계도가 §G$CHANGE$§W만큼 증가하여 §Y$RELATION$§W이(가) 되었습니다.
+INCREASERELATION_WE_ACCEPT_4;우리의 관계도가 §G$CHANGE$§W만큼 증가하여 §Y$RELATION$§W이(가) 되었습니다.
+DECREASERELATION_WE_ACCEPT_5;우리의 관계도가 §R$CHANGE$§W만큼 감소하여 §Y$RELATION$§W이(가) 되었습니다.
+DECREASERELATION_THEY_ACCEPT_6;우리의 관계도가 §R$CHANGE$§W만큼 감소하여 §Y$RELATION$§W이(가) 되었습니다.
+TRI_1743;트리폴리
+NORMAL_WAR_CONCESSION_NAME;$ORDER$ $STATE$ 조계 할양 전쟁
+AGRESSION_WAR_CONCESSION_NAME;$ORDER$ $STATE$ 조계 할양 전쟁
+demand_concession_casus_belli;조계 할양
+demand_concession_casus_belli_desc;§Y비문명국§W에 영토 할양을 강제하여 식민지 조계를 형성합니다.
+demand_concession_casus_belli_setup;$RECIPIENT$에 영토 할양을 요구하여 식민지 조계를 형성합니다.
+demand_concession_casus_belli_short;$STATE$ 요구
+NORMAL_WAR_PROTECTORATE_NAME;$ORDER$ $FIRST$의 $SECOND_COUNTRY$ 획득 전쟁
+AGRESSION_WAR_PROTECTORATE_NAME;$ORDER$ $FIRST$의 $SECOND_COUNTRY$ 획득 전쟁
+establish_protectorate_casus_belli;보호령 설정
+establish_protectorate_casus_belli_desc;§Y비문명국§W을 우리의 보호령으로 삼아 강제로 합병합니다.
+establish_protectorate_casus_belli_setup;$RECIPIENT$에 보호령을 설정하여 합병합니다.
+establish_protectorate_casus_belli_short;$RECIPIENT$ 합병
+NORMAL_WAR_UNIFICATION_NAME;$ORDER$ $FIRST$의 $STATE$ 해방 전쟁
+AGRESSION_WAR_UNIFICATION_NAME;$ORDER$ $FIRST$의 $STATE$ 해방 전쟁
+unification_casus_belli;통일 전쟁
+unification_casus_belli_desc;우리 §Y문화 연합§W의 핵심 영토를 해방합니다.
+unification_casus_belli_setup;우리 §Y문화 연합§W의 핵심 영토를 해방합니다.
+unification_casus_belli_short;$STATE$ 해방
+POP_PROMOTE_INFO_ON_SEL;최근 $WHERE$에서 $VAL$명이 $WHO$(으)로 승격했습니다.
+POP_LEAVE_INFO_ON_SEL;최근 $WHERE$에서 $VAL$명이 $WHO$ 직업을 그만두었습니다.
+DOMINION;자치령
+SATELLITE;위성국
+DOMINION_OF_NOCOLOR;다음 국가의 자치령:
+SATELLITE_OF_NOCOLOR;다음 국가의 위성국:
+DIPLOMACY_CANNOT_SET_PRIO_MYVASSAL;이들은 우리의 §Y$TYPE$§W이므로 항상 우리의 §Y세력권§W 내에 있습니다.
+DIPLOMACY_TRUCE_WITH;휴전 중인 국가:
+DIPLOMACY_CASUSBELLIS;전쟁 명분:
+tut_1c_9;앞서 말했듯이, 병사에 부속된 POP이 반란을 일으키면 해당 여단도 함께 반란에 가담하게 됩니다. 만약 여단의 인구 아이콘 옆에 반란군 파벌 아이콘이 있다면, 해당 POP이 파벌의 일원이라는 뜻입니다. 이는 매우 위험한 상황입니다. 이 POP의 상태와 쟁점이 무엇인지 확인하는 방법 중 하나는 부대 화면에서 POP 아이콘을 클릭하여 인구 화면을 여는 것입니다. 지금은 '다음'을 클릭하여 계속 진행하시기 바랍니다.
+#REMOVEFROMSPHERE_DESC;다른 §Y열강§W의 세력권에서 해당 국가를 제외합니다.
+BUDGET_VIEW_CRIME_FIGHT;범죄 소탕 효과:
+POP_CURRENT_PROD;현재 생산량:
+ALREADY_ASSIMILATED;주 문화 또는 수용 문화
+TCP_SERVER_LOST;저장 파일을 전송하는 동안 서버와 연결이 끊어졌습니다!
+tut_7b_6;상품 가격은 세계 시장의 수요와 공급의 기능에 따라 글로벌하게 매일 설정됩니다. 현재의 수요와 공급은 적정 가격을 설정하고, 실제 가격은 이 적정 가격에 점진적으로 근접하게 됩니다. 따라서 국가에 중요한 상품의 가격 변동을 예의주시해야 합니다. 소화기의 가격이 오르고 있나요? 아마도 새로운 공장을 건설할 때일 것입니다. 가격 옆에 있는 화살표는 가격이 오르고 있는지(초록색), 안정세를 유지하고 있는지(노란색), 떨어지고 있는지(빨간색)를 나타냅니다. 계속하려면 '다음'을 클릭하세요.
+tut_7b_8;아래 이미지는 쾌속선 수송대의 세계 시장 화면을 보여줍니다. 하단 행의 아이콘들은 현재 해당 상품을 구매 중인지 판매 중인지를 나타내며, 무역이 AI 자동화로 설정되어 있는지 그렇지 않은지를 명시합니다. 정부(플레이어 또는 AI)는 두 가지 방법으로 시장에서 상품을 매매할 수 있습니다. 하나는 무역 지침을 명시적으로 설정하는 것이고, 다른 하나는 게임 내 다양한 액션을 통해 자동으로 거래가 진행되게 하는 것입니다. 자동 거래를 확인하려면 쾌속선 수송대 아이콘을 클릭하세요.
+DIPLO_CALL_ALLIES;동맹국 호출
+RULE_OPEN_FACTORY;공장 재가동/폐쇄
+PRODUCTION_NOT_DESTROY_FACTORY_BECAUSE_TOOLTIP;다음과 같은 이유로 이 공장을 파괴할 수 §R없습니다§W:\n
+BE_ANNEXED;합병됨
+PW_COLONY_NO_STATE;이 식민지를 완전한 주로 승격시키려면 인구의 최소 §Y$NUM$§W%가 수용 문화의 관료여야 합니다. 현재 비율은 §Y$CURR$§W%입니다.
+REMOVE_PW_COLONY_NO_STATE;인구의 최소 §Y$NUM$§W%가 수용 문화의 관료여야 합니다. 현재 비율은 §Y$CURR$§W%입니다.
+BAD_SAVE;오류: 잘못된 저장 파일.
+tut_4c_12b;육군 화면으로 넘어가 보겠습니다.
+USA_reactionary;남부 민주당
+MILITARY_DIG_IN_CAP;최대 참호화
+MILITARY_MILITARY_TACTICS;군사 전술
+COUNTRYALERT_NO_CanDoDecisions;현재 우리의 주의가 필요한 디시전이 없습니다.
+POP_OTHER_LABEL;기타
+annex_hawaii_title;뉴랜즈 결의안
+annex_hawaii_desc;뉴랜즈 결의안은 하와이 공화국을 미국에 합병하여 하와이 준주를 창설하는 것을 내용으로 했으며, 하원의원 프랜시스 G. 뉴랜즈의 이름을 따서 명명된 1898년 미국 의회 결의안입니다.
+ionian_islands_question_title;런던 조약 (1864년)
+ionian_islands_question_desc;이오니아 제도는 나폴레옹 전쟁이 끝난 후부터 계속 영국의 우호적인 보호령이었습니다. 하지만 1862년 보호령을 유지하는 비용이 너무 많이 든다는 이유로 2년간의 협상 끝에 이오니아 제도를 그리스에 양도하게 되었습니다.
+WARSUBSIDIES_DESC;이 국가를 돕기 위해 매일 §Y$MONEY$§W¤를 제공합니다
+release_puppet;괴뢰국 해방
+release_puppet_short;$THIRD$ 해방됨
+release_puppet_setup;$RECIPIENT$에서 $THIRD$을(를) 해방합니다
+release_puppet_desc;주권국으로부터 §Y국가§W를 해방시킵니다
+IS_NOT_OUR_VASSAL;우리의 괴뢰국이 아님
+IS_OUR_VASSAL;우리의 괴뢰국임
+COUNTRYALERT_HaveOrganizingRebels;우리 국가 내에서 반란군 파벌이 조직되고 있습니다!
+TOTAL_REBEL_POP;반란군 파벌 구성원
+PROV2918;베냉 만
+PROV2921;기니 해안
+PROV2922;세네감비아 해안
+NUMBER_OF_EMIREES;이번 달에 §Y$NUM$§W명이 다른 국가로 이주하기 위해 우리 국가를 떠났습니다
+NUMBER_OF_IMMIGREES;이번 달에 §Y$NUM$§W명이 다른 국가에서 우리 국가로 이주해 왔습니다
+alaskan_purchase_title;수어드의 냉장고
+alaskan_purchase_desc;크림 전쟁 이후 러시아는 영국과의 또 다른 전쟁 시 북미 식민지를 지킬 수 없을 것이라 판단했고, 훗날 미국의 알래스카 주가 될 영토의 매각을 검토하기 시작했습니다. 1867년에 미국은 이 영토를 에이커당 2.3센트의 가격에 매입했습니다. 알래스카 매입은 당시 미국 언론으로부터, 이를 주도했던 당시 국무장관 윌리엄 H. 수어드의 이름을 따서 '수어드의 냉장고'라는 비웃음을 샀습니다.
+EVTNAME32509;알래스카 매입?
+EVTDESC32509;워싱턴 대사관 대리공사 에두아르트 안드레예비치 스토에클이 타진한 결과, 오늘 미국이 우리 북미 영토 매각을 제안해 왔습니다. 미국 측은 알래스카 영토에 대해 에이커당 2.3센트의 가격을 제시했으며 비용은 비교적 공정해 보입니다. 영국과의 전쟁 발발 시 해당 식민지를 방어하기가 무척 어려워질 것이므로, 지금 제값을 받고 매각하는 것도 나쁘지 않은 선택일 수 있습니다. $MONARCHTITLE$, 어떻게 하는 것이 좋겠습니까?
+EVTOPTA32509;어차피 우리에겐 쓸모없는 혹한의 땅이 너무 많다
+EVTOPTB32509;안 될 소리, 언젠간 그곳에 다리를 놓을 수도 있지 않겠나?
+EVTNAME32510;러시아의 승낙!
+EVTDESC32510;$MONARCHTITLE$, 러시아가 알래스카를 우리에게 매각하는 데 동의했습니다!
+EVTOPTA32510;훌륭하군!
+EVTNAME32511;러시아의 거절!
+EVTDESC32511;$MONARCHTITLE$, 알래스카 영토 매각을 둘러싼 러시아와의 협상이 교착 상태에 빠졌으며, 결국 러시아는 영토 매각을 거절했습니다.
+EVTOPTA32511;이런 젠장!
+IS_DISARMED;무장 해제됨
+IS_NOT_DISARMED;무장 해제되지 않음
+TRUCE_LASTS_UNTIL;휴전은 §Y$DATE$§W까지 지속됩니다
+LOBBY_HOST_ONLY;방장만이 게임을 시작할 수 있습니다
+LOBBY_WAITING;모든 플레이어가 시작할 때까지 기다리거나, 준비되지 않은 플레이어를 추방해야 합니다.
+NO_UNIT_TECH;§Y$UNIT$§W 부대를 창설하려면 §Y$TECH$§W을(를) 개발해야 합니다
+NO_UNIT_REGIMENTS;어디에서도 §Y$UNIT$§W 부대를 창설할 수 없습니다. §Y병사§W를 더 확보하십시오.
+NO_UNIT_PORTS;어디에서도 §Y$UNIT$§W 함선을 건조할 수 없습니다. §Y해안§W 프로빈스를 확보하십시오.
+DIPLOMACY_WARDIALOG_ALLIES;§Y$COUNTRY$§W은(는) 다음 국가들의 보호를 받고 있습니다:
+DIPLOMACY_WARDIALOG_NUM_ALLIES;§Y$COUNTRY$§W은(는) §Y$NUM$§W개 국가의 보호를 받고 있습니다
+DIPLOMACY_WARDIALOG_ALLY;동맹국
+WARGOAL_WE_ACCEPT_HEADER;외무부 장관의 보고
+WARGOAL_WE_ACCEPT_1;$MONARCHTITLE$
+WARGOAL_WE_ACCEPT_2;$ACTOR$이(가) 다음과 같은 요구를 추가하여 현재의 전쟁을 확대하기로 결정했습니다:
+WARGOAL_WE_ACCEPT_3;$WARGOAL$
+WARGOAL_WE_ACCEPT_4;저 바보들은 우리가 어떻게든 굴복할 거라고 생각합니다.
+WARGOAL_WE_ACCEPT_5;*
+WARGOAL_WE_ACCEPT_6;우리는 그들의 오만함을 벌할 것입니다.
+WARGOAL_WE_ACCEPT_BTN1;확인
+WARGOAL_WE_ACCEPT_BTN2;확인
+WARGOAL_WE_ACCEPT_BTN3;이동
+WARGOAL_WE_ACCEPT_LOG;$ACTOR$이(가) 우리와의 전쟁 목표에 $WARGOAL$을(를) 추가하여 전쟁을 확대했습니다.
+WARGOAL_THEY_ACCEPT_HEADER;외무부 장관의 보고
+WARGOAL_THEY_ACCEPT_1;$MONARCHTITLE$
+WARGOAL_THEY_ACCEPT_2;우리는 다음 목표를 요구하여 전쟁을 확대하기로 결정했습니다:
+WARGOAL_THEY_ACCEPT_3;$WARGOAL$
+WARGOAL_THEY_ACCEPT_4;우리는 $RECIPIENT$와 합리적으로 대화하려 노력했습니다
+WARGOAL_THEY_ACCEPT_5;*
+WARGOAL_THEY_ACCEPT_6;이제 그들은 자신들의 선구안 부족에 대한 대가를 치르게 될 것입니다.
+WARGOAL_THEY_ACCEPT_BTN1;확인
+WARGOAL_THEY_ACCEPT_BTN2;확인
+WARGOAL_THEY_ACCEPT_BTN3;이동
+WARGOAL_THEY_ACCEPT_LOG;$RECIPIENT$와의 전쟁을 $WARGOAL$까지 포함하도록 확대했습니다.
+WARGOAL_OTHER_ACCEPT_HEADER;외무 장관의 보고
+WARGOAL_OTHER_ACCEPT_1;$MONARCHTITLE$
+WARGOAL_OTHER_ACCEPT_2;먼 땅에서 소문이 들려왔습니다
+WARGOAL_OTHER_ACCEPT_3;$ACTOR$ 측이
+WARGOAL_OTHER_ACCEPT_4;$RECIPIENT$와의 전쟁을 확대하여
+WARGOAL_OTHER_ACCEPT_5;$WARGOAL$을(를) 추가하기로 결정한 듯합니다
+WARGOAL_OTHER_ACCEPT_6;우리가 알 바 아니지만요.
+WARGOAL_OTHER_ACCEPT_BTN1;확인
+WARGOAL_OTHER_ACCEPT_BTN2;확인
+WARGOAL_OTHER_ACCEPT_BTN3;이동
+WARGOAL_OTHER_ACCEPT_LOG;$ACTOR$ 측이 $RECIPIENT$와의 전쟁을 $WARGOAL$까지 포함하도록 확대했습니다.
+NO_GP_ACTION_ON_SELF;스스로를 표적으로 삼는 것은 어리석은 짓일 것입니다
+OL_VIEW_SIEGES;§Y점령§W 보기 전환
+BADBOY_EFFECT;악명 $DIRECTION$ $VALUE$.\n
+unification_annex_casus_belli;통일 전쟁
+unification_annex_casus_belli_desc;우리의 §Y문화 연합§W 핵심 영토를 해방합니다.
+unification_annex_casus_belli_setup;우리의 §Y문화 연합§W 핵심 영토를 해방합니다.
+unification_annex_casus_belli_short;합병
+enlightenment_thought;인권
+enlightenment_thought_desc;인권
+NORMAL_WAR_UNIFICATION_ANNEX_NAME;$ORDER$ $FIRST$ $SECOND_COUNTRY$ 해방
+AGRESSION_WAR_UNIFICATION_ANNEX_NAME;$ORDER$ $FIRST$ $SECOND_COUNTRY$ 해방
+springtime_of_nations;민족들의 봄!
+springtime_of_nations_desc;잠들어 있던 유럽의 민족들이 깨어나 전제주의와 폭정의 망령을 떨쳐내고 있습니다
+HND_conservative;국민회의당
+HND_liberal;독립당
+HND_reactionary;국민전선
+HND_anarcho_liberal;자유당
+HND_socialist;인도 국민 회의
+HND_communist;공산당
+HND_fascist;통일당
+HND;인도
+WEDID_ISDISCREDITED_DESC;§Y$UNTIL$§W까지 신용이 훼손됩니다. 배후에는 우리가 있습니다.
+WEDID_ISBANNEDEMBASSY_DESC;§Y$UNTIL$§W까지 대사관이 금지됩니다. 배후에는 우리가 있습니다.
+OTHER_MUST_NEGOTIATE_WITH_WAR_LEADER;적의 §Y전쟁 주도국§W과 협상하면 전쟁이 끝나기 때문에 협상할 수 없습니다. 평화 조약은 §Y$ENEMY$§W 및 §Y$COUNTRY$§W 사이에서만 체결될 수 있습니다.
+unification_humiliate_cb;주도권 주장
+REMOVE_unification_humiliate_cb_desc;다른 열강에게 굴욕을 주어 공통의 문화 연합에 대한 주도권을 주장합니다.
+REMOVE_unification_humiliate_cb_setup;다른 열강에게 굴욕을 주어 공통의 문화 연합에 대한 주도권을 주장합니다.
+unification_humiliate_cb_short;주도권 인정
+NORMAL_UNIFICATION_HUMILIATE_NAME;제$FIRST$-$SECOND$차 형제 전쟁
+AGRESSION_UNIFICATION_HUMILIATE_NAME;제$FIRST$-$SECOND$차 형제 전쟁
+PRODUCTION_REQUIRED_DAILY_INPUTS;일일 필요 투입재:
+PRODUCTION_DAILY_OUTPUT;일일 산출물:
+COUNTRYALERT_NO_HasClosedFactories;국내에 파산한 공장이 없습니다
+COUNTRYALERT_HasClosedFactories;다음 주에 파산한 공장이 있습니다:
+CHI_1496;홍콩 및 마카오
+ANY_STATE_STARTS;모든 주
+indian_sepoys_title;세포이 반란군
+indian_sepoys_name;인도 세포이
+indian_sepoys_desc;세포이(Sepoy)는 병사를 뜻하는 페르시아어 '시파이(Siphai)'에서 유래한 말로, 유럽 열강에 고용된 인도인 병사들을 가리키는 일반적인 용어였습니다. 1857년, 영국 동인도 회사에 고용된 다수의 세포이들이 영국 통치에 맞서 반란을 일으켰으며, 이는 '세포이의 난' 또는 '인도의 제1차 독립 전쟁'이라고 불립니다. 봉기한 세포이들은 식민 통치로부터 인도의 자유를 얻기 위해 싸웁니다.
+indian_sepoys_army;세포이 반란
+HND_ADJ;인도
+ALD;알제리
+REMOVED_BUDGET_CANT_LOAN_DESC;은행은 당신이 이자를 성실히 납부하고 적대적이지 않을 때만 돈을 대출해 줍니다. 또한 외국 은행은 보안상의 이유로 총 가용 자금의 $MAXLOAN$% 이상은 절대 대출해 주지 않습니다.
+WE_ARE_DISCREDITED;신용이 훼손되었습니다
+INFLUENCE_NEIGHBOUR;인접국
+INFLUENCE_OTHER_CONTINENT;국가가 다른 대륙에 있습니다
+INFLUENCE_RELATIVE;우리의 총점 대비 해당 국가의 총점
+INFLUENCE_AT_MAX;단일 국가에 §Y$MAX$§W 이상의 영향력을 가질 수 없습니다
+DIPLOMACY_DAILYINFLULENCE_GAIN;우리는 §Y$COUNTRY$§W에서 매일 §Y$NUM$§W의 영향력을 획득합니다. 우리의 기본 영향력 획득량은 §Y$BASE$§W입니다
+DECL_WAR_NO_VASSAL;우리는 §Y위성국§W이나 §Y자치령§W을 상대로 전쟁을 선포할 수 없습니다
+austrian_form_south_german_confederation_title;남독일 연방
+austrian_form_south_german_confederation_desc;프로이센-프랑스 전쟁 이후 독일 제국이 선포되기 전까지 독일은 통일되지 않았으나, 19세기에 고조된 민족주의로 인해 통일은 그보다 훨씬 전부터 가시화되어 있었으며 1848년의 프랑크푸르트 국민회의는 이를 위한 중요한 선구자 역할을 했습니다. 남독일 국가들 사이에서 지배적인 위치를 확보함으로써, 우리는 남독일 연방을 결성할 수 있습니다.
+OL_HOSTILE_SIEGES;적대적 점령
+OL_VIEW_HOSTILE_SIEGES;§Y적대적 점령§W 보기 전환.
+civil_war_setup;다시 하나의 깃발 아래 국가를 재통일하여 전쟁을 끝냅니다.
+POOR_MILITANCY_MORE_THAN;하류층 투쟁성 초과
+MIDDLE_MILITANCY_MORE_THAN;중산층 투쟁성 초과
+RICH_MILITANCY_MORE_THAN;상류층 투쟁성 초과
+POOR_MILITANCY_LESS_THAN;하류층 투쟁성 미만
+MIDDLE_MILITANCY_LESS_THAN;중산층 투쟁성 미만
+RICH_MILITANCY_LESS_THAN;상류층 투쟁성 미만
+PRODUCTION_SORT_BY_AVAILABLE_WORKFORCE_TOOLTIP;실직한 §Y$TYPE$§W 기준 정렬
+PRODUCTION_SORT_BY_AVG_INVESTORS_TOOLTIP;주의 평균 §Y$TYPE$§W 기준 정렬
+PRODUCED_DETAIL;국가에서 $VAL$ 가용 가능
+TRADE_AVAILABLE;가용량
+SPA_2517;미크로네시아
+hungarian_culture_group;헝가리
+polish_culture_group;폴란드
+czecho_slovak_culture_group;체코-슬로바키아
+DZG_ADJ;단치히
+EVTNAME13201;외교 사절단이 포위되다!
+EVTDESC13201;$FROMCOUNTRY$에서 소식이 도착했습니다. 그곳의 지배 관료들이 우리 대사를 국외로 추방했으며, 그 결정을 강제할 목적이 다분하게도 그들의 군대가 우리 대사관을 포위하고 있다고 합니다. 이 사건은 엄청난 국제적 체면 손상으로 발전하고 있으며, 이를 피할 수 있는 유일한 방법은 $FROMCOUNTRY$에 대한 공식적인 전쟁 선포뿐입니다. 폐하, 어떻게 대응해야 하겠습니까?
+EVTOPTA13201;전쟁이다!
+EVTOPTB13201;잠자는 $FROMCOUNTRY_ADJ$ 용을 깨우지 않는 편이 좋을지도 모릅니다.
+annex_core_country;질서 회복
+annex_core_country_short;$RECIPIENT$ 합병
+annex_core_country_setup;$RECIPIENT$ 합병
+annex_core_country_desc;모든 프로빈스가 우리의 핵심주인 외국의 §Y국가§W를 합병합니다.
+liberal_rebels_title;자코뱅 반란군
+liberal_rebels_name;자코뱅 반란군
+liberal_rebels_desc;자유주의 성향의 자코뱅 반란군은 국가 정부에 더 폭넓은 계층의 인민이 참여할 수 있도록 하기 위해 투쟁합니다. 전제군주정에서는 입헌군주정을 강제하기 위해 봉기할 것이며, 그 외의 모든 체제에서는 민주정을 수립하고자 합니다.
+liberal_rebels_army;공화국 수비대
+NORMAL_WAR_RESTORE_ORDER_NAME;$ORDER$$FIRST$ $SECOND$ 프로빈스 질서 회복
+AGRESSION_WAR_RESTORE_ORDER_NAME;$ORDER$$FIRST$ $SECOND$ 프로빈스 질서 회복
+NOT_ENOUGH_FOR_BRIGADE;현재 여단을 동원하기에는 충분하지 않습니다

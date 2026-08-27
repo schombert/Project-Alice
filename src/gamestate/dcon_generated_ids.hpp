@@ -2090,13 +2090,13 @@ namespace dcon {
 	//
 	class war_id {
 		public:
-		using value_base_t = uint8_t;
+		using value_base_t = uint16_t;
 		using zero_is_null_t = std::true_type;
 		
-		uint8_t value = 0;
+		uint16_t value = 0;
 		
 		constexpr war_id() noexcept = default;
-		explicit constexpr war_id(uint8_t v) noexcept : value(v + 1) {}
+		explicit constexpr war_id(uint16_t v) noexcept : value(v + 1) {}
 		constexpr war_id(war_id const& v) noexcept = default;
 		constexpr war_id(war_id&& v) noexcept = default;
 		
@@ -2104,7 +2104,7 @@ namespace dcon {
 		war_id& operator=(war_id&& v) noexcept = default;
 		constexpr bool operator==(war_id v) const noexcept { return value == v.value; }
 		constexpr bool operator!=(war_id v) const noexcept { return value != v.value; }
-		explicit constexpr operator bool() const noexcept { return value != uint8_t(0); }
+		explicit constexpr operator bool() const noexcept { return value != uint16_t(0); }
 		constexpr DCON_RELEASE_INLINE int32_t index() const noexcept {
 			return int32_t(value) - 1;
 		}
@@ -2414,39 +2414,6 @@ namespace dcon {
 	};
 	
 	DCON_RELEASE_INLINE bool is_valid_index(administration_id id) { return bool(id); }
-	
-	//
-	// definition of strongly typed index for local_administration_id
-	//
-	class local_administration_id {
-		public:
-		using value_base_t = uint16_t;
-		using zero_is_null_t = std::true_type;
-		
-		uint16_t value = 0;
-		
-		constexpr local_administration_id() noexcept = default;
-		explicit constexpr local_administration_id(uint16_t v) noexcept : value(v + 1) {}
-		constexpr local_administration_id(local_administration_id const& v) noexcept = default;
-		constexpr local_administration_id(local_administration_id&& v) noexcept = default;
-		
-		local_administration_id& operator=(local_administration_id const& v) noexcept = default;
-		local_administration_id& operator=(local_administration_id&& v) noexcept = default;
-		constexpr bool operator==(local_administration_id v) const noexcept { return value == v.value; }
-		constexpr bool operator!=(local_administration_id v) const noexcept { return value != v.value; }
-		explicit constexpr operator bool() const noexcept { return value != uint16_t(0); }
-		constexpr DCON_RELEASE_INLINE int32_t index() const noexcept {
-			return int32_t(value) - 1;
-		}
-	};
-	
-	class local_administration_id_pair {
-		public:
-		local_administration_id left;
-		local_administration_id right;
-	};
-	
-	DCON_RELEASE_INLINE bool is_valid_index(local_administration_id id) { return bool(id); }
 	
 	//
 	// definition of strongly typed index for nation_administration_id
@@ -3080,13 +3047,13 @@ namespace dcon {
 	//
 	class factory_id {
 		public:
-		using value_base_t = uint16_t;
+		using value_base_t = uint32_t;
 		using zero_is_null_t = std::true_type;
 		
-		uint16_t value = 0;
+		uint32_t value = 0;
 		
 		constexpr factory_id() noexcept = default;
-		explicit constexpr factory_id(uint16_t v) noexcept : value(v + 1) {}
+		explicit constexpr factory_id(uint32_t v) noexcept : value(v + 1) {}
 		constexpr factory_id(factory_id const& v) noexcept = default;
 		constexpr factory_id(factory_id&& v) noexcept = default;
 		
@@ -3094,7 +3061,7 @@ namespace dcon {
 		factory_id& operator=(factory_id&& v) noexcept = default;
 		constexpr bool operator==(factory_id v) const noexcept { return value == v.value; }
 		constexpr bool operator!=(factory_id v) const noexcept { return value != v.value; }
-		explicit constexpr operator bool() const noexcept { return value != uint16_t(0); }
+		explicit constexpr operator bool() const noexcept { return value != uint32_t(0); }
 		constexpr DCON_RELEASE_INLINE int32_t index() const noexcept {
 			return int32_t(value) - 1;
 		}
@@ -3113,13 +3080,13 @@ namespace dcon {
 	//
 	class factory_location_id {
 		public:
-		using value_base_t = uint16_t;
+		using value_base_t = uint32_t;
 		using zero_is_null_t = std::true_type;
 		
-		uint16_t value = 0;
+		uint32_t value = 0;
 		
 		constexpr factory_location_id() noexcept = default;
-		explicit constexpr factory_location_id(uint16_t v) noexcept : value(v + 1) {}
+		explicit constexpr factory_location_id(uint32_t v) noexcept : value(v + 1) {}
 		constexpr factory_location_id(factory_location_id const& v) noexcept = default;
 		constexpr factory_location_id(factory_location_id&& v) noexcept = default;
 		
@@ -3127,7 +3094,7 @@ namespace dcon {
 		factory_location_id& operator=(factory_location_id&& v) noexcept = default;
 		constexpr bool operator==(factory_location_id v) const noexcept { return value == v.value; }
 		constexpr bool operator!=(factory_location_id v) const noexcept { return value != v.value; }
-		explicit constexpr operator bool() const noexcept { return value != uint16_t(0); }
+		explicit constexpr operator bool() const noexcept { return value != uint32_t(0); }
 		constexpr DCON_RELEASE_INLINE int32_t index() const noexcept {
 			return int32_t(value) - 1;
 		}
@@ -4033,6 +4000,72 @@ namespace dcon {
 	DCON_RELEASE_INLINE bool is_valid_index(player_nation_id id) { return bool(id); }
 	
 	//
+	// definition of strongly typed index for client_id
+	//
+	class client_id {
+		public:
+		using value_base_t = uint16_t;
+		using zero_is_null_t = std::true_type;
+		
+		uint16_t value = 0;
+		
+		constexpr client_id() noexcept = default;
+		explicit constexpr client_id(uint16_t v) noexcept : value(v + 1) {}
+		constexpr client_id(client_id const& v) noexcept = default;
+		constexpr client_id(client_id&& v) noexcept = default;
+		
+		client_id& operator=(client_id const& v) noexcept = default;
+		client_id& operator=(client_id&& v) noexcept = default;
+		constexpr bool operator==(client_id v) const noexcept { return value == v.value; }
+		constexpr bool operator!=(client_id v) const noexcept { return value != v.value; }
+		explicit constexpr operator bool() const noexcept { return value != uint16_t(0); }
+		constexpr DCON_RELEASE_INLINE int32_t index() const noexcept {
+			return int32_t(value) - 1;
+		}
+	};
+	
+	class client_id_pair {
+		public:
+		client_id left;
+		client_id right;
+	};
+	
+	DCON_RELEASE_INLINE bool is_valid_index(client_id id) { return bool(id); }
+	
+	//
+	// definition of strongly typed index for player_client_id
+	//
+	class player_client_id {
+		public:
+		using value_base_t = uint16_t;
+		using zero_is_null_t = std::true_type;
+		
+		uint16_t value = 0;
+		
+		constexpr player_client_id() noexcept = default;
+		explicit constexpr player_client_id(uint16_t v) noexcept : value(v + 1) {}
+		constexpr player_client_id(player_client_id const& v) noexcept = default;
+		constexpr player_client_id(player_client_id&& v) noexcept = default;
+		
+		player_client_id& operator=(player_client_id const& v) noexcept = default;
+		player_client_id& operator=(player_client_id&& v) noexcept = default;
+		constexpr bool operator==(player_client_id v) const noexcept { return value == v.value; }
+		constexpr bool operator!=(player_client_id v) const noexcept { return value != v.value; }
+		explicit constexpr operator bool() const noexcept { return value != uint16_t(0); }
+		constexpr DCON_RELEASE_INLINE int32_t index() const noexcept {
+			return int32_t(value) - 1;
+		}
+	};
+	
+	class player_client_id_pair {
+		public:
+		player_client_id left;
+		player_client_id right;
+	};
+	
+	DCON_RELEASE_INLINE bool is_valid_index(player_client_id id) { return bool(id); }
+	
+	//
 	// definition of strongly typed index for text_key
 	//
 	class text_key {
@@ -4593,6 +4626,39 @@ namespace dcon {
 	
 	DCON_RELEASE_INLINE bool is_valid_index(national_modifier_value id) { return bool(id); }
 	
+	//
+	// definition of strongly typed index for production_directive_id
+	//
+	class production_directive_id {
+		public:
+		using value_base_t = uint8_t;
+		using zero_is_null_t = std::true_type;
+		
+		uint8_t value = 0;
+		
+		constexpr production_directive_id() noexcept = default;
+		explicit constexpr production_directive_id(uint8_t v) noexcept : value(v + 1) {}
+		constexpr production_directive_id(production_directive_id const& v) noexcept = default;
+		constexpr production_directive_id(production_directive_id&& v) noexcept = default;
+		
+		production_directive_id& operator=(production_directive_id const& v) noexcept = default;
+		production_directive_id& operator=(production_directive_id&& v) noexcept = default;
+		constexpr bool operator==(production_directive_id v) const noexcept { return value == v.value; }
+		constexpr bool operator!=(production_directive_id v) const noexcept { return value != v.value; }
+		explicit constexpr operator bool() const noexcept { return value != uint8_t(0); }
+		constexpr DCON_RELEASE_INLINE int32_t index() const noexcept {
+			return int32_t(value) - 1;
+		}
+	};
+	
+	class production_directive_id_pair {
+		public:
+		production_directive_id left;
+		production_directive_id right;
+	};
+	
+	DCON_RELEASE_INLINE bool is_valid_index(production_directive_id id) { return bool(id); }
+	
 }
 
 #ifndef DCON_NO_VE
@@ -4958,11 +5024,6 @@ namespace ve {
 	};
 	
 	template<>
-	struct value_to_vector_type_s<dcon::local_administration_id> {
-		using type = ::ve::tagged_vector<dcon::local_administration_id>;
-	};
-	
-	template<>
 	struct value_to_vector_type_s<dcon::nation_administration_id> {
 		using type = ::ve::tagged_vector<dcon::nation_administration_id>;
 	};
@@ -5203,6 +5264,16 @@ namespace ve {
 	};
 	
 	template<>
+	struct value_to_vector_type_s<dcon::client_id> {
+		using type = ::ve::tagged_vector<dcon::client_id>;
+	};
+	
+	template<>
+	struct value_to_vector_type_s<dcon::player_client_id> {
+		using type = ::ve::tagged_vector<dcon::player_client_id>;
+	};
+	
+	template<>
 	struct value_to_vector_type_s<dcon::text_key> {
 		using type = ::ve::tagged_vector<dcon::text_key>;
 	};
@@ -5285,6 +5356,11 @@ namespace ve {
 	template<>
 	struct value_to_vector_type_s<dcon::national_modifier_value> {
 		using type = ::ve::tagged_vector<dcon::national_modifier_value>;
+	};
+	
+	template<>
+	struct value_to_vector_type_s<dcon::production_directive_id> {
+		using type = ::ve::tagged_vector<dcon::production_directive_id>;
 	};
 	
 }

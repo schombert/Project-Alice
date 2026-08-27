@@ -50,7 +50,9 @@ inline void read_player_nations(sys::state& state, char const* start, char const
 					text::substitution_map sub{};
 					text::add_to_substitution_map(sub, text::variable_type::playername, name.to_string_view());
 					auto msg = text::resolve_string_substitution(state, "chat_player_joins", sub);
-					command::chat_message(state, source, msg, dcon::nation_id{});
+					network::chat_message_targets all_targets;
+					std::memset(&all_targets, true, sizeof(all_targets));
+					command::chat_message(state, all_targets, msg);
 
 #ifndef NDEBUG
 					network::log_player_nations(state);

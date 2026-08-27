@@ -5,12 +5,86 @@
 #include "gui_console.hpp"
 #include "gui_fps_counter.hpp"
 #include "nations.hpp"
+#include "fif.hpp"
 #include "fif_dcon_generated.hpp"
 #include "fif_common.hpp"
-
+#include "gui_element_base.hpp"
+#include "gui_templates.hpp"
+#include "constants_ui.hpp"
 #define STB_IMAGE_WRITE_IMPLEMENTATION 1
 #include "stb_image_write.h"
 
+
+void ui::console_window::on_create(sys::state& state) noexcept {
+	window_element_base::on_create(state);
+	set_visible(state, false);
+}
+
+std::unique_ptr<ui::element_base> ui::console_window::make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept {
+	if(name == "console_list") {
+		auto ptr = make_element_by_type<console_list>(state, id);
+		console_output_list = ptr.get();
+		return ptr;
+	} else if(name == "console_edit") {
+		auto ptr = make_element_by_type<console_edit>(state, id);
+		edit_box = ptr.get();
+		return ptr;
+	} else {
+		return nullptr;
+	}
+}
+
+ui::message_result ui::console_window::get(sys::state& state, Cyto::Any& payload) noexcept {
+	if(payload.holds_type<std::string>()) {
+		auto entry = any_cast<std::string>(payload);
+		console_output_list->raw_text += entry + "\\n";
+		console_output_list->text_pending = true;
+		console_output_list->impl_on_update(state);
+		return message_result::consumed;
+	} else if(payload.holds_type<console_edit*>()) {
+		//console_output_list->scroll_to_bottom(state);
+		return message_result::consumed;
+	} else {
+		return message_result::unseen;
+	}
+}
+
+void ui::console_window::clear_list(sys::state& state) noexcept {
+	console_output_list->raw_text.clear();
+	console_output_list->impl_on_update(state);
+}
+
+void ui::console_window::on_visible(sys::state& state) noexcept {
+	//console_output_list->scroll_to_bottom(state);
+	state.ui_state.set_focus_target(state, edit_box);
+}
+void ui::console_window::on_hide(sys::state& state) noexcept {
+	state.ui_state.set_focus_target(state, nullptr);
+}
+
+void ui::console_list::on_update(sys::state & state) noexcept {
+	std::string new_content;
+	{
+		std::lock_guard lg{ state.lock_console_strings };
+		new_content = state.console_command_result;
+		state.console_command_result.clear();
+	}
+	if(new_content.size() > 0) {
+		raw_text += new_content;
+		text_pending = true;
+	}
+	if(text_pending) {
+		text_pending = false;
+		auto contents = text::create_endless_layout(state, delegate->internal_layout,
+			text::layout_parameters{ 10, 10, int16_t(base_data.size.x), int16_t(base_data.size.y),
+			base_data.data.text.font_handle, 0, text::alignment::left,
+			text::is_black_from_font_id(base_data.data.text.font_handle) ? text::text_color::black : text::text_color::white, false });
+		auto box = text::open_layout_box(contents);
+		text::add_unparsed_text_to_layout_box(state, contents, box, raw_text);
+		text::close_layout_box(contents, box);
+		calibrate_scrollbar(state);
+	}
+}
 
 void log_to_console(sys::state& state, ui::element_base* parent, std::u16string_view s) noexcept {
 	Cyto::Any output = simple_fs::utf16_to_utf8(s);
@@ -55,6 +129,7 @@ void ui::console_edit::on_edit_command(sys::state& state, edit_command command, 
 			state.console_command_pending += simple_fs::utf16_to_utf8(cached_text);
 			add_to_history(state, state.console_command_pending);
 			command::notify_console_command(state);
+			set_text(state, u"");
 		}
 		return;
 	}
@@ -135,12 +210,7 @@ int32_t* f_change_tag(fif::state_stack& s, int32_t* p, fif::environment* e) {
 	dcon::nation_id to_nation;
 	to_nation.value = dcon::nation_id::value_base_t(s.main_data_back(0));
 	if(to_nation && to_nation != state->local_player_nation && to_nation != state->world.national_identity_get_nation_from_identity_holder(state->national_definitions.rebel_id)) {
-		if(state->local_player_nation)
-			state->world.nation_set_is_player_controlled(state->local_player_nation, false);
-
-		state->local_player_nation = to_nation;
-		state->world.nation_set_is_player_controlled(to_nation, true);
-		ai::remove_ai_data(*state, to_nation);
+		nations::switch_all_players(*state, to_nation, state->local_player_nation);
 	}
 
 	s.pop_main();
@@ -159,10 +229,9 @@ int32_t* f_spectate(fif::state_stack& s, int32_t* p, fif::environment* e) {
 
 	dcon::nation_id to_nation = state->world.national_identity_get_nation_from_identity_holder(state->national_definitions.rebel_id);
 
-	if(state->local_player_nation)
-		state->world.nation_set_is_player_controlled(state->local_player_nation, false);
-
-	state->local_player_nation = to_nation;
+	if(to_nation && to_nation != state->local_player_nation) {
+		nations::switch_all_players(*state, to_nation, state->local_player_nation);
+	}
 
 	return p + 2;
 }
@@ -352,8 +421,9 @@ int32_t* f_dump_oos(fif::state_stack& s, int32_t* p, fif::environment* e) {
 		ptr_in = sys::serialize(ptr_in, state.map_state.map_data.coastal_vertices);
 		ptr_in = sys::serialize(ptr_in, state.map_state.map_data.coastal_starts);
 		ptr_in = sys::serialize(ptr_in, state.map_state.map_data.coastal_counts);
-		ptr_in = sys::serialize(ptr_in, state.map_state.map_data.border_vertices);
-		ptr_in = sys::serialize(ptr_in, state.map_state.map_data.borders);
+		ptr_in = sys::serialize(ptr_in, state.map_state.map_data.province_border_vertices);
+		ptr_in = sys::serialize(ptr_in, state.map_state.map_data.province_border_starts);
+		ptr_in = sys::serialize(ptr_in, state.map_state.map_data.province_border_counts);
 		ptr_in = sys::serialize(ptr_in, state.map_state.map_data.terrain_id_map);
 		ptr_in = sys::serialize(ptr_in, state.map_state.map_data.province_id_map);
 		ptr_in = sys::serialize(ptr_in, state.map_state.map_data.province_area);
@@ -576,7 +646,7 @@ int32_t* f_dump_oos(fif::state_stack& s, int32_t* p, fif::environment* e) {
 		return ptr_in;
 	});
 	log_to_console(state, state.ui_state.console_window, u"Check \"My Documents\\Project Alice\\oos\" for the OOS dump");
-	window::change_cursor(state, window::cursor_type::normal);
+	window::change_cursor(state, window::cursor_type::normal_cancel_busy);
 
 	return p + 2;
 }
@@ -1206,7 +1276,7 @@ int32_t* f_nation_name(fif::state_stack& s, int32_t* p, fif::environment* e) {
 		return p + 2;
 	}
 
-	
+
 
 	dcon::nation_id to_nation_b;
 	to_nation_b.value = dcon::nation_id::value_base_t(s.main_data_back(0));
@@ -1215,6 +1285,59 @@ int32_t* f_nation_name(fif::state_stack& s, int32_t* p, fif::environment* e) {
 	auto name = text::get_name(*state, to_nation_b);
 
 	s.push_back_main(state->type_text_key, int64_t(name.value), nullptr);
+
+	return p + 2;
+}
+
+int32_t* f_nation_money_pools(fif::state_stack& s, int32_t* p, fif::environment* e) {
+	auto state_global = fif::get_global_var(*e, "state-ptr");
+	sys::state* state = (sys::state*)(state_global->data);
+
+	if(fif::typechecking_mode(e->mode)) {
+		if(fif::typechecking_failed(e->mode))
+			return p + 2;
+		s.pop_main();
+		s.push_back_main(state->type_text_key, 0, nullptr);
+		return p + 2;
+	}
+
+
+
+	dcon::nation_id to_nation_b;
+	to_nation_b.value = dcon::nation_id::value_base_t(s.main_data_back(0));
+	s.pop_main();
+
+	//auto name = text::get_name(*state, to_nation_b);
+
+	auto values = economy::breakdown_nation_monetary_structure(*state, to_nation_b);
+	float container;
+
+	int64_t data = 0;
+	memcpy(&data, &values.total, 4);
+	s.push_back_main(fif::fif_f32, data, nullptr);
+
+	memcpy(&data, &values.nation, 4);
+	s.push_back_main(fif::fif_f32, data, nullptr);
+
+	memcpy(&data, &values.market, 4);
+	s.push_back_main(fif::fif_f32, data, nullptr);
+
+	memcpy(&data, &values.pops, 4);
+	s.push_back_main(fif::fif_f32, data, nullptr);
+
+	memcpy(&data, &values.rgo, 4);
+	s.push_back_main(fif::fif_f32, data, nullptr);
+
+	memcpy(&data, &values.factory, 4);
+	s.push_back_main(fif::fif_f32, data, nullptr);
+
+	container = values.educators + values.ports + values.landlords + values.artisans;
+	memcpy(&data, &container, 4);
+	s.push_back_main(fif::fif_f32, data, nullptr);
+
+	container = values.bank + values.investment_pool;
+	memcpy(&data, &container, 4);
+	s.push_back_main(fif::fif_f32, data, nullptr);
 
 	return p + 2;
 }
@@ -1466,6 +1589,7 @@ void ui::initialize_console_fif_environment(sys::state& state) {
 	fif::add_import("fire-event", nullptr, f_fire_event, { nation_id_type, fif::fif_i32 }, {}, * state.fif_environment);
 	fif::add_import("nation-name", nullptr, f_nation_name, { nation_id_type }, { state.type_text_key }, *state.fif_environment);
 	fif::add_import("load-file", nullptr, load_file, {}, {}, * state.fif_environment);
+	fif::add_import("nation-monetary-pools", nullptr, f_nation_money_pools, {nation_id_type}, { fif::fif_f32, fif::fif_f32, fif::fif_f32, fif::fif_f32, fif::fif_f32, fif::fif_f32, fif::fif_f32, fif::fif_f32 }, * state.fif_environment);
 
 	fif::add_import("compile-mod", nullptr, compile_modifier, { fif::fif_i32 }, { }, * state.fif_environment);
 
@@ -1475,7 +1599,7 @@ void ui::initialize_console_fif_environment(sys::state& state) {
 	fif::run_fif_interpreter(*state.fif_environment,
 		" :s name nation_id s: nation-name ; ",
 		values);
-	
+
 	fif::run_fif_interpreter(*state.fif_environment,
 		" : player " + std::to_string(offsetof(sys::state, local_player_nation)) + " state-ptr @ buf-add ptr-cast ptr(nation_id) ; ",
 		values);

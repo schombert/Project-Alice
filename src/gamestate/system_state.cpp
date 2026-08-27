@@ -2,31 +2,16 @@
 #include <functional>
 #include <thread>
 #include "system_state.hpp"
-#include "dcon_generated.hpp"
+#include "lua_alice_api.hpp"
 #include "map_modes.hpp"
 #include "opengl_wrapper.hpp"
 #include "window.hpp"
+#include "blake2.h"
+#include "fif_common.hpp"
 #include "gui_element_base.hpp"
+#include "gui_deserialize.hpp"
 #include "parsers_declarations.hpp"
-#include "gui_console.hpp"
-#include "gui_minimap.hpp"
-#include "gui_unit_panel.hpp"
-#include "gui_topbar.hpp"
-#include "gui_province_window.hpp"
-#include "gui_outliner_window.hpp"
-#include "gui_event.hpp"
-#include "gui_map_icons.hpp"
-#include "gui_diplomacy_request_window.hpp"
-#include "gui_message_window.hpp"
-#include "gui_naval_combat.hpp"
-#include "gui_land_combat.hpp"
-#include "gui_chat_window.hpp"
-#include "gui_state_select.hpp"
-#include "gui_national_identity_select.hpp"
-#include "gui_error_window.hpp"
-#include "gui_diplomacy_request_topbar.hpp"
-#include "map_tooltip.hpp"
-#include "unit_tooltip.hpp"
+#include "create_windows.hpp"
 #include "demographics.hpp"
 #include "rebels.hpp"
 #include "ai.hpp"
@@ -37,282 +22,22 @@
 #include "ai_campaign.hpp"
 #include "ai_war.hpp"
 #include "effects.hpp"
-#include "gui_leader_select.hpp"
-#include "gui_land_combat.hpp"
-#include "gui_nation_picker.hpp"
-#include "gui_end_window.hpp"
-#include "gui_map_legend.hpp"
-#include "gui_unit_grid_box.hpp"
-#include "blake2.h"
-#include "fif_common.hpp"
-#include "gui_deserialize.hpp"
 #include "advanced_province_buildings.hpp"
 #include "military_templates.hpp"
 #include "economy_pops.hpp"
-
-namespace ui {
-
-void create_in_game_windows(sys::state& state) {
-	state.ui_state.lazy_load_in_game = true;
-
-	state.ui_state.unit_details_box = ui::make_element_by_type<ui::grid_box>(state, state.ui_state.defs_by_name.find(state.lookup_key("alice_grid_panel"))->second.definition);
-	state.ui_state.unit_details_box->set_visible(state, false);
-
-	// dummy ui root for economy explorer
-	state.ui_state.economy_viewer_root = std::make_unique<ui::element_base>();
-
-	//
-	state.ui_state.select_states_legend = ui::make_element_by_type<ui::map_state_select_window>(state, state.ui_state.defs_by_name.find(state.lookup_key("alice_select_legend_window"))->second.definition);
-	// create UI for national identity selector
-	{
-		auto key = state.lookup_key("alice_select_legend_window");
-		auto def = state.ui_state.defs_by_name.find(key)->second.definition;
-		auto window = ui::make_element_by_type<ui::map_national_identity_select_window>(state, def);
-		state.ui_state.select_national_identity_root->add_child_to_front(std::move(window));
-	}
-	// create ui for army selector
-	{
-		{
-			auto key = state.lookup_key("alice_armygroup_selection_control_panel");
-			auto def = state.ui_state.defs_by_name.find(key)->second.definition;
-			auto window = ui::make_element_by_type<ui::battleplanner_selection_control>(state, def);
-			state.ui_state.army_group_selector_root->add_child_to_front(std::move(window));
-		}
-		{
-			auto key = state.lookup_key("alice_armygroup_exit_units_selection");
-			auto def = state.ui_state.defs_by_name.find(key)->second.definition;
-			auto button = ui::make_element_by_type<ui::go_to_battleplanner_button>(state, def);
-			state.ui_state.army_group_selector_root->add_child_to_front(std::move(button));
-		}
-	}
-
-	// create ui for battleplanner
-	{
-		state.world.for_each_province([&](dcon::province_id id) {
-			auto ptr = ui::make_element_by_type<ui::army_group_counter_window>(state, "alice_army_group_on_map");
-			static_cast<ui::army_group_counter_window*>(ptr.get())->prov = id;
-			state.ui_state.military_root->add_child_to_front(std::move(ptr));
-		});
-
-		{
-			auto key = state.lookup_key("alice_army_group_regiments_list");
-			auto def = state.ui_state.defs_by_name.find(key)->second.definition;
-			auto new_elm_army_group = ui::make_element_by_type<ui::army_group_details_window>(state, def);
-			state.ui_state.army_group_window_land = static_cast<ui::army_group_details_window*>(new_elm_army_group.get());
-			new_elm_army_group->set_visible(state, true);
-			state.ui_state.military_root->add_child_to_front(std::move(new_elm_army_group));
-		}
-
-		{
-			auto key = state.lookup_key("alice_exit_battleplanner");
-			auto def = state.ui_state.defs_by_name.find(key)->second.definition;
-			auto button = ui::make_element_by_type<ui::go_to_base_game_button>(state, def);
-			state.ui_state.military_root->add_child_to_front(std::move(button));
-		}
-
-		{
-			auto key = state.lookup_key("alice_battleplanner_control_panel");
-			auto def = state.ui_state.defs_by_name.find(key)->second.definition;
-			auto window = ui::make_element_by_type<ui::battleplanner_control>(state, def);
-			state.ui_state.military_root->add_child_to_front(std::move(window));
-		}
-	}
-
-
-	state.ui_state.end_screen = std::make_unique<ui::container_base>();
-	{
-		auto ewin = ui::make_element_by_type<ui::end_window>(state, state.ui_state.defs_by_name.find(state.lookup_key("back_end"))->second.definition);
-		state.ui_state.end_screen->add_child_to_front(std::move(ewin));
-	}
-	{
-		auto window = ui::make_element_by_type<ui::console_window>(state, "alice_console_window");
-		state.ui_state.console_window = window.get();
-		state.ui_state.root->add_child_to_front(std::move(window));
-	}
-	state.world.for_each_province([&](dcon::province_id id) {
-		if(state.world.province_get_port_to(id)) {
-			auto ptr = ui::make_element_by_type<ui::port_window>(state, "alice_port_icon");
-			static_cast<ui::port_window*>(ptr.get())->set_province(state, id);
-			state.ui_state.units_root->add_child_to_front(std::move(ptr));
-		}
-	});
-
-	state.world.for_each_province([&](dcon::province_id id) {
-		auto ptr = ui::make_element_by_type<ui::unit_counter_window>(state, "alice_map_unit");
-		static_cast<ui::unit_counter_window*>(ptr.get())->prov = id;
-		state.ui_state.units_root->add_child_to_front(std::move(ptr));
-	});
-	state.world.for_each_province([&](dcon::province_id id) {
-		auto ptr = ui::make_element_by_type<ui::rgo_icon>(state, "alice_rgo_mapicon");
-		static_cast<ui::rgo_icon*>(ptr.get())->content = id;
-		state.ui_state.rgos_root->add_child_to_front(std::move(ptr));
-	});
-	province::for_each_land_province(state, [&](dcon::province_id id) {
-		auto ptr = ui::make_element_by_type<ui::province_details_container>(state, "alice_province_values");
-		static_cast<ui::province_details_container*>(ptr.get())->prov = id;
-		state.ui_state.province_details_root->add_child_to_front(std::move(ptr));
-	});
-	{
-		auto new_elm = ui::make_element_by_type<ui::chat_message_listbox<false>>(state, "chat_list");
-		new_elm->base_data.position.x += 156; // nudge
-		new_elm->base_data.position.y += 24; // nudge
-		new_elm->impl_on_update(state);
-		state.ui_state.tl_chat_list = new_elm.get();
-		state.ui_state.root->add_child_to_back(std::move(new_elm));
-	}
-	{
-		auto new_elm = ui::make_element_by_type<ui::outliner_window>(state, "outliner");
-		state.ui_state.outliner_window = new_elm.get();
-		new_elm->impl_on_update(state);
-		state.ui_state.root->add_child_to_front(std::move(new_elm));
-		// Has to be created AFTER the outliner window
-		// The topbar has this button within, however since the button isn't properly displayed, it is better to make
-		// it into an independent element of it's own, living freely on the UI root so it can be flexibly moved around when
-		// the window is resized for example.
-		for(size_t i = state.ui_defs.gui.size(); i-- > 0;) {
-			auto gdef = dcon::gui_def_id(dcon::gui_def_id::value_base_t(i));
-			if(state.to_string_view(state.ui_defs.gui[gdef].name) == "topbar_outlinerbutton_bg") {
-				auto new_bg = ui::make_element_by_type<ui::outliner_button>(state, gdef);
-				state.ui_state.root->add_child_to_front(std::move(new_bg));
-				break;
-			}
-		}
-		// Then create button atop
-		for(size_t i = state.ui_defs.gui.size(); i-- > 0;) {
-			auto gdef = dcon::gui_def_id(dcon::gui_def_id::value_base_t(i));
-			if(state.to_string_view(state.ui_defs.gui[gdef].name) == "topbar_outlinerbutton") {
-				auto new_btn = ui::make_element_by_type<ui::outliner_button>(state, gdef);
-				new_btn->impl_on_update(state);
-				state.ui_state.root->add_child_to_front(std::move(new_btn));
-				break;
-			}
-		}
-	}
-	{
-		auto new_elm = ui::make_element_by_type<ui::minimap_container_window>(state, "alice_menubar");
-		state.ui_state.menubar_window = new_elm.get();
-		state.ui_state.root->add_child_to_front(std::move(new_elm));
-	}
-	{
-		auto new_elm = ui::make_element_by_type<ui::minimap_picture_window>(state, "minimap_pic");
-		state.ui_state.root->add_child_to_front(std::move(new_elm));
-	}
-	{
-		auto new_elm = ui::make_element_by_type<ui::province_view_window>(state, "province_view");
-		state.ui_state.root->add_child_to_front(std::move(new_elm));
-	}
-	{
-		auto new_elm_army = ui::make_element_by_type<ui::unit_details_window<dcon::army_id>>(state, "sup_unit_status");
-		state.ui_state.army_status_window = static_cast<ui::unit_details_window<dcon::army_id>*>(new_elm_army.get());
-		new_elm_army->set_visible(state, false);
-		state.ui_state.root->add_child_to_front(std::move(new_elm_army));
-
-		auto new_elm_navy = ui::make_element_by_type<ui::unit_details_window<dcon::navy_id>>(state, "sup_unit_status");
-		state.ui_state.navy_status_window = static_cast<ui::unit_details_window<dcon::navy_id>*>(new_elm_navy.get());
-		new_elm_navy->set_visible(state, false);
-		state.ui_state.root->add_child_to_front(std::move(new_elm_navy));
-	}
-
-	{
-		auto mselection = ui::make_element_by_type<ui::mulit_unit_selection_panel>(state, "alice_multi_unitpanel");
-		state.ui_state.multi_unit_selection_window = mselection.get();
-		mselection->set_visible(state, false);
-		state.ui_state.root->add_child_to_front(std::move(mselection));
-	}
-	{
-		auto new_elm = ui::make_element_by_type<ui::diplomacy_request_window>(state, "defaultdialog");
-		state.ui_state.request_window = new_elm.get();
-		state.ui_state.root->add_child_to_front(std::move(new_elm));
-	}
-	{
-		auto new_elm = ui::make_element_by_type<ui::message_window>(state, "defaultpopup");
-		state.ui_state.msg_window = new_elm.get();
-		state.ui_state.root->add_child_to_front(std::move(new_elm));
-	}
-	{
-		auto new_elm = ui::make_element_by_type<ui::leader_selection_window>(state, "alice_leader_selection_panel");
-		state.ui_state.change_leader_window = new_elm.get();
-		state.ui_state.root->add_child_to_front(std::move(new_elm));
-	}
-	{
-		auto new_elm = ui::make_element_by_type<ui::naval_combat_end_popup>(state, "endofnavalcombatpopup");
-		new_elm->set_visible(state, false);
-		state.ui_state.root->add_child_to_front(std::move(new_elm));
-	}
-	{
-		auto new_elm = ui::make_element_by_type<ui::naval_combat_window>(state, "alice_naval_combat");
-		new_elm->set_visible(state, false);
-		state.ui_state.root->add_child_to_front(std::move(new_elm));
-	}
-	{
-		auto new_elm = ui::make_element_by_type<ui::land_combat_window>(state, "alice_land_combat");
-		new_elm->set_visible(state, false);
-		state.ui_state.root->add_child_to_front(std::move(new_elm));
-	}
-	{
-		auto new_elem = make_element_by_type<disband_unit_confirmation>(state, "disband_window");
-		// set window to be movable
-		new_elem->base_data.data.window.flags |= new_elem->base_data.data.window.is_moveable_mask;
-		new_elem->set_visible(state, false);
-		state.ui_state.disband_unit_window = new_elem.get();
-		state.ui_state.root->add_child_to_front(std::move(new_elem));
-
-	}
-	{
-		auto new_elm = ui::make_element_by_type<ui::topbar_window>(state, "topbar");
-		new_elm->impl_on_update(state);
-		state.ui_state.root->add_child_to_front(std::move(new_elm));
-	}
-	{
-		auto legend_win = ui::make_element_by_type<ui::map_legend_gradient>(state, "alice_map_legend_gradient_window");
-		state.ui_state.map_gradient_legend = legend_win.get();
-		state.ui_state.root->add_child_to_front(std::move(legend_win));
-	}
-	{
-		auto legend_win = ui::make_element_by_type<ui::map_legend_civ_level>(state, "alice_map_legend_civ_level");
-		state.ui_state.map_civ_level_legend = legend_win.get();
-		state.ui_state.root->add_child_to_front(std::move(legend_win));
-	}
-	{
-		auto legend_win = ui::make_element_by_type<ui::map_legend_col>(state, "alice_map_legend_colonial");
-		state.ui_state.map_col_legend = legend_win.get();
-		state.ui_state.root->add_child_to_front(std::move(legend_win));
-	}
-	{
-		auto legend_win = ui::make_element_by_type<ui::map_legend_dip>(state, "alice_map_legend_diplomatic");
-		state.ui_state.map_dip_legend = legend_win.get();
-		state.ui_state.root->add_child_to_front(std::move(legend_win));
-	}
-	{
-		auto legend_win = ui::make_element_by_type<ui::map_legend_rr>(state, "alice_map_legend_infrastructure");
-		state.ui_state.map_rr_legend = legend_win.get();
-		state.ui_state.root->add_child_to_front(std::move(legend_win));
-	}
-	{
-		auto legend_win = ui::make_element_by_type<ui::map_legend_nav>(state, "alice_map_legend_naval");
-		state.ui_state.map_nav_legend = legend_win.get();
-		state.ui_state.root->add_child_to_front(std::move(legend_win));
-	}
-	{
-		auto legend_win = ui::make_element_by_type<ui::map_legend_rank>(state, "alice_map_legend_rank");
-		state.ui_state.map_rank_legend = legend_win.get();
-		state.ui_state.root->add_child_to_front(std::move(legend_win));
-	}
-	{
-		auto legend_win = ui::make_element_by_type<ui::map_legend_rec>(state, "alice_map_legend_rec");
-		state.ui_state.map_rec_legend = legend_win.get();
-		state.ui_state.root->add_child_to_front(std::move(legend_win));
-	}
-	{ // And the other on the normal in game UI
-		auto new_elm = ui::make_element_by_type<ui::chat_window>(state, "ingame_lobby_window");
-		new_elm->set_visible(state, !(state.network_mode == sys::network_mode_type::single_player)); // Hidden in singleplayer by default
-		state.ui_state.chat_window = new_elm.get(); // Default for singleplayer is the in-game one, lobby one is useless in sp
-		state.ui_state.root->add_child_to_front(std::move(new_elm));
-	}
-	state.ui_state.rgos_root->impl_on_update(state);
-	state.ui_state.units_root->impl_on_update(state);
-}
-}
+#include "user_interactions.hpp"
+#include "serialization.hpp"
+#include "province_templates.hpp"
+#include "gui_event.hpp"
+#include "game_scene.hpp"
+#include "economy_production.hpp"
+#include "money.hpp"
+#include "diplomatic_messages.hpp"
+#include "economy_constants.hpp"
+#include "alice_ui.hpp"
+#include "commands.hpp"
+#include "dcon_oos_reporter_generated.hpp"
+#include "math_fns.hpp"
 
 namespace sys {
 
@@ -323,6 +48,17 @@ void state::start_state_selection(state_selection_data& data) {
 
 	if(ui_state.select_states_legend) {
 		ui_state.select_states_legend->impl_on_update(*this);
+	}
+}
+
+glm::vec2 put_in_local(glm::vec2 new_point, glm::vec2 base_point, float size_x) {
+	auto uadjx = std::abs(new_point.x - base_point.x);
+	auto ladjx = std::abs(new_point.x - size_x - base_point.x);
+	auto radjx = std::abs(new_point.x + size_x - base_point.x);
+	if(uadjx < ladjx) {
+		return uadjx < radjx ? new_point : glm::vec2{ new_point.x + size_x, new_point.y };
+	} else {
+		return ladjx < radjx ? glm::vec2{ new_point.x - size_x, new_point.y } : glm::vec2{ new_point.x + size_x, new_point.y };
 	}
 }
 
@@ -343,6 +79,7 @@ void state::state_select(dcon::state_definition_id sdef) {
 		if(state_selection->single_state_select) {
 			game_scene::switch_scene(*this, game_scene::scene_id::in_game_basic);
 			state_selection->on_select(*this, sdef);
+			state_selection.reset();
 			// Order of calls is important since callback can switch us to another scene with selector
 		} else {
 			// Multi-state selection is not supported
@@ -355,19 +92,17 @@ void state::state_select(dcon::state_definition_id sdef) {
 			std::abort();
 		}
 	}
-	state_selection.reset();
 	map_state.update(*this);
 }
 
 // A national identity was selected from the legend
 void state::national_identity_select(dcon::national_identity_id ni) {
 	assert(national_identity_selection);
-
 	if(std::find(national_identity_selection->selectable_identities.begin(), national_identity_selection->selectable_identities.end(), ni) != national_identity_selection->selectable_identities.end()) {
 		national_identity_selection->on_select(*this, ni);
 		game_scene::switch_scene(*this, game_scene::scene_id::in_game_basic);
+		national_identity_selection.reset();
 	}
-	national_identity_selection.reset();
 	map_state.update(*this);
 }
 
@@ -400,10 +135,28 @@ void state::on_mbutton_down(int32_t x, int32_t y, key_modifiers mod) {
 }
 
 void state::on_lbutton_down(int32_t x, int32_t y, key_modifiers mod) {
+	if(ui_state.current_drag_and_drop_data_type != ui::drag_and_drop_data::none) {
+		if(!current_scene.get_root)
+			return;
+
+		auto root = current_scene.get_root(*this);
+
+		auto qresult = root->impl_drag_and_drop_query(*this, int32_t(x / user_settings.ui_scale), int32_t(y / user_settings.ui_scale), ui_state.current_drag_and_drop_data_type);
+		if(qresult.under_mouse) {
+			//TODO: implement targets other than center depending on qresult return
+			auto finished = qresult.under_mouse->recieve_drag_and_drop(*this, ui_state.current_drag_and_drop_data, ui_state.current_drag_and_drop_data_type, ui::drag_and_drop_target::center, ui_state.shift_held_down);
+			if(finished) {
+				ui_state.current_drag_and_drop_data_type = ui::drag_and_drop_data::none;
+				ui_state.current_drag_and_drop_data.reset();
+			}
+			return;
+		}
+	} 
 	if(iui_state.over_ui)
 		iui_state.mouse_pressed = true;
 	else
 		game_scene::on_lbutton_down(*this, x, y, mod);
+	
 }
 
 void state::on_rbutton_up(int32_t x, int32_t y, key_modifiers mod) { }
@@ -460,57 +213,38 @@ void state::on_resize(int32_t x, int32_t y, window::window_state win_state) {
 	ogl::deinitialize_framebuffer_for_province_indices(*this);
 	ogl::initialize_framebuffer_for_province_indices(*this, x, y);
 
+
+
 	if(win_state != window::window_state::minimized) {
-		ui_state.root->base_data.size.x = int16_t(x / user_settings.ui_scale);
-		ui_state.root->base_data.size.y = int16_t(y / user_settings.ui_scale);
+		ui_state.for_each_root([&](ui::element_base& elm) {
+			elm.base_data.size.x = int16_t(x / user_settings.ui_scale);
+			elm.base_data.size.y = int16_t(y / user_settings.ui_scale);
+		});
 		if(ui_state.outliner_window) {
 			ui_state.outliner_window->impl_on_update(*this);
 		}
-	}
-}
-
-void state::on_mouse_wheel(int32_t x, int32_t y, key_modifiers mod, float amount) { // an amount of 1.0 is one "click" of the wheel
-	ui::element_base* root_elm = current_scene.get_root(*this);
-	auto probe_result = root_elm->impl_probe_mouse(*this,
-		int32_t(mouse_x_position / user_settings.ui_scale),
-		int32_t(mouse_y_position / user_settings.ui_scale),
-		ui::mouse_probe_type::scroll);
-
-	ui_state.scroll_target = probe_result.under_mouse;
-
-	auto belongs_on_map = [&](ui::element_base* b) {
-		while(b != nullptr) {
-			if(b == ui_state.units_root.get())
-				return true;
-			if(b == ui_state.unit_details_box.get())
-				return true;
-			b = b->parent;
-		}
-		return false;
-		};
-
-	if(ui_state.scroll_target != nullptr) {
-		ui_state.scroll_target->impl_on_scroll(*this, probe_result.relative_location.x, probe_result.relative_location.y, amount, mod);
-	} else if(ui_state.under_mouse == nullptr || belongs_on_map(ui_state.under_mouse)) {
-		map_state.on_mouse_wheel(x, y, x_size, y_size, mod, amount);
-
-		if(ui_state.mouse_sensitive_target) {
-			ui_state.mouse_sensitive_target->set_visible(*this, false);
-			ui_state.mouse_sensitive_target = nullptr;
+		if(current_scene.id == game_scene::scene_id::in_game_production_view) {
+			alice_ui::display_at_front<alice_ui::make_production_main>(*this, alice_ui::display_closure_command::return_pointer)->base_data.size.y = int16_t(y / user_settings.ui_scale);
+			alice_ui::display_at_front<alice_ui::make_production_rh_view>(*this, alice_ui::display_closure_command::return_pointer)->base_data.size.y = int16_t(y / user_settings.ui_scale);
 		}
 	}
 }
+
 void state::on_key_down(virtual_key keycode, key_modifiers mod) {
-	if(keycode == virtual_key::CONTROL)
+	if(keycode == virtual_key::CONTROL || keycode == virtual_key::LCONTROL || keycode == virtual_key::RCONTROL)
 		ui_state.ctrl_held_down = true;
 	if(keycode == virtual_key::SHIFT || keycode == virtual_key::LSHIFT || keycode == virtual_key::RSHIFT)
 		ui_state.shift_held_down = true;
+	if(keycode == virtual_key::ESCAPE && ui_state.current_drag_and_drop_data_type != ui::drag_and_drop_data::none) {
+		ui_state.current_drag_and_drop_data_type = ui::drag_and_drop_data::none;
+		return;
+	}
 
 	game_scene::on_key_down(*this, keycode, mod);
 }
 
 void state::on_key_up(virtual_key keycode, key_modifiers mod) {
-	if(keycode == virtual_key::CONTROL)
+	if(keycode == virtual_key::CONTROL || keycode == virtual_key::LCONTROL || keycode == virtual_key::RCONTROL)
 		ui_state.ctrl_held_down = false;
 	if(keycode == virtual_key::SHIFT || keycode == virtual_key::LSHIFT || keycode == virtual_key::RSHIFT)
 		ui_state.shift_held_down = false;
@@ -568,7 +302,6 @@ text_mouse_test_result state::detailed_text_mouse_test(int32_t x, int32_t y) {
 	return text_mouse_test_result{0,0};
 }
 
-inline constexpr int32_t tooltip_width = 400;
 
 int state::get_edit_x() {
 	if (ui_state.edit_target_internal) {
@@ -584,9 +317,9 @@ int state::get_edit_y(){
 }
 
 
-bool commodity_per_nation_cache_slot::update(sys::state& state) {
-	if(progress >= state.world.nation_size()) return true;
-	if(!commodity) return true;
+cache_response commodity_per_nation_cache_slot::update(sys::state& state) {
+	if(progress >= state.world.nation_size()) return cache_response::ready;
+	if(!commodity) return cache_response::ready;
 
 	int64_t counter_start_before = state.tick_start_counter.load();
 	int64_t counter_end_before = state.tick_end_counter.load();
@@ -595,11 +328,11 @@ bool commodity_per_nation_cache_slot::update(sys::state& state) {
 		// check that we are not in the update
 		// otherwise redo the work later
 		progress = 0;
-		return false;
+		return cache_response::busy;
 	}
 
 	dcon::nation_id current_nation{ progress };
-	
+
 	// ACTUAL CALCULATIONS BEGIN
 
 	auto export_temp = economy::export_volume(state, current_nation, commodity);
@@ -614,7 +347,7 @@ bool commodity_per_nation_cache_slot::update(sys::state& state) {
 		// check that new update haven't started yet
 		// otherwise redo the work later
 		progress = 0;
-		return false;
+		return cache_response::busy;
 	}
 
 	// SAFE PLACE TO STORE RESULTS
@@ -623,18 +356,18 @@ bool commodity_per_nation_cache_slot::update(sys::state& state) {
 	import_volume.set(progress, import_temp);
 	production_volume.set(progress, production_temp);
 	consumption_volume.set(progress, consumption_temp);
-	
+
 	progress++;
-	return false;
+	return cache_response::in_progress;
 }
 
-bool nation_per_nation_cache_slot::update(sys::state& state) {
-	if(!nation) return true;
+cache_response nation_per_nation_cache_slot::update(sys::state& state) {
+	if(!nation) return cache_response::ready;
 
 	int64_t counter_start_before = state.tick_start_counter.load();
 	int64_t counter_end_before = state.tick_end_counter.load();
 	if(counter_start_before != counter_end_before) {
-		return false;
+		return cache_response::busy;
 	}
 
 	// ACTUAL CALCULATIONS BEGIN
@@ -647,7 +380,7 @@ bool nation_per_nation_cache_slot::update(sys::state& state) {
 
 	int64_t counter_start_after = state.tick_start_counter.load();
 	if(counter_start_after != counter_start_before) {
-		return false;
+		return cache_response::busy;
 	}
 
 	// SAFE PLACE TO STORE RESULTS
@@ -655,19 +388,19 @@ bool nation_per_nation_cache_slot::update(sys::state& state) {
 	export_value.assign_data(export_temp);
 	import_value.assign_data(import_temp);
 
-	return true;
+	return cache_response::ready;
 }
 
-bool nation_per_commodity_cache_slot::update(sys::state& state) {
-	if(progress >= state.world.commodity_size()) return true;
-	if(!nation) return true;
+cache_response nation_per_commodity_cache_slot::update(sys::state& state) {
+	if(progress >= state.world.commodity_size()) return cache_response::ready;
+	if(!nation) return cache_response::ready;
 
 	int64_t counter_start_before = state.tick_start_counter.load();
 	int64_t counter_end_before = state.tick_end_counter.load();
 
 	if(counter_start_before != counter_end_before) {
 		progress = 0;
-		return false;
+		return cache_response::busy;
 	}
 
 	dcon::commodity_id current_item{ progress };
@@ -682,7 +415,7 @@ bool nation_per_commodity_cache_slot::update(sys::state& state) {
 	int64_t counter_start_after = state.tick_start_counter.load();
 	if(counter_start_after != counter_start_before) {
 		progress = 0;
-		return false;
+		return cache_response::busy;
 	}
 
 	// SAFE PLACE TO STORE RESULTS
@@ -691,10 +424,10 @@ bool nation_per_commodity_cache_slot::update(sys::state& state) {
 	import_volume.set(progress, import_temp);
 
 	progress++;
-	return false;
+	return cache_response::in_progress;
 }
 
-bool per_province_cache_slot::update(sys::state& state) {
+cache_response per_province_cache_slot::update(sys::state& state) {
 	// we can't create provinces thankfully
 	if(progress >= state.world.province_size()) {
 		// update sorting
@@ -713,11 +446,11 @@ bool per_province_cache_slot::update(sys::state& state) {
 				return gdp.unsafe_data[a.index()].total_non_negative > gdp.unsafe_data[b.index()].total_non_negative;
 			}
 		});
-		return true;
+		return cache_response::ready;
 	}
 
 	// validate size
-	if(gdp.unsafe_data.size() < state.world.province_size()) {
+	if(sorted_by_gdp.unsafe_data.size() < state.world.province_size()) {
 		sorted_by_gdp.clear();
 		sorted_by_gdp_per_capita.clear();
 		state.world.for_each_province([&](auto pid) {
@@ -735,7 +468,7 @@ bool per_province_cache_slot::update(sys::state& state) {
 		// check that we are not in the update
 		// otherwise redo the work later
 		progress = 0;
-		return false;
+		return cache_response::busy;
 	}
 
 	dcon::province_id current_item{ progress };
@@ -752,7 +485,7 @@ bool per_province_cache_slot::update(sys::state& state) {
 		// check that new update haven't started yet
 		// otherwise redo the work later
 		progress = 0;
-		return false;
+		return cache_response::busy;
 	}
 
 	// SAFE PLACE TO STORE RESULTS
@@ -761,18 +494,18 @@ bool per_province_cache_slot::update(sys::state& state) {
 	population.set(progress, population_value);
 
 	progress++;
-	return false;
+	return cache_response::in_progress;
 }
 
-bool per_nation_cache_slot::update(sys::state& state) {
-	if(progress >= state.world.nation_size() && progress_sphere >= state.world.nation_size()) return true;
+cache_response per_nation_cache_slot::update(sys::state& state) {
+	if(progress >= state.world.nation_size() && progress_sphere >= state.world.nation_size()) return cache_response::ready;
 
 	int64_t counter_start_before = state.tick_start_counter.load();
 	int64_t counter_end_before = state.tick_end_counter.load();
 
 	if(counter_start_before != counter_end_before) {
 		reset_progress();
-		return false;
+		return cache_response::busy;
 	}
 
 	if(progress < state.world.nation_size()) {
@@ -808,7 +541,7 @@ bool per_nation_cache_slot::update(sys::state& state) {
 		int64_t counter_start_after = state.tick_start_counter.load();
 		if(counter_start_after != counter_start_before) {
 			reset_progress();
-			return false;
+			return cache_response::busy;
 		}
 
 		// SAFE PLACE TO STORE RESULTS
@@ -817,7 +550,7 @@ bool per_nation_cache_slot::update(sys::state& state) {
 		sphere_parent.set(progress, parent_of_current);
 
 		progress++;
-		return false;
+		return cache_response::in_progress;
 	} else {
 		dcon::nation_id current_item{ progress_sphere };
 
@@ -836,7 +569,7 @@ bool per_nation_cache_slot::update(sys::state& state) {
 		int64_t counter_start_after = state.tick_start_counter.load();
 		if(counter_start_after != counter_start_before) {
 			reset_progress();
-			return false;
+			return cache_response::busy;
 		}
 
 		// SAFE PLACE TO STORE RESULTS
@@ -844,11 +577,11 @@ bool per_nation_cache_slot::update(sys::state& state) {
 		sphere_gdp.set(progress_sphere, total);
 
 		progress_sphere++;
-		return false;
+		return cache_response::in_progress;
 	}
 }
 
-bool commodity_per_province_cache_slot::update(sys::state& state) {
+cache_response commodity_per_province_cache_slot::update(sys::state& state) {
 	if(progress >= state.world.province_size()) {
 		// update sorting
 		std::sort(sorted_by_production.unsafe_data.begin(), sorted_by_production.unsafe_data.end(), [&](auto a, auto b) {
@@ -866,7 +599,7 @@ bool commodity_per_province_cache_slot::update(sys::state& state) {
 				return consumption_volume.unsafe_data[a.index()] > consumption_volume.unsafe_data[b.index()];
 			}
 		});
-		return true;
+		return cache_response::ready;
 	}
 	// validate size
 	if(sorted_by_production.unsafe_data.size() < state.world.province_size()) {
@@ -887,7 +620,7 @@ bool commodity_per_province_cache_slot::update(sys::state& state) {
 		// check that we are not in the update
 		// otherwise redo the work later
 		progress = 0;
-		return false;
+		return cache_response::busy;
 	}
 
 	dcon::province_id current_item{ progress };
@@ -904,7 +637,7 @@ bool commodity_per_province_cache_slot::update(sys::state& state) {
 		// check that new update haven't started yet
 		// otherwise redo the work later
 		progress = 0;
-		return false;
+		return cache_response::busy;
 	}
 
 	// SAFE PLACE TO STORE RESULTS
@@ -913,7 +646,7 @@ bool commodity_per_province_cache_slot::update(sys::state& state) {
 	consumption_volume.set(progress, consumption_value);
 
 	progress++;
-	return false;
+	return cache_response::in_progress;
 }
 
 void ui_cache::update_ui(sys::state& state) {
@@ -928,10 +661,18 @@ void ui_cache::update_slot(sys::state& state, SLOT& slot, bool& updates_running)
 		updates_running = true;
 	}
 	if(!slot.update_completed) {
+		std::shared_lock lock(state.game_state_resetting_lock);
+		state.game_state_resetting_cv.wait(lock, [&] { return !state.yield_game_state_resetting_lock; });
 		updates_running = true;
-		if(slot.update(state)) {
+		auto res = slot.update(state);
+		if(res == cache_response::ready) {
 			slot.update_completed = true;
 			update_ui(state);
+			delay = std::max(0.1f, delay * 0.95f);
+		} else if (res == cache_response::busy) {
+			delay = std::min(100.f, delay * 1.05f);
+		} else if(res == cache_response::in_progress) {
+			delay = std::max(0.1f, delay * 0.95f);
 		}
 	}
 }
@@ -952,6 +693,10 @@ void ui_cache::process_update(sys::state& state) {
 		} else {
 			sleep_iterations = 0;
 		}
+
+		if(delay > 1.f) {
+			std::this_thread::sleep_for(std::chrono::milliseconds((int)delay));
+		}
 	}
 };
 
@@ -970,9 +715,6 @@ GLuint request_query(std::vector<GLuint>& ids, std::vector<bool>& free_ids) {
 
 void state::render() { // called to render the frame may (and should) delay returning until the frame is rendered, including
 	// waiting for vsync
-	/*if(!render_semaphore.try_acquire()) {
-		return;
-	}*/
 	if(!current_scene.get_root)
 		return;
 
@@ -988,45 +730,211 @@ void state::render() { // called to render the frame may (and should) delay retu
 	if(game_state_was_updated && !current_scene.starting_scene && !ui_state.lazy_load_in_game) {
 		window::change_cursor(*this, window::cursor_type::busy);
 		ui::create_in_game_windows(*this);
-		window::change_cursor(*this, window::cursor_type::normal);
+		window::change_cursor(*this, window::cursor_type::normal_cancel_busy);
 	}
+	// Process queued ui function invocations from command thread
+	auto* queued_func = ui_state.queued_invocations.front();
+	while(queued_func) {
+		(*queued_func->first)(*this, queued_func->second);
+		ui_state.queued_invocations.pop();
+		queued_func = ui_state.queued_invocations.front();
+	}
+
 	auto ownership_update = province_ownership_changed.exchange(false, std::memory_order::acq_rel);
 	if(ownership_update) {
 		map_state.map_data.update_borders_mesh();
-		if(user_settings.map_label != sys::map_label_mode::none) {
-			map::update_text_lines(*this, map_state.map_data);
+		map_state.request_fresh_border_index = true;
+	}
+
+	if (
+		user_settings.map_label != sys::map_label_mode::none 
+	) {
+		if (ownership_update){
+			if (map_state.map_labels_current_state == map::map_labels_state::idle) {
+				map_state.map_labels_current_state = map::map_labels_state::generate_text;
+			} else {
+				map_state.scheduled_map_labels_update = true;
+			}
+		}
+		if(map_state.map_labels_current_state == map::map_labels_state::commit) {
+			map::commit_text_lines(*this, map_state.map_data);
+			if (map_state.scheduled_map_labels_update) {
+				map_state.map_labels_current_state = map::map_labels_state::generate_text;
+				map_state.scheduled_map_labels_update = false;
+			} else {
+				map_state.map_labels_current_state = map::map_labels_state::idle;
+			}
+		}
+		if(map_state.map_labels_current_state == map::map_labels_state::load_glyphs) {
+			map::load_map_text_glyphs(*this);
+			map_state.map_labels_current_state = map::map_labels_state::update;
+		}
+
+		if(map_state.province_labels_require_lines) {
+			//auto glyphid = FT_Get_Char_Index(font_collection.mfont.face, 0x2026);
+			//bool ellipsis_valid = true;
+			//font_collection.mfont.make_glyph(uint16_t(glyphid));
+			//auto& gso = font_collection.mfont.glyphs[uint16_t(glyphid)];
+			//auto width_of_ellipsis = float(gso.ft_width);
+
+			// TODO: figure out how to use actual ellpsis with map fonts.
+			/*
+			std::string ellipsis = "...";
+			text::stored_glyphs ellipsis_glyphs;
+			font_collection.mfont.remake_map_cache(*this, ellipsis_glyphs, ellipsis);
+			auto dot_g = FT_Get_Char_Index(font_collection.mfont.face, '.');
+			font_collection.mfont.make_glyph(uint16_t(dot_g));
+			auto& gso2 = font_collection.mfont.glyphs[uint16_t(dot_g)];
+			auto width_of_ellipsis = font_collection.mfont.text_extent(*this, ellipsis_glyphs, 0, ellipsis_glyphs.glyph_info.size());
+			*/
+
+			auto sample_province = [&](float x, float y) {
+				x = fmod(x, (float)map_state.map_data.size_x);
+				if (x < 0.f) {
+					x += (float)map_state.map_data.size_x;
+				}
+				if(y < 0.f) return dcon::province_id{};
+				if((uint32_t)y >= map_state.map_data.size_y) return dcon::province_id{};
+				glm::vec2 candidate = { x, y };
+				auto idx = int32_t(y) * int32_t(map_state.map_data.size_x) + int32_t(x);
+				if(!(0 <= idx && size_t(idx) < map_state.map_data.province_id_map.size())) return dcon::province_id{};
+				auto pid = province::from_map_id(map_state.map_data.province_id_map[idx]);
+				return pid;
+			};
+
+			for(auto candidate : world.in_province) {
+				auto avoid_point = [&](float x, float y) {
+					return sample_province(x, y) != candidate.id;
+				};
+
+				auto expected_letter_size = 0.01f;
+				if(auto n = candidate.get_name(); n) {
+					std::string name = text::produce_simple_string(*this, n);
+					std::string adjusted_name = name;
+					text::stored_glyphs temp;
+					font_collection.mfont.remake_map_cache(*this, temp, name);
+
+					auto grid_sphere = std::vector<sphere_R3::point> { };
+					auto grid_rect = std::vector<equirectangular::point>{ };
+					auto grid_square = std::vector<square::point>{ };
+
+					for(auto border_index : map_state.map_data.province_to_edges[candidate.id.value]) {
+						auto border = map_state.map_data.border_edges[border_index];
+						auto adj = border.adj;
+						if(!adj || border.count == 0) {
+							continue;
+						}
+						int quarter = border.count / 4;
+						for(int segment = 0; segment < 4; segment++) {
+							square::point node_square {map_state.map_data.province_border_vertices[border.offset + quarter * segment].position};
+							grid_square.push_back(node_square);
+							grid_sphere.push_back(sphere_R3::from_square(node_square));
+							grid_rect.push_back(equirectangular::from_square(node_square, (float)map_state.map_data.size_x, (float)map_state.map_data.size_y));
+						}
+					}
+
+					float best_distance = 0.f;
+					int best_start = -1;
+					int best_end = -1;
+
+					float letter_size = 0.001f;
+
+					for(int start_node = 0; start_node < (int)grid_rect.size(); start_node++) {	
+						auto start = grid_sphere[start_node];
+						for(int end_node = start_node + 1; end_node < (int)grid_rect.size(); end_node++) {
+							auto end = grid_sphere[end_node];
+							auto direction = end.data - start.data;
+							auto dist = glm::distance(grid_sphere[start_node].data, grid_sphere[end_node].data);
+							if (dist <= best_distance) continue;
+
+							bool failed = false;
+							for(int step_forward = 2; step_forward < 8; step_forward++) {
+								float s = (float)step_forward / 9.f;
+								sphere_R3::point current {start.data * s + end.data * (1.f - s)};
+								current.data /= glm::length(current.data);
+								auto away = current.data;
+								auto forward = direction - glm::dot(direction, away);
+								forward /= glm::length(forward);
+								auto aside = glm::cross(forward, away);
+
+								for(int step_aside = -3; step_aside < 4; step_aside++) {
+									float t = (float)step_aside / 3.f;
+									sphere_R3::point next_point {current.data + aside * t * letter_size};
+
+									auto sq = sphere_R3::to_square(next_point);
+									auto rct = equirectangular::from_square(sq, (float)map_state.map_data.size_x, (float)map_state.map_data.size_y);
+									if(avoid_point(rct.data.x, rct.data.y)) {
+										failed = true;
+										break;
+									}
+								}
+								if (failed) break;
+							}
+
+							if (failed) continue;
+
+							best_distance = dist;
+							best_start = start_node;
+							best_end = end_node;
+						}
+					}
+
+
+					auto available_length = best_distance * (float)(map_state.map_data.size_x);
+					auto base_text_extent = font_collection.mfont.text_extent(*this, temp, (uint32_t)0, (uint32_t)temp.glyph_info.size());
+					bool requires_ellipsis = base_text_extent > available_length * 32.f;
+					auto initial_size = name.size();
+					while(requires_ellipsis && name.size() > 0.f && font_collection.mfont.text_extent(*this, temp, (uint32_t)0, (uint32_t)temp.glyph_info.size()) > available_length * 32.f) {
+						name.pop_back();
+						font_collection.mfont.remake_map_cache(*this, temp, name);
+						requires_ellipsis = true;
+					}
+					if (name.size() * 2 <= initial_size) continue;
+
+					//map_state.map_data.province_text_data.emplace_back(std::move(temp), glm::vec4(0.f, 0.f, 0.f, 0.f), candidate.get_mid_point() - glm::vec2(5.f, 0.f), glm::vec2(10.f, 10.f), 0.f, 1.f);
+
+					if (best_start == -1) continue;
+					if(best_end == -1) continue;
+					auto A = grid_rect[best_start].data;
+					auto B = grid_rect[best_end].data;
+
+					if(A.x < B.x) {
+						map_state.map_data.province_text_data.emplace_back(std::move(temp), glm::vec4(0.f, 0.f, 1.f, 1.f), A, B - A, 0.f, 1.f);
+					} else {
+						map_state.map_data.province_text_data.emplace_back(std::move(temp), glm::vec4(0.f, 0.f, 1.f, 1.f), B, A - B, 0.f, 1.f);
+					}
+				}
+			}
+			map_state.province_labels_require_lines = false;
+		}
+
+		if(
+			map_state.map_labels_current_state != map::map_labels_state::load_glyphs
+			&& !map_state.province_labels_require_lines
+			&& map_state.province_labels_require_text_changes
+		) {
+			map::load_map_province_text_glyphs(*this);
+			map_state.map_data.set_province_text_lines(*this);
+			map_state.province_labels_require_text_changes = false;
 		}
 	}
+
 	if(game_state_was_updated) {
 		map_state.map_data.update_fog_of_war(*this);
 	}
-
-	std::chrono::time_point<std::chrono::steady_clock> now = std::chrono::steady_clock::now();
-	if(ui_state.last_render_time == std::chrono::time_point<std::chrono::steady_clock>{}) {
-		ui_state.last_render_time = now;
-	}
-	if(ui_state.fps_timer > 20) {
-		auto microseconds_since_last_render = std::chrono::duration_cast<std::chrono::microseconds>(now - ui_state.last_render_time);
-		auto frames_per_second = 1.f / float(microseconds_since_last_render.count() / 1e6);
-		ui_state.last_fps = frames_per_second;
-		ui_state.fps_timer = 0;
-		ui_state.last_render_time = now;
-	}
-	ui_state.fps_timer += 1;
-
-	if(ui_state.scrollbar_timer > 500 * (ui_state.last_fps / 60)) {
-		ui_state.scrollbar_continuous_movement = true;
-		if(ui_state.left_mouse_hold_target != nullptr) {
-			Cyto::Any payload = ui::scrollbar_settings{};
-			ui_state.left_mouse_hold_target->impl_set(*this, payload);
-		}
-	}
-
-	if(ui_state.left_mouse_hold_target != nullptr) {
-		ui_state.scrollbar_timer += 1;
-	}
-
+	ui_state.update_timing();
+	ui_state.update_scroll(*this);
 	current_scene.clean_up(*this);
+
+	if(!map_state.last_map_movement_handled && std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - map_state.last_map_movement).count() > 50) {
+		map_state.last_map_movement_handled = true;
+		current_scene.on_map_movement_stopped(*this);
+		map_state.update_cache_on_map_movement = true;
+	}
+
+	if (!map_state.last_map_movement_handled) {
+		map_state.update_cache_on_map_movement = true;
+	}
 
 	ui::element_base* root_elm = current_scene.get_root(*this);
 
@@ -1038,17 +946,12 @@ void state::render() { // called to render the frame may (and should) delay retu
 	auto tooltip_probe = root_elm->impl_probe_mouse(*this, int32_t(mouse_x_position / user_settings.ui_scale),
 		int32_t(mouse_y_position / user_settings.ui_scale), ui::mouse_probe_type::tooltip);
 
-	if(!mouse_probe.under_mouse && map_state.get_zoom() > map::zoom_close) {
+	bool recalculate_probes = !mouse_probe.under_mouse && map_state.get_zoom() > map::zoom_close;
+	if(recalculate_probes) {
 		mouse_probe = current_scene.recalculate_mouse_probe(*this, mouse_probe, tooltip_probe);
-		tooltip_probe = current_scene.recalculate_tooltip_probe(*this, mouse_probe, tooltip_probe);
 	}
-	ui::urect tooltip_bounds;
-	int32_t tooltip_sub_index = -1;
-	if(tooltip_probe.under_mouse) {
-		tooltip_probe.under_mouse->tooltip_position(*this, tooltip_probe.relative_location.x,
-		tooltip_probe.relative_location.y, tooltip_sub_index, tooltip_bounds);
-	}
-
+	
+	bool update_tooltip = false;
 	if(game_state_was_updated) {
 		if(!ui_state.tech_queue.empty()) {
 			if(!world.nation_get_current_research(local_player_nation)) {
@@ -1079,388 +982,40 @@ void state::render() { // called to render the frame may (and should) delay retu
 		nations::update_ui_rankings(*this);
 		// Processing of (gamestate <=> ui) queues
 		if(current_scene.accept_events) {
-			// National events
-			auto* c1 = new_n_event.front();
-			while(c1) {
-				auto auto_choice = world.national_event_get_auto_choice(c1->e);
-				if(auto_choice == 0) {
-					ui::new_event_window(*this, *c1);
-					if(world.national_event_get_is_major(c1->e)) {
-						sound::play_effect(*this, sound::get_major_event_sound(*this), user_settings.effects_volume * user_settings.master_volume);
-					} else {
-						sound::play_effect(*this, sound::get_major_event_sound(*this), user_settings.effects_volume * user_settings.master_volume);
-					}
-				} else {
-					command::make_event_choice(*this, *c1, uint8_t(auto_choice - 1));
-				}
-				new_n_event.pop();
-				c1 = new_n_event.front();
-			}
-			// Free national events
-			auto* c2 = new_f_n_event.front();
-			while(c2) {
-				auto auto_choice = world.free_national_event_get_auto_choice(c2->e);
-				if(auto_choice == 0) {
-					ui::new_event_window(*this, *c2);
-					if(world.free_national_event_get_is_major(c2->e)) {
-						sound::play_effect(*this, sound::get_major_event_sound(*this), user_settings.effects_volume * user_settings.master_volume);
-					} else {
-						sound::play_effect(*this, sound::get_major_event_sound(*this), user_settings.effects_volume * user_settings.master_volume);
-					}
-				} else {
-					command::make_event_choice(*this, *c2, uint8_t(auto_choice - 1));
-				}
-				new_f_n_event.pop();
-				c2 = new_f_n_event.front();
-			}
-			// Provincial events
-			auto* c3 = new_p_event.front();
-			while(c3) {
-				auto auto_choice = world.provincial_event_get_auto_choice(c3->e);
-				if(auto_choice == 0) {
-					ui::new_event_window(*this, *c3);
-					sound::play_effect(*this, sound::get_minor_event_sound(*this), user_settings.effects_volume * user_settings.master_volume);
-				} else {
-					command::make_event_choice(*this, *c3, uint8_t(auto_choice - 1));
-				}
-				new_p_event.pop();
-				c3 = new_p_event.front();
-			}
-			// Free provincial events
-			auto* c4 = new_f_p_event.front();
-			while(c4) {
-				auto auto_choice = world.free_provincial_event_get_auto_choice(c4->e);
-				if(auto_choice == 0) {
-					ui::new_event_window(*this, *c4);
-					sound::play_effect(*this, sound::get_minor_event_sound(*this), user_settings.effects_volume * user_settings.master_volume);
-				} else {
-					command::make_event_choice(*this, *c4, uint8_t(auto_choice - 1));
-				}
-				new_f_p_event.pop();
-				c4 = new_f_p_event.front();
-			}
-			// land battle reports
-			{
-				auto* lr = land_battle_reports.front();
-				while(lr) {
-					if(local_player_nation) {
-						if(lr->player_on_winning_side == true && (!lr->attacking_nation || !lr->defending_nation)) {
-							if(user_settings.notify_rebels_defeat) {
-								ui::land_combat_end_popup::make_new_report(*this, *lr);
-							} else {
-								//do not pester user with defeat of rebels
-							}
-						} else {
-							ui::land_combat_end_popup::make_new_report(*this, *lr);
-						}
-					}
-					land_battle_reports.pop();
-					lr = land_battle_reports.front();
-				}
-			}
-			// naval battle reports
-			{
-				auto* lr = naval_battle_reports.front();
-				while(lr) {
-					ui::naval_combat_end_popup::make_new_report(*this, *lr);
-					naval_battle_reports.pop();
-					lr = naval_battle_reports.front();
-				}
-			}
-			// Diplomatic messages
-			auto* c5 = new_requests.front();
-			bool had_diplo_msg = false;
-			while(c5) {
-				if(user_settings.diplomatic_message_popup) {
-					static_cast<ui::diplomacy_request_window*>(ui_state.request_window)->messages.push_back(*c5);
-				} else {
-					static_cast<ui::diplomatic_message_topbar_listbox*>(ui_state.request_topbar_listbox)->messages.push_back(*c5);
-				}
-				had_diplo_msg = true;
-				new_requests.pop();
-				c5 = new_requests.front();
-			}
-			if(had_diplo_msg) {
-				sound::play_effect(*this, sound::get_diplomatic_request_sound(*this), user_settings.interface_volume * user_settings.master_volume);
-			}
-
-			// Log messages
-			auto* c6 = new_messages.front();
-			while(c6) {
-				auto base_type = c6->type;
-				auto setting_types = sys::message_setting_map[int32_t(base_type)];
-				uint8_t settings_bits = 0;
-				if(setting_types.source != sys::message_setting_type::count) {
-					if(c6->source == local_player_nation) {
-						settings_bits |= user_settings.self_message_settings[int32_t(setting_types.source)];
-					} else if(notification::nation_is_interesting(*this, c6->source)) {
-						settings_bits |= user_settings.interesting_message_settings[int32_t(setting_types.source)];
-					} else {
-						settings_bits |= user_settings.other_message_settings[int32_t(setting_types.source)];
-					}
-				}
-				if(setting_types.target != sys::message_setting_type::count) {
-					if(c6->target == local_player_nation) {
-						settings_bits |= user_settings.self_message_settings[int32_t(setting_types.target)];
-					} else if(notification::nation_is_interesting(*this, c6->target)) {
-						settings_bits |= user_settings.interesting_message_settings[int32_t(setting_types.target)];
-					} else {
-						settings_bits |= user_settings.other_message_settings[int32_t(setting_types.target)];
-					}
-				}
-				if(setting_types.third != sys::message_setting_type::count) {
-					if(c6->third == local_player_nation) {
-						settings_bits |= user_settings.self_message_settings[int32_t(setting_types.third)];
-					} else if(notification::nation_is_interesting(*this, c6->third)) {
-						settings_bits |= user_settings.interesting_message_settings[int32_t(setting_types.third)];
-					} else {
-						settings_bits |= user_settings.other_message_settings[int32_t(setting_types.third)];
-					}
-				}
-
-				if((settings_bits & message_response::log) && ui_state.msg_log_window) {
-					static_cast<ui::message_log_window*>(ui_state.msg_log_window)->messages.push_back(*c6);
-				}
-				if(settings_bits & message_response::popup) {
-					if(c6->source == local_player_nation && (base_type == message_base_type::major_event || base_type == message_base_type::national_event || base_type == message_base_type::province_event)) {
-						// do nothing -- covered by event window logic
-					} else {
-						if(ui_state.msg_window) {
-							static_cast<ui::message_window*>(ui_state.msg_window)->messages.push_back(*c6);
-						}
-						if((settings_bits & message_response::pause) != 0 && network_mode == sys::network_mode_type::single_player) {
-							ui_pause.store(true, std::memory_order_release);
-						}
-					}
-				}
-
-
-				// Sound effects(tm)
-				if(settings_bits != 0 && local_player_nation && (c6->source == local_player_nation || c6->target == local_player_nation)) {
-					switch(base_type) {
-					case message_base_type::war:
-						sound::play_effect(*this, sound::get_declaration_of_war_sound(*this), user_settings.effects_volume * user_settings.master_volume);
-						break;
-					case message_base_type::peace_accepted:
-						sound::play_effect(*this, sound::get_peace_sound(*this), user_settings.effects_volume * user_settings.master_volume);
-						break;
-					case message_base_type::tech:
-						sound::play_effect(*this, sound::get_technology_finished_sound(*this), user_settings.effects_volume * user_settings.master_volume);
-						break;
-					case message_base_type::factory_complete:
-						sound::play_effect(*this, sound::get_factory_built_sound(*this), user_settings.effects_volume * user_settings.master_volume);
-						break;
-					case message_base_type::fort_complete:
-						sound::play_effect(*this, sound::get_fort_built_sound(*this), user_settings.effects_volume * user_settings.master_volume);
-						break;
-					case message_base_type::rr_complete:
-						sound::play_effect(*this, sound::get_railroad_built_sound(*this), user_settings.effects_volume * user_settings.master_volume);
-						break;
-					case message_base_type::naval_base_complete:
-						sound::play_effect(*this, sound::get_naval_base_built_sound(*this), user_settings.effects_volume * user_settings.master_volume);
-						break;
-					case message_base_type::electionstart:
-					case message_base_type::electiondone:
-						sound::play_effect(*this, sound::get_election_sound(*this), user_settings.effects_volume * user_settings.master_volume);
-						break;
-					case message_base_type::revolt:
-						sound::play_effect(*this, sound::get_revolt_sound(*this), user_settings.effects_volume * user_settings.master_volume);
-						break;
-					case message_base_type::army_built:
-						sound::play_effect(*this, sound::get_army_built_sound(*this), user_settings.effects_volume * user_settings.master_volume);
-						break;
-					case message_base_type::navy_built:
-						sound::play_effect(*this, sound::get_navy_built_sound(*this), user_settings.effects_volume * user_settings.master_volume);
-						break;
-					case message_base_type::alliance_declined:
-					case message_base_type::ally_called_declined:
-					case message_base_type::crisis_join_offer_declined:
-					case message_base_type::crisis_resolution_declined:
-					case message_base_type::mil_access_declined:
-					case message_base_type::peace_rejected:
-						sound::play_effect(*this, sound::get_decline_sound(*this), user_settings.effects_volume * user_settings.master_volume);
-						break;
-					case message_base_type::alliance_starts:
-					case message_base_type::ally_called_accepted:
-					case message_base_type::crisis_join_offer_accepted:
-					case message_base_type::crisis_resolution_accepted:
-					case message_base_type::mil_access_start:
-						sound::play_effect(*this, sound::get_accept_sound(*this), user_settings.effects_volume * user_settings.master_volume);
-						break;
-					case message_base_type::chat_message:
-						sound::play_interface_sound(*this, sound::get_chat_message_sound(*this), user_settings.effects_volume * user_settings.master_volume);
-						break;
-					case message_base_type::province_event:
-					case message_base_type::national_event:
-					case message_base_type::major_event:
-						//Sound effect is played on above logic (free/non-free loop events above)
-						break;
-					default:
-						break;
-					}
-				}
-
-				new_messages.pop();
-				c6 = new_messages.front();
-			}
-			// Naval Combat Reports
-			auto* c7 = naval_battle_reports.front();
-			while(c7) {
-				if(ui_state.endof_navalcombat_windows.size() == 0) {
-					ui_state.endof_navalcombat_windows.push_back(ui::make_element_by_type<ui::naval_combat_end_popup>(*this,
-						ui_state.defs_by_name.find(lookup_key("endofnavalcombatpopup"))->second.definition));
-				}
-				//static_cast<ui::naval_combat_window*>(ui_state.navalcombat_windows.back().get())->messages.push_back(*c7);
-				static_cast<ui::naval_combat_end_popup*>(ui_state.endof_navalcombat_windows.back().get())->report = *c7;
-				ui_state.root->add_child_to_front(std::move(ui_state.endof_navalcombat_windows.back()));
-				ui_state.endof_navalcombat_windows.pop_back();
-				naval_battle_reports.pop();
-				c7 = naval_battle_reports.front();
-			}
-			if(!static_cast<ui::diplomacy_request_window*>(ui_state.request_window)->messages.empty()) {
-				ui_state.request_window->set_visible(*this, true);
-				ui_state.root->move_child_to_front(ui_state.request_window);
-			}
-			if(!static_cast<ui::message_window*>(ui_state.msg_window)->messages.empty()) {
-				ui_state.msg_window->set_visible(*this, true);
-				ui_state.root->move_child_to_front(ui_state.msg_window);
-			}
+			process_dialog_boxes(*this);
 		}
+		process_errorpopup_boxes(*this);
 		root_elm->impl_on_update(*this);
 
 		current_scene.on_game_state_update_update_ui(*this);
 
-		if(ui_state.last_tooltip == tooltip_probe.under_mouse && ui_state.last_tooltip_sub_index == tooltip_sub_index && ui_state.last_tooltip && ui_state.tooltip->is_visible()) {
-			auto type = ui_state.last_tooltip->has_tooltip(*this);
-			if(type != ui::tooltip_behavior::position_sensitive_tooltip) {
-				auto container = text::create_columnar_layout(*this, ui_state.tooltip->internal_layout,
-						text::layout_parameters{ 0, 0, tooltip_width, int16_t(root_elm->base_data.size.y - 20), ui_state.tooltip_font, 0,
-								text::alignment::left,
-								text::text_color::white, true },
-							10);
-				ui_state.last_tooltip->update_tooltip(*this, tooltip_probe.relative_location.x, tooltip_probe.relative_location.y,
-						container);
-				populate_shortcut_tooltip(*this, *ui_state.last_tooltip, container);
-				if(container.native_rtl == text::layout_base::rtl_status::rtl) {
-					container.used_width = -container.used_width;
-					for(auto& t : container.base_layout.contents) {
-						t.x += 16 + container.used_width;
-						t.y += 16;
-					}
-				} else {
-					for(auto& t : container.base_layout.contents) {
-						t.x += 16;
-						t.y += 16;
-					}
-				}
-				ui_state.tooltip->base_data.size.x = int16_t(container.used_width + 32);
-				ui_state.tooltip->base_data.size.y = int16_t(container.used_height + 32);
-				if(container.used_width > 0)
-					ui_state.tooltip->set_visible(*this, true);
-				else
-					ui_state.tooltip->set_visible(*this, false);
-			}
-		}
+		update_tooltip = true;
 	} // END game state was updated
 
-	if(ui_state.last_tooltip != tooltip_probe.under_mouse || ui_state.last_tooltip_sub_index != tooltip_sub_index) {
-		ui_state.last_tooltip = tooltip_probe.under_mouse;
-		ui_state.last_tooltip_sub_index = tooltip_sub_index;
 
-		if(tooltip_probe.under_mouse) {
-			auto type = ui_state.last_tooltip->has_tooltip(*this);
-			if(type != ui::tooltip_behavior::no_tooltip) {
-				auto container = text::create_columnar_layout(*this, ui_state.tooltip->internal_layout,
-					text::layout_parameters{ 0, 0, tooltip_width,int16_t(root_elm->base_data.size.y - 20), ui_state.tooltip_font, 0,
-					text::alignment::left, text::text_color::white, true }, 10);
-				ui_state.last_tooltip->update_tooltip(*this, tooltip_probe.relative_location.x, tooltip_probe.relative_location.y,
-						container);
-				populate_shortcut_tooltip(*this, *ui_state.last_tooltip, container);
-				if(container.native_rtl == text::layout_base::rtl_status::rtl) {
-					container.used_width = -container.used_width;
-					for(auto& t : container.base_layout.contents) {
-						t.x += 16 + container.used_width;
-						t.y += 16;
-					}
-				} else {
-					for(auto& t : container.base_layout.contents) {
-						t.x += 16;
-						t.y += 16;
-					}
-				}
-				ui_state.tooltip->base_data.size.x = int16_t(container.used_width + 32);
-				ui_state.tooltip->base_data.size.y = int16_t(container.used_height + 32);
-				if(container.used_width > 0)
-					ui_state.tooltip->set_visible(*this, true);
-				else
-					ui_state.tooltip->set_visible(*this, false);
-			} else {
-				ui_state.tooltip->set_visible(*this, false);
-			}
-		} else {
-			ui_state.tooltip->set_visible(*this, false);
-		}
-	} else if(ui_state.last_tooltip && ui_state.last_tooltip->has_tooltip(*this) == ui::tooltip_behavior::position_sensitive_tooltip) {
-		auto container = text::create_columnar_layout(*this, ui_state.tooltip->internal_layout,
-			text::layout_parameters{ 0, 0, tooltip_width, int16_t(root_elm->base_data.size.y - 20), ui_state.tooltip_font, 0,
-			text::alignment::left, text::text_color::white, true }, 10);
-		ui_state.last_tooltip->update_tooltip(*this, tooltip_probe.relative_location.x, tooltip_probe.relative_location.y, container);
-		populate_shortcut_tooltip(*this, *ui_state.last_tooltip, container);
-		if(container.native_rtl == text::layout_base::rtl_status::rtl) {
-			container.used_width = -container.used_width;
-			for(auto& t : container.base_layout.contents) {
-				t.x += 16 + container.used_width;
-				t.y += 16;
-			}
-		} else {
-			for(auto& t : container.base_layout.contents) {
-				t.x += 16;
-				t.y += 16;
-			}
-		}
-		ui_state.tooltip->base_data.size.x = int16_t(container.used_width + 32);
-		ui_state.tooltip->base_data.size.y = int16_t(container.used_height + 32);
-		if(container.used_width > 0)
-			ui_state.tooltip->set_visible(*this, true);
-		else
-			ui_state.tooltip->set_visible(*this, false);
+	ui::urect tooltip_bounds;
+	int32_t tooltip_sub_index = -1;
+	if(recalculate_probes) {
+		tooltip_probe = current_scene.recalculate_tooltip_probe(*this, mouse_probe, tooltip_probe);
 	}
-
-	if(ui_state.last_tooltip && ui_state.tooltip->is_visible()) {
-		// reposition tooltip
-		if(ui_state.tooltip->base_data.size.y <= root_elm->base_data.size.y - (tooltip_bounds.top_left.y + tooltip_bounds.size.y)) {
-			ui_state.tooltip->base_data.position.y = int16_t(tooltip_bounds.top_left.y + tooltip_bounds.size.y);
-			ui_state.tooltip->base_data.position.x = std::clamp(
-					int16_t(tooltip_bounds.top_left.x + (tooltip_bounds.size.x / 2) - (ui_state.tooltip->base_data.size.x / 2)),
-					int16_t(0), int16_t(std::max(root_elm->base_data.size.x - ui_state.tooltip->base_data.size.x, 0)));
-		} else if(ui_state.tooltip->base_data.size.x <= root_elm->base_data.size.x - (tooltip_bounds.top_left.x + tooltip_bounds.size.x)) {
-			ui_state.tooltip->base_data.position.x = int16_t(tooltip_bounds.top_left.x + tooltip_bounds.size.x);
-			ui_state.tooltip->base_data.position.y = std::clamp(
-					int16_t(tooltip_bounds.top_left.y + (tooltip_bounds.size.y / 2) - (ui_state.tooltip->base_data.size.y / 2)),
-					int16_t(0),
-					int16_t(std::max(root_elm->base_data.size.y - ui_state.tooltip->base_data.size.y, 0)));
-		} else if(ui_state.tooltip->base_data.size.x <= tooltip_bounds.top_left.x) {
-			ui_state.tooltip->base_data.position.x = int16_t(tooltip_bounds.top_left.x - ui_state.tooltip->base_data.size.x);
-			ui_state.tooltip->base_data.position.y = std::clamp(
-					int16_t(tooltip_bounds.top_left.y + (tooltip_bounds.size.y / 2) - (ui_state.tooltip->base_data.size.y / 2)),
-					int16_t(0), int16_t(std::max(root_elm->base_data.size.y - ui_state.tooltip->base_data.size.y, 0)));
-		} else if(ui_state.tooltip->base_data.size.y <= tooltip_bounds.top_left.y) {
-			ui_state.tooltip->base_data.position.y = int16_t(tooltip_bounds.top_left.y - ui_state.tooltip->base_data.size.y);
-			ui_state.tooltip->base_data.position.x = std::clamp(
-					int16_t(tooltip_bounds.top_left.x + (tooltip_bounds.size.x / 2) - (ui_state.tooltip->base_data.size.x / 2)),
-					int16_t(0), int16_t(std::max(root_elm->base_data.size.x - ui_state.tooltip->base_data.size.x, 0)));
-		} else {
-			ui_state.tooltip->base_data.position.x = std::clamp(
-					int16_t(tooltip_bounds.top_left.x + (tooltip_bounds.size.x / 2) - (ui_state.tooltip->base_data.size.x / 2)),
-					int16_t(0), int16_t(std::max(root_elm->base_data.size.x - ui_state.tooltip->base_data.size.x, 0)));
-			ui_state.tooltip->base_data.position.y = std::clamp(
-					int16_t(tooltip_bounds.top_left.y + (tooltip_bounds.size.y / 2) - (ui_state.tooltip->base_data.size.y / 2)),
-					int16_t(0), int16_t(std::max(root_elm->base_data.size.y - ui_state.tooltip->base_data.size.y, 0)));
-		}
+	if(tooltip_probe.under_mouse) {
+		tooltip_probe.under_mouse->tooltip_position(
+			*this,
+			tooltip_probe.relative_location.x,
+			tooltip_probe.relative_location.y,
+			tooltip_sub_index,
+			tooltip_bounds
+		);
 	}
+	if(update_tooltip) {
+		ui_state.update_tooltip(*this, tooltip_probe, tooltip_sub_index, int16_t(root_elm->base_data.size.y - 20));
+	}
+	ui_state.populate_tooltip(*this, tooltip_probe, tooltip_sub_index, int16_t(root_elm->base_data.size.y - 20));
+	ui_state.reposition_tooltip(tooltip_bounds, root_elm->base_data.size.y, root_elm->base_data.size.x);
 
 	if(current_scene.based_on_map && !mouse_probe.under_mouse && !tooltip_probe.under_mouse) {
 		dcon::province_id prov = map_state.get_province_under_mouse(*this, int32_t(mouse_x_position), int32_t(mouse_y_position), x_size, y_size);
+		map_state.under_mouse_province = prov;
 		if(map_state.get_zoom() <= map::zoom_close)
 			prov = dcon::province_id{};
 		if(prov) {
@@ -1468,7 +1023,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 				bool can_move = [this, prov]() {
 					for(auto a : selected_armies) {
 						auto army_loc = world.army_get_location_from_army_location(a);
-						if(!command::can_move_or_stop_army(*this, local_player_nation, a, prov)) {
+						if(!command::can_retreat_move_or_stop_army(*this, local_player_nation, a, prov)) {
 							return false;
 						}
 					}
@@ -1502,60 +1057,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 		&& !mouse_probe.under_mouse
 		&& !tooltip_probe.under_mouse
 	) {
-		dcon::province_id prov = map_state.get_province_under_mouse(*this, int32_t(mouse_x_position), int32_t(mouse_y_position), x_size, y_size);
-		if(
-			(
-				(
-					map_state.active_map_mode == map_mode::mode::political
-					&& !current_scene.overwrite_map_tooltip
-					)
-				|| map_state.active_map_mode == map_mode::mode::terrain
-				)
-			&& map_state.get_zoom() <= map::zoom_close
-		) {
-			prov = dcon::province_id{};
-		}
-		if(prov) {
-			auto container = text::create_columnar_layout(*this, ui_state.tooltip->internal_layout,
-				text::layout_parameters{ 0, 0, tooltip_width, int16_t(ui_state.root->base_data.size.y - 20), ui_state.tooltip_font, 0, text::alignment::left, text::text_color::white, true },
-				20);
-			ui::populate_map_tooltip(*this, container, prov);
-			if(container.native_rtl == text::layout_base::rtl_status::rtl) {
-				container.used_width = -container.used_width;
-				for(auto& t : container.base_layout.contents) {
-					t.x += 16 + container.used_width;
-					t.y += 16;
-				}
-			} else {
-				for(auto& t : container.base_layout.contents) {
-					t.x += 16;
-					t.y += 16;
-				}
-			}
-			ui_state.tooltip->base_data.size.x = int16_t(container.used_width + 32);
-			ui_state.tooltip->base_data.size.y = int16_t(container.used_height + 32);
-			if(container.used_width > 0) {
-				// This block positions the tooltip somewhat under the province centroid
-				auto mid_point = world.province_get_mid_point(prov);
-				auto map_pos = map_state.normalize_map_coord(mid_point);
-				auto screen_size =
-					glm::vec2{ float(x_size / user_settings.ui_scale), float(y_size / user_settings.ui_scale) };
-				glm::vec2 screen_pos;
-				if(!map_state.map_to_screen(*this, map_pos, screen_size, screen_pos, { 200.f, 200.f })) {
-					ui_state.tooltip->set_visible(*this, false);
-				} else {
-					ui_state.tooltip->base_data.position =
-						ui::xy_pair{ int16_t(screen_pos.x - container.used_width / 2 - 8), int16_t(screen_pos.y + 3.5f * map_state.get_zoom()) };
-					ui_state.tooltip->set_visible(*this, true);
-				}
-				// Alternatively: just make it visible
-				// ui_state.tooltip->set_visible(*this, true);
-			} else {
-				ui_state.tooltip->set_visible(*this, false);
-			}
-		} else {
-			ui_state.tooltip->set_visible(*this, false);
-		}
+		ui_state.handle_map_tooltip(*this, int16_t(root_elm->base_data.size.y - 20));		
 	}
 
 	if(ui_state.under_mouse != mouse_probe.under_mouse) {
@@ -1610,25 +1112,38 @@ void state::render() { // called to render the frame may (and should) delay retu
 
 	root_elm->impl_render(*this, 0, 0);
 	ui_animation.render(*this);
+	ui_state.render_tooltip(*this, user_settings.bind_tooltip_mouse, mouse_x_position, mouse_y_position, x_size, y_size, user_settings.ui_scale);
 
-	if(ui_state.tooltip->is_visible()) {
-		//floating by mouse
-		if(user_settings.bind_tooltip_mouse) {
-			int32_t aim_x = int32_t(mouse_x_position / user_settings.ui_scale) + ui_state.cursor_size;
-			int32_t aim_y = int32_t(mouse_y_position / user_settings.ui_scale) + ui_state.cursor_size;
-			int32_t wsize_x = int32_t(x_size / user_settings.ui_scale);
-			int32_t wsize_y = int32_t(y_size / user_settings.ui_scale);
-			//this only works if the tooltip isnt bigger than the entire window, wont crash though
-			if(aim_x + ui_state.tooltip->base_data.size.x > wsize_x) {
-				aim_x = wsize_x - ui_state.tooltip->base_data.size.x;
-			}
-			if(aim_y + ui_state.tooltip->base_data.size.y > wsize_y) {
-				aim_y = wsize_y - ui_state.tooltip->base_data.size.y;
-			}
-			ui_state.tooltip->impl_render(*this, aim_x, aim_y);
-		} else {//tooltip centered over ui element
-			ui_state.tooltip->impl_render(*this, ui_state.tooltip->base_data.position.x, ui_state.tooltip->base_data.position.y);
-		}
+	lua_getfield(lua_ui_environment, LUA_GLOBALSINDEX, "alice");
+	lua_getfield(lua_ui_environment, -1, "on_ui_thread_update");
+	lua_remove(lua_ui_environment, -2);
+	lua_pushinteger(lua_ui_environment, ui_state.time_since_last_render.count());
+	lua_pushinteger(lua_ui_environment, int32_t(x_size/user_settings.ui_scale));
+	lua_pushinteger(lua_ui_environment, int32_t(y_size/user_settings.ui_scale));
+	//lua_call(lua_ui_environment, 3, 0);
+	auto result = lua_pcall(lua_ui_environment, 3, 0, 0);
+	if(result) {
+		console_log(lua_tostring(lua_ui_environment, -1));
+		lua_settop(lua_ui_environment, 0);
+	}
+
+	assert(lua_gettop(lua_ui_environment) == 0);
+
+
+	if(ui_state.current_drag_and_drop_data_type != ui::drag_and_drop_data::none) {
+		auto win_x_size = 18 + 10 + ui_state.drag_and_drop_image.cap_width;
+		auto win_y_size = std::max(18, ui_state.drag_and_drop_image.cap_height) + 10;
+
+		static auto popup_bg = template_project::background_by_name(ui_templates, "outset_region.asvg");
+		static auto dad_icon = template_project::icon_by_name(ui_templates, "ic_fluent_document_briefcase_32_regular.svg");
+		static auto dad_color = template_project::color_by_name(ui_templates, "med red");
+
+		ogl::render_textured_rect_direct(*this, float((x_size / user_settings.ui_scale) / 2 - win_x_size/2), float((y_size / user_settings.ui_scale) - win_y_size), float(win_x_size), float(win_y_size), ui_templates.backgrounds[popup_bg].renders.get_render(*this, float(win_x_size) / float(9), float(win_y_size) / float(9), int32_t(9), user_settings.ui_scale));
+
+		ogl::render_textured_rect_direct(*this, float((x_size / user_settings.ui_scale) / 2 - win_x_size / 2 + 5), float((y_size / user_settings.ui_scale) - win_y_size + 5), float(18), float(18),
+			ui_templates.icons[dad_icon].renders.get_render(*this, 18, 18, user_settings.ui_scale, ui_templates.colors[dad_color].r, ui_templates.colors[dad_color].g, ui_templates.colors[dad_color].b));
+
+		ui_state.drag_and_drop_image.render(*this, int32_t((x_size / user_settings.ui_scale) / 2) - win_x_size / 2 + 5 + 18, int32_t(y_size / user_settings.ui_scale) - win_y_size + 5);
 	}
 
 	if(ui_state.fps_counter) {
@@ -1641,6 +1156,51 @@ void state::render() { // called to render the frame may (and should) delay retu
 }
 
 void state::on_create() {
+	// lua
+	lua_alice_api::set_state(this);
+	lua_alice_api::setup_gameloop_environment(*this);
+
+	lua_alice_api::setup_ui_environment(*this);
+
+
+	// populate the table with scripted functions from lua_combined_script and lua_ui_script (read during scenario generation)
+	{
+		int status;
+		status = luaL_dostring(lua_ui_environment, lua_combined_script.c_str());
+		if(status) {
+#ifdef _WIN32
+			OutputDebugStringA(lua_tostring(lua_ui_environment, -1));
+#endif
+			lua_settop(lua_ui_environment, 0);
+			std::abort();
+		}
+		status = luaL_dostring(lua_game_loop_environment, lua_combined_script.c_str());
+		if(status) {
+#ifdef _WIN32
+			OutputDebugStringA(lua_tostring(lua_game_loop_environment, -1));
+#endif
+			lua_settop(lua_game_loop_environment, 0);
+			std::abort();
+		}
+
+		status = luaL_dostring(lua_ui_environment, lua_ui_script.c_str());
+		if(status) {
+#ifdef _WIN32
+			OutputDebugStringA(lua_tostring(lua_ui_environment, -1));
+#endif
+			lua_settop(lua_ui_environment, 0);
+			std::abort();
+		}
+		status = luaL_dostring(lua_game_loop_environment, lua_game_loop_script.c_str());
+		if(status) {
+#ifdef _WIN32
+			OutputDebugStringA(lua_tostring(lua_game_loop_environment, -1));
+#endif
+			lua_settop(lua_game_loop_environment, 0);
+			std::abort();
+		}
+	}
+
 	ui_state.tooltip_font = text::name_into_font_id(*this, "ToolTip_Font");
 	ui_state.default_header_font = text::name_into_font_id(*this, "vic_22");
 	ui_state.default_body_font = text::name_into_font_id(*this, "vic_18");
@@ -1648,6 +1208,31 @@ void state::on_create() {
 	// Load late ui defs
 	auto root = get_root(common_fs);
 	auto assets = simple_fs::open_directory(root, NATIVE("assets"));
+
+	auto uitemplates = simple_fs::open_file(assets, NATIVE("the.tui"));
+	if(uitemplates) {
+		auto content = view_contents(*uitemplates);
+		serialization::in_buffer buffer(content.data, content.file_size);
+		ui_templates = template_project::bytes_to_project(buffer);
+		ui_templates.svg_directory.pop_back();
+		svg_image_files.root_directory = simple_fs::utf16_to_native(ui_templates.svg_directory);
+		auto svgdir = simple_fs::open_directory(assets, simple_fs::utf16_to_native(ui_templates.svg_directory));
+		for(auto& i : ui_templates.icons) {
+			auto f = simple_fs::open_file(svgdir, simple_fs::utf8_to_native(i.file_name));
+			if(f) {
+				auto contents = simple_fs::view_contents(*f);
+				i.renders = asvg::simple_svg(contents.data, size_t(contents.file_size));
+			}
+		}
+		for(auto& b : ui_templates.backgrounds) {
+			auto f = simple_fs::open_file(svgdir, simple_fs::utf8_to_native(b.file_name));
+			if(f) {
+				auto contents = simple_fs::view_contents(*f);
+				b.renders = asvg::svg(contents.data, size_t(contents.file_size), b.base_x, b.base_y);
+			}
+		}
+	}
+
 	for(auto gui_file : list_files(assets, NATIVE(".aui"))) {
 		auto file_name = simple_fs::get_file_name(gui_file);
 		auto opened_file = open_file(gui_file);
@@ -1660,87 +1245,17 @@ void state::on_create() {
 		}
 	}
 
-	// Clear "center" property so they don't look messed up!
-	{
-		static const std::string_view elem_names[] = {
-			"state_info",
-			"production_goods_name",
-			"factory_info",
-			"new_factory_option",
-			"ledger_legend_entry",
-			"project_info",
-		};
-		for(const auto& elem_name : elem_names) {
-			auto it = ui_state.defs_by_name.find(lookup_key(elem_name));
-			if(it != ui_state.defs_by_name.end()) {
-				auto& gfx_def = ui_defs.gui[it->second.definition];
-				gfx_def.flags &= ~ui::element_data::orientation_mask;
-			}
-		}
-	}
-	// Allow user to drag some windows, and only the ones that make sense
-	{
-		static const std::string_view elem_names[] = {
-			"pop_details_win",
-			"trade_flow",
-			"event_election_window",
-			"invest_project_window",
-			"ledger",
-			"province_view",
-			"releaseconfirm",
-			"build_factory",
-			"defaultdiplomacydialog",
-			"gpselectdiplomacydialog",
-			"makecbdialog",
-			"declarewardialog",
-			"setuppeacedialog",
-			"setupcrisisbackdowndialog",
-			"endofnavalcombatpopup",
-			"endoflandcombatpopup",
-			"ingame_lobby_window",
-			"build_factory"
-		};
-		for(const auto& elem_name : elem_names) {
-			auto it = ui_state.defs_by_name.find(lookup_key(elem_name));
-			if(it != ui_state.defs_by_name.end()) {
-				auto& gfx_def = ui_defs.gui[it->second.definition];
-				if(gfx_def.get_element_type() == ui::element_type::window) {
-					gfx_def.data.window.flags |= ui::window_data::is_moveable_mask;
-				}
-			}
-		}
-	}
-	// Nudge, overriden by V2 to be 0 always
-	ui_defs.gui[ui_state.defs_by_name.find(lookup_key("decision_entry"))->second.definition].position = ui::xy_pair{ 0, 0 };
-	// Find the object id for the main_bg displayed (so we display it before the map).
-	// It is the background from topbar windows
-	if(ui_state.defs_by_name.find(lookup_key("bg_main_menus")) != ui_state.defs_by_name.end()) {
-		ui_state.bg_gfx_id = ui_defs.gui[ui_state.defs_by_name.find(lookup_key("bg_main_menus"))->second.definition].data.image.gfx_object;
-	}
-	else if (ui_state.gfx_by_name.find(lookup_key("GFX_bg_main_menus")) != ui_state.gfx_by_name.end()){
-		// If some mod has removed the GUI element of background in topbar windows, resort to searching for the GFX by name
-		ui_state.bg_gfx_id = ui_state.gfx_by_name.find(lookup_key("GFX_bg_main_menus"))->second;
-	}
-	// Otherwise the map will be floating in the void
-
-	ui_state.nation_picker = ui::make_element_by_type<ui::nation_picker_container>(*this, ui_state.defs_by_name.find(lookup_key("lobby"))->second.definition);
-	{
-		auto window = ui::make_element_by_type<ui::console_window>(*this, "console_wnd");
-		ui_state.console_window_r = window.get();
-		window->set_visible(*this, false);
-		ui_state.nation_picker->add_child_to_front(std::move(window));
-	}
-	{ // One on the lobby
-		auto new_elm = ui::make_element_by_type<ui::chat_window>(*this, "ingame_lobby_window");
-		new_elm->set_visible(*this, !(network_mode == sys::network_mode_type::single_player)); // Hidden in singleplayer by default
-		ui_state.r_chat_window = new_elm.get();
-		ui_state.nation_picker->add_child_to_front(std::move(new_elm));
-	}
+	ui::adjust_in_game_windows(*this);
 	map_mode::set_map_mode(*this, map_mode::mode::political);
 }
 //
 // string pool functions
 //
+
+
+void remove_carriage_returns(std::string& str) {
+	str.erase(std::remove(str.begin(), str.end(), '\r'), str.end());
+}
 
 std::string_view state::to_string_view(dcon::text_key tag) const {
 	if(!tag)
@@ -1986,7 +1501,7 @@ dcon::trigger_key state::commit_trigger_data(std::vector<uint16_t> data) {
 	}
 
 	auto search_result = std::search(trigger_data.data() + 1, trigger_data.data() + trigger_data.size(),
-			std::boyer_moore_horspool_searcher(data.data(), data.data() + data.size()));
+			std::default_searcher(data.data(), data.data() + data.size()));
 	if(search_result != trigger_data.data() + trigger_data.size()) {
 		auto const start = search_result - trigger_data.data();
 		auto it = std::find(trigger_data_indices.begin(), trigger_data_indices.end(), int32_t(start));
@@ -2020,7 +1535,7 @@ dcon::effect_key state::commit_effect_data(std::vector<uint16_t> data) {
 	}
 
 	auto search_result = std::search(effect_data.data() + 1, effect_data.data() + effect_data.size(),
-			std::boyer_moore_horspool_searcher(data.data(), data.data() + data.size()));
+			std::default_searcher(data.data(), data.data() + data.size()));
 	if(search_result != effect_data.data() + effect_data.size()) {
 		auto const start = search_result - effect_data.data();
 		auto it = std::find(effect_data_indices.begin(), effect_data_indices.end(), int32_t(start));
@@ -2070,7 +1585,7 @@ void state::save_user_settings() const {
 	ptr += 98;
 	std::memcpy(ptr, user_settings.other_message_settings, lower_half_count);
 	ptr += 98;
-	US_SAVE(UNUSED_BOOL);
+	US_SAVE(show_all_saves);
 	constexpr size_t upper_half_count = 128 - 98;
 	std::memcpy(ptr, &user_settings.self_message_settings[98], upper_half_count);
 	ptr += upper_half_count;
@@ -2140,7 +1655,7 @@ void state::load_user_settings() {
 			std::memcpy(&user_settings.other_message_settings, ptr, std::min(lower_half_count, size_t(std::max(ptrdiff_t(0), (content.data + content.file_size) - ptr))));
 			ptr += 98;
 
-			US_LOAD(UNUSED_BOOL);
+			US_LOAD(show_all_saves);
 			constexpr size_t upper_half_count = 128 - 98;
 			std::memcpy(&user_settings.self_message_settings[98], ptr, std::min(upper_half_count, size_t(std::max(ptrdiff_t(0), (content.data + content.file_size) - ptr))));
 			ptr += upper_half_count;
@@ -2197,11 +1712,13 @@ void state::load_user_settings() {
 
 		if(!std::isfinite(user_settings.zoom_speed)) user_settings.zoom_speed = 15.0f;
 		user_settings.zoom_speed = std::clamp(user_settings.zoom_speed, 15.f, 25.f);
+
+		//user_settings.use_classic_fonts = false;
 	}
 
 	// find most recent autosave
 
-	auto saves = simple_fs::get_or_create_save_game_directory();
+	auto saves = simple_fs::get_or_create_save_game_directory(mod_save_dir);
 	uint64_t max_timestamp = 0;
 	for(int32_t i = 0; i < sys::max_autosaves; ++i) {
 		auto asfile = simple_fs::open_file(saves, native_string(NATIVE("autosave_")) + simple_fs::utf8_to_native(std::to_string(i)) + native_string(NATIVE(".bin")));
@@ -2277,7 +1794,7 @@ void state::load_gamerule_settings() {
 			uint8_t setting = data_ptr[i];
 			dcon::gamerule_id gamerule{ dcon::gamerule_id::value_base_t{ uint8_t(i) } };
 			if(world.gamerule_is_valid(gamerule) && world.gamerule_get_settings_count(gamerule) > setting) {
-				gamerule::set_gamerule(*this, gamerule, setting);
+				gamerule::set_gamerule_no_lua_exec(*this, gamerule, setting);
 			}
 		}
 	}
@@ -2292,16 +1809,37 @@ void state::save_gamerule_settings() const {
 		current_gamerule_settings.push_back(gr.get_current_setting());
 	}
 	simple_fs::write_file(sdir, loaded_scenario_file, reinterpret_cast<const char*>(current_gamerule_settings.data()), uint32_t(current_gamerule_settings.size()));
-	
+
 }
 
 
 void state::update_ui_scale(float new_scale) {
 	user_settings.ui_scale = new_scale;
-	ui_state.root->base_data.size.x = int16_t(x_size / user_settings.ui_scale);
-	ui_state.root->base_data.size.y = int16_t(y_size / user_settings.ui_scale);
+	ui_state.for_each_root([&](ui::element_base& elm) {
+		elm.base_data.size.x = int16_t(x_size / user_settings.ui_scale);
+		elm.base_data.size.y = int16_t(y_size / user_settings.ui_scale);
+	});
+
 	if(ui_state.outliner_window)
 		ui_state.outliner_window->impl_on_update(*this);
+	if(current_scene.game_in_progress)
+		alice_ui::display_at_front<alice_ui::make_production_main>(*this, alice_ui::display_closure_command::return_pointer)->base_data.size.y = int16_t(y_size / user_settings.ui_scale);
+
+	for(auto& s : ui_templates.backgrounds) {
+		s.renders.release_renders();
+	}
+	for(auto& s : ui_templates.icons) {
+		s.renders.release_renders();
+	}
+	//font_collection.reset_fonts();
+
+	ui_state.for_each_root([&](ui::element_base& elm) {
+		elm.impl_on_reset_text(*this);
+	});
+
+	province_ownership_changed.store(true, std::memory_order::release); //update map
+	game_state_updated.store(true, std::memory_order::release); //update ui
+
 	// TODO move windows
 }
 
@@ -2334,22 +1872,130 @@ void list_pop_types(sys::state& state, parsers::scenario_building_context& conte
 }
 
 void state::open_diplomacy(dcon::nation_id target) {
-	if(ui_state.diplomacy_subwindow != nullptr) {
-		if(ui_state.topbar_subwindow != nullptr) {
-			ui_state.topbar_subwindow->set_visible(*this, false);
-		}
-		ui_state.topbar_subwindow = ui_state.diplomacy_subwindow;
-		ui_state.diplomacy_subwindow->set_visible(*this, true);
-		ui_state.root->move_child_to_front(ui_state.diplomacy_subwindow);
-		send(*this, ui_state.diplomacy_subwindow, ui::element_selection_wrapper<dcon::nation_id>{ target });
-	}
+	sys::open_diplomacy_window(*this, target);
 }
+
+struct pixel_heap_member {
+	int x;
+	int y;
+	float dist;
+	float heur;
+
+	int8_t dx;
+	int8_t dy;
+	uint8_t speed;
+
+	auto operator<=>(const pixel_heap_member & other) const {
+		return (dist + heur) <=> (other.dist + other.heur);
+	}
+};
+
 
 void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day bookmark_date) {
 	auto root = get_root(common_fs);
 	auto common = open_directory(root, NATIVE("common"));
 
 	parsers::scenario_building_context context(*this);
+
+	lua_alice_api::set_state(this);
+	lua_alice_api::setup_gameloop_environment(*this);
+
+	// read lua scripts
+	lua_combined_script.clear();
+	auto assets = simple_fs::open_directory(root, NATIVE("assets"));
+	auto assets_lua = simple_fs::open_directory(assets, NATIVE("lua"));
+	{
+		// read dcon wrappers
+		auto engine_lua = open_directory(assets_lua, NATIVE("engine"));
+		for(auto province_file : list_files(engine_lua, NATIVE(".lua"))) {
+			auto opened_file = open_file(province_file);
+			if(opened_file) {
+				auto content = view_contents(*opened_file);
+				lua_combined_script += content.data;
+				simple_fs::standardize_newlines(lua_combined_script);
+				lua_combined_script += "\n";
+			}
+		}
+
+		auto hand_written_wrappers = open_file(assets_lua, NATIVE("custom_ffi.lua"));
+		if(hand_written_wrappers) {
+			auto content = view_contents(*hand_written_wrappers);
+			lua_combined_script += content.data;
+			simple_fs::standardize_newlines(lua_combined_script);
+			lua_combined_script += "\n";
+		}
+
+		// read loader for game thread
+		lua_game_loop_script.clear();
+		auto game_loop = open_file(assets_lua, NATIVE("loader_game_loop.lua"));
+		if(game_loop) {
+			auto content = view_contents(*game_loop);
+			lua_game_loop_script += content.data;
+			simple_fs::standardize_newlines(lua_game_loop_script);
+			lua_game_loop_script += "\n";
+		}
+
+		// read loader for ui thread
+		lua_ui_script.clear();
+		auto ui_script = open_file(assets_lua, NATIVE("loader_ui.lua"));
+		if(ui_script) {
+			auto content = view_contents(*ui_script);
+			lua_ui_script += content.data;
+			simple_fs::standardize_newlines(lua_ui_script);
+			lua_ui_script += "\n";
+		}
+
+		// game scripts
+		auto game_scripts_dir = open_directory(assets_lua, NATIVE("game_scripts"));
+		for(auto lua_file : list_files(game_scripts_dir, NATIVE(".lua"))) {
+			auto opened_file = open_file(lua_file);
+			if(opened_file) {
+				auto content = view_contents(*opened_file);
+				lua_combined_script += content.data;
+				simple_fs::standardize_newlines(lua_combined_script);
+				lua_combined_script += "\n";
+			}
+		}
+
+		// custom scripts
+		auto custom_scripts_dir = open_directory(assets_lua, NATIVE("custom_scripts"));
+		for(auto lua_file : list_files(custom_scripts_dir, NATIVE(".lua"))) {
+			auto opened_file = open_file(lua_file);
+			if(opened_file) {
+				auto content = view_contents(*opened_file);
+				lua_combined_script += content.data;
+				simple_fs::standardize_newlines(lua_combined_script);
+				lua_combined_script += "\n";
+			}
+		}
+	}
+
+	{
+		int status;
+		status = luaL_dostring(lua_game_loop_environment, lua_combined_script.c_str());
+		if(status) {
+#ifdef _WIN32
+			OutputDebugStringA(lua_tostring(lua_game_loop_environment, -1));
+#endif
+			lua_settop(lua_game_loop_environment, 0);
+			std::abort();
+		}
+		status = luaL_dostring(lua_game_loop_environment, lua_game_loop_script.c_str());
+		if(status) {
+#ifdef _WIN32
+			OutputDebugStringA(lua_tostring(lua_game_loop_environment, -1));
+#endif
+			lua_settop(lua_game_loop_environment, 0);
+			std::abort();
+		}
+	}
+
+	if(lua_alice_api::has_named_function(*this, "update_administrative_efficiency")) {
+		err.accumulated_warnings += "update_administrative_efficiency function was overidden from LUA\n";
+	}
+
+
+
 
 	//text::name_into_font_id(*this, "garamond_14");
 	ui::load_text_gui_definitions(*this, context.gfx_context, err);
@@ -2434,8 +2080,9 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 		context.map_color_to_province_id.insert_or_assign(sys::pack_color(247, 248, 245), it->second);
 	}
 
-
-	std::thread map_loader([&]() { map_state.load_map_data(context); });
+	std::thread map_loader([&]() {
+		map_state.load_map_data(context);
+	});
 
 	parsers::make_leader_images(context);
 
@@ -2678,7 +2325,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	}
 
 	// create the hardcoded gamerules
-	gamerule::load_hardcoded_gamerules(context);
+	gamerule::load_hardcoded_gamerules(context, err);
 	// pre parse scripted gamerules
 	{
 
@@ -2935,6 +2582,8 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	world.province_resize_rgo_size(world.commodity_size());
 	world.province_resize_rgo_potential(world.commodity_size());
 	world.province_resize_rgo_efficiency(world.commodity_size());
+	world.province_resize_rgo_max_efficiency(world.commodity_size());
+	world.province_resize_rgo_base_efficiency(world.commodity_size());
 	world.province_resize_rgo_target_employment(world.commodity_size());
 	world.province_resize_rgo_output(world.commodity_size());
 	world.province_resize_rgo_output_per_worker(world.commodity_size());
@@ -2993,6 +2642,23 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 		load_from_dir(prov_history);
 		for(auto const& subdir : list_subdirectories(prov_history)) {
 			load_from_dir(subdir);
+		}
+	}
+
+	province::for_each_land_province(*this, [&](dcon::province_id p) {
+		if(auto rgo = world.province_get_rgo(p); !rgo) {
+			auto name = world.province_get_name(p);
+			err.accumulated_errors += std::string("province ") + text::produce_simple_string(*this, name) + " is missing an rgo\n";
+			world.province_set_rgo(p, economy::money);
+		}
+	});
+	// check that all provinces are assigned to a state
+	// it's required to avoid issues with functions which assume that every land province is in a state
+	for(int32_t i = 0; i < province_definitions.first_sea_province.index(); i++) {
+		auto pid = dcon::province_id{ dcon::province_id::value_base_t(i) };
+		auto v2id = world.province_get_provid(pid);
+		if(world.province_get_nation_from_province_ownership(pid)) {
+			assert(world.abstract_state_membership_get_state(world.province_get_abstract_state_membership(pid)));
 		}
 	}
 
@@ -3319,58 +2985,6 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 		}
 	}
 
-	// load oob
-	{
-		auto oob_dir = open_directory(history, NATIVE("units"));
-
-		auto startdate = current_date.to_ymd(start_date);
-		auto start_dir_name = std::to_string(startdate.year);
-		auto date_directory = open_directory(oob_dir, simple_fs::utf8_to_native(start_dir_name));
-		auto files = list_files(date_directory, NATIVE(".txt"));
-		// if it cant find a bookmark specific dir, read files directly from the "unit" directory
-		if(files.empty()) {
-			files = list_files(oob_dir, NATIVE(".txt"));
-		}
-		for(auto oob_file : files) {
-			auto file_name = get_full_name(oob_file);
-			auto last = file_name.c_str() + file_name.length();
-			auto first = file_name.c_str();
-			auto start_of_name = last;
-			for(; start_of_name >= first; --start_of_name) {
-				if(*start_of_name == NATIVE('\\') || *start_of_name == NATIVE('/')) {
-					++start_of_name;
-					break;
-				}
-			}
-			if(last - start_of_name >= 3) {
-				auto utf8name = simple_fs::native_to_utf8(native_string_view(start_of_name, last - start_of_name));
-				if(auto it = context.map_of_ident_names.find(nations::tag_to_int(utf8name[0], utf8name[1], utf8name[2])); it != context.map_of_ident_names.end()) {
-					auto holder = context.state.world.national_identity_get_nation_from_identity_holder(it->second);
-					if(holder) {
-						// if the nation has no owned provinces, and it isnt rebels, don't spawn their oob and write warning
-						if(context.state.world.nation_get_province_ownership(holder).begin() != context.state.world.nation_get_province_ownership(holder).end() || it->second == context.state.national_definitions.rebel_id) {
-							parsers::oob_file_context new_context{ context, holder };
-							auto opened_file = open_file(oob_file);
-							if(opened_file) {
-								err.file_name = utf8name;
-								auto content = view_contents(*opened_file);
-								parsers::token_generator gen(content.data, content.data + content.file_size);
-								parsers::parse_oob_file(gen, err, new_context);
-							}
-						}
-						else {
-							err.accumulated_warnings += "tag with no owned provinces " + utf8name.substr(0, 3) + " encountered while scanning oob files\n";
-						}
-
-					} else {
-						err.accumulated_warnings += "dead tag " + utf8name.substr(0, 3) + " encountered while scanning oob files\n";
-					}
-				} else {
-					err.accumulated_warnings += "invalid tag " + utf8name.substr(0, 3) + " encountered while scanning oob files\n";
-				}
-			}
-		}
-	}
 	// parse diplomacy history
 	{
 		auto diplomacy_dir = open_directory(history, NATIVE("diplomacy"));
@@ -3466,7 +3080,64 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 			world.try_create_identity_holder(new_nation, id);
 		}
 	});
+	
+	// load oob files which are referenced in country history files
+	{
 
+		auto get_dirs_and_file_name = [&](std::string_view str) {
+			auto last = str.data() + str.length();
+			auto first = str.data();
+			const char* current;
+			const char* last_dir;
+			if(*first == '/' && str.length() != 0) {
+				last_dir = first + 1;
+				current = first + 1;
+			} else {
+				last_dir = first;
+				current = first;
+			}
+			std::vector<std::string_view> directories;
+			std::string_view file_name;
+			while(current < last) {
+				if(*current == '/') {
+					directories.push_back(std::string_view(last_dir, current - last_dir));
+					last_dir = current + 1;
+				}
+				current++;
+			}
+			if(last_dir > last) {
+				file_name = std::string_view{};
+			} else {
+				file_name = std::string_view(last_dir, last - last_dir);
+			}
+			return std::pair<std::vector<std::string_view>, std::string_view>(directories, file_name);
+			};
+		auto oob_dir = open_directory(history, NATIVE("units"));
+		for(auto& oob_file : context.oob_files_to_read) {
+			if(!oob_file.for_whom) {
+				continue;
+			}
+			auto dirs_and_filename = get_dirs_and_file_name(oob_file.path);
+			auto utf8_filename = dirs_and_filename.second;
+			// walk subdirs to the dir which the file resides in
+			auto subdir = oob_dir;
+			for(auto dir_name : dirs_and_filename.first) {
+				subdir = open_directory(subdir, simple_fs::utf8_to_native(dir_name));
+			}
+			auto native_filename = simple_fs::utf8_to_native(utf8_filename);
+			auto opened_file = open_file(subdir, native_filename);
+			parsers::oob_file_context new_context{ context, oob_file.for_whom };
+			if(opened_file) {
+				err.file_name = utf8_filename;
+				auto content = view_contents(*opened_file);
+				parsers::token_generator gen(content.data, content.data + content.file_size);
+				parsers::parse_oob_file(gen, err, new_context);
+			} else {
+				err.accumulated_warnings += "oob file " + oob_file.path + " could not be read or was not found. Referenced in file ( " + oob_file.referenced_in + " )\n";
+			}
+
+		}
+	}
 	// load scripted gamerules
 	{
 
@@ -3534,12 +3205,11 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	}
 
 	//cleanup regiments with no pop attached
-	for(uint32_t i = world.regiment_size(); i-- > 0; ) {
-		dcon::regiment_id n{ dcon::regiment_id::value_base_t(i) };
+	world.for_each_regiment([&](auto n) {
 		if(!world.regiment_get_pop_from_regiment_source(n)) {
 			world.delete_regiment(n);
 		}
-	}
+	});
 
 	world.nation_resize_modifier_values(sys::national_mod_offsets::count);
 	world.nation_resize_rgo_goods_output(world.commodity_size());
@@ -3558,10 +3228,17 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	world.state_instance_resize_demographics(demographics::size(*this));
 	world.province_resize_demographics(demographics::size(*this));
 
+	world.nation_resize_production_directive(production_directives::size(*this));
+	world.state_instance_resize_production_directive(production_directives::size(*this));
+
 	world.trade_route_resize_volume(world.commodity_size());
+	world.trade_route_resize_stabilization_volume(world.commodity_size());
+
 	world.nation_resize_factory_type_experience(world.factory_type_size());
 	world.nation_resize_factory_type_experience_priority_national(world.factory_type_size());
 	world.nation_resize_factory_type_experience_priority_private(world.factory_type_size());
+
+	world.factory_resize_efficiency_level(economy::commodity_set::set_size);
 
 	world.market_resize_price(world.commodity_size());
 	world.market_resize_supply(world.commodity_size());
@@ -3576,9 +3253,12 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	world.market_resize_life_needs_scale(world.pop_type_size());
 	world.market_resize_everyday_needs_scale(world.pop_type_size());
 	world.market_resize_luxury_needs_scale(world.pop_type_size());
-	world.market_resize_max_life_needs_satisfaction(world.pop_type_size());
-	world.market_resize_max_everyday_needs_satisfaction(world.pop_type_size());
-	world.market_resize_max_luxury_needs_satisfaction(world.pop_type_size());
+	world.market_resize_satisfied_ratio_of_max_life_needs(world.pop_type_size());
+	world.market_resize_satisfied_ratio_of_max_everyday_needs(world.pop_type_size());
+	world.market_resize_satisfied_ratio_of_max_luxury_needs(world.pop_type_size());
+	world.market_resize_satisfied_ratio_of_demanded_life_needs(world.pop_type_size());
+	world.market_resize_satisfied_ratio_of_demanded_everyday_needs(world.pop_type_size());
+	world.market_resize_satisfied_ratio_of_demanded_luxury_needs(world.pop_type_size());
 
 	world.market_resize_import(world.commodity_size());
 	world.market_resize_export(world.commodity_size());
@@ -3586,9 +3266,12 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	world.market_resize_navy_demand(world.commodity_size());
 	world.market_resize_construction_demand(world.commodity_size());
 	world.market_resize_private_construction_demand(world.commodity_size());
-	world.market_resize_demand_satisfaction(world.commodity_size());
-	world.market_resize_direct_demand_satisfaction(world.commodity_size());
-	world.market_resize_supply_sold_ratio(world.commodity_size());
+	world.market_resize_actual_probability_to_buy(world.commodity_size());
+	world.market_resize_actual_probability_to_sell(world.commodity_size());
+	world.market_resize_expected_probability_to_buy(world.commodity_size());
+	world.market_resize_expected_probability_to_sell(world.commodity_size());
+	world.market_resize_aggregated_demand_history(world.commodity_size());
+	world.market_resize_aggregated_supply_history(world.commodity_size());
 	world.market_resize_life_needs_weights(world.commodity_size());
 	world.market_resize_everyday_needs_weights(world.commodity_size());
 	world.market_resize_luxury_needs_weights(world.commodity_size());
@@ -3616,8 +3299,6 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	crisis_attacker_wargoals.resize(2000);
 	crisis_defender_wargoals.resize(2000);
 
-	selected_regiments.resize(const_max_selected_units);
-	selected_ships.resize(const_max_selected_units);
 
 
 	for(auto t : world.in_technology) {
@@ -3750,23 +3431,21 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 
 	// make ports
 	province::for_each_land_province(*this, [&](dcon::province_id p) {
-
 		auto best_port = dcon::province_id{ };
 		auto best_border_length = 0;
-
 		for(auto adj : world.province_get_province_adjacency(p)) {
-			auto& border = map_state.map_data.borders[adj.id.index()];
+			auto& border = map_state.map_data.adj_index_to_border_edge[adj.id.index()];
+			auto& edge = map_state.map_data.border_edges[border];
 			auto other = adj.get_connected_provinces(0) != p ? adj.get_connected_provinces(0) : adj.get_connected_provinces(1);
 			auto bits = adj.get_type();
 			if(other && (bits & province::border::coastal_bit) != 0 && (bits & province::border::impassible_bit) == 0) {
 				world.province_set_is_coast(p, true);
-				if(best_border_length < border.count) {
+				if(best_border_length < edge.count) {
 					best_port = other.id;
-					best_border_length = border.count;
+					best_border_length = edge.count;
 				}
 			}
 		}
-
 		if(best_port) {
 			world.province_set_port_to(p, best_port);
 		}
@@ -3844,6 +3523,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 		}
 	}
 
+
 	// Sanity checking navies & armies
 	for(auto n : world.in_navy) {
 		auto p = n.get_navy_location().get_location();
@@ -3857,6 +3537,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 			}
 		}
 	}
+
 	for(auto a : world.in_army) {
 		auto p = a.get_army_location().get_location();
 		if(p.id.index() >= province_definitions.first_sea_province.index()) {
@@ -3891,6 +3572,8 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	}
 
 	nations::update_revanchism(*this);
+	bool old_game_in_prog = current_scene.game_in_progress;
+	current_scene.game_in_progress = true; // Many of the "can_perform_command" functions require the game to be in progress. To avoid any assert trips in presumulation, we set it to be in progress here and reset it later
 	fill_unsaved_data(); // we need this to run triggers
 
 	// Clean up and fixup armies and navies
@@ -3955,21 +3638,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 			err.accumulated_warnings += "Province" + std::to_string(context.prov_id_to_original_id_map[p].id) + " has state_building of size exceeding its factory_max_size\n";
 		}
 	}
-	// apply effects from gamerule options which are on by default
-	for(auto gamerule : context.state.world.in_gamerule) {
-		if(gamerule.get_settings_count() > 0) {
-			auto default_selection_effect = gamerule.get_options()[gamerule.get_default_setting()].on_select;
-			effect::execute(*this, default_selection_effect, 0, 0, 0, uint32_t(current_date.value), uint32_t(gamerule.id.index() << 4 ^ gamerule.get_default_setting()));
-		}
-	}
 
-	// run pending triggers and effects
-	for(auto pending_decision : pending_decisions) {
-		dcon::nation_id n = pending_decision.first;
-		dcon::decision_id d = pending_decision.second;
-		if(auto e = world.decision_get_effect(d); e)
-			effect::execute(*this, e, trigger::to_generic(n), trigger::to_generic(n), 0, uint32_t(current_date.value), uint32_t(n.index() << 4 ^ d.index()));
-	}
 
 	demographics::regenerate_from_pop_data_full(*this);
 	economy::initialize(*this);
@@ -3979,6 +3648,8 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	demographics::regenerate_from_pop_data_full(*this);
 
 	economy::sanity_check(*this);
+
+	demographics::fixup_state_only_pops<true>(*this);
 
 	military::reinforce_regiments(*this);
 	military::repair_ships(*this);
@@ -3990,7 +3661,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	military::regenerate_ship_scores(*this);
 	nations::update_industrial_scores(*this);
 	military::update_naval_supply_points(*this);
-	economy::update_employment(*this);
+	economy::update_employment(*this, true, 1.f);
 	nations::update_military_scores(*this); // depends on ship score, land unit average
 	nations::update_rankings(*this);		// depends on industrial score, military scores
 
@@ -4018,14 +3689,6 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 
 	economy::sanity_check(*this);
 
-	province::for_each_land_province(*this, [&](dcon::province_id p) {
-		if(auto rgo = world.province_get_rgo(p); !rgo) {
-			auto name = world.province_get_name(p);
-			err.accumulated_errors += std::string("province ") + text::produce_simple_string(*this, name) + " is missing an rgo\n";
-			world.province_set_rgo(p, economy::money);
-		}
-	});
-
 	economy::sanity_check(*this);
 
 	nations::generate_initial_trade_routes(*this);
@@ -4043,9 +3706,333 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	military::recover_org(*this);
 
 	military::set_initial_leaders(*this);
+
+	province::restore_distances(*this);
+
+	// generate a road for every adjacency
+
+	std::vector<int8_t> visited;
+	visited.resize(map_state.map_data.size_x * map_state.map_data.size_y);
+
+	int left_dirty = map_state.map_data.size_x * map_state.map_data.size_y;
+	int right_dirty = 0;
+
+	auto encode_ternary = [&](int8_t flag, int8_t dx, int8_t dy) -> int8_t {
+		return flag * 9 + dx * 3 + dy;
+	};
+
+	auto set_visited = [&](int idx, int8_t movement) {
+		visited[idx] = movement;
+		left_dirty = std::min(left_dirty, idx);
+		right_dirty = std::max(right_dirty, idx);
+	};
+
+	auto clear_visited = [&] () {
+		memset(&visited[left_dirty], 0, right_dirty - left_dirty * (sizeof(uint8_t)));
+	};
+
+	std::vector<pixel_heap_member> pixel_queue{ };
+
+
+	std::vector<float> terrain_cost{};
+	terrain_cost.resize(256);
+	terrain_cost[255] = 15.f;
+
+	auto max_cost = 0.f;
+	for(int terrain = 0; terrain < 64; terrain++) {
+		auto modifier = context.modifier_by_terrain_index[terrain];
+		if(modifier) {
+			auto& modifier_data = world.modifier_get_province_values(modifier);
+			auto move_cost_mod = 0.f;
+			for(uint32_t mod_index = 0; mod_index < sys::provincial_modifier_definition::modifier_definition_size; ++mod_index) {
+				if(!(modifier_data.offsets[mod_index]))
+					break; // no more modifier values
+
+				auto fixed_offset = modifier_data.offsets[mod_index];
+				auto modifier_amount = modifier_data.values[mod_index];
+				if(fixed_offset == sys::provincial_mod_offsets::movement_cost) {
+					move_cost_mod += modifier_amount;
+				}
+			}
+			terrain_cost[terrain] = move_cost_mod;
+			if(move_cost_mod > max_cost) {
+				max_cost = move_cost_mod;
+			}
+		} else {
+			terrain_cost[terrain] = 1.f;
+		}
+	}
+
+	// rescale so 1 remains the same while max turns into 10
+
+	for(int terrain = 0; terrain < 64; terrain++) {
+		terrain_cost[terrain] = std::max(0.05f, terrain_cost[terrain] + (terrain_cost[terrain] - 1.f) / (max_cost - 1.f) * 10.f);
+	}
+
+	auto step_count_hint = 10.f;
+
+	world.for_each_province_adjacency([&](auto adj) {
+		if((world.province_adjacency_get_type(adj) & province::border::impassible_bit) == province::border::impassible_bit) {
+			map_state.map_data.railroad_starts.push_back(GLint(map_state.map_data.railroad_vertices.size()));
+			map_state.map_data.railroad_counts.push_back(0);
+			return;
+		}
+
+		auto p1 = world.province_adjacency_get_connected_provinces(adj, 0);
+		auto p2 = world.province_adjacency_get_connected_provinces(adj, 1);
+
+		//if (p1.index() >= province_definitions.first_sea_province.index()) {
+		//	map_state.map_data.railroad_starts.push_back(GLint(map_state.map_data.railroad_vertices.size()));
+		//	map_state.map_data.railroad_counts.push_back(0);
+		//	return;
+		//}
+		//if (p2.index() >= province_definitions.first_sea_province.index()) {
+		//	map_state.map_data.railroad_starts.push_back(GLint(map_state.map_data.railroad_vertices.size()));
+		//	map_state.map_data.railroad_counts.push_back(0);
+		//	return;
+		//}
+		bool sea_route = false;
+		if(p2.index() >= province_definitions.first_sea_province.index() || p1.index() >= province_definitions.first_sea_province.index()) {
+			sea_route = true;
+		}
+
+		auto mid_point_1 = world.province_get_mid_point(p1);
+		auto mid_point_2 = world.province_get_mid_point(p2);
+
+		auto mid_point_1_b = world.province_get_mid_point_b(p1);
+		auto mid_point_2_b = world.province_get_mid_point_b(p2);
+
+		auto dist_y = abs(mid_point_2.y - mid_point_1.y);
+		auto dist_x = std::min(
+			abs(mid_point_2.x - mid_point_1.x),
+			std::min(
+				abs(mid_point_2.x - mid_point_1.x + map_state.map_data.size_x),
+				abs(mid_point_2.x - mid_point_1.x - map_state.map_data.size_x)
+			)
+		);
+
+		//auto base_step_x = 
+
+		//auto base_step =
+
+		uint8_t speed_direction = 0;
+		uint8_t speed_value = 1;
+
+		auto start_x = (int)mid_point_1.x;
+		auto start_y = (int)mid_point_1.y;
+		auto start_idx = start_x + start_y * map_state.map_data.size_x;
+
+		auto end_x = (int)mid_point_2.x;
+		auto end_y = (int)mid_point_2.y;
+		auto end_idx = end_x + end_y * map_state.map_data.size_x;
+
+		{
+			pixel_queue.clear();
+			pixel_heap_member pixel_start { start_x, start_y, 0.f, 0.f, 0, 0, 0  };
+			pixel_queue.emplace_back(pixel_start);
+		}
+
+		visited[start_idx] = encode_ternary(1, 0, 0);
+
+
+		auto handle_next = [&](int x, int y, int next_x, int next_y, float base_distance, int8_t direction, int8_t dx, int8_t dy, uint8_t speed, float prev_dist) {
+			auto next_idx = next_x + next_y * map_state.map_data.size_x;
+			if(!visited[next_idx]) {
+				for(int i = 1; i <= (int)speed; i++) {
+					auto nx = x + dx * i;
+					auto ny = y + dy * i;
+					auto idx_to_set = nx + ny * map_state.map_data.size_x;
+					set_visited(idx_to_set, direction);
+				}
+
+				set_visited(next_idx, direction);
+				auto local_terrain = map_state.map_data.terrain_id_map[next_idx];
+				auto modifier = context.modifier_by_terrain_index[local_terrain];
+				auto& modifier_data = world.modifier_get_province_values(modifier);
+				auto move_cost_mod = terrain_cost[local_terrain];
+				if(sea_route) {
+					move_cost_mod = 100.f;
+					if (local_terrain == 255) move_cost_mod = 1.f;
+				}
+				auto next_distance = prev_dist + base_distance * std::max(0.05f, (move_cost_mod * 20.f));
+				auto scaled_x = (float)next_x / (float)map_state.map_data.size_x;
+				auto scaled_y = (float)next_y / (float)map_state.map_data.size_y;
+
+				glm::vec3 new_world_pos;
+				float angle_x = 2 * scaled_x * math::pi;
+				new_world_pos.x = math::cos(angle_x);
+				new_world_pos.y = math::sin(angle_x);
+
+				float angle_y = scaled_y * math::pi;
+				new_world_pos.x *= math::sin(angle_y);
+				new_world_pos.y *= math::sin(angle_y);
+				new_world_pos.z = math::cos(angle_y);
+
+				auto local_heur = glm::distance(mid_point_2_b, new_world_pos) * 100.f;
+
+				pixel_heap_member to_add { next_x, next_y, next_distance, local_heur, dx, dy, uint8_t(std::min((int)speed, 20)) };
+				pixel_queue.push_back(to_add);
+				std::push_heap(pixel_queue.begin(), pixel_queue.end(), std::greater<>{});
+			}
+		};
+
+		while(true) {
+			// eliminate hopeless pixels
+			if(pixel_queue.size() >= 200) {
+				auto best_heuristic = pixel_queue[0].heur;
+				auto worst_heuristic = pixel_queue[0].heur;
+				for(size_t i = 0; i < pixel_queue.size(); i++) {
+					if(pixel_queue[i].heur > worst_heuristic) {
+						worst_heuristic = pixel_queue[i].heur;
+					}
+					if(pixel_queue[i].heur < best_heuristic) {
+						best_heuristic = pixel_queue[i].heur;
+					}
+				}
+				auto cutout = 0.25f * worst_heuristic + 0.75f * best_heuristic;
+
+				for(int i = (int)pixel_queue.size() - 1; i >= 0; i--) {
+					if(pixel_queue[i].heur > cutout){
+						pixel_queue.erase(pixel_queue.begin() + i);
+					}
+				}
+				std::make_heap(pixel_queue.begin(), pixel_queue.end());
+			}
+
+			auto best = pixel_queue[0];
+			std::pop_heap(pixel_queue.begin(), pixel_queue.end(), std::greater<>{});
+			pixel_queue.pop_back();
+
+			auto x = best.x;
+			auto y = best.y;
+			auto actual_distance = best.dist;
+			auto idx = best.x + best.y * map_state.map_data.size_x;
+
+			for(int8_t dx = -1; dx <= 1; dx++) {
+				for(int8_t dy = -1; dy <= 1; dy++) {
+					if(dx == 0 && dy == 0) {
+						continue;
+					}
+					if(best.speed > 2 && dx * best.dx + dy * best.dy <= 0 && best.heur > 1.f) {
+						continue;
+					}
+					auto dir = encode_ternary(0, dx, dy);
+					// make additional "grid skipping" attempt which is supposedly faster
+					/*
+					if(best.dx == dx && best.dy == dy && best.heur > 1.f) {
+						uint8_t next_speed = best.speed +1;
+						if(next_speed > 10) {
+							next_speed = 10;
+						}
+						auto next_x = x + dx * next_speed;
+						auto next_y = y + dy * next_speed;
+						if(next_y < 0 || next_y >= (int)map_state.map_data.size_y) {
+							continue;
+						}
+						next_x = (next_x + (int)map_state.map_data.size_x) % (int)map_state.map_data.size_x;
+						handle_next(x, y, next_x, next_y, math::sqrt((float)(dx * dx + dy * dy)) * next_speed, dir, dx, dy, next_speed, actual_distance);
+					}
+					*/
+					{
+						auto next_x = x + dx;
+						auto next_y = y + dy;
+						if(next_y < 0 || next_y >= (int)map_state.map_data.size_y) {
+							continue;
+						}
+						next_x = (next_x + (int)map_state.map_data.size_x) % (int)map_state.map_data.size_x;
+						handle_next(x, y, next_x, next_y, math::sqrt((float)(dx * dx + dy * dy)), dir, dx, dy, 1, actual_distance);
+					}
+				}
+			}
+
+			if(visited[end_idx]) {
+				break;
+			}
+		}
+
+		map_state.map_data.railroad_starts.push_back(GLint(map_state.map_data.railroad_vertices.size()));
+		float distance = 0.f;
+
+		int step = 0;
+
+		glm::vec2 current_pos{ end_x, end_y };
+
+
+		while(end_idx != start_idx && (int)(end_idx) >= 0) {
+
+			auto y = end_idx / map_state.map_data.size_x;
+			auto x = end_idx - y * map_state.map_data.size_x;
+
+			auto encoded_shift = (int)(visited[end_idx]);
+
+			auto dy = (encoded_shift + 9) % 3;
+			if (dy == 2) dy = -1;
+			auto dx = (encoded_shift - dy) / 3;
+
+			auto next_x = x - dx;
+			auto next_y = y - dy;
+
+			auto next_idx = next_x + next_y * map_state.map_data.size_x;
+
+			if(step % 3 != 0 && next_idx != end_idx && step != 0) {
+				step++;
+				end_idx = next_idx;
+				continue;
+			}
+			step++;
+
+			auto ny = next_idx / map_state.map_data.size_x;
+			auto nx = next_idx - ny * map_state.map_data.size_x;
+			glm::vec2 next_vec { nx, ny };
+			glm::vec2 next_pos = put_in_local(next_vec, current_pos, float(map_state.map_data.size_x));
+			glm::vec2 prev_perpendicular = glm::normalize(next_pos - current_pos);
+
+			auto start_normal = glm::vec2(-prev_perpendicular.y, prev_perpendicular.x);
+			auto norm_pos = current_pos / glm::vec2(map_state.map_data.size_x, map_state.map_data.size_y);
+			auto norm_next = next_pos / glm::vec2(map_state.map_data.size_x, map_state.map_data.size_y);
+
+			auto prev_distance = distance;
+			distance += glm::length(next_pos - current_pos) / float(map_state.map_data.size_y);
+
+			map_state.map_data.railroad_vertices.emplace_back(map::textured_line_vertex{ norm_pos, +start_normal, 0.0f, prev_distance });//C
+			map_state.map_data.railroad_vertices.emplace_back(map::textured_line_vertex{ norm_pos, -start_normal, 1.0f, prev_distance });//D
+
+			map_state.map_data.railroad_vertices.emplace_back(map::textured_line_vertex{ norm_next, +start_normal, 0.0f, distance });
+			map_state.map_data.railroad_vertices.emplace_back(map::textured_line_vertex{ norm_next, -start_normal, 1.0f, distance });
+
+			end_idx = next_idx;
+			current_pos = next_pos;
+		}
+
+		glm::vec2 next_pos = put_in_local(mid_point_1, current_pos, float(map_state.map_data.size_x));
+		distance += glm::length(next_pos - current_pos) / float(map_state.map_data.size_y);
+		glm::vec2 prev_perpendicular = glm::normalize(mid_point_1 - current_pos);
+		auto start_normal = glm::vec2(-prev_perpendicular.y, prev_perpendicular.x);
+		auto norm_pos = current_pos / glm::vec2(map_state.map_data.size_x, map_state.map_data.size_y);
+		auto norm_next = next_pos / glm::vec2(map_state.map_data.size_x, map_state.map_data.size_y);
+		map_state.map_data.railroad_vertices.emplace_back(map::textured_line_vertex{ norm_pos, +start_normal, 0.0f, 0.f });//C
+		map_state.map_data.railroad_vertices.emplace_back(map::textured_line_vertex{ norm_pos, -start_normal, 1.0f, 0.f });//D
+		map_state.map_data.railroad_vertices.emplace_back(map::textured_line_vertex{ norm_next, +start_normal, 0.0f, distance });
+		map_state.map_data.railroad_vertices.emplace_back(map::textured_line_vertex{ norm_next, -start_normal, 1.0f, distance });
+
+		map_state.map_data.railroad_counts.push_back(GLsizei(map_state.map_data.railroad_vertices.size() - map_state.map_data.railroad_starts.back()));
+
+		clear_visited();
+	});
+
+
+	// run pending triggers and effects
+	for(auto pending_decision : pending_decisions) {
+		dcon::nation_id n = pending_decision.first;
+		dcon::decision_id d = pending_decision.second;
+		if(auto e = world.decision_get_effect(d); e)
+			effect::execute(*this, e, trigger::to_generic(n), trigger::to_generic(n), 0, uint32_t(current_date.value), uint32_t(n.index() << 4 ^ d.index()));
+	}
+
+	current_scene.game_in_progress = old_game_in_prog;
 }
 
-void state::reset_state() {
+void state::clear_unsaved_data() {
 
 	/*unit_names.clear();
 	unit_names_indices.clear();
@@ -4074,33 +4061,47 @@ void state::reset_state() {
 	future_n_event
 	future_p_event*/
 
+
+	// Set flags to update stuff as we are about to flush most of the cached data
 	adjacency_data_out_of_date = true;
+	national_cached_values_out_of_date = true;
+	diplomatic_cached_values_out_of_date = true;
+	trade_route_cached_values_out_of_date = true;
 
-	dcon::load_record loaded;
-	scenario_size scenario_sz = sizeof_scenario_section(*this);
+	auto reload_protected_record = world.make_serialize_record_store_reload_protected_state();
+	auto save_record = world.make_serialize_record_store_save();
+	auto final_record = world.make_serialize_record_store_scenario();
+	combine_load_records(final_record, save_record);
+	combine_load_records(final_record, reload_protected_record);
+	dcon::reset_data(world, final_record);
 
-	auto scenario_buffer = std::unique_ptr<uint8_t[]>(new uint8_t[scenario_sz.total_size]);
+}
 
-	write_scenario_section(scenario_buffer.get(), *this);
+void state::push_log_message(std::string&& str) {
+	pending_log_messages.try_enqueue(std::move(str));
+}
+void state::push_log_message(const std::string& str) {
+	pending_log_messages.try_enqueue(str);
+}
+void state::flush_pending_log_messages() {
+	std::string msg;
+	while(pending_log_messages.try_dequeue(msg)) {
+#ifdef _WIN32
+		OutputDebugStringA(msg.c_str());
+		OutputDebugStringA("\n");
+#else
+		std::clog << msg + "\n";
+#endif
 
-
-	dcon::load_record protected_loadmask = world.make_serialize_record_store_reload_protected_state();
-	size_t protected_size = world.serialize_size(protected_loadmask);
-	auto protected_buffer = std::unique_ptr<uint8_t[]>(new uint8_t[protected_size]);
-	std::byte* start = reinterpret_cast<std::byte*>(protected_buffer.get());
-	world.serialize(start, protected_loadmask);
-	std::byte const* const_start = reinterpret_cast<std::byte const*>(protected_buffer.get());
-
-	world.reset();
-	//deserialize scenario state
-	read_scenario_section(scenario_buffer.get(), scenario_buffer.get() + scenario_sz.total_size, *this);
-
-	/*try_read_scenario_file(*this, loaded_scenario_file);*/
-
-
-	//deserialize protected state
-	world.deserialize(const_start, reinterpret_cast<std::byte const*>(protected_buffer.get() + protected_size), loaded);
-
+		auto folder = simple_fs::get_or_create_data_dumps_directory();
+		msg += "\n";
+		simple_fs::append_file(
+				folder,
+				NATIVE("console_log.txt"),
+				msg.c_str(),
+				uint32_t(msg.size())
+		);
+	}
 }
 
 void state::preload() {
@@ -4140,16 +4141,23 @@ void state::preload() {
 		m.set_pop_support(0.0f);
 		m.set_radicalism(0.0f);
 	}
-	for(auto s : world.in_ship) {
-		s.set_pending_split(false);
-	}
-	for(auto r : world.in_regiment) {
-		r.set_pending_split(false);
-	}
-
 }
 
 void state::on_scenario_load() {
+
+	// update map of gamerules. No gamerules or gamerule options should be added after scenario load, as they themselves are scenario data. The only thing that may change is the active gamerule option
+	for(auto gamerule : world.in_gamerule) {
+		if(gamerule.is_valid()) {
+			gamerules_map.insert_or_assign(text::produce_simple_string(*this, gamerule.get_name()), gamerule.id);
+			const auto& gamerule_options = world.gamerule_get_options(gamerule);
+			auto gamerule_option_count = world.gamerule_get_settings_count(gamerule);
+			for(uint8_t option_id = 0; option_id < gamerule_option_count; option_id++) {
+				gamerule_options_map.insert_or_assign(text::produce_simple_string(*this, gamerule_options[option_id].name), option_id);
+
+			}
+		}
+	}
+
 	world.pop_type_resize_issues_fns(world.issue_option_size());
 	world.pop_type_resize_ideology_fns(world.ideology_size());
 	world.pop_type_resize_promotion_fns(world.pop_type_size());
@@ -4495,8 +4503,25 @@ void state::fill_unsaved_data() { // reconstructs derived values that are not di
 	nations_by_prestige_score.resize(2000);
 	crisis_participants.resize(2000);
 
-	selected_regiments.resize(const_max_selected_units);
-	selected_ships.resize(const_max_selected_units);
+	world.for_each_province([&](auto pid){
+		map_state.map_data.province_to_edges[pid.value] = { };
+		map_state.map_data.province_to_province_border[pid.value] = {};
+	});
+
+	for(size_t i = 0; i < map_state.map_data.border_edges.size(); i++) {
+		auto& item = map_state.map_data.border_edges[i];
+		map_state.map_data.province_to_edges[item.associated_province.value].push_back(i);
+	}
+
+
+	for(size_t i = 0; i < map_state.map_data.province_border_starts.size(); i++) {
+		auto& start = map_state.map_data.province_border_starts[i];
+		auto& item = map_state.map_data.province_border_vertices[start];
+		auto prov = province::from_map_id(item.province_index);
+		if(prov) {
+			map_state.map_data.province_to_province_border[prov.value].push_back(i);
+		}
+	}
 
 	world.for_each_issue([&](dcon::issue_id id) {
 		for(auto& opt : world.issue_get_options(id)) {
@@ -4534,6 +4559,10 @@ void state::fill_unsaved_data() { // reconstructs derived values that are not di
 	culture::repopulate_invention_effects(*this);
 	military::apply_base_unit_stat_modifiers(*this);
 
+	for(uint8_t idx = 0; idx < map::national_groups_count; idx++) {
+		map_state.map_data.national_group_is_clean[idx] = false;
+	}
+
 	province::update_connected_regions(*this);
 	province::restore_unsaved_values(*this);
 
@@ -4562,6 +4591,7 @@ void state::fill_unsaved_data() { // reconstructs derived values that are not di
 	nations::update_ui_rankings(*this);
 
 	nations::monthly_flashpoint_update(*this);
+
 
 	//
 	// clear any pending messages from previously loaded saves
@@ -4713,7 +4743,8 @@ void state::single_game_tick() {
 	// pop update:
 	static demographics::ideology_buffer idbuf(*this);
 	static demographics::issues_buffer isbuf(*this);
-	static demographics::promotion_buffer pbuf;
+	static demographics::promotion_buffer promotion_buf;
+	static demographics::promotion_buffer demotion_buf;
 	static demographics::assimilation_buffer abuf;
 	static demographics::migration_buffer mbuf;
 	static demographics::migration_buffer cmbuf;
@@ -4744,7 +4775,7 @@ void state::single_game_tick() {
 			auto o = uint32_t(ymd_date.day + 6);
 			if(o >= days_in_month)
 				o -= days_in_month;
-			demographics::update_type_changes(*this, o, days_in_month, pbuf);
+			demographics::update_type_changes(*this, o, days_in_month, promotion_buf, demotion_buf);
 			break;
 		}
 		case 3:
@@ -4845,7 +4876,7 @@ void state::single_game_tick() {
 		auto o = uint32_t(ymd_date.day + 6);
 		if(o >= days_in_month)
 			o -= days_in_month;
-		demographics::apply_type_changes(*this, o, days_in_month, pbuf);
+		demographics::apply_type_changes(*this, o, days_in_month, promotion_buf, demotion_buf);
 	}
 	{
 		auto o = uint32_t(ymd_date.day + 7);
@@ -4871,6 +4902,8 @@ void state::single_game_tick() {
 			o -= days_in_month;
 		demographics::apply_immigration(*this, o, days_in_month, imbuf);
 	}
+
+	demographics::fixup_state_only_pops<false>(*this);
 
 	demographics::remove_size_zero_pops(*this);
 
@@ -4919,7 +4952,7 @@ void state::single_game_tick() {
 				military::regenerate_total_regiment_counts(*this);
 				break;
 			case 7:
-				economy::update_employment(*this);
+				economy::update_employment(*this, false, 1.f);
 				break;
 			case 8:
 				nations::update_national_administrative_efficiency(*this);
@@ -4947,7 +4980,6 @@ void state::single_game_tick() {
 			}
 		});
 
-
 		economy::daily_update(*this, false, 1.f);
 
 		//
@@ -4964,8 +4996,6 @@ void state::single_game_tick() {
 
 		province::update_colonization(*this);
 		military::update_cbs(*this); // may add/remove cbs to a nation
-
-		event::update_events(*this);
 
 		culture::update_research(*this, uint32_t(ymd_date.year));
 
@@ -4989,6 +5019,8 @@ void state::single_game_tick() {
 		}
 
 		ai::take_ai_decisions(*this);
+
+		event::update_events(*this);
 
 		// Once per month updates, spread out over the month
 		switch(ymd_date.day) {
@@ -5215,6 +5247,18 @@ void state::single_game_tick() {
 		demographics::alt_demographics_update_extras(*this);
 	}
 
+	// LUA
+
+	for(auto& ref : lua_on_daily_tick) {
+		lua_rawgeti(lua_game_loop_environment, LUA_REGISTRYINDEX, ref);
+		auto result = lua_pcall(lua_game_loop_environment, 0, 0, 0);
+		if(result) {
+			lua_notification(lua_tostring(lua_ui_environment, -1));
+			lua_settop(lua_game_loop_environment, 0);
+		}
+		assert(lua_gettop(lua_game_loop_environment) == 0);
+	}
+
 	/*
 	* END OF DAY: update cached data
 	*/
@@ -5278,17 +5322,30 @@ void state::console_log(std::string_view message) {
 	current_scene.console_log(*this, message);
 }
 
-sys::checksum_key state::get_save_checksum() {
-	dcon::load_record loaded = world.make_serialize_record_store_save();
-	auto buffer = std::unique_ptr<uint8_t[]>(new uint8_t[world.serialize_size(loaded)]);
-	std::byte* start = reinterpret_cast<std::byte*>(buffer.get());
-	world.serialize(start, loaded);
+void state::lua_notification(const std::string message) {
+	notification::post(*this, notification::message{
+		.body = [=](sys::state& state, text::layout_base& layout) {
+			auto box = text::open_layout_box(layout, 0);
+			text::add_to_layout_box(state, layout, box, message);
+		},
+		.title = "LUA_ERROR",
+		.source = dcon::nation_id{ },
+		.target = dcon::nation_id{ },
+		.third = dcon::nation_id{ },
+		.type = sys::message_base_type::scripting_notification,
+		.province_source = dcon::province_id{ },
+	});
+	console_log("LUA_ERROR: " + message);
+}
 
-	auto buffer_position = reinterpret_cast<uint8_t*>(start);
-	int32_t total_size_used = static_cast<int32_t>(buffer_position - buffer.get());
+sys::checksum_key state::get_save_checksum() {
+	auto size = sizeof_save_section(*this, true);
+	auto buffer = std::unique_ptr<uint8_t[]>(new uint8_t[size]);
+	write_save_section(buffer.get(), *this, true);
+
 
 	checksum_key key;
-	blake2b(&key, sizeof(key), buffer.get(), total_size_used, nullptr, 0);
+	blake2b(&key, sizeof(key), buffer.get(), size, nullptr, 0);
 	return key;
 }
 
@@ -5296,50 +5353,25 @@ sys::checksum_key state::get_save_checksum() {
 sys::checksum_key state::get_scenario_checksum() {
 
 
-	/*scenario_size sz = sizeof_scenario_section_test(*this);
-	auto buffer = std::unique_ptr<uint8_t[]>(new uint8_t[sz.total_size]);
-
-	uint8_t* start = buffer.get();
-
-	start = write_scenario_section_test(start, *this);
+	auto size = sizeof_scenario_section(*this, true);
+	auto buffer = std::unique_ptr<uint8_t[]>(new uint8_t[size.total_size]);
+	write_scenario_section(buffer.get(), *this, true);
 
 
-
-
-	int32_t total_size_used = static_cast<int32_t>(start - buffer.get());
-
-	sys::checksum_key key;
-	blake2b(&key, sizeof(key), buffer.get(), total_size_used, nullptr, 0);
-	return key;*/
-
-
-
-	dcon::load_record loaded = world.make_serialize_record_store_scenario();
-	auto buffer = std::unique_ptr<uint8_t[]>(new uint8_t[world.serialize_size(loaded)]);
-	std::byte* start = reinterpret_cast<std::byte*>(buffer.get());
-	world.serialize(start, loaded);
-
-	auto buffer_position = reinterpret_cast<uint8_t*>(start);
-	int32_t total_size_used = static_cast<int32_t>(buffer_position - buffer.get());
-
-	sys::checksum_key key;
-	blake2b(&key, sizeof(key), buffer.get(), total_size_used, nullptr, 0);
+	checksum_key key;
+	blake2b(&key, sizeof(key), buffer.get(), size.total_size, nullptr, 0);
 	return key;
 }
 
 sys::checksum_key state::get_mp_state_checksum() {
 
-	dcon::load_record loaded = world.make_serialize_record_store_mp_checksum_excluded();
+	auto size = sizeof_entire_mp_state(*this, true);
+	auto buffer = std::unique_ptr<uint8_t[]>(new uint8_t[size]);
+	write_entire_mp_state(buffer.get(), *this, true);
 
-	auto buffer = std::unique_ptr<uint8_t[]>(new uint8_t[world.serialize_size(loaded)]);
-	std::byte* start = reinterpret_cast<std::byte*>(buffer.get());
-	world.serialize(start, loaded);
-
-	auto buffer_position = reinterpret_cast<uint8_t*>(start);
-	int32_t total_size_used = static_cast<int32_t>(buffer_position - buffer.get());
 
 	checksum_key key;
-	blake2b(&key, sizeof(key), buffer.get(), total_size_used, nullptr, 0);
+	blake2b(&key, sizeof(key), buffer.get(), size, nullptr, 0);
 	return key;
 }
 
@@ -5403,6 +5435,16 @@ void state::debug_scenario_oos_dump() {
 	}
 }
 
+std::thread state::start_logger_thread() {
+	std::thread thread([this]() {
+		while(quit_signaled.load(std::memory_order::acquire) == false) {
+			this->flush_pending_log_messages();
+			std::this_thread::sleep_for(std::chrono::milliseconds(50));
+		}
+	});
+	return thread;
+}
+
 void state::game_loop() {
 	static int32_t game_speed[] = {
 		0,		// speed 0
@@ -5414,16 +5456,15 @@ void state::game_loop() {
 	game_speed[1] = int32_t(defines.alice_speed_1);
 	game_speed[2] = int32_t(defines.alice_speed_2);
 	game_speed[3] = int32_t(defines.alice_speed_3);
-	game_speed[4] = int32_t(defines.alice_speed_4);	
+	game_speed[4] = int32_t(defines.alice_speed_4);
 
 	while(quit_signaled.load(std::memory_order::acquire) == false) {
-
-		std::unique_lock lock(network_state.command_lock);
-		network_state.command_lock_cv.wait(lock, [this] { return !network_state.yield_command_lock; });
-		network::send_and_receive_commands(*this);
-		{
+		if(network_mode == sys::network_mode_type::single_player) {
 			std::lock_guard l{ ugly_ui_game_interaction_hack };
 			command::execute_pending_commands(*this);
+		}
+		else {
+			network::send_and_receive_commands(*this);
 		}
 		if(network_mode == sys::network_mode_type::client) {
 			std::this_thread::sleep_for(std::chrono::milliseconds(15));
@@ -5546,12 +5587,7 @@ void state::army_group_add_regiment(dcon::automated_army_group_id group, dcon::r
 	fat_automation.set_await_command_execution_flag(false);
 
 	// split it right away
-	std::array<dcon::regiment_id, command::num_packed_units> data;
-	int32_t i = 0;
-	data.fill(dcon::regiment_id{});
-	data[0] = id;
-	command::mark_regiments_to_split(*this, local_player_nation, data);
-	command::split_army(*this, local_player_nation, army);
+	command::split_army(*this, local_player_nation, army, std::span<const dcon::regiment_id>(&id, 1));
 
 	game_state_updated.store(true, std::memory_order_release);
 }
@@ -6534,7 +6570,7 @@ void state::build_up_to_template_land(
 					continue;
 				}
 
-				bool can_build = command::can_start_land_unit_construction(
+				bool can_build = command::can_start_land_unit_construction<false>(
 					*this,
 					local_player_nation,
 					prov,
@@ -6590,58 +6626,54 @@ void sys::state::set_selected_province(dcon::province_id prov_id) {
 			ui_state.province_window->set_visible(*this, false);
 		}
 	}
+	current_scene.on_province_selected(*this);
+}
+
+
+void sys::state::set_local_player_nation(dcon::nation_id value) {
+	local_player_nation = value;
+	map_state.unhandled_province_selection = true;
+	game_state_updated.store(true, std::memory_order_release);
+}
+void selected_regiments_remove(sys::state& state, dcon::regiment_id reg) {
+	auto iterator = std::find(state.selected_regiments.begin(), state.selected_regiments.end(), reg);
+	if(iterator != state.selected_regiments.end()) {
+		state.selected_regiments.erase(iterator);
+	}
+	state.game_state_updated.store(true, std::memory_order_release);
 }
 
 void selected_regiments_add(sys::state& state, dcon::regiment_id reg) {
-	for(unsigned i = 0; i < state.selected_regiments.size(); i++) {
-		// Toggle selection
-		if(state.selected_regiments[i] == reg) {
-			state.selected_regiments[i] = dcon::regiment_id{};
-			break;
-		}
-		// Add to selection
-		if(!state.selected_regiments[i]) {
-			state.selected_regiments[i] = reg;
-			break;
-		}
+	auto iterator = std::find(state.selected_regiments.begin(), state.selected_regiments.end(), reg);
+	if(iterator == state.selected_regiments.end()) {
+		state.selected_regiments.push_back(reg); // only add if not present already
 	}
 	state.game_state_updated.store(true, std::memory_order_release);
 }
 // Clear state.selected_regiments of data, maintaining fixed vector size
 void selected_regiments_clear(sys::state& state) {
-	for(unsigned i = 0; i < state.selected_regiments.size(); i++) {
-		if(state.selected_regiments[i]) {
-			state.selected_regiments[i] = dcon::regiment_id{};
-		} else {
-			break;
-		}
+	state.selected_regiments.clear();
+	state.game_state_updated.store(true, std::memory_order_release);
+}
+
+void selected_ships_remove(sys::state& state, dcon::ship_id ship) {
+	auto iterator = std::find(state.selected_ships.begin(), state.selected_ships.end(), ship);
+	if(iterator != state.selected_ships.end()) {
+		state.selected_ships.erase(iterator);
 	}
 	state.game_state_updated.store(true, std::memory_order_release);
 }
+
 // Clear state.selected_ships of data, maintaining fixed vector size
 void selected_ships_add(sys::state& state, dcon::ship_id sh) {
-	for(unsigned i = 0; i < state.selected_ships.size(); i++) {
-		// Toggle selection
-		if(state.selected_ships[i] == sh) {
-			state.selected_ships[i] = dcon::ship_id{};
-			break;
-		}
-		// Add to selection
-		if(!state.selected_ships[i]) {
-			state.selected_ships[i] = sh;
-			break;
-		}
+	auto iterator = std::find(state.selected_ships.begin(), state.selected_ships.end(), sh);
+	if(iterator == state.selected_ships.end()) {
+		state.selected_ships.push_back(sh);
 	}
 	state.game_state_updated.store(true, std::memory_order_release);
 }
 void selected_ships_clear(sys::state& state) {
-	for(unsigned i = 0; i < state.selected_ships.size(); i++) {
-		if(state.selected_ships[i]) {
-			state.selected_ships[i] = dcon::ship_id{};
-		} else {
-			break;
-		}
-	}
+	state.selected_ships.clear();
 	state.game_state_updated.store(true, std::memory_order_release);
 }
 

@@ -1,6 +1,9 @@
 #pragma once
 
+#include "system_state_forward.hpp"
 #include "container_types.hpp"
+#include "native_types.hpp"
+#include "simple_fs.hpp"
 
 #ifndef GLEW_STATIC
 #define GLEW_STATIC

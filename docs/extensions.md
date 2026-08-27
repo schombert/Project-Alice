@@ -547,10 +547,12 @@ These relate to the added ability for reserve regiments to reinforce while in ba
 - `alice_reg_deploy_from_reserve_str = 0.0f`: if a reserve regiments strength is greater than this decimal, it can be deployed to the front, if alice_reg_deploy_from_reserve_org is also fufilled. Default 0.0
 
 
-These relate to naval battles:
+These relate to battles:
 - `alice_naval_combat_enemy_stacking_target_select_bonus = 0.5f`: The target-picking bonus a ship gets if they are outnumbered in a battle. This is added to the base, which by default is 0.5. It makes outnumbered navies find a target faster
 - `alice_naval_combat_stacking_damage_penalty = 0.5f`: The max damage reduction to org and str applied to a fleet which outnumbers the enemy by define:NAVAL_COMBAT_MAX_TARGETS or more. The penalty will scale up starting when a side is outnumbered, and will max out at the given value when outnumbered by NAVAL_COMBAT_MAX_TARGETS times.
-
+- `alice_fort_mil_tactics_discipline_per_level = 0.1f`: Modifier to military tactics and discipline to units per fort level while defending.
+- `alice_combat_min_dice_roll = 0.0f`: Minimum dice roll which can be rolled in combat (inclusive)
+- `alice_combat_max_dice_roll = 9.0f`: Maxmimum dice roll which can be rolled in combat (inclusive)
 
 These relate to army attrition
 - `alice_army_sea_transport_attrition = 2.5f`: The monthly attrition (in percent) for armies on the sea in transports to take. Can be reduced by national "land_attrition" modifiers
@@ -574,9 +576,9 @@ These relate to occupations
 These relate to gamerules
 
 - `alice_can_goto_war_against_spherelord_default_setting = 1.0f` - Sets the default setting for the hardcoded gamerule deciding whether a sphereling can goto war against its spherelord. Can be either 1 (which means they can declare war against spherelord), or 0 (which means they cannot). Default is 1
-- `alice_allow_partial_retreat_default_setting = 0.0f` - Sets the default setting for the hardcoded gamerule deciding whether armies can partial-retreat from battles. 1.0 means it is enabled, while 0 means it is disabled.
-- `alice_fog_of_war_default_setting = 1.0f` - Sets the default setting for the hardcoded gamerule deciding whether fog og war is on or off. 1.0 means fog of war is on, where 0.0 means it is off.
+- `alice_fog_of_war_default_setting = 1.0f` - Sets the default setting for the hardcoded gamerule deciding whether fog og war is on or off. 1.0 means fog of war is on, 0.0 means it is off, and at 2.0 it is disabled only for the observer tag
 - `alice_auto_concession_peace_default_setting = 1.0f` - Sets the default setting for the hardcoded gamerule deciding whether a peacedeal will be force-accepted if it is conceding all wargoals (or if the peacedeal concedes 100 warscore or higher). 1.0 means forced-peaces are disabled, where 0.0 means they are enabled.
+- `alice_command_units_default_setting = 0.0f` - Decides whether AI puppets' units can be commanded by players while at war. A value of 0.0f means it is disabled, while a value of 1.0f means it is enabled
 
 ### Support for reforms based on party issues
 
@@ -841,23 +843,14 @@ scripted_gamerule = {
 	name = "test_gamerule"
 	option = {
 		name = "test__gameruleopt_1"
-		on_select = {
-			set_global_flag = rule_1
-		}
-		on_deselect = {
-			clr_global_flag = rule_1
-		}
+		on_select = "opt1_on_select"
+		on_deselect = "opt1_on_deselect"
 	}
 	option = {
 		name = "test__gameruleopt_2"
 		default_option = yes
-		on_select = {
-			set_global_flag = rule_2
-		}
-		on_deselect = {
-			clr_global_flag = rule_2
-		}
-	}
+		on_select = "opt2_on_select"
+		on_deselect = "opt2_on_deselect"
 	
 }
 ```
@@ -869,7 +862,8 @@ Each gamerule may have one or more options. Each option also has a mandatory `na
 
 Next there is the `default_option` member. This simply signals which of the options is selected by default on a new save.
 
-Lastly, there is the `on_select` and `on_deselect` members. These describe a scripted effect to run when said option is either selected or deselected respectively. In the example above it will set a global flag when enabled, and clear that same flag when disabled.
+Lastly, there is the `on_select` and `on_deselect` members. These describe the name of a lua function which should be run when the corrosponding option is selected/deselected. The function should start with the "alice" prefix take a single parameter, which is the numeric ID of the gamerule which was changed.
+Eg. in the previous example, if `"test_gameruleopt_2"` was selected, the function named `alice.opt2_on_select` would be run.
 
 You can also check the state of a gamerule directly in a trigger, with the following trigger:
 
@@ -880,6 +874,7 @@ check_gamerule = {
 }_
 ```
 Here, it evaluates if the gamerule with name `test_gamerule` is set to the option with the name `test_gameruleopt_1`.
+The gamerule can also be checked in lua code, by calling `GAMERULE.check_gamerule_option_by_name` or `GAMERULE.check_gamerule_option_by_id`. 
 
 There are also some hardcoded gamerules which interact with base gameplay directly which is not present in the gamerules.txt file. These can also have their selected option checked with `check_gamerule` trigger. Below is a list of names of the hardcoded gamerules and their options:
 
@@ -898,3 +893,7 @@ There are also some hardcoded gamerules which interact with base gameplay direct
 - `alice_gamerule_auto_concession_peace`: Name of gamerule for enabling/disabling auto peacing in cases of the enemy conceding all wargoals
 	- `alice_gamerule_auto_concession_peace_opt_cannot_reject`: Option for the auto-peace being enabled
 	- `alice_gamerule_auto_concession_peace_opt_can_reject`: Option for the auto-peace being disabled
+
+- `alice_gamerule_command_units`: Name of gamerule for enabling/disabling commanding AI puppets' troops in wars
+    - `alice_gamerule_command_units_opt_disabled`: Option for it being disabled
+    - `alice_gamerule_command_units_opt_disabled`: Option for it being enabled

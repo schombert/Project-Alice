@@ -1,12 +1,14 @@
 #pragma once
 
-#include "dcon_generated.hpp"
+#include "dcon_generated_ids.hpp"
 #include "gui_element_types.hpp"
 #include "gui_graphics.hpp"
 #include "gui_province_window.hpp"
 #include "province.hpp"
 #include "text.hpp"
 #include <algorithm>
+#include "text_utility.hpp"
+
 
 namespace ui {
 
@@ -88,13 +90,13 @@ private:
 
 	std::vector<std::variant<dcon::province_id, dcon::nation_id, dcon::state_instance_id>> search_states_provinces_nations(sys::state& state, std::string_view search_term) noexcept {
 		std::vector<std::variant<dcon::province_id, dcon::nation_id, dcon::state_instance_id>> results{};
-		std::string search_term_lower = parsers::lowercase_str(search_term);
+		std::string search_term_lower = text::lowercase_str(search_term);
 
 		if(!search_term.empty()) {
 			state.world.for_each_nation([&](dcon::nation_id nation) {
 				auto fat_nation = dcon::fatten(state.world, nation);
 				if(fat_nation.get_owned_province_count() > 0) {
-					auto name = parsers::lowercase_str(text::get_name_as_string(state, fat_nation));
+					auto name = text::lowercase_str(text::get_name_as_string(state, fat_nation));
 					if(name.starts_with(search_term_lower)) {
 						results.push_back(nation);
 					}
@@ -102,7 +104,7 @@ private:
 
 			 });
 			state.world.for_each_state_instance([&](dcon::state_instance_id si) {
-				auto name = parsers::lowercase_str(text::get_dynamic_state_name(state, si));
+				auto name = text::lowercase_str(text::get_dynamic_state_name(state, si));
 				if(name.starts_with(search_term_lower)) {
 					results.push_back(si);
 				}
@@ -110,7 +112,7 @@ private:
 
 			state.world.for_each_province([&](dcon::province_id prov_id) {
 				dcon::province_fat_id fat_id = dcon::fatten(state.world, prov_id);
-				auto name = parsers::lowercase_str(text::produce_simple_string(state, fat_id.get_name()));
+				auto name = text::lowercase_str(text::produce_simple_string(state, fat_id.get_name()));
 				if(name.starts_with(search_term_lower)) {
 					results.push_back(prov_id);
 				}

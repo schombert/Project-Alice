@@ -1,0 +1,11 @@
+display_name = "한국어"
+script = Hani
+
+body_font = NotoSansKR-Regular.ttf
+
+header_font = NotoSansKR-Bold.ttf
+
+map_font = NotoSansKR-SemiBold.ttf
+
+prevent_map_letterspacing = no
+rtl = no

@@ -1,5 +1,5 @@
 #include "culture.hpp"
-#include "dcon_generated.hpp"
+#include "dcon_generated_ids.hpp"
 #include "demographics.hpp"
 #include "gui_element_base.hpp"
 #include "prng.hpp"
@@ -600,6 +600,7 @@ void apply_invention(sys::state& state, dcon::nation_id target_nation, dcon::inv
 			auto fixed_offset = inv_nat_values.offsets[i];
 			auto modifier_amount = inv_nat_values.values[i];
 
+
 			auto& current_modifier_vals = state.world.nation_get_modifier_values(target_nation, fixed_offset);
 			state.world.nation_set_modifier_values(target_nation, fixed_offset, current_modifier_vals + modifier_amount);
 		}
@@ -719,6 +720,7 @@ void remove_invention(sys::state& state, dcon::nation_id target_nation,
 
 			auto fixed_offset = inv_nat_values.offsets[i];
 			auto modifier_amount = inv_nat_values.values[i];
+
 
 			auto& current_modifier_vals = state.world.nation_get_modifier_values(target_nation, fixed_offset);
 			state.world.nation_set_modifier_values(target_nation, fixed_offset, current_modifier_vals - modifier_amount);
@@ -957,7 +959,7 @@ void create_initial_ideology_and_issues_distribution(sys::state& state) {
 			return;
 
 		{ // ideologies
-			static auto buf = state.world.ideology_make_vectorizable_float_buffer();
+			auto buf = state.world.ideology_make_vectorizable_float_buffer();
 			float total = 0.0f;
 			state.world.for_each_ideology([&](dcon::ideology_id iid) {
 				buf.set(iid, 0.0f);
@@ -974,14 +976,14 @@ void create_initial_ideology_and_issues_distribution(sys::state& state) {
 			});
 			if(total != 0) {
 				float adjustment_factor = 1.0f / total;
-				state.world.for_each_ideology([&state, pid, adjustment_factor](dcon::ideology_id iid) {
+				state.world.for_each_ideology([&state, pid, adjustment_factor, &buf](dcon::ideology_id iid) {
 					auto normalized_amount = buf.get(iid) * adjustment_factor;
 					pop_demographics::set_demo(state, pid, pop_demographics::to_key(state, iid), normalized_amount);
 				});
 			}
 		}
 		{ // issues
-			static auto buf = state.world.issue_option_make_vectorizable_float_buffer();
+			auto buf = state.world.issue_option_make_vectorizable_float_buffer();
 			float total = 0.0f;
 			state.world.for_each_issue_option([&](dcon::issue_option_id iid) {
 				auto opt = fatten(state.world, iid);
@@ -1002,7 +1004,7 @@ void create_initial_ideology_and_issues_distribution(sys::state& state) {
 			});
 			if(total != 0) {
 				float adjustment_factor = 1.0f / total;
-				state.world.for_each_issue_option([&state, pid, adjustment_factor](dcon::issue_option_id iid) {
+				state.world.for_each_issue_option([&state, pid, adjustment_factor, &buf](dcon::issue_option_id iid) {
 					auto normalized_amount = buf.get(iid) * adjustment_factor;
 					pop_demographics::set_demo(state, pid, pop_demographics::to_key(state, iid), normalized_amount);
 				});

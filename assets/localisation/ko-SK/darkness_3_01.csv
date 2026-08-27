@@ -1,0 +1,287 @@
+DIPLOMACY_AI_ACCEPTANCE;§Y$COUNTRY$§W의 응답: §Y$ODDS$§W
+TOO_SOON_FOR_REFORM;또 다른 개혁을 제정하려면 §Y$DATE$§W까지 기다려야 합니다.
+SIEGE_EXTRA_ATTR;점령 저항으로 인한 소모 §R+$VAL$%§W
+NO_SEPARATE_PEACE_CRISIS;위기 전쟁에서는 개별 평화 협상을 할 수 없습니다
+CRISIS_RESOLUTION_EFFECTS;이런 방식으로 위기를 해결하면 위신 $VAL$을(를) 획득합니다.
+CRISIS_RESOLUTION_RELATIONS;다음 국가와의 관계도가 변경됩니다:
+flintlock_rifle_armament;수석총 무장
+flintlock_rifle_armament_desc;17세기 초에 도입된 수석식은 도그락, 화승총, 치륜총 기구와 같은 초기 화기 격발 기술을 빠르게 대체했습니다. 이후 2세기가 넘는 기간 동안 흔히 사용되었고, 19세기 초중반에 뇌관식과 탄약통 기반 시스템으로 대체되었습니다. 현대 화기로 대체된 지 오래지만, 수석식 무기는 흑색화약 사격 애호가들 사이에서 계속해서 인기를 누리고 있습니다.
+post_napoleonic_army_doctrine;포스트 나폴레옹 육군 교리
+post_napoleonic_army_doctrine_desc;프랑스 혁명과 그에 이어진 나폴레옹 전쟁은 군사 전략에 혁명을 일으켰습니다. 이 시기의 영향은 미국 남북 전쟁과 제1차 세계대전 초기 단계에서도 여전히 느낄 수 있었습니다. 저렴한 소화기의 등장과 징집된 시민 병사의 부상으로, 육군은 규모가 급격히 커져 대규모 대형이 되었습니다. 이로 인해 군대를 먼저 사단으로, 나중에는 군단으로 나눌 필요성이 제기되었습니다. 사단과 함께 사단 포병도 등장했습니다.
+muzzle_loaded_rifle_armament;전장식 소총 무장
+muzzle_loaded_rifle_armament_desc;전장식 소총은 후장식 소총과는 대조적으로 발사체와 추진 장약을 총의 앞쪽 끝을 통해 장전하는 총입니다. 수동 소총은 1740년대에 잘 발달했습니다. '전장총'의 형태를 띠었던 것 중 하나는 실제로 펜실베이니아에서 개발된 켄터키 소총입니다. 미국의 롱라이플은 독일의 '예거' 소총에서 진화했습니다.
+breech_loaded_rifle_armament;후장식 소총 무장
+breech_loaded_rifle_armament_desc;후장식 무기는 탄약이나 포탄을 총열 뒷부분에 일체화된 약실에 넣거나 장전하는 화기입니다. 후장식 무기가 개발된 것은 14세기 후반까지 거슬러 올라가지만, 19세기에 정밀 공학과 기계 가공이 개선되면서 후장식이 더 성공적이 되었습니다.
+bolt_action_rifle_armament;볼트 액션 소총 무장
+bolt_action_rifle_armament_desc;볼트 액션은 작은 손잡이를 사용하여 총미(총열)를 열고 닫음으로써 무기의 노리쇠를 수동으로 조작하는 화기 작동 방식의 한 종류입니다. 최초의 볼트 액션 소총은 후장식 소총 연구에 이어 1824년 요한 니콜라우스 폰 드라이제에 의해 제작되었습니다. 유럽의 육군은 19세기 후반 내내 볼트 액션 소총을 계속 개발했으며, 제1차 세계대전 당시 참전한 모든 국가가 다양한 볼트 액션 설계로 무장한 부대를 배치함으로써 볼트 액션 소총의 사용은 정점에 달했습니다.
+machine_gun_armament;기관총 무장
+machine_gun_armament_desc;1861년 리처드 조던 개틀링이 특허를 낸 개틀링 건은 자동 장전을 통해 제어된 연속 사격을 제공한 최초의 무기였습니다. 미국 남북 전쟁에서 처음으로 매우 제한된 실전을 치렀습니다.
+cuirassier_activation;흉갑기병
+cuirassier_activation_desc;흉갑기병은 갑옷과 화기로 무장한 기병으로, 15세기 후반 유럽에 처음 등장했습니다. 최초의 흉갑기병은 맨앳암즈나 데미랜서와 같은 중기병들이 창을 버리고 권총을 주력 무기로 채택한 결과로 탄생했습니다. 이들은 나폴레옹 전쟁 기간 동안 중요성이 커졌으며 제1차 세계대전 초기에 마지막으로 배치되었습니다. 흉갑기병은 여러 국가에서 의장대로 계속 사용되고 있습니다.
+dragoon_activation;용기병
+dragoon_activation_desc;용기병이라는 단어는 원래 승마 기술과 보병 전투 기술을 함께 훈련받은 승마 보병을 의미했습니다. 그러나 시간이 지나면서 용도가 변경되었고 18세기에 이르러 용기병은 전통적인 경기병 부대와 병력으로 진화했습니다. 17세기 후반과 18세기 초반에 대부분의 유럽 육군에서 용기병 연대가 창설되었습니다. 나폴레옹 전쟁 동안 용기병은 장갑을 두른 흉갑기병보다 더 가벼운 등급의 승마 부대로 남아 있었지만 일반적으로 기병의 역할을 수행했습니다.
+hussar_activation;후사르
+hussar_activation_desc;후사르는 15세기 헝가리에서 유래한 여러 유형의 경기병을 일컫습니다. 이들 기병의 명칭과 독특한 복장은 그 후 유럽 및 다른 군대의 경기병 연대에 널리 채택되었습니다. 후사르는 나폴레옹 전쟁에서 기병으로서 탁월한 역할을 수행했습니다. 빠른 말에 탄 경기병으로서 이들은 산병전과 정찰에 사용되곤 했습니다.
+military_aviation;군사 항공
+military_aviation_desc;군사 항공은 전쟁 수행 또는 지원을 목적으로 항공기 및 기타 비행 기계를 사용하는 것입니다. 공기보다 무거운 항공기는 초기부터 군사적 활용도가 있는 것으로 인식되었습니다. 1909년 미국 육군 통신대가 라이트 모델 A를 구매했으며, 1911년 이탈리아-튀르크 전쟁의 일환으로 이탈리아 군이 다양한 비행기 기종을 정찰, 사진 정찰, 폭격 임무에 사용했습니다. 제1차 세계대전에서 군사 항공은 정찰기, 포병 관측기, 전투기, 폭격기와 같은 여러 전문화된 기종을 빠르게 수용했습니다.
+SIEGE;공성
+TRANSFER_SUB_ALL;같은 유형을 모두 전송하려면 §GShift + 좌클릭§! 하십시오.
+OBSOLETE_UNIT_TECH;§Y$UNIT$§W(은)는 §Y$TECH$§W에 의해 구식이 되었습니다.
+ARMY_RECON_TOOLTIP;정찰 효율: §Y$VAL$§!%
+ARMY_RECON_DELAYED_TOOLTIP;정찰 효율은 이 육군의 정찰병이 적군의 참호화 보너스를 줄이고 공성 속도를 높이는 능력입니다.\n\n이 육군에는 필요한 §Y$RECONMAXUNITS$§!개의 정찰 여단 중 §Y$RECONUNITS$§!개가 포함되어 있어, §Y$VAL$%§!의 정찰 효율을 가집니다.
+ARMY_ENGINEER_TOOLTIP;공성 효율: §Y$VAL$§!%
+ARMY_ENGINEER_DELAYED_TOOLTIP;공성 효율은 이 육군의 공병과 전차가 공격 및 공성 시 적 요새의 효율성을 줄이는 능력입니다.\n\n이 육군에는 필요한 §Y$ENGINEERMAXUNITS$§!개의 공병 및 전차 여단 중 §Y$ENGINEERUNITS$§!개가 포함되어 있어, §Y$VAL$%§!의 공성 효율을 가집니다.
+TENSION_DECAY;기본 감소: §Y$VAL$§!
+TENSION_FROM_GP_WARS;전쟁 중인 열강: §Y$VAL$§!
+TENSION_FROM_GP_DISARMED;무장 해제된 열강: §Y$VAL$§!
+TENSION_FROM_GP_RANK;열강 순위: §Y$VAL$§!
+HAS_NOT_CULTURAL_SPHERE;문화적 세력권이 없음
+HAS_CULTURAL_SPHERE;문화적 세력권이 있음
+UCA;중앙아메리카 연방
+LOAD_SAVEGAME_FAIL;저장 게임을 불러오지 못했습니다.
+NEWS_TOOLTIP_UNREAD;인쇄된 §G$MAX$§!개의 신문 중 읽지 않은 신문이 §G$NUM$§!개 있습니다.
+NEWS_TOOLTIP_NO_NEW;읽지 않은 신문이 없습니다.
+become_independent_desc;무력을 통해 종주국으로부터 독립을 제창합니다
+CRISIS_DAYS_UNTIL_WAR;외교적 해결책을 찾지 못하면 §Y$DAYS$§!일 후에 전쟁이 발발합니다.
+REMOVEFROMSPHERE_COST_NO_INFAMY;위신 §R$PRESTIGE$§!이(가) 소모됩니다
+REMOVEFROMSPHERE_COST;위신 §R$PRESTIGE$§!이(가) 소모되며 악명 §R$INFAMY$§!이(가) 증가합니다
+REMOVEFROMSPHERE_DESC;§Y열강§W의 세력권에서 국가를 제외합니다.
+CRISIS_INTEREST;그들의 관심: §Y$VAL$§!
+CRISIS_MAKE_OFFER_INVALID;그들에게 무언가를 제안해야 합니다!
+CRISIS_MAKE_OFFER_NOT_LEADER;제안을 하려면 위기의 주도국이어야 합니다.
+CRISIS_MAKE_OFFER;§Y$COUNTRY$§!에 제안을 보내 우리 측을 지지하도록 유도합니다.
+CRISIS_AI_WANTS_TO_BACK_1;누구를 지지할지 결정하지 않았습니다.
+CRISIS_AI_WANTS_TO_BACK_2;다음을 지지하는 쪽으로 기울어져 있습니다:
+CRISIS_AI_WANTS_TO_BACK_3;다음을 강하게 지지할 의향이 있습니다:
+CRISIS_AI_INTEREST;지지에 대한 그들의 관심도
+unification_release_puppet_cb_setup;$RECIPIENT$에서 $THIRD$을(를) 해방하여 세력권에 편입합니다.
+unification_release_puppet_cb_desc;외세의 지배에서 문화적 친족을 해방시키고 세력권에 편입합니다.
+unification_release_puppet_cb;문화적 친족 해방
+unification_release_puppet_cb_short;$THIRD$이(가) 해방됨
+AIREASON_STRATEGIC_INTERESTS;전략적 이익
+AIREASON_BACKED_BY_ALLY;동맹국의 지원
+AIREASON_ALLY;동맹국
+AIREASON_TOO_EARLY_IN_CRISIS;초기 위기
+AIREASON_CRISIS_OFFER;$WARGOAL$:
+AIREASON_ATTACKING_ALLY;동맹국 공격 중
+AIREASON_ATTACKING_FRIENDS;우방국 공격 중
+AIREASON_ATTACKING_ENEMIES;적국 공격 중
+AIREASON_COMMON_FOE;공통의 적
+AIREASON_WAR_WITH_SPHERE_LEADER;세력권 주도국과의 전쟁
+AIREASON_CONSTRUCTING_CB;전략적 이익
+AIREASON_HELD_CORES;핵심 프로빈스 소유
+AIREASON_NEGATIVE_RELATIONS;부정적인 관계도
+AIREASON_THREATS;위협
+AIREASON_TOO_MANY_GP_ALLIES;너무 많은 열강 동맹국
+AIREASON_DESIRES_GP_ALLY;열강 동맹국을 원함
+AIREASON_ALLY_OF_ALLY;동맹국의 동맹국
+AIREASON_TOO_MANY_ALLIANCES;너무 많은 동맹
+AIREASON_RELATIVE_ARMY_STRENGTH;육군 전력
+AIREASON_RELATIVE_NAVY_STRENGTH;해군 전력
+AIREASON_CURRENT_WARS;현재 참전 중
+AIREASON_OUR_CASUS_BELLI;우리의 전쟁 명분
+AIREASON_YOUR_CASUS_BELLI;당신의 전쟁 명분
+AIREASON_CIV_VS_UNCIV;문명국 대 비문명국
+AIREASON_DIPLOMATIC_GOALS;정치적 고려
+AIREASON_DISTANCE;거리
+AIREASON_DIFFERENT_GOVTYPES;정부 형태
+AIREASON_OUR_SPHERE;우리의 세력권
+AIREASON_OTHER_SPHERE_LEADER;타 세력권 주도국
+AIREASON_OTHER_SPHERE;타 세력권
+AIREASON_OVERLORD;종주국
+AIREASON_BADBOY;악명
+AIREASON_RELATIONS;관계도
+AIREASON_GP_RELATIONS;의견
+AIREASON_BASE_RELUCTANCE;기본적 꺼림
+AI_DIPLOMATIC_VALUE;외교적 가치
+AI_DIPLO_NO;수락하지 않을 것입니다
+AI_DIPLO_YES;수락할 것입니다
+SHIP_BUILD_MIN_BASE_LEVEL_WARNING;§R이 해군 기지에서는 건조할 수 없습니다. 레벨 §Y$LVL$§R 이상이 필요합니다.§!
+NAVAL_BASE_OVERSEAS_LIMIT;§R주력함은 해외 프로빈스에서 건조할 수 없습니다.§!
+NAVAL_COMBAT_DAMAGE_DESC_TITLE;예상 화력은 §G$POWER$§!입니다:
+NAVAL_COMBAT_DAMAGE_DESC_BASE;§Y$UNIT$§! 기본 공격력: §G$VAL$§!
+NAVAL_COMBAT_DAMAGE_DESC_TORP;어뢰 공격력: §G$VAL$§!
+NAVAL_COMBAT_DAMAGE_DESC_LUCK;운과 결정: §Y$VAL$%§!
+NAVAL_COMBAT_DAMAGE_DESC_HULL;적 선체(§R$HULL$§!)로 인한 감소: §R$VAL$%§!
+NAVAL_COMBAT_DAMAGE_DESC_EXP;적 경험치(§R$EXP$%§!)로 인한 감소: §R$VAL$%§!
+NAVAL_COMBAT_DAMAGE_DESC_NOORG;적 조직력 없음: §Y$VAL$%§!
+NAVAL_COMBAT_DAMAGE_DESC_STR;우리의 병력으로 인한 감소: §R$VAL$%§!
+NAVAL_COMBAT_HIT_CHANCE_DESC;명중 확률: §Y$VAL$%§!
+NAVAL_COMBAT_HIT_CHANCE_DESC_EVA;(적 회피 기동 §R$VAL$%§!로 인해 감소)
+MOBILIZATION_PROGRESS_PAUSED;§Y$PROV$§!에서의 동원 모집이 곧 시작됩니다.
+MOBILIZATION_PROGRESS_PENDING;현재 총 동원 진행률은 §Y$PROG$%§!입니다
+MOBILIZATION_PROGRESS_NOT_MOBILIZED;동원에는 다소 시간이 걸리지만, 발전된 철도망이 있으면 과정이 단축됩니다.
+COLONY_ADD_INFLUENCE;식민지 영향력 추가
+EVTNAME20100;$STATE$의 긴장
+EVTDESC20100;최근 국제 사회는 $STATE$의 이른바 '불쌍하고 억압받는 인민들의 고난'에 대한 인식을 점점 더 높이고 있습니다. 우리가 그들을 오랫동안 억압해왔으며, 그들이 우리의 자애로운 통치로부터 해방되기를 갈망하고 있다는 주장이 제기되었습니다. 물론 우리는 $STATE$에 대한 우리의 통치에 어떠한 간섭도 용납하지 않을 것입니다.
+EVTOPTA20100;물론 용납할 수 없지!
+EVTOPTB20100;이에 대해 논의해 봐야 할지도 모르겠군...
+EVTNAME20101;$STATE$의 긴장
+EVTDESC20101;최근 국제 사회는 $STATE$의 이른바 '불쌍하고 억압받는 인민들의 고난'에 대한 인식을 점점 더 높이고 있습니다. 우리가 그 지역을 지배할 합법적인 권리가 없다는 주장이 제기되었고, 인근의 열강들이 이 주장에 관심을 갖기 시작했습니다.
+EVTOPTA20101;$STATE$은(는) 우리 땅이라고 주장하라!
+EVTOPTB20101;그들의 주장을 인정한다.
+EVTNAME20102;$CRISISAREA$ 위기
+EVTDESC20102;$CRISISAREA$을(를) 둘러싼 분쟁이 이제 국제적인 위기로 고조되었습니다. $CRISISTAKER$은(는) 해당 지역이 자국의 필수적인 영토라고 주장하는 반면, $CRISISTARGET$은(는) 그들의 영유권 주장을 부인하며 이 지역은 자신들의 지배하에 남아 있어야 한다고 주장합니다. 이 문제에 대한 최근 회의에서 우리 대사가 상당히 호전적인 발언을 여러 차례 하여 참석한 모든 사람의 화를 심하게 돋우었습니다.\n대사의 입장을 지지해야 합니까, 아니면 그의 행동에 대해 사과하고 그의 발언을 철회해야 합니까?
+EVTOPTA20102;그의 말이 전적으로 옳다. 전쟁만이 이를 해결할 수 있다!
+EVTOPTB20102;그의 말을 듣지 마시오!
+EVTNAME20103;$CRISISTAKER$의 운명
+EVTDESC20103;$CRISISTAKER_ADJ$ 인민의 운명이 최근 주요 국제 위기로 떠올랐습니다. 현재 $CRISISTARGET$이(가) 이 지역을 지배하고 있지만, $CRISISTAKER_ADJ$ 반란군과 애국자들은 $CRISISTARGET_ADJ$ 통치에서 벗어나기 위해 크나큰 노력을 기울이고 있습니다. 열강으로서 우리는 당연히 $CRISISTAKER$의 운명을 논의하기 위해 대사를 파견했지만, 불행히도 그는 평소보다 더 취한 상태로 최근 정상회의에 나타났으며, 다른 모든 참석자가 우리를 따르지 않는다면 호되게 매질하여 이 문제를 해결할 준비가 되어 있다고 공언했습니다. 당연히 이는 상황을 악화시켰고, 비록 그의 행동을 철회함으로써 여전히 물러설 수는 있지만, 그렇게 하는 것은 매우 당혹스러운 일이 될 것입니다.
+EVTOPTA20103;무력으로 위협하라!
+EVTOPTB20103;머저리를 해고해라!
+EVTNAME20104;$CRISISAREA$ 위기
+EVTDESC20104;$CRISISAREA$을(를) 둘러싼 분쟁이 이제 국제 위기로 고조되었습니다. 열강들이 이 문제에 있어서 편을 갈리면서 이해관계가 갑자기 훨씬 더 커졌습니다. 우리의 주장을 강하게 밀고 나가야 합니까, 아니면 상황을 진정시키려 노력해야 합니까?
+EVTOPTA20104;그것은 우리 것이다!
+EVTOPTB20104;우리는 열린 마음으로 논의할 준비가 되어 있다.
+EVTNAME20105;$CRISISAREA$ 위기
+EVTDESC20105;$CRISISTAKER_ADJ$ 반란군이 조국에서 벗어나려 투쟁하고 $CRISISATTACKER$이(가) 그들을 지원하고 있는 가운데, 우리는 $CRISISDEFENDER$의 무력이 우리의 대의를 지원할 수 있기를 희망해야 합니다. $CRISISDEFENDER$ 주재 대사가 그들에게 우리의 입장을 강하게 밀어붙일 것을 요청해야 합니까, 아니면 우리가 협상을 통한 타결에 열려 있음을 시사해야 합니까?
+EVTOPTA20105;우리의 영유권 주장을 강행하라!
+EVTOPTB20105;이 일로 싸우지는 맙시다.
+COLONIZE_PHASE_INTEREST;이해관계 확립
+COLONIZE_PHASE_INTEREST_DESC;식민지 점수에 투자하여 경쟁합니다. 누군가가 $LEVELS$ 레벨 앞설 때 상위 2개국이 다음 경쟁 단계로 넘어갑니다.
+COLONIZE_PHASE_INFLUENCE;식민지 경쟁
+COLONIZE_PHASE_INFLUENCE_DESC;두 국가가 한쪽의 영향력이 압도할 때까지 식민지 점수로 싸웁니다. 투자가 이루어질 때마다 주 내 긴장이 높아지며, 상황이 너무 과열되면 위기로 이어집니다.
+COLONIZE_PHASE_COLONIZATION;식민화
+COLONIZE_PHASE_COLONIZATION_DESC;이전 단계의 승자는 $MONTHS$개월 안에 식민지로 전환하지 않으면 투자한 것을 잃게 됩니다.
+TICKING_WARSCORE_DESC_GRACE;$VAL$ (§Y$DAY$§!일 남음).
+TICKING_WARSCORE_DESC_GRACE_EXPLAIN;최소 §G$MIN$%§! 충족된 영토 전쟁 목표는 요구자에게 점진적으로 승점을 추가합니다.\n만약 §Y유예 기간 $DAYS$일§! 이후에도 전쟁 목표가 충족되지 않으면 대신 영유 국가에게 승점이 추가됩니다. 요구자에 의해 점령된 후 영유 국가가 다시 탈환한 목표는 점진적으로 양측 모두 §Y0§! 점의 승점으로 되돌아갑니다.
+TICKING_WARSCORE_FULFILL_TERRITORY_WG;§G이 전쟁 목표가 대상으로 하는 주의 프로빈스를 최소 $MIN$% 이상 점령 시 충족됩니다.§!
+TICKING_WARSCORE_FULFILL_TERRITORY_ANY;§G대상 국가에 속한 프로빈스를 최소 $MIN$% 이상 점령 시 충족됩니다.§!
+TICKING_WARSCORE_FULFILL_BATTLE;§G전투가 최소 §G$BAT$§! 번 이상 치러진 후, 전투를 통한 승점이 더 높을 때 충족됩니다.§!
+CREATE_PROTECTORATE;보호령 창설
+JAN;얀 마옌
+JAN_ADJ;얀 마옌
+JAN_liberal;벤스트레
+JAN_conservative;회위레
+JAN_socialist;노동당
+JAN_anarcho_liberal;급진파
+JAN_communist;공산당
+JAN_fascist;국민연합
+COUNTRYALERT_NO_Colonial;우리의 식민지 중에 주의를 요하는 곳이 없습니다.
+COUNTRYALERT_NO_Crisis;현재 발생한 위기가 없습니다.
+COUNTRYALERT_Crisis;현재 위기의 온도는 §Y$TEMPERATURE$§!입니다!
+HAS_GOODS_IN_STATE;주에서 $GOODS$을(를) 생산 중.
+HAS_NO_GOODS_IN_STATE;주에서 $GOODS$을(를) 생산하지 않음.
+MILITARY_MOBILIZE_CRISIS_IMPACT;§R위기 중에 편을 든 상태에서 동원하면 위기 온도가 상승하여 전쟁으로 이어지게 됩니다!§!
+NORMAL_WAR_LIBERATE_NAME;$ORDER$$FIRST$ $COUNTRY_ADJ$ 민족 해방 전쟁
+AGRESSION_WAR_LIBERATE_NAME;$ORDER$$FIRST$ $COUNTRY_ADJ$ 해방 전쟁
+CANT_COLONIZE;§R식민화 불가능:§!
+COLONIZE_LAST_INVESTMENT;방금 이 지역에 투자했습니다. 다음 투자는 §Y$DATE$§! 이후에 할 수 있습니다.
+COLONY_INVEST_COST;투자 비용: 식민지 점수 §Y$COST$§!
+COLONY_INVEST_COST_LACK;투자 비용: 식민지 점수 §R$COST$§!
+COLONIAL_INVESTMENT;현재 투자됨: §R$VALUE$§!
+COLONIAL_MAINTENANCE;유지비에 묶인 점수: §R$VALUE$§!
+AVAILABLE_COLONIAL_POWER;사용 가능: §Y$VALUE$§!
+PW_PROTECTORATE;보호령
+D01;$REGION$ 왕국
+D01_ADJ;왕국
+D02;$REGION$ 연맹
+D02_ADJ;연맹
+D03;$REGION$ 연방
+D03_ADJ;연방
+D04;$REGION$ 공화국
+D04_ADJ;공화국
+D05;$REGION$국
+D05_ADJ;국가
+D06;$REGION$ 인민 공화국
+D06_ADJ;공화국
+D07;$REGION$ 자유국
+D07_ADJ;자유국
+D08;$REGION$ 대국
+D08_ADJ;대국
+D09;$REGION$국
+D09_ADJ;국가
+D10;$REGION$ 공국
+D10_ADJ;공국
+D11;$REGION$ 민주 공화국
+D11_ADJ;민주 공화국
+D12;$REGION$ 연합
+D12_ADJ;연합
+D13;$REGION$ 왕국
+D13_ADJ;왕국
+D14;$REGION$ 자치령
+D14_ADJ;자치령
+D15;$REGION$ 대공국
+D15_ADJ;대공국
+D16;$REGION$ 국가
+D16_ADJ;국가
+D17;$REGION$ 연방
+D17_ADJ;연방
+D18;$REGION$ 합중국
+D18_ADJ;합중국
+D19;$REGION$ 민주 연합
+D19_ADJ;연합
+D20;$REGION$ 공국
+D20_ADJ;공국
+D21;$REGION$ 연방
+D21_ADJ;연방
+D22;$REGION$ 인민민주공화국
+D22_ADJ;인민민주
+D23;$REGION$ 구역
+D23_ADJ;구역
+D24;$REGION$ 영광의 연합
+D24_ADJ;영광의
+D25;강력한 $REGION$
+D25_ADJ;강력한
+D26;$REGION$ 자유국
+D26_ADJ;자유국
+D27;$REGION$ 연방
+D27_ADJ;연방
+D28;$REGION$ 연합
+D28_ADJ;연합
+D29;$REGION$ 자유 인민
+D29_ADJ;자유 인민
+D30;$REGION$ 공화국
+D30_ADJ;공화국
+D31;$REGION$ 신성 연합
+D31_ADJ;신성
+D32;$REGION$ 인민 연합
+D32_ADJ;연합
+D33;$REGION$ 연방주
+D33_ADJ;연방
+D34;$REGION$ 연방국
+D34_ADJ;연방
+D35;$REGION$ 국가연합
+D35_ADJ;국가연합
+D36;$REGION$ 연방
+D36_ADJ;연방
+D37;$REGION$ 경건 연합
+D37_ADJ;경건
+D38;$REGION$ 영토
+D38_ADJ;영토
+D39;가장 고귀한 $REGION$ 공화국
+D39_ADJ;고귀한
+D40;$REGION$ 비밀 왕국
+D40_ADJ;비밀
+D41;$REGION$ 코뮌
+D41_ADJ;공산주의
+D42;$REGION$ 코뮌
+D42_ADJ;공산주의
+D43;$REGION$ 노동자 연맹
+D43_ADJ;노동자
+D44;$REGION$ 방백령
+D44_ADJ;방백
+D45;$REGION$국
+D45_ADJ;국가
+D46;신성 $REGION$
+D46_ADJ;신성
+D47;$REGION$ 자치령
+D47_ADJ;자치령
+D48;$REGION$ 인민국
+D48_ADJ;인민
+D49;$REGION$ 대왕국
+D49_ADJ;대왕국
+D50;$REGION$ 소공국
+D50_ADJ;소공국
+dominion_conservative;보수당
+dominion_reactionary;구세력
+dominion_liberal;자유당
+dominion_anarcho_liberal;해방당
+dominion_socialist;사회당
+dominion_communist;공산당
+dominion_fascist;제국당
+PW_UPGRADE_TO_COLONY;클릭하여 식민지로 승격시킵니다. 이를 위해 §Y$VALUE$§!의 가용 식민지력이 필요합니다.
+PW_CANT_UPGRADE_TO_COLONY;식민지 승격에는 §R$VALUE$§!의 식민지력이 필요합니다.
+PW_CANT_UPGRADE_TO_STATE;주로 편입하려면 §R$VALUE$§!의 식민지력이 필요합니다.
+CREATE_DOMINION;자치령 해방
+CANT_CREATE_PROTECTORATE_COST;보호령을 창설하려면 §R$VALUE$§!의 가용 식민지력이 필요합니다.
+torpedo_attacks_desc;어뢰는 폭발성 탄두를 탑재한 자체 추진 무기로, 수면 위나 아래에서 발사되어 수중을 통해 목표물을 향해 추진되며, 목표물에 접촉하거나 근접할 때 폭발하도록 설계되었습니다. 소형 함선에서 발사되어도 가장 거대한 전함에 치명적인 타격을 입힐 수 있습니다.

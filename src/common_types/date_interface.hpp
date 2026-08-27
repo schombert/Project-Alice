@@ -1,9 +1,9 @@
 #pragma once
 
 #include <cstdint>
-namespace sys {
+#include <string>
 
-struct state;
+namespace sys {
 
 struct year_month_day {
 	int32_t year;

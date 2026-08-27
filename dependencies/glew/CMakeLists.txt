@@ -1,6 +1,5 @@
 #GLEW <- DO NOT REMOVE; NEEDED FOR A TEST
 
-cmake_minimum_required(VERSION 3.4)
 
 project(fetch_content)
 
@@ -10,8 +9,9 @@ include(FetchContent)
 FetchContent_Declare(
 	glew
 	GIT_REPOSITORY https://github.com/Perlmint/glew-cmake.git
-	GIT_TAG master
-	GIT_SHALLOW 1
+	# The former commit pin was pruned from the dependency repository.  Pin to
+	# the retained 2.2.0 release commit so a clean configure remains reproducible.
+	GIT_TAG f456deace7b408655109aaeff71421ef2d3858c6
 	GIT_PROGRESS TRUE
 )
 

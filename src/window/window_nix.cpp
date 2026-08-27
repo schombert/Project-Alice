@@ -1,5 +1,7 @@
 #include "window.hpp"
 #include "map.hpp"
+#include "user_interactions.hpp"
+#include "system_state.hpp"
 
 #include <GLFW/glfw3.h>
 #include <unordered_map>
@@ -223,7 +225,7 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
 	int32_t x = (xpos > 0 ? (int32_t)std::round(xpos) : 0);
 	int32_t y = (ypos > 0 ? (int32_t)std::round(ypos) : 0);
 
-	state->on_mouse_wheel(x, y, get_current_modifiers(window), (float)yoffset);
+	sys::on_mouse_wheel(*state, x, y, get_current_modifiers(window), (float)yoffset);
 	state->mouse_x_position = x;
 	state->mouse_y_position = y;
 }
@@ -339,12 +341,12 @@ void create_window(sys::state& game_state, creation_parameters const& params) {
 
 	change_cursor(game_state, cursor_type::busy);
 	game_state.on_create();
-	change_cursor(game_state, cursor_type::normal);
+	change_cursor(game_state, cursor_type::normal_cancel_busy);
 
 	while(!glfwWindowShouldClose(window)) {
 		{
-			std::unique_lock lock(game_state.ui_lock);
-			game_state.ui_lock_cv.wait(lock, [&] { return !game_state.yield_ui_lock; });
+			std::shared_lock lock(game_state.game_state_resetting_lock);
+			game_state.game_state_resetting_cv.wait(lock, [&] { return !game_state.yield_game_state_resetting_lock; });
 			glfwPollEvents();
 			// Run game code
 			game_state.render();

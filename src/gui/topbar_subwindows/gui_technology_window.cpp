@@ -268,10 +268,10 @@ void invention_description(sys::state& state, text::layout_base& contents, dcon:
 				text::localised_format_box(state, contents, box, "support");
 				text::add_to_layout_box(state, contents, box, std::string_view{": "});
 				if(mod.support < 0) {
-					text::add_to_layout_box(state, contents, box, text::fp_two_places{mod.support}, text::text_color::red);
+					text::add_to_layout_box(state, contents, box, text::fp_percentage{mod.support }, text::text_color::red);
 				} else {
 					text::add_to_layout_box(state, contents, box, std::string_view{"+"}, text::text_color::green);
-					text::add_to_layout_box(state, contents, box, text::fp_two_places{mod.support}, text::text_color::green);
+					text::add_to_layout_box(state, contents, box, text::fp_percentage{ mod.support }, text::text_color::green);
 				}
 				text::close_layout_box(contents, box);
 			}
@@ -631,10 +631,10 @@ void technology_description(sys::state& state, text::layout_base& contents, dcon
 				text::localised_format_box(state, contents, box, "support");
 				text::add_to_layout_box(state, contents, box, std::string_view{": "});
 				if(mod.support < 0) {
-					text::add_to_layout_box(state, contents, box, text::fp_two_places{mod.support}, text::text_color::red);
+					text::add_to_layout_box(state, contents, box, text::fp_percentage{mod.support}, text::text_color::red);
 				} else {
 					text::add_to_layout_box(state, contents, box, std::string_view{"+"}, text::text_color::green);
-					text::add_to_layout_box(state, contents, box, text::fp_two_places{mod.support}, text::text_color::green);
+					text::add_to_layout_box(state, contents, box, text::fp_percentage{mod.support}, text::text_color::green);
 				}
 				text::close_layout_box(contents, box);
 			}

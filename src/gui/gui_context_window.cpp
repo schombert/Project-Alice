@@ -2,6 +2,11 @@
 #include "gui_context_window.hpp"
 #include "gui_common_elements.hpp"
 #include "gui_factory_refit_window.hpp"
+#include "gui_templates.hpp"
+#include "economy_factory_view.hpp"
+#include "economy.hpp"
+#include "advanced_province_buildings.hpp"
+#include "economy_constants.hpp"
 
 namespace ui {
 
@@ -82,14 +87,16 @@ public:
 
 		{
 			auto box = text::open_layout_box(contents);
-			auto r = num_factories < int32_t(state.defines.factories_per_state);
+			auto urbanisation = state.world.province_get_advanced_province_building_max_private_size(pid, advanced_province_buildings::list::local_cities_and_towns);
+			auto r = num_factories < int32_t(state.defines.factories_per_state * urbanisation / economy::factories_per_state_required_city_size);
 			if(r) {
 				text::add_to_layout_box(state, contents, box, text::embedded_icon::check);
 			} else {
 				text::add_to_layout_box(state, contents, box, text::embedded_icon::xmark);
 			}
 			text::add_space_to_layout_box(state, contents, box);
-			text::localised_single_sub_box(state, contents, box, "factory_condition_4", text::variable_type::val, int64_t(state.defines.factories_per_state));
+
+			text::localised_single_sub_box(state, contents, box, "factory_condition_4", text::variable_type::val, int64_t(state.defines.factories_per_state * urbanisation / economy::factories_per_state_required_city_size));
 			text::close_layout_box(contents, box);
 		}
 	}
@@ -211,7 +218,7 @@ public:
 class context_menu_delete_factory : public context_menu_entry_logic {
 public:
 	dcon::text_key get_name(sys::state& state, context_menu_context context) noexcept override {
-		if (economy::factory_total_employment_score(state, context.factory) >= economy::factory_closed_threshold)
+		if (!economy::factory_is_closed(state, context.factory))
 			return state.lookup_key("close_and_del");
 		return state.lookup_key("delete_factory");
 	}

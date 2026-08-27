@@ -1,0 +1,13 @@
+badboy;악명
+EVTNAME60150;여성 참정권의 종말
+EVTDESC60150;최근 선거권 개혁의 후퇴로 인해, 여성들은 다시 한 번 선거권을 박탈당했습니다.
+EVTOPTA60150;부엌으로나 돌아가시오!
+EVTNAME31102;이스탄불에서의 탈출
+EVTDESC31102;이스탄불에서의 우리 입지는 더 이상 안전하지 않습니다. 우리는 정부를 더 안전한 곳으로 이전해야 합니다.
+EVTOPTA31102;우리는 결국 유럽에서 쫓겨났군...
+OL_REBEL_OCCUPATIONS;반란군 점령
+OL_REBEL_OCCUPATIONS_TOOLTIP;우리의 §Y$PROVINCE$§W 프로빈스가 반란군에게 점령당하고 있습니다!
+OL_VIEW_REBEL_OCCUPATIONS;§Y반란군 점령§W 보기를 켜고 끕니다
+POP_MIL_CHANGE_REBEL;이 POP은 §R반란군§W이 통제하는 §Y$PROV$§W에 거주하고 있습니다.\n투쟁성 변화를 추정할 수 없습니다.
+POP_CON_CHANGE_REBEL;이 POP은 §R반란군§W이 통제하는 §Y$PROV$§W에 거주하고 있습니다.\n의식 변화를 추정할 수 없습니다.
+PROJECT_STATE_NAME_DESC;§Y$PROV$§W에 건설을 계획 중입니다.

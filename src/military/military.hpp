@@ -1,8 +1,12 @@
 #pragma once
 #include <span>
-#include "dcon_generated.hpp"
+#include "dcon_generated_ids.hpp"
+#include "container_types_dcon.hpp"
 #include "container_types.hpp"
 #include "modifiers.hpp"
+#include "military_constants.hpp"
+#include "constants_dcon.hpp"
+#include <commands_constants.hpp>
 
 namespace military {
 namespace cb_flag {
@@ -51,169 +55,9 @@ constexpr uint16_t naval_battle_center_line = 0; // The "center line" of a naval
 constexpr uint16_t naval_battle_speed_mult = 1000; // mult for casting unit speed to battle speed
 
 
-struct ship_in_battle {
-	static constexpr uint16_t distance_mask = 0x03FF;
+constexpr inline int32_t river_crossing_modifier = -1;
+constexpr inline int32_t strait_crossing_modifier = -2;
 
-	static constexpr uint16_t mode_mask = 0x1C00;
-	static constexpr uint16_t mode_seeking = 0x0400;
-	static constexpr uint16_t mode_approaching = 0x0800;
-	static constexpr uint16_t mode_engaged = 0x0C00;
-	static constexpr uint16_t mode_retreating = 0x1000;
-	static constexpr uint16_t mode_retreated = 0x1400;
-	static constexpr uint16_t mode_sunk = 0x0000;
-
-	static constexpr uint16_t is_attacking = 0x2000;
-
-	static constexpr uint16_t type_mask = 0xC000;
-	static constexpr uint16_t type_big = 0x4000;
-	static constexpr uint16_t type_small = 0x8000;
-	static constexpr uint16_t type_transport = 0x0000;
-
-	dcon::ship_id ship;
-	int16_t target_slot = -1;
-	uint16_t flags = 0;
-	uint16_t ships_targeting_this = 0;
-	bool operator == (const ship_in_battle&) const = default;
-	bool operator != (const ship_in_battle&) const = default;
-
-	uint16_t get_distance() {
-		return flags & distance_mask;
-	}
-	void set_distance(uint16_t distance) {
-		flags &= ~distance_mask;
-		flags |= distance_mask & (distance);
-
-	}
-};
-static_assert(sizeof(ship_in_battle) ==
-	sizeof(ship_in_battle::ship)
-	+ sizeof(ship_in_battle::ships_targeting_this)
-	+ sizeof(ship_in_battle::target_slot)
-	+ sizeof(ship_in_battle::flags));
-
-struct mobilization_order {
-	sys::date when; //2
-	dcon::province_id where; //2
-};
-static_assert(sizeof(mobilization_order) ==
-	sizeof(mobilization_order::where)
-	+ sizeof(mobilization_order::when));
-
-struct reserve_regiment {
-	static constexpr uint16_t is_attacking = 0x0001;
-
-	static constexpr uint16_t type_mask = 0x0006;
-	static constexpr uint16_t type_infantry = 0x0000;
-	static constexpr uint16_t type_cavalry = 0x0002;
-	static constexpr uint16_t type_support = 0x0004;
-
-	dcon::regiment_id regiment;
-	uint16_t flags = 0;
-};
-static_assert(sizeof(reserve_regiment) ==
-	sizeof(reserve_regiment::regiment)
-	+ sizeof(reserve_regiment::flags));
-
-constexpr inline uint8_t defender_bonus_crossing_mask = 0xC0;
-constexpr inline uint8_t defender_bonus_crossing_none = 0x00;
-constexpr inline uint8_t defender_bonus_crossing_river = 0x40;
-constexpr inline uint8_t defender_bonus_crossing_sea = 0x80;
-constexpr inline uint8_t defender_bonus_dig_in_mask = 0x3F;
-
-enum class unit_type : uint8_t {
-	support, big_ship, cavalry, transport, light_ship, special, infantry
-};
-
-struct unit_definition : public sys::unit_variable_stats {
-	economy::commodity_set build_cost;
-	economy::commodity_set supply_cost;
-
-	int32_t colonial_points = 0;
-	int32_t min_port_level = 0;
-	int32_t supply_consumption_score = 0;
-
-	int32_t icon = 0;
-	int32_t naval_icon = 0;
-
-	dcon::text_key name;
-
-	bool is_land = true;
-	bool capital = false;
-	bool can_build_overseas = true;
-	bool primary_culture = false;
-	bool active = true;
-
-	unit_type type = unit_type::infantry;
-	uint16_t padding = 0;
-
-	unit_definition() { }
-};
-static_assert(sizeof(unit_definition) ==
-	sizeof(sys::unit_variable_stats)
-	+ sizeof(unit_definition::build_cost)
-	+ sizeof(unit_definition::supply_cost)
-	+ sizeof(unit_definition::colonial_points)
-	+ sizeof(unit_definition::min_port_level)
-	+ sizeof(unit_definition::supply_consumption_score)
-	+ sizeof(unit_definition::icon)
-	+ sizeof(unit_definition::naval_icon)
-	+ sizeof(unit_definition::name)
-	+ sizeof(unit_definition::is_land)
-	+ sizeof(unit_definition::capital)
-	+ sizeof(unit_definition::can_build_overseas)
-	+ sizeof(unit_definition::primary_culture)
-	+ sizeof(unit_definition::active)
-	+ sizeof(unit_definition::type)
-	+ sizeof(unit_definition::padding));
-
-struct global_military_state {
-	tagged_vector<unit_definition, dcon::unit_type_id> unit_base_definitions;
-
-	dcon::leader_trait_id first_background_trait;
-
-	bool great_wars_enabled = false;
-	bool world_wars_enabled = false;
-
-	dcon::unit_type_id base_army_unit;
-	dcon::unit_type_id base_naval_unit;
-
-	dcon::cb_type_id standard_civil_war;
-	dcon::cb_type_id standard_great_war;
-
-	dcon::cb_type_id standard_status_quo;
-
-	dcon::cb_type_id liberate;
-	dcon::cb_type_id uninstall_communist_gov;
-
-	// CB type used to resolve crisis over colonizing the same state. Both parties have this WG.
-	dcon::cb_type_id crisis_colony;
-	/*
-	CB type used to liberate a tag from the target in the liberation crisis.
-	In vanilla - free_peoples. 
-	po_transfer_provinces = yes
-	*/
-	dcon::cb_type_id crisis_liberate;
-	/* This type of a wargoal will be used for annex nation crises (restore order cb for example) */
-	dcon::cb_type_id crisis_annex;
-
-	dcon::unit_type_id irregular;
-	//dcon::unit_type_id infantry;
-	dcon::unit_type_id artillery;
-
-	bool pending_blackflag_update = false;
-};
-
-struct available_cb {
-	sys::date expiration; //2
-	dcon::nation_id target; //2
-	dcon::cb_type_id cb_type; //2
-	dcon::state_definition_id target_state;
-};
-static_assert(sizeof(available_cb) ==
-	+sizeof(available_cb::target)
-	+ sizeof(available_cb::expiration)
-	+ sizeof(available_cb::cb_type) +
-	sizeof(available_cb::target_state));
 
 struct wg_summary {
 	dcon::nation_id secondary_nation;
@@ -311,6 +155,16 @@ enum class regiment_dmg_source {
 	combat, attrition
 };
 
+enum class battle_role : uint8_t {
+	attacker = 0,
+	defender = 1
+};
+
+enum class battle_line : uint8_t {
+	frontline = 0,
+	backline = 1
+};
+
 struct ai_path_length {
 	uint32_t length = 0;
 	bool operator==(const ai_path_length& other) const = default;
@@ -318,6 +172,7 @@ struct ai_path_length {
 
 };
 
+crossing_type get_crossing_type(const sys::state& state, dcon::province_adjacency_id adj);
 void reset_unit_stats(sys::state& state);
 void apply_base_unit_stat_modifiers(sys::state& state);
 void restore_unsaved_values(sys::state& state); // must run after determining connectivity
@@ -344,6 +199,7 @@ void remove_from_common_allied_wars(sys::state& state, dcon::nation_id a, dcon::
 dcon::war_id find_war_between(sys::state const& state, dcon::nation_id a, dcon::nation_id b);
 bool has_truce_with(sys::state& state, dcon::nation_id attacker, dcon::nation_id target);
 sys::date truce_end_date(sys::state& state, dcon::nation_id attacker, dcon::nation_id target);
+template <bool VALIDATE>
 bool can_use_cb_against(sys::state& state, dcon::nation_id from, dcon::nation_id target);
 bool leader_is_in_combat(sys::state& state, dcon::leader_id l);
 dcon::leader_id make_new_leader(sys::state& state, dcon::nation_id n, bool is_general);
@@ -410,6 +266,10 @@ int32_t main_culture_regiments_under_construction_in_province(sys::state& state,
 int32_t mobilized_regiments_created_from_province(sys::state& state, dcon::province_id p);
 int32_t mobilized_regiments_possible_from_province(sys::state& state, dcon::province_id p);
 dcon::pop_id find_available_soldier(sys::state& state, dcon::province_id p, dcon::culture_id pop_culture);
+
+// finds an available soldier pop for a regiment with the specific unit type anywhere in the nation
+dcon::pop_id find_available_soldier_anywhere(sys::state& state, dcon::nation_id nation, dcon::unit_type_id type);
+
 int32_t mobilized_regiments_pop_limit(sys::state& state, dcon::nation_id n);
 uint8_t make_dice_rolls(sys::state& state, uint32_t seed);
 
@@ -448,12 +308,13 @@ void monthly_leaders_update(sys::state& state);
 void daily_leaders_update(sys::state& state);
 
 bool cb_conditions_satisfied(sys::state& state, dcon::nation_id actor, dcon::nation_id target, dcon::cb_type_id cb);
+template<bool VALIDATE>
 bool cb_instance_conditions_satisfied(sys::state& state, dcon::nation_id actor, dcon::nation_id target, dcon::cb_type_id cb, dcon::state_definition_id st, dcon::national_identity_id tag, dcon::nation_id secondary);
 void add_cb(sys::state& state, dcon::nation_id n, dcon::cb_type_id cb, dcon::nation_id target, dcon::state_definition_id target_state); // do not call this function directly unless you know what you are doing
 void execute_cb_discovery(sys::state& state, dcon::nation_id n);
 
-dcon::nation_id get_effective_unit_commander(sys::state& state, dcon::army_id unit);
-dcon::nation_id get_effective_unit_commander(sys::state& state, dcon::navy_id unit);
+dcon::nation_id get_effective_unit_commander(const sys::state& state, dcon::army_id unit);
+dcon::nation_id get_effective_unit_commander(const sys::state& state, dcon::navy_id unit);
 
 void give_military_access(sys::state& state, dcon::nation_id accessing_nation, dcon::nation_id target);
 void remove_military_access(sys::state& state, dcon::nation_id accessing_nation, dcon::nation_id target);
@@ -549,15 +410,27 @@ enum class reinforcement_estimation_type {
 
 template<reinforcement_estimation_type reinf_est_type>
 float calculate_army_combined_reinforce(sys::state& state, dcon::army_id a);
+// reduces strength of regiment by value and handles if value is greater than the total strength. Returns the actual reduction performed
+float reduce_regiment_strength_safe(sys::state& state, dcon::regiment_id reg, float value);
+float reduce_ship_strength_safe(sys::state& state, dcon::ship_id reg, float value);
 
-void reduce_regiment_strength_safe(sys::state& state, dcon::regiment_id reg, float value);
-void reduce_ship_strength_safe(sys::state& state, dcon::ship_id reg, float value);
+void land_battle_process_line_damage(sys::state& state, dcon::land_battle_id battle);
+void land_battle_clear_dead_regiments_from_battle_slots(sys::state& state, dcon::land_battle_id battle);
+void land_battle_compact_battle_slots(sys::state& state, dcon::land_battle_id battle);
+void land_battle_deploy_reserves_to_battle_slots(sys::state& state, dcon::land_battle_id battle);
 
+// Applies damage to a regiment. Returns the actual amount of strength subtracted from it
 template<regiment_dmg_source damage_source>
-void regiment_take_damage(sys::state& state, dcon::regiment_id reg, float value);
+float regiment_take_str_damage(sys::state& state, dcon::regiment_id reg, float value);
 
 float movement_time_from_to(sys::state& state, dcon::army_id a, dcon::province_id from, dcon::province_id to);
 float movement_time_from_to(sys::state& state, dcon::navy_id n, dcon::province_id from, dcon::province_id to);
+// Computes the effective military distance between two provinces by taking movement cost modifiers into account
+float effective_military_distance(sys::state& state, dcon::nation_id as_nation, dcon::province_id from, dcon::province_id to);
+// Calculates the avg movement cost modifier between two provinces as a specific nation
+float get_avg_movement_cost_modifier(sys::state& state, dcon::nation_id as_nation, dcon::province_id prov_a, dcon::province_id prov_b);
+// Calculates the avg movement cost modifier between two provinces as unowned (ie blackflagged)
+float get_avg_movement_cost_modifier_unowned(sys::state& state, dcon::province_id prov_a, dcon::province_id prov_b);
 arrival_time_info arrival_time_to(sys::state& state, dcon::army_id a, dcon::province_id p);
 arrival_time_info arrival_time_to(sys::state& state, dcon::navy_id n, dcon::province_id p);
 arrival_time_info_raw arrival_time_to_in_days(sys::state& state, dcon::army_id a, dcon::province_id to, dcon::province_id from);
@@ -571,17 +444,10 @@ void update_movement_arrival_days(sys::state& state, dcon::province_id to, dcon:
 template<typename T>
 void update_movement_arrival_days_on_unit(sys::state& state, dcon::province_id to, dcon::province_id from, T army);
 
-enum class crossing_type {
-	none, river, sea
-};
 
-enum class apply_attrition_on_arrival {
-	no, yes
-
-};
-
-enum class battle_is_ending {
-	no, yes
+struct naval_battle_last_retreat {
+	dcon::nation_id last_retreat_attacker;
+	dcon::nation_id last_retreat_defender;
 };
 
 template <apply_attrition_on_arrival attrition_tick = apply_attrition_on_arrival::no>
@@ -591,10 +457,12 @@ void navy_arrives_in_province(sys::state& state, dcon::navy_id n, dcon::province
 std::vector<dcon::nation_id> get_one_side_war_participants(sys::state& state, dcon::war_id war, bool attackers);
 
 template<battle_is_ending battle_state>
-bool retreat(sys::state& state, dcon::navy_id n);
+bool try_retreat(sys::state& state, dcon::navy_id n, retreat_type retreat_type);
 
-void end_battle(sys::state& state, dcon::naval_battle_id b, battle_result result);
-void end_battle(sys::state& state, dcon::land_battle_id b, battle_result result);
+void retreat(sys::state& state, dcon::army_id n, const std::vector<dcon::province_id>& retreat_path, bool end_finished_battle);
+
+void end_battle(sys::state& state, dcon::naval_battle_id b, battle_result result, dcon::nation_id lead_attacker = dcon::nation_id{ }, dcon::nation_id lead_defender = dcon::nation_id{ });
+void end_battle(sys::state& state, dcon::land_battle_id b, battle_result result, dcon::nation_id extra_notify = dcon::nation_id{ });
 
 void invalidate_unowned_wargoals(sys::state& state);
 void update_blackflag_status(sys::state& state, dcon::province_id p);
@@ -603,23 +471,36 @@ void update_movement(sys::state& state);
 bool siege_potential(sys::state& state, dcon::nation_id army_controller, dcon::nation_id province_controller);
 void update_siege_progress(sys::state& state);
 void single_ship_start_retreat(sys::state& state, ship_in_battle& ship, dcon::naval_battle_id battle);
+
+// stackwipes the given navy, sinks all of the ships currently in a battle, and removes all ships from the navy. The empty navy will still exist in a retreating state, but will be cleaned up by GC later
+void stackwipe_navy(sys::state& state, dcon::navy_id navy);
 float required_avg_dist_to_center_for_retreat(sys::state& state);
+int32_t get_regiment_crossing_modifier(battle_regiment battle_reg);
 void update_naval_battles(sys::state& state);
 void update_land_battles(sys::state& state);
 void apply_regiment_damage(sys::state& state);
-uint16_t unit_type_to_reserve_regiment_type(unit_type utype);
+uint16_t unit_type_to_battle_regiment_type(unit_type utype);
 float naval_battle_get_coordination_penalty(sys::state& state, uint32_t friendly_ships, uint32_t enemy_ships);
 float naval_battle_get_coordination_bonus(sys::state& state, uint32_t friendly_ships, uint32_t enemy_ships);
 uint32_t get_reserves_count_by_side(sys::state& state, dcon::land_battle_id b, bool attacker);
 float get_damage_reduction_stacking_penalty(sys::state& state, uint32_t friendly_ships, uint32_t enemy_ships);
-void add_regiment_to_reserves(sys::state& state, dcon::land_battle_id bat, dcon::regiment_id reg, bool is_attacking);
 bool is_regiment_in_reserve(sys::state& state, dcon::regiment_id reg);
-void sort_reserves_by_deployment_order(sys::state& state, dcon::dcon_vv_fat_id<reserve_regiment> reserves);
-uint8_t get_effective_battle_dig_in(sys::state& state, dcon::land_battle_id battle);
+void sort_reserves_by_deployment_order(sys::state& state, dcon::dcon_vv_fat_id<battle_regiment> reserves);
+// calculates the effective dig-in of a battle regiment with the given amount of recon being opposed to it
+uint8_t get_effective_regiment_dig_in(const sys::state& state, battle_regiment bat_regiment, float recon);
+// calculates the effective recon value of the attacking side in a battle
+float get_effective_battle_attacker_recon(const sys::state& state, dcon::land_battle_id battle);
 float get_army_recon_eff(sys::state& state, dcon::army_id army);
 float get_army_siege_eff(sys::state& state, dcon::army_id army);
-dcon::nation_id tech_nation_for_army(sys::state& state, dcon::army_id army);
-dcon::regiment_id get_land_combat_target(sys::state& state, dcon::regiment_id damage_dealer, int32_t position, const std::array<dcon::regiment_id, 30>& opposing_line);
+dcon::nation_id tech_nation_for_army(const sys::state& state, dcon::army_id army);
+
+// Deletes the ship and removes it from any battle it may be in
+void delete_ship_safe(sys::state& state, dcon::ship_id ship);
+// Deletes the ship and deletes&damages any regiments on transport if it resulted in negative transport capacity. This will remove the ship from battle if it is in one
+void delete_ship_safe_w_army_transport_loss(sys::state& state, dcon::ship_id ship);
+// Finds the closest regiment from a position with a given max offset in the provided combat slots. Returns an invalid regiment ID if none found
+battle_regiment get_regiment_at_offset_in_combat_slots(int32_t position, uint32_t max_offset, const std::array<battle_regiment, max_combat_width>& combat_slots);
+battle_regiment get_land_combat_target(const sys::state& state, dcon::regiment_id damage_dealer, int32_t position, const std::array<battle_regiment, max_combat_width>& opposing_line);
 void apply_attrition_to_army(sys::state& state, dcon::army_id army);
 void apply_attrition(sys::state& state);
 void increase_dig_in(sys::state& state);
@@ -635,6 +516,8 @@ void stop_navy_movement(sys::state& state, dcon::navy_id navy);
 void stop_army_movement(sys::state& state, dcon::army_id army);
 
 bool province_has_enemy_fleet(sys::state& state, dcon::province_id location, dcon::nation_id our_nation);
+bool province_has_enemy_army(sys::state& state, dcon::province_id location, dcon::nation_id our_nation);
+bool province_has_war_ally_army(sys::state& state, dcon::province_id location, dcon::nation_id our_nation);
 float calculate_battle_reinforcement(sys::state& state, dcon::land_battle_id b, bool attacker);
 float calculate_average_battle_supply_spending(sys::state& state, dcon::land_battle_id b, bool attacker);
 float calculate_average_battle_location_modifier(sys::state& state, dcon::land_battle_id b, bool attacker);
@@ -651,8 +534,8 @@ void run_gc(sys::state& state);
 void update_blackflag_status(sys::state& state);
 void send_rebel_hunter_to_next_province(sys::state& state, dcon::army_id ar, dcon::province_id prov);
 
-bool can_retreat_from_battle(sys::state& state, dcon::naval_battle_id battle);
-bool can_retreat_from_battle(sys::state& state, dcon::land_battle_id battle);
+bool is_battle_retreatable(sys::state& state, dcon::naval_battle_id battle, retreat_type retreat_type);
+bool is_battle_retreatable(sys::state& state, dcon::land_battle_id battle);
 
 dcon::nation_id get_land_battle_lead_attacker(sys::state& state, dcon::land_battle_id b);
 dcon::nation_id get_land_battle_lead_defender(sys::state& state, dcon::land_battle_id b);
@@ -660,10 +543,10 @@ dcon::nation_id get_naval_battle_lead_defender(sys::state& state, dcon::naval_ba
 dcon::nation_id get_naval_battle_lead_attacker(sys::state& state, dcon::naval_battle_id b);
 
 float get_leader_select_score(sys::state& state, dcon::leader_id l, bool is_attacking);
-bool is_attacker_in_battle(sys::state& state, dcon::army_id a);
+bool is_attacker_in_battle(const sys::state& state, dcon::army_id a);
 bool is_attacker_in_battle(sys::state& state, dcon::navy_id a);
-dcon::leader_trait_id get_leader_background_wrapper(sys::state& state, dcon::leader_id id);
-dcon::leader_trait_id get_leader_personality_wrapper(sys::state& state, dcon::leader_id id);
+dcon::leader_trait_id get_leader_background_wrapper(const sys::state& state, dcon::leader_id id);
+dcon::leader_trait_id get_leader_personality_wrapper(const sys::state& state, dcon::leader_id id);
 void update_battle_leaders(sys::state& state, dcon::land_battle_id b);
 void update_battle_leaders(sys::state& state, dcon::naval_battle_id b);
 
@@ -675,34 +558,51 @@ void move_land_to_merge(sys::state& state, dcon::nation_id by, dcon::army_id a, 
 void move_navy_to_merge(sys::state& state, dcon::nation_id by, dcon::navy_id a, dcon::province_id start, dcon::province_id dest);
 
 
-// shortcut function for moving navies. skips most player-movement checks and assumes the move command is legitimate. Will return false if there is no valid path and no movement has happend.. 
-// takes a path directly instead of calculating it
-bool move_navy_fast(sys::state& state, dcon::navy_id navy, const std::span<dcon::province_id, std::dynamic_extent> naval_path, bool reset = true);
+// Sets a navy to have the specific path. If override_path is true it will clear the path first, if false it will append to the existing path
+bool set_navy_path(sys::state& state, dcon::navy_id navy, std::span<const dcon::province_id, std::dynamic_extent> naval_path, bool override_path = true);
 
 // shortcut function for moving navies. skips most player-movement checks and assumes the move command is legitimate. Will return false if there is no valid path and no movement has happend..
 // if path_length_to_use is 0, use the entire path. Otherwise, it will only use said length of the path
 template<ai_path_length path_length_to_use = ai_path_length{ 0 } >
-bool move_navy_fast(sys::state& state, dcon::navy_id navy, dcon::province_id destination, bool reset = true);
+bool move_navy_ai(sys::state& state, dcon::navy_id navy, dcon::province_id destination, bool reset = true);
 
-// shortcut function for moving armies. skips most player-movement checks and assumes the move command is legitimate. Will return false if there is no valid path and no movement has happend.
-// takes a path directly instead of calculating it
-bool move_army_fast(sys::state& state, dcon::army_id army, const std::span<dcon::province_id, std::dynamic_extent>, dcon::nation_id nation_as, bool reset = true);
+// Sets a army to have the specific path. If override_path is true it will clear the path first, if false it will append to the existing path
+bool set_army_path(sys::state& state, dcon::army_id army, std::span<const dcon::province_id, std::dynamic_extent> army_path, dcon::nation_id nation_as, bool override_path = true);
 
 // shortcut function for moving armies. skips most player-movement checks and assumes the move command is legitimate. Will return false if there is no valid path and no movement has happend..
 // if path_length_to_use is 0, use the entire path. Otherwise, it will only use said length of the path
 template<ai_path_length path_length_to_use = ai_path_length{ 0 } >
-bool move_army_fast(sys::state& state, dcon::army_id army, dcon::province_id destination, dcon::nation_id nation_as, bool reset = true);
+bool move_army_ai(sys::state& state, dcon::army_id army, dcon::province_id destination, dcon::nation_id nation_as, bool reset = true);
 
 bool pop_eligible_for_mobilization(sys::state& state, dcon::pop_id p);
 
 template<regiment_dmg_source damage_source>
 void disband_regiment_w_pop_death(sys::state& state, dcon::regiment_id reg_id);
 
-enum special_army_order {
-	none,
-	move_to_siege,
-	strategic_redeployment,
-	pursue_to_engage
-};
+
+template <bool VALIDATE>
+bool can_attack(sys::state& state, dcon::nation_id n);
+template <bool VALIDATE>
+bool can_attack_ai(sys::state& state, dcon::nation_id source, dcon::nation_id target);
+template <bool VALIDATE>
+bool can_attack(sys::state& state, dcon::nation_id source, dcon::nation_id target);
+
+template<command::actor Actor>
+bool can_change_land_unit_type(const sys::state& state, dcon::nation_id source, dcon::regiment_id regiment, dcon::unit_type_id new_type);
+
+
+template<command::actor Actor>
+bool can_change_naval_unit_type(const sys::state& state, dcon::nation_id source, dcon::ship_id ship, dcon::unit_type_id new_type);
+
+template<command::actor Actor>
+bool can_split_army(const sys::state& state, dcon::nation_id source, dcon::army_id army, std::span<const dcon::regiment_id> regiments_to_split);
+template<command::actor Actor>
+void split_army(sys::state& state, dcon::nation_id source, dcon::army_id army, std::span<const dcon::regiment_id> regiments_to_split, fixed_bool_t select_both_armies = false);
+
+template<command::actor Actor>
+bool can_split_navy(const sys::state& state, dcon::nation_id source, dcon::navy_id navy, std::span<const dcon::ship_id> ships_to_split);
+template<command::actor Actor>
+void split_navy(sys::state& state, dcon::nation_id source, dcon::navy_id navy, std::span<const dcon::ship_id> ships_to_split, fixed_bool_t select_both_navies = false);
+
 
 } // namespace military

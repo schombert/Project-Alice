@@ -6,6 +6,8 @@
 #include "province_templates.hpp"
 #include "color.hpp"
 #include "triggers.hpp"
+#include "gui_listbox_templates.hpp"
+#include "gui_piechart_templates.hpp"
 #include "gui_province_window.hpp"
 #include "demographics.hpp"
 #include "economy_stats.hpp"
@@ -1204,7 +1206,7 @@ public:
 		}
 	}
 	void on_update(sys::state& state) noexcept override {
-		
+
 	}
 
 	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
@@ -2243,7 +2245,15 @@ public:
 		auto box = text::open_layout_box(contents, 0);
 		auto pop_fat_id = dcon::fatten(state.world, content);
 		auto nation_fat = dcon::fatten(state.world, state.local_player_nation);
-		float pop_growth = demographics::get_effective_estimation_type_change(state, state.local_player_nation, pop_fat_id.id);
+		float pop_growth = 0.0f;
+		state.world.nation_for_each_province_ownership(state.local_player_nation, [&](auto ownership) {
+			auto province = state.world.province_ownership_get_province(ownership);
+			state.world.province_for_each_pop_location(province, [&](auto location) {
+				auto pop = state.world.pop_location_get_pop(location);
+				if(state.world.pop_get_poptype(pop) == pop_fat_id.id)
+					pop_growth += demographics::get_monthly_pop_increase(state, pop);
+			});
+		});
 
 		//check if the pop is growing or not and change the text accordingly
 		text::substitution_map sub;
@@ -2254,7 +2264,7 @@ public:
 		text::add_to_substitution_map(sub2, text::variable_type::val, text::pretty_integer{ int32_t(pop_growth) });
 		text::add_to_substitution_map(sub2, text::variable_type::who, pop_fat_id.get_name());
 		text::add_to_substitution_map(sub2, text::variable_type::where, state.local_player_nation);
-		
+
 		text::localised_format_box(state, contents, box, std::string_view("pop_size_info_on_sel"), sub);
 		text::add_divider_to_layout_box(state, contents, box);
 		// TODO replace $VAL from earlier with a new one showing how many people have signed up recently -breizh

@@ -204,6 +204,41 @@ bool parse_bool(std::string_view content, int32_t, error_handler&) {
 	else
 		return (content[0] == 'Y') || (content[0] == 'y') || (content[0] == '1');
 }
+std::optional<bool> try_parse_bool_strict(std::string_view content, int32_t, error_handler&) {
+	switch(content.length()) {
+	case 0:
+		return false;
+	
+	case 1:
+		if(content[0] == '0') {
+			return std::optional<bool>{false};
+		}
+		else if(content[0] == '1') {
+			return std::optional<bool>{true};
+
+		}
+		else {
+			return std::optional<bool>{};
+		}
+	case 2:
+		
+		if((content[0] == 'n' || content[0] == 'N') && (content[1] == 'o' || content[1] == 'O')) {
+			return std::optional<bool>{false};
+		}
+		else {
+			return std::optional<bool>{};
+		}
+	case 3:
+		if((content[0] == 'y' || content[0] == 'Y') && (content[1] == 'e' || content[1] == 'E') && (content[2] == 's' || content[2] == 'S')) {
+			return std::optional<bool>{true};
+		}
+		else {
+			return std::optional<bool>{};
+		};
+	default:
+		return std::optional<bool>{};
+	}
+}
 
 float parse_float(std::string_view content, int32_t line, error_handler& err) {
 	float rvalue = 0.0f;
@@ -213,6 +248,15 @@ float parse_float(std::string_view content, int32_t line, error_handler& err) {
 	}
 
 	return rvalue;
+}
+
+std::optional<float> try_parse_float(std::string_view content, int32_t line, error_handler& err) {
+	float rvalue = 0.0f;
+	if(!float_from_chars(content.data(), content.data() + content.length(), rvalue)) {
+		return std::optional<float>{};
+	}
+
+	return std::optional<float>{rvalue};
 }
 
 double parse_double(std::string_view content, int32_t line, error_handler& err) {
@@ -376,6 +420,22 @@ char const* csv_advance_to_next_line(char const* start, char const* end) {
 		return start;
 	else
 		return csv_advance_to_next_line(start, end);
+}
+// increments the line_num variable each time a newline is encountered
+char const* csv_advance_to_next_line(char const* start, char const* end, uint32_t& line_num) {
+
+	while(start != end && !line_termination(*start)) {
+		++start;
+	}
+	while(start != end && line_termination(*start)) {
+		++start;
+		++line_num;
+	}
+		
+	if(start == end || *start != '#')
+		return start;
+	else
+		return csv_advance_to_next_line(start, end, line_num);
 }
 
 std::string_view remove_surrounding_whitespace(std::string_view txt) {

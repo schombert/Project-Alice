@@ -68,3 +68,23 @@ font = { #Font used for the map labels
 	path = "assets/fonts/NotoSerif-Regular.ttf"
 	smallCaps = yes
 }
+
+##KOREAN
+font = { #Font used for normal, regular text
+	id = 13
+	path = "assets/fonts/NotoSansKR-Regular.ttf"
+	fallback = "assets/fonts/LibreCaslonText-Regular.ttf"
+	smallCaps = no
+}
+font = { #Font used for headers and "bold" text
+	id = 14
+	path = "assets/fonts/NotoSansKR-Bold.ttf"
+	fallback = "assets/fonts/SourceSerif4Subhead-Regular.ttf"
+	smallCaps = no
+}
+font = { #Font used for the map labels
+	id = 15
+	path = "assets/fonts/NotoSansKR-SemiBold.ttf"
+	fallback = "assets/fonts/SourceSerif4Subhead-Regular.ttf"
+	smallCaps = no
+}

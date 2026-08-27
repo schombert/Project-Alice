@@ -1,0 +1,32 @@
+<svg 
+	xmlns = "http://www.w3.org/2000/svg"
+	viewBox = "0 0 [[W;1000;0]] [[H;1000;0]] " 
+	width = "[[W;1000;0]]" 
+	height = "[[H;1000;0]]" >  
+	
+	<defs>
+		<pattern id="stripefill" x="0" y="0" width="[[P;32;0]]" height="[[P;32;0]]" patternUnits="userSpaceOnUse" >
+			<image href="stripes1.png" height="[[P;32;0]]" width="[[P;32;0]]" />
+		</pattern>
+		<linearGradient id="leftfade">
+			<stop stop-color="white" offset="0%" />
+			<stop stop-color="white" offset="50%" />
+			<stop stop-color="black" offset="100%" />
+		</linearGradient>
+		<mask  id="fademask">
+			<rect  x="0" y="0" fill="url(#leftfade)" width="[[H;1000;0]]" height="[[H;1000;0]]" />
+		</mask>
+		<pattern id="printpattern" x="0" y="0" width="[[P;64;0]]" height="[[P;64;0]]" patternUnits="userSpaceOnUse" >
+			<image href="printbrush.png" height="[[P;64;0]]" width="[[P;64;0]]" />
+		</pattern>
+		<mask  id="printmask">
+			<g mask="url(#fademask)">
+				<rect x="0" y="0" fill="url(#printpattern)" width="[[H;1000;0]]" height="[[H;1000;0]]" />
+			</g>
+		</mask>
+	</defs>
+	<rect fill="#fef7f0" x="0" y="0" width="[[W;1000;0]]" height="[[H;1000;0]]" />
+	<g mask="url(#printmask)">
+		<rect fill="url(#stripefill)" x="0" y="0" width="[[H;1000;0]]" height="[[H;1000;0]]" />
+	</g>
+</svg>

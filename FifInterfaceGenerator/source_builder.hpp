@@ -52,6 +52,7 @@ public:
 	std::vector<std::string> lines;
 	int32_t extra_tabs = 0;
 	bool declaration_mode = false;
+	char padding[3];
 
 	basic_builder& operator+(substitute const& sub) & {
 		for(auto& s : substitutes) {

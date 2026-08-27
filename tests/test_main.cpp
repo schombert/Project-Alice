@@ -32,7 +32,6 @@ std::unique_ptr<sys::state> load_testing_scenario_file(sys::network_mode_type mo
 	if(!sys::try_read_scenario_file(*game_state, NATIVE("tests_scenario.bin"))) {
 		std::abort();
 	} else {
-		game_state->on_scenario_load();
 		INFO("Scenario loaded");
 	}
 
@@ -61,8 +60,10 @@ std::unique_ptr<sys::state> load_testing_scenario_file_with_save(sys::network_mo
 	} else {
 		if(!selected_nation) {
 			auto observer_nation = game_state->world.national_identity_get_nation_from_identity_holder(game_state->national_definitions.rebel_id);
+			network::create_mp_player(*game_state, sys::player_name{ 'P', 'l' ,'a', 'y', 'e', 'r' }, sys::player_password_raw{ }, true, false, observer_nation);
 			game_state->local_player_nation = observer_nation;
 		} else {
+			network::create_mp_player(*game_state, sys::player_name{ 'P', 'l' ,'a', 'y', 'e', 'r' }, sys::player_password_raw{ },true , false, selected_nation);
 			game_state->local_player_nation = selected_nation;
 		}
 		game_state->fill_unsaved_data();
@@ -85,6 +86,7 @@ std::unique_ptr<sys::state> load_testing_scenario_file_with_save(sys::network_mo
 #include "triggers_tests.cpp"
 #include "dcon_tests.cpp"
 #include "network_tests.cpp"
+#include "pathfinding_tests.cpp"
 
 TEST_CASE("Dummy test", "[dummy test instance]") {
 	REQUIRE(1 + 1 == 2);

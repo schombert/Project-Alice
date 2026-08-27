@@ -1,185 +1,185 @@
 message_settings_options;Notificaciones
 message_notify_rebels_defeat_label;Notificar cuando se derrota a un rebelde
 message_settings_spectator;Plantilla: Espectador
-msg_revolt_title;
-msg_revolt_1;
-msg_revolt_2;
-msg_war_title;
-msg_war_1;
-msg_wargoal_title;
-msg_wargoal_1;
-msg_war_join_title;
-msg_war_join_1;
-msg_war_becomes_great_title;
-msg_war_becomes_great_1;
-msg_siegeover_title;
-msg_siegeover_1;
-msg_siegeover_2;
-msg_siegeover_3;
-msg_siegeover_4;
-msg_siegeover_5;
-msg_new_crisis_title;
-msg_new_crisis_1;
-msg_new_crisis_2;
-msg_tech_title;
-msg_tech_1;
-msg_inv_title;
-msg_inv_1;
-msg_fab_discovered_title;
-msg_fab_discovered_1;
-msg_fab_discovered_2;
-msg_fab_canceled_title;
-msg_fab_canceled_1;
-msg_fab_finished_title;
-msg_fab_finished_1;
-msg_leader_died_title;
-msg_leader_died_1;
-msg_leader_died_2;
-msg_peace_offer_accepted_title;
-msg_peace_offer_accepted_1;
-msg_peace_offer_rejected_title;
-msg_peace_offer_rejected_1;
-msg_upper_house_title;
-msg_upper_house_1;
-msg_upper_house_2;
-msg_election_start_title;
-msg_election_start_1;
-msg_dec_rel_title;
-msg_dec_rel_1;
-msg_inc_rel_title;
-msg_inc_rel_1;
-msg_add_sphere_title;
-msg_add_sphere_1;
-msg_rem_sphere_title;
-msg_rem_sphere_1;
-msg_rem_sphere_2;
-msg_op_dec_title;
-msg_op_dec_1;
-msg_op_inc_title;
-msg_op_inc_1;
-msg_expel_title;
-msg_expel_1;
-msg_ban_title;
-msg_ban_1;
-msg_ban_2;
-msg_discredit_title;
-msg_discredit_1;
-msg_discredit_2;
-msg_ally_call_accepted_title;
-msg_ally_call_accepted_1;
-msg_ally_call_declined_title;
-msg_ally_call_decline_1;
-msg_alliance_declined_title;
-msg_alliance_declined_1;
-msg_alliance_starts_title;
-msg_alliance_starts_1;
-msg_alliance_ends_title;
-msg_alliance_ends_1;
-msg_access_refused_title;
-msg_access_refused_1;
-msg_access_granted_title;
-msg_access_granted_1;
-msg_access_canceled_a_title;
-msg_access_canceled_a_1;
-msg_access_canceled_b_title;
-msg_access_canceled_b_1;
-msg_wsub_start_title;
-msg_wsub_start_1;
-msg_wsub_end_title;
-msg_wsub_end_1;
-msg_new_gp_title;
-msg_new_gp_1;
-msg_lost_gp_title;
-msg_lost_gp_1;
-msg_decision_title;
-msg_decision_1;
-msg_decision_2;
-msg_rebels_win_title;
-msg_rebels_win_1;
-msg_rebels_win_2;
-msg_rebels_win_3;
-msg_rebels_win_4;
-msg_rebels_win_5;
-msg_rebels_win_6;
-msg_election_end_title;
-msg_election_end_1;
-msg_election_end_2;
-msg_crisis_joffer_accepted;
-msg_crisis_joffer_accepted_1;
-msg_crisis_joffer_rejected;
-msg_crisis_joffer_reject_1;
-msg_crisis_settled_title;
-msg_crisis_settled_1;
-msg_crisis_not_settled_title;
-msg_crisis_not_settled_1;
-msg_crisis_escalates_title;
-msg_crisis_escalates_1;
-msg_crisis_fizzle_title;
-msg_crisis_fizzle_1;
-msg_crisis_fizzle_2;
-msg_crisis_attacker_title;
-msg_crisis_attacker_1;
-msg_crisis_defender_title;
-msg_crisis_defender_1;
-msg_crisis_vol_join_title;
-msg_crisis_vol_join_1;
-msg_crisis_vol_join_2;
-msg_entered_automatic_alliance_title;
-msg_entered_automatic_alliance_1;
-msg_chat_message_title;
-msg_chat_message_1;
-msg_chat_message_2;
-msg_n_event_title;
-msg_p_event_title;
-msg_m_event_title;
-msg_revolt;
-msg_war_on_nation;
-msg_war_by_nation;
-msg_wargoal_added;
-msg_siegeover_by_nation;
-msg_siegeover_on_nation;
-msg_colony_finished;
-msg_reform_gained;
-msg_reform_lost;
-msg_ruling_party_change;
-msg_upperhouse;
-msg_electionstart;
-msg_electiondone;
-msg_breakcountry;
-msg_peace_accepted_from_nation;
-msg_peace_rejected_from_nation;
-msg_peace_accepted_by_nation;
-msg_peace_rejected_by_nation;
-msg_mobilization_start;
-msg_mobilization_end;
-msg_factory_complete;
-msg_rr_complete;
-msg_fort_complete;
-msg_naval_base_complete;
-msg_province_event;
-msg_national_event;
-msg_major_event;
-msg_invention;
-msg_tech;
-msg_leader_dies;
-msg_land_combat_starts_on_nation;
-msg_naval_combat_starts_on_nation;
-msg_land_combat_starts_by_nation;
-msg_naval_combat_starts_by_nation;
-msg_movement_finishes;
-msg_decision;
-msg_lose_great_power;
-msg_become_great_power;
-msg_war_subsidies_start_by_nation;
-msg_war_subsidies_start_on_nation;
-msg_war_subsidies_end_by_nation;
-msg_war_subsidies_end_on_nation;
-msg_reparations_start_by_nation;
-msg_reparations_start_on_nation;
-msg_reparations_end_by_nation;
-msg_reparations_end_on_nation;
-msg_mil_access_start_by_nation;
-msg_mil_access_start_on_nation;
+msg_revolt_title;Levantamiento rebelde
+msg_revolt_1;$x$ Rebeldes se an levantado en:
+msg_revolt_2;$x$ Rebeldes se an levantado (unsuccessfully)
+msg_war_title;Guerra declarada
+msg_war_1;$x$ a declarado la guerra a $y$, comenzando el $val$.
+msg_wargoal_title;Objetivo de Guerra
+msg_wargoal_1;$x$ a añadido a nuestra guerra el objetivo de guerra:
+msg_war_join_title;Nación entra a la guerra
+msg_war_join_1;$x$ entro a la en curso $val$
+msg_war_becomes_great_title;Guerra Escala
+msg_war_becomes_great_1;La $x$ se volvio $y$
+msg_siegeover_title;Acedio terminado
+msg_siegeover_1;El acedio de $x$ a terminado.
+msg_siegeover_2;$y$ ya no controla la provincia.
+msg_siegeover_3;$y$ rebels no longer control the province.
+msg_siegeover_4;The province is now controlled by $y$.
+msg_siegeover_5;The province is now controlled by $y$ rebels.
+msg_new_crisis_title;Crisis Brewing
+msg_new_crisis_1;A crisis is brewing over the ownership of $x$.
+msg_new_crisis_2;A crisis is brewing over the colonization of $x$.
+msg_tech_title;Technology Researched
+msg_tech_1;$x$ has been researched, with the following effects:
+msg_inv_title;Invention Discovered
+msg_inv_1;$x$ has been discovered, with the following effects:
+msg_fab_discovered_title;Fabrication Discovered
+msg_fab_discovered_1;Our casus belli fabrication has been discovered, resulting in ?R$x$?! infamy.
+msg_fab_discovered_2;$x$ has been discovered fabricating a casus belli on $y$
+msg_fab_canceled_title;Fabrication Canceled
+msg_fab_canceled_1;The casus belli we were fabricating has become invalid and fabrication has been canceled.
+msg_fab_finished_title;Fabrication Complete
+msg_fab_finished_1;We have finished fabricating a $x$ casus belli against $y$.
+msg_leader_died_title;A Military Leader Has Died
+msg_leader_died_1;One of our generals leading an army in $y$, $x$, has died.
+msg_leader_died_2;One of our admirals commanding a navy in $y$, $x$, has died.
+msg_peace_offer_accepted_title;Peace Offer Accepted
+msg_peace_offer_accepted_1;$x$ has accepted a peace offer from $y$ as part of the $val$.
+msg_peace_offer_rejected_title;Peace Offer Rejected
+msg_peace_offer_rejected_1;$x$ has rejected a peace offer from $y$ as part of the $val$.
+msg_upper_house_title;Upper House Formed
+msg_upper_house_1;A new upper house has been assembled with the following composition:
+msg_upper_house_2;$x$%: $y$
+msg_election_start_title;Elections Starting
+msg_election_start_1;The election will finish on $x$.
+msg_dec_rel_title;Relations Worsened
+msg_dec_rel_1;$x$ has decreased their relations with $y$.
+msg_inc_rel_title;Relations Improved
+msg_inc_rel_1;$x$ has improved their relations with $y$.
+msg_add_sphere_title;Nation Sphered
+msg_add_sphere_1;$x$ has added $y$ to their sphere of influence.
+msg_rem_sphere_title;Nation Removed from Sphere
+msg_rem_sphere_1;$x$ has removed $y$ from their sphere of influence.
+msg_rem_sphere_2;$x$ has removed $y$ from the sphere of influence of $val$.
+msg_op_dec_title;Opinion Decreased
+msg_op_dec_1;$x$ has decreased $y$'s opinion of $val$.
+msg_op_inc_title;Opinion Increased
+msg_op_inc_1;$x$ has increased $y$'s opinion of them.
+msg_expel_title;Advisors Expelled
+msg_expel_1;$x$ has expelled $val$'s advisors to $y$.
+msg_ban_title;Embassy Banned
+msg_ban_1;$x$ has caused $val$'s embassy to $y$ to be banned.
+msg_ban_2;This will last until $x$.
+msg_discredit_title;Nation Discredited
+msg_discredit_1;$x$ has caused $val$ to be discredited with $y$.
+msg_discredit_2;This will last until $x$.
+msg_ally_call_accepted_title;Alliance Honored
+msg_ally_call_accepted_1;$x$ has honored their alliance with $y$ and joined the $val$.
+msg_ally_call_declined_title;Alliance Dishonored
+msg_ally_call_decline_1;$x$ has refused to honor their alliance with $y$ and join the $val$.
+msg_alliance_declined_title;Alliance Refused
+msg_alliance_declined_1;$x$ has refused $y$'s offer to form an alliance.
+msg_alliance_starts_title;Alliance Formed
+msg_alliance_starts_1;$x$ and $y$ have formed an alliance.
+msg_alliance_ends_title;Alliance Broken
+msg_alliance_ends_1;The alliance between $x$ and $y$ has ended.
+msg_access_refused_title;Access Refused
+msg_access_refused_1;$x$ has refused to give $y$ military access to their nation.
+msg_access_granted_title;Access Granted
+msg_access_granted_1;$x$ has given $y$ military access to their nation.
+msg_access_canceled_a_title;Access Revoked
+msg_access_canceled_a_1;$x$ has revoked military access from $y$.
+msg_access_canceled_b_title;Access Canceled
+msg_access_canceled_b_1;$x$ no longer requires military access to $y$.
+msg_wsub_start_title;War Subsidies Start
+msg_wsub_start_1;$x$ has begun subsidizing $y$'s current wars.
+msg_wsub_end_title;War Subsidies End
+msg_wsub_end_1;$x$ has stopped subsidizing $y$'s current wars.
+msg_new_gp_title;New Great Power
+msg_new_gp_1;$x$ is now a great power.
+msg_lost_gp_title;Lost Great Power
+msg_lost_gp_1;$x$ is no longer considered to be a great power.
+msg_decision_title;Decision Made
+msg_decision_1;$x$ has taken the $y$ decision
+msg_decision_2;Effect:
+msg_rebels_win_title;Rebel victory
+msg_rebels_win_1;$x$ rebels have won.
+msg_rebels_win_2;?R$x$?! prestige lost
+msg_rebels_win_3;Government changes to $x$
+msg_rebels_win_4;Government ideology changed to $x$
+msg_rebels_win_5;All diplomatic relationships are ended
+msg_rebels_win_6;Effect:
+msg_election_end_title;Election Finished
+msg_election_end_1;$x$ is the new ruling party, receiving $y$ of the vote.
+msg_election_end_2;$x$ is the new ruling party, as part of a coalition government, receiving $y$ of the vote.
+msg_crisis_joffer_accepted;Nation Takes a Side
+msg_crisis_joffer_accepted_1;$x$ has accepted an offer by $y$ to take their side in the current crisis.
+msg_crisis_joffer_rejected;Nation Remains Neutral
+msg_crisis_joffer_reject_1;$x$ has rejected an offer by $y$ to take their side in the current crisis.
+msg_crisis_settled_title;Crisis Resolved
+msg_crisis_settled_1;$x$ has accepted an offer by $y$ to resolve the current crisis.
+msg_crisis_not_settled_title;Crisis Resolution Rejected
+msg_crisis_not_settled_1;$x$ has rejected an offer by $y$ to resolve the current crisis.
+msg_crisis_escalates_title;Crisis Escalates
+msg_crisis_escalates_1;The current crisis has escalated into the $x$.
+msg_crisis_fizzle_title;Crisis Adverted
+msg_crisis_fizzle_1;The brewing crisis has failed to attract international attention.
+msg_crisis_fizzle_2;The brewing crisis failed to attract a defender
+msg_crisis_attacker_title;Crisis Backer
+msg_crisis_attacker_1;$x$ has become involved in the current crisis, backing the attacker.
+msg_crisis_defender_title;Crisis Backer
+msg_crisis_defender_1;$x$ has become involved in the current crisis, backing the defender.
+msg_crisis_vol_join_title;Nation Takes a Side
+msg_crisis_vol_join_1;$x$ has decided to join the current crisis on the side of the attackers.
+msg_crisis_vol_join_2;$x$ has decided to join the current crisis on the side of the defenders.
+msg_entered_automatic_alliance_title;Entered alliance automatically
+msg_entered_automatic_alliance_1;$x$ has entered in an alliance with us automatically, because we marked that we're interested in allying them if possible
+msg_chat_message_title;Chat message
+msg_chat_message_1;$x$ says:
+msg_chat_message_2;$x$
+msg_n_event_title;National Event
+msg_p_event_title;Provincial Event
+msg_m_event_title;Major Event
+msg_revolt;When a revolt occurs
+msg_war_on_nation;When we declare war
+msg_war_by_nation;When we are declared war
+msg_wargoal_added;When a wargoal is added
+msg_siegeover_by_nation;Siege done against us
+msg_siegeover_on_nation;Siege done against them
+msg_colony_finished;When we finish colonizing
+msg_reform_gained;When we gain a reform
+msg_reform_lost;When we lose a reform
+msg_ruling_party_change;When the ruling party changes
+msg_upperhouse;When the upperhouse changes
+msg_electionstart;When elections start
+msg_electiondone;When elections end
+msg_breakcountry;When a country is broken
+msg_peace_accepted_from_nation;When we accept a peace offer
+msg_peace_rejected_from_nation;When we reject a peace offer
+msg_peace_accepted_by_nation;When they accept a peace offer
+msg_peace_rejected_by_nation;When they reject a peace offer
+msg_mobilization_start;When we mobilize
+msg_mobilization_end;When we demobilize
+msg_factory_complete;When a factory gets constructed
+msg_rr_complete;When a railroad gets constructed
+msg_fort_complete;When a fort gets constructed
+msg_naval_base_complete;When a naval base gets constructed
+msg_province_event;When a province event occurs
+msg_national_event;When a national event occurs
+msg_major_event;When a major event occurs
+msg_invention;When an invention is discovered
+msg_tech;When we finish research
+msg_leader_dies;When a leader dies
+msg_land_combat_starts_on_nation;When we start land combat
+msg_naval_combat_starts_on_nation;When we start naval combat
+msg_land_combat_starts_by_nation;When land combat is started
+msg_naval_combat_starts_by_nation;When naval combat is started
+msg_movement_finishes;When movement finishes
+msg_decision;When a decision is done
+msg_lose_great_power;When we lose great power
+msg_become_great_power;When we become great power
+msg_war_subsidies_start_by_nation;When war subsidies are given
+msg_war_subsidies_start_on_nation;When we give war subsidies
+msg_war_subsidies_end_by_nation;When war subsidies are ended
+msg_war_subsidies_end_on_nation;When we end war subsidies
+msg_reparations_start_by_nation;When war reparations are placed
+msg_reparations_start_on_nation;When we pay have to war reparations
+msg_reparations_end_by_nation;When war reparations are paid off
+msg_reparations_end_on_nation;When we pay off war reparations
+msg_mil_access_start_by_nation;When we are given military access
+msg_mil_access_start_on_nation;When we give military access
 msg_mil_access_end_by_nation;
 msg_mil_access_end_on_nation;
 msg_mil_access_declined_by_nation;
@@ -202,24 +202,24 @@ msg_decrease_opinion_on_nation;
 msg_rem_sphere_by_nation;
 msg_rem_sphere_on_nation;
 msg_removed_from_sphere;
-msg_add_sphere;
-msg_added_to_sphere;
-msg_increase_relation_by_nation;
-msg_increase_relation_on_nation;
-msg_decrease_relation_by_nation;
-msg_decrease_relation_on_nation;
-msg_join_war_by_nation;
-msg_join_war_on_nation;
-msg_gw_unlocked;
-msg_war_becomes_great;
+msg_add_sphere;When we add to our sphere
+msg_added_to_sphere;When we are added to a sphere
+msg_increase_relation_by_nation;When they increase relations
+msg_increase_relation_on_nation;When we increase relations
+msg_decrease_relation_by_nation;When they decrease relations
+msg_decrease_relation_on_nation;When we decrease relations
+msg_join_war_by_nation;When a nation joins a war
+msg_join_war_on_nation;When we join a war
+msg_gw_unlocked;When great wars are unlocked
+msg_war_becomes_great;When a war becomes a great war
 msg_cb_detected_on_nation;
 msg_cb_detected_by_nation;
 msg_crisis_join_offer_accepted_by_nation;
 msg_crisis_join_offer_declined_by_nation;
 msg_crisis_join_offer_accepted_from_nation;
 msg_crisis_join_offer_declined_from_nation;
-msg_crisis_resolution_accepted;
-msg_crisis_becomes_war;
+msg_crisis_resolution_accepted;When a crisis resolution is accepted
+msg_crisis_becomes_war;When a crisis war starts
 msg_crisis_resolution_declined_from_nation;
 msg_crisis_starts;
 msg_crisis_attacker_backer;
@@ -230,118 +230,125 @@ msg_war_join_on;
 msg_cb_fab_finished;
 msg_cb_fab_cancelled;
 msg_crisis_voluntary_join;
-msg_bankruptcy_title;
-amsg_bankruptcy;
-msg_bankruptcy_1;
-message_name_text;Mensaje
-msg_for_us;Para nosotros
-msg_for_interesting;Para interesantes
-msg_for_other;Para otros
-msg_handling_ignore;Ignorar
-msg_handling_log;Tabular
-msg_handling_sound;
-msg_handling_popup;
-msg_handling_pause;
-amsg_revolt;
-amsg_war_on_nation;
-amsg_war_by_nation;
-amsg_wargoal_added;
-amsg_siegeover_by_nation;
-amsg_siegeover_on_nation;
-amsg_colony_finished;
-amsg_reform_gained;
-amsg_reform_lost;
-amsg_ruling_party_change;
-amsg_upperhouse;
-amsg_electionstart;
-amsg_electiondone;
-amsg_breakcountry;
-amsg_peace_accepted_from_nation;
-amsg_peace_rejected_from_nation;
-amsg_peace_accepted_by_nation;
-amsg_peace_rejected_by_nation;
-amsg_mobilization_start;
-amsg_mobilization_end;
-amsg_factory_complete;
-amsg_rr_complete;
-amsg_fort_complete;
-amsg_naval_base_complete;
-amsg_province_event;
-amsg_national_event;
-amsg_major_event;
-amsg_invention;
-amsg_tech;
-amsg_leader_dies;
-amsg_land_combat_starts_on_nation;
-amsg_naval_combat_starts_on_nation;
-amsg_land_combat_starts_by_nation;
-amsg_naval_combat_starts_by_nation;
-amsg_movement_finishes;
-amsg_decision;
-amsg_lose_great_power;
-amsg_become_great_power;
-amsg_war_subsidies_start_by_nation;
-amsg_war_subsidies_start_on_nation;
-amsg_war_subsidies_end_by_nation;
-amsg_war_subsidies_end_on_nation;
-amsg_reparations_start_by_nation;
-amsg_reparations_start_on_nation;
-amsg_reparations_end_by_nation;
-amsg_reparations_end_on_nation;
-amsg_mil_access_start_by_nation;
-amsg_mil_access_start_on_nation;
-amsg_mil_access_end_by_nation;
-amsg_mil_access_end_on_nation;
-amsg_mil_access_declined_by_nation;
-amsg_mil_access_declined_on_nation;
-amsg_alliance_starts;
-amsg_alliance_ends;
-amsg_alliance_declined_by_nation;
-amsg_alliance_declined_on_nation;
-amsg_ally_called_accepted_by_nation;
-amsg_ally_called_declined_by_nation;
-amsg_discredit_by_nation;
-amsg_ban_by_nation;
-amsg_expell_by_nation;
-amsg_discredit_on_nation;
-amsg_ban_on_nation;
-amsg_expell_on_nation;
-amsg_increase_opinion;
-amsg_decrease_opinion_by_nation;
-amsg_decrease_opinion_on_nation;
-amsg_rem_sphere_by_nation;
-amsg_rem_sphere_on_nation;
-amsg_removed_from_sphere;
-amsg_add_sphere;
-amsg_added_to_sphere;
-amsg_increase_relation_by_nation;
-amsg_increase_relation_on_nation;
-amsg_decrease_relation_by_nation;
-amsg_decrease_relation_on_nation;
-amsg_join_war_by_nation;
-amsg_join_war_on_nation;
-amsg_gw_unlocked;
-amsg_war_becomes_great;
-amsg_cb_detected_on_nation;
-amsg_cb_detected_by_nation;
-amsg_crisis_join_offer_accepted_by_nation;
-amsg_crisis_join_offer_declined_by_nation;
-amsg_crisis_join_offer_accepted_from_nation;
-amsg_crisis_join_offer_declined_from_nation;
-amsg_crisis_resolution_accepted;
-amsg_crisis_becomes_war;
-amsg_crisis_resolution_declined_from_nation;
-amsg_crisis_starts;
-amsg_crisis_attacker_backer;
-amsg_crisis_defender_backer;
-amsg_crisis_fizzle;
-amsg_war_join_by;
-amsg_war_join_on;
-amsg_cb_fab_finished;
-amsg_cb_fab_cancelled;
-amsg_crisis_voluntary_join;
-amsg_army_built;
-amsg_navy_built;
-amsg_bankruptcy;
-amsg_entered_automatic_alliance;
-amsg_chat_message;
+msg_bankruptcy_title;Bankruptcy
+amsg_bankruptcy;When a nation goes bankrupt
+msg_bankruptcy_1;$x$ has gone bankrupt
+message_name_text;Message
+msg_for_us;About: your nation
+msg_for_interesting;Interesting nations
+msg_for_other;Other nations
+msg_handling_ignore;Ignore the message
+msg_handling_log;Log the message
+msg_handling_sound;Log the message with a sound effect
+msg_handling_popup;Pop up a notification for the message
+msg_handling_pause;Pop up a notification for the message and pause the game until it's dismissed
+amsg_revolt;A revolt happens in the nation
+amsg_war_on_nation;War is declared on the nation
+amsg_war_by_nation;War is declared by the nation
+amsg_wargoal_added;The nation adds a war goal
+amsg_siegeover_by_nation;The nation completes a siege
+amsg_siegeover_on_nation;A siege finishes on a province the nation controls
+amsg_colony_finished;The nation finishes a colony
+amsg_reform_gained;The nation passes a reform
+amsg_reform_lost;The nation loses a reform
+amsg_ruling_party_change;The ruling party of the nation changes
+amsg_upperhouse;The composition of the upper house of the nation changes
+amsg_electionstart;An election starts in the nation
+amsg_electiondone;An election ends in the nation
+amsg_breakcountry;Rebels enforce their demands on the nation
+amsg_peace_accepted_from_nation;The nation's peace offer is accepted
+amsg_peace_rejected_from_nation;The nation's peace offer is rejected
+amsg_peace_accepted_by_nation;The nation accepts a peace offer
+amsg_peace_rejected_by_nation;The nation rejects a peace offer
+amsg_mobilization_start;The nation mobilizes
+amsg_mobilization_end;The nation ends its mobilization
+amsg_factory_complete;The nation finishes building a factory
+amsg_rr_complete;The nation finishes building a railroad
+amsg_fort_complete;The nation finishes building a fort
+amsg_naval_base_complete;The nation finishes building a naval base
+amsg_province_event;A province event happens to the nation
+amsg_national_event;A national event happens to the nation
+amsg_major_event;A major event happens to the nation
+amsg_invention;The nation discovers an invention
+amsg_tech;The nation finishes researching a technology
+amsg_leader_dies;One of the nation's military leaders dies
+amsg_land_combat_starts_on_nation;One of the nation's armies is attacked
+amsg_naval_combat_starts_on_nation;One of the nation's navies is attacked
+amsg_land_combat_starts_by_nation;One of the nation's armies makes an attack
+amsg_naval_combat_starts_by_nation;One of the nation's navies makes an attack
+amsg_movement_finishes;One of the nation's units finishes moving
+amsg_decision;The nation takes a decision
+amsg_lose_great_power;The nation loses great power status
+amsg_become_great_power;The nation gains great power status
+amsg_war_subsidies_start_by_nation;The nation starts providing war subsidies
+amsg_war_subsidies_start_on_nation;The nation starts being given war subsidies
+amsg_war_subsidies_end_by_nation;The nation stops providing war subsidies
+amsg_war_subsidies_end_on_nation;The nation stops being provided with war subsidies
+amsg_reparations_start_by_nation;The nation starts paying reparations
+amsg_reparations_start_on_nation;The nation starts being paid reparations
+amsg_reparations_end_by_nation;The nation stops paying reparations
+amsg_reparations_end_on_nation;Reparations stop being paid to the nation
+amsg_mil_access_start_by_nation;The nation starts giving military access
+amsg_mil_access_start_on_nation;The nation starts receiving military access
+amsg_mil_access_end_by_nation;The nation stops giving military access
+amsg_mil_access_end_on_nation;The nation stops receiving military access
+amsg_mil_access_declined_by_nation;The nation's military access request is declined
+amsg_mil_access_declined_on_nation;The nation declines a military access request
+amsg_alliance_starts;The nation enters into a new alliance
+amsg_alliance_ends;The nation ends an alliance
+amsg_alliance_declined_by_nation;The nation declines an alliance offer
+amsg_alliance_declined_on_nation;The nation's alliance offer is declined
+amsg_ally_called_accepted_by_nation;The nation honors a call to arms
+amsg_ally_called_declined_by_nation;The nation declines a call to arms
+amsg_discredit_by_nation;The nation discredits another nation
+amsg_ban_by_nation;The nation bans the embassy of another nation
+amsg_expell_by_nation;The nation expels the advisors of another nation
+amsg_discredit_on_nation;The nation is discredited
+amsg_ban_on_nation;The nation's embassy is banned
+amsg_expell_on_nation;The nation's advisors are expelled
+amsg_increase_opinion;The nation increases another nation's opinion of them
+amsg_decrease_opinion_by_nation;The nation causes the opinion of another nation to decrease
+amsg_decrease_opinion_on_nation;The opinion of this nation is caused to decrease
+amsg_rem_sphere_by_nation;The nation removes another nation from a sphere of influence
+amsg_rem_sphere_on_nation;The nation has another nation removed from its sphere of influence
+amsg_removed_from_sphere;The nation is removed from a sphere of influence
+amsg_add_sphere;The nation adds another nation to their sphere of influence
+amsg_added_to_sphere;The nation is added to a sphere of influence
+amsg_increase_relation_by_nation;The nation increases another nation's relationship with it
+amsg_increase_relation_on_nation;The nation has its relationship with someone else increased
+amsg_decrease_relation_by_nation;The nation decreases another nation's relationship with it
+amsg_decrease_relation_on_nation;The nation has its relationship with someone else decreased
+amsg_join_war_by_nation;The nation joins an existing war
+amsg_join_war_on_nation;A new nation joins an existing war against this nation
+amsg_gw_unlocked;Great wars are unlocked
+amsg_war_becomes_great;A war involving this nation becomes great
+amsg_cb_detected_on_nation;CB justification targeting this nation is detected
+amsg_cb_detected_by_nation;This nation is detected justifying a CB
+amsg_crisis_join_offer_accepted_by_nation;The nation accepts an offer to join a crisis
+amsg_crisis_join_offer_declined_by_nation;The nation declines an offer to join a crisis
+amsg_crisis_join_offer_accepted_from_nation;An offer to join a crisis from this nation is accepted
+amsg_crisis_join_offer_declined_from_nation;An offer to join a crisis from this nation is declined
+amsg_crisis_resolution_accepted;A crisis resolution is accepted
+amsg_crisis_becomes_war;A crisis becomes a war
+amsg_crisis_resolution_declined_from_nation;An crisis resolution offer from this nation is declined
+amsg_crisis_starts;A new crisis starts
+amsg_crisis_attacker_backer;A great power becomes the primary attacker in a crisis
+amsg_crisis_defender_backer;A great power becomes the primary defender in a crisis
+amsg_crisis_fizzle;A crisis fails to attract great power interest
+amsg_war_join_by;The nation joins a war
+amsg_war_join_on;A nation joins a war against this nation
+amsg_cb_fab_finished;The nation finished fabricating a CB
+amsg_cb_fab_cancelled;CB fabrication by the nation is canceled
+amsg_crisis_voluntary_join;The nation joins a crisis without an offer
+amsg_army_built;The nation built an army
+amsg_navy_built;The nation built a navy
+amsg_bankruptcy;Nation goes bankrupt
+amsg_entered_automatic_alliance;The nation is automatically allied by another
+amsg_chat_message;The nation sent a message in chat
+amsg_embargo;The nation issued an embargo
+msg_embargo_issued_title;Embargo issued
+msg_embargo_issued;Nation ?Y$y$?! has issued embargo to ban trade with ?Y$x$?!.
+msg_embargo_lifted_title;Embargo lifted
+msg_embargo_lifted;Nation ?Y$y$?! has lifted embargo on trade with ?Y$x$?!.
+msg_free_trade_agreement_signed_title;Free trade agreement signed.
+msg_free_trade_agreement_signed;Our nations $x$ and $y$ have signed a free trade agreement. It will remove all the tariffs from trade between our countries.

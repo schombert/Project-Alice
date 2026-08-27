@@ -2,7 +2,7 @@
 
 Project Alice is a continuation / rewrite of the Open V2 codebase (an open source "retro clone" of Victoria 2).
 
-Join us on [discord](https://discord.gg/QUJExr4mRn) or visit our [documentation pages](https://schombert.github.io/Project-Alice/)
+Join us on [discord](https://discord.gg/QUJExr4mRn) or visit our [documentation pages](https://github.com/schombert/Project-Alice/blob/main/docs/)
 
 ## How to install and play
 - [Download the latest release here](https://github.com/schombert/Project-Alice/releases)
@@ -20,7 +20,7 @@ Join us on [discord](https://discord.gg/QUJExr4mRn) or visit our [documentation 
 - Read up the [User and multiplayer guide](https://github.com/schombert/Project-Alice/blob/main/docs/user_guide.md#linux) for parameters.
 
 ## Contributing
-- Please, [visit this page](https://schombert.github.io/Project-Alice/md_contributing.html) ([简中](https://github.com/schombert/Project-Alice/blob/main/docs/zh-cn/contributing.md), [Español](https://github.com/schombert/Project-Alice/blob/main/docs/es-es/contributing.md), [Deutsch](https://github.com/schombert/Project-Alice/blob/main/docs/de-de/contributing.md), [Português](https://github.com/schombert/Project-Alice/blob/main/docs/pt/contributing.md))
+- Please, [visit this page](https://github.com/schombert/Project-Alice/blob/main/docs/contributing.md) ([简中](https://github.com/schombert/Project-Alice/blob/main/docs/zh-cn/contributing.md), [Español](https://github.com/schombert/Project-Alice/blob/main/docs/es-es/contributing.md), [Deutsch](https://github.com/schombert/Project-Alice/blob/main/docs/de-de/contributing.md), [Português](https://github.com/schombert/Project-Alice/blob/main/docs/pt/contributing.md))
 
 ## Updates
 - [v1.2.2](docs/Devlogs/v1.2.2/README.md) [中文](docs/Devlogs/v1.2.2/cn.md)

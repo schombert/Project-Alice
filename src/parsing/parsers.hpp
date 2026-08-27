@@ -115,9 +115,10 @@ bool float_from_chars(char const* start, char const* end, float& float_out); // 
 bool double_from_chars(char const* start, char const* end, double& dbl_out); // returns true on success
 
 std::string_view remove_surrounding_whitespace(std::string_view txt);
-
+std::optional<float> try_parse_float(std::string_view content, int32_t line, error_handler& err);
 float parse_float(std::string_view content, int32_t line, error_handler& err);
 double parse_double(std::string_view content, int32_t line, error_handler& err);
+std::optional<bool> try_parse_bool_strict(std::string_view content, int32_t, error_handler&);
 bool parse_bool(std::string_view content, int32_t line, error_handler& err);
 int32_t parse_int(std::string_view content, int32_t line, error_handler& err);
 uint32_t parse_uint(std::string_view content, int32_t line, error_handler& err);
@@ -142,6 +143,7 @@ struct separator_scan_result {
 char const* csv_advance(char const* start, char const* end, char seperator);
 char const* csv_advance_n(uint32_t n, char const* start, char const* end, char seperator);
 char const* csv_advance_to_next_line(char const* start, char const* end);
+char const* csv_advance_to_next_line(char const* start, char const* end, uint32_t& line_num);
 separator_scan_result csv_find_separator_token(char const* start, char const* end, char seperator);
 
 template<size_t count_values, typename T>
@@ -155,6 +157,20 @@ char const* parse_fixed_amount_csv_values(char const* start, char const* end, ch
 	function(values);
 
 	return csv_advance_to_next_line(start, end);
+}
+
+// increments the line_num variable each time a newline is encountered
+template<size_t count_values, typename T>
+char const* parse_fixed_amount_csv_values(char const* start, char const* end, char separator,uint32_t& line_num, T&& function) {
+	std::string_view values[count_values];
+	for(uint32_t i = 0; i < count_values; ++i) {
+		auto r = csv_find_separator_token(start, end, separator);
+		values[i] = std::string_view(start, r.new_position - start);
+		start = r.new_position + int32_t(r.found);
+	}
+	function(values);
+
+	return csv_advance_to_next_line(start, end, line_num);
 }
 
 template<typename T>

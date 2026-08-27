@@ -1,6 +1,8 @@
+#include "system_state.hpp"
 #include "ai_focuses.hpp"
 #include "demographics.hpp"
 #include "triggers.hpp"
+#include "commands.hpp"
 
 
 namespace ai {

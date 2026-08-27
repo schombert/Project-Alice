@@ -1,5 +1,17 @@
 #ifdef _WIN64
 
+#define NOMINMAX
+#define WIN32_LEAN_AND_MEAN
+#ifndef _MSC_VER
+#include <unistd.h>
+#endif
+#define _WINSOCK_DEPRECATED_NO_WARNINGS 1
+#ifndef WINSOCK2_IMPORTED
+#define WINSOCK2_IMPORTED
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#endif
+
 extern "C" {
 #include "network/pcp_api.c"
 #include "network/pcp_client_db.c"

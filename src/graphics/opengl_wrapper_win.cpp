@@ -43,8 +43,8 @@ void create_opengl_context(sys::state& state) {
 
 	// Explicitly request for OpenGL 3.1
 	static const int attribs_3_1[] = {
-		WGL_CONTEXT_MAJOR_VERSION_ARB, 3,
-		WGL_CONTEXT_MINOR_VERSION_ARB, 3,
+		WGL_CONTEXT_MAJOR_VERSION_ARB, 4,
+		WGL_CONTEXT_MINOR_VERSION_ARB, 6,
 		WGL_CONTEXT_FLAGS_ARB,
 #ifndef NDEBUG
 		WGL_CONTEXT_DEBUG_BIT_ARB |
@@ -71,7 +71,7 @@ void create_opengl_context(sys::state& state) {
 #ifndef NDEBUG
 	glDebugMessageCallback(debug_callback, nullptr);
 	glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
-	glDebugMessageControl(GL_DONT_CARE, GL_DEBUG_TYPE_OTHER, GL_DEBUG_SEVERITY_LOW, 0, nullptr, GL_FALSE);
+	//glDebugMessageControl(GL_DONT_CARE, GL_DEBUG_TYPE_OTHER, GL_DEBUG_SEVERITY_LOW, 0, nullptr, GL_FALSE);
 #endif
 
 	if(wglewIsSupported("WGL_EXT_swap_control_tear") == 1) {

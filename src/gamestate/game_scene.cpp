@@ -1,30 +1,29 @@
-#include "gui_unit_grid_box.hpp"
-#include "gui_unit_panel.hpp"
+#include "game_scene.hpp"
 #include "gui_province_window.hpp"
-#include "gui_land_combat.hpp"
 #include "gui_console.hpp"
 #include "gui_chat_window.hpp"
 #include "gui_event.hpp"
 #include "gui_map_icons.hpp"
 #include "simple_fs.hpp"
+#include "user_interactions.hpp"
+#include "gui_combat.hpp"
+#include "gui_units.hpp"
+#include "gui_leaders.hpp"
+#include "alice_ui.hpp"
+#include "immediate_mode.hpp"
+#include "commands.hpp"
 
 namespace game_scene {
 
-void switch_scene(sys::state& state, scene_id ui_scene) {
-	/*
-	if (state.ui_state.end_screen)
-		state.ui_state.end_screen->set_visible(state, false);
-	if(state.ui_state.nation_picker)
-		state.ui_state.nation_picker->set_visible(state, false);
-	if(state.ui_state.root)
-		state.ui_state.root->set_visible(state, false);
-	if(state.ui_state.select_states_legend)
-		state.ui_state.select_states_legend->set_visible(state, false);
-	if(state.ui_state.military_root)
-		state.ui_state.military_root->set_visible(state, false);
+void highlight_given_state(sys::state& state, std::vector<uint32_t>& data, dcon::province_id selected_province);
+void production_screen_hotkeys(sys::state& state, sys::virtual_key keycode, sys::key_modifiers mod);
+void select_production_state(sys::state& state);
+void render_unitless_ui_ingame(sys::state& state);
+ui::mouse_probe recalculate_mouse_probe_unitless(sys::state& state, ui::mouse_probe mouse_probe, ui::mouse_probe tooltip_probe);
+ui::mouse_probe recalculate_tooltip_probe_unitless(sys::state& state, ui::mouse_probe mouse_probe, ui::mouse_probe tooltip_probe);
+void notify_production_map_movement_stopped(sys::state& state);
 
-	state.get_root_element()->set_visible(state, true);
-	*/
+void switch_scene(sys::state& state, scene_id ui_scene) {
 
 	switch(ui_scene) {
 	case scene_id::in_game_state_selector:
@@ -34,7 +33,7 @@ void switch_scene(sys::state& state, scene_id ui_scene) {
 		map_mode::set_map_mode(state, map_mode::mode::state_select);
 		state.set_selected_province(dcon::province_id{});
 
-		return;
+		break;
 	case scene_id::in_game_national_identity_selector:
 		state.current_scene = national_identity_selector();
 
@@ -43,7 +42,7 @@ void switch_scene(sys::state& state, scene_id ui_scene) {
 		map_mode::set_map_mode(state, map_mode::mode::nation_identity_select);
 		state.set_selected_province(dcon::province_id{});
 
-		return;
+		break;
 
 	case scene_id::in_game_basic:
 		// Bring back remembered map mode we had before the selector
@@ -53,38 +52,78 @@ void switch_scene(sys::state& state, scene_id ui_scene) {
 
 		state.current_scene = basic_game();
 
-		return;
+		break;
 
 	case scene_id::in_game_economy_viewer:
 		state.current_scene = economy_viewer_scene();
 
-		return;
+		break;
 
 	case scene_id::in_game_military:
 		state.current_scene = battleplan_editor();
 
-		return;
+		break;
 
 	case scene_id::end_screen:
 		state.current_scene = end_screen();
 
-		return;
+		break;
 
 	case scene_id::pick_nation:
 		state.current_scene = nation_picker();
 
-		return;
+		break;
 
 	case scene_id::in_game_military_selector:
 		state.current_scene = battleplan_editor_add_army();
 
-		return;
+		break;
+	case scene_id::in_game_production_view:
+	{
+		state.current_scene = scene_properties{
+			.id = scene_id::in_game_production_view,
+
+			.get_root = [](sys::state& state) { return state.ui_state.root_production_view.get(); },
+			.borders = borders_granularity::state,
+			.rbutton_selected_units = do_nothing_province_target,
+			.rbutton_province = do_nothing_province_target,
+			.allow_drag_selection = false,
+			.on_drag_start = do_nothing_screen,
+			.drag_selection = do_nothing_screen,
+			.lbutton_up = do_nothing,
+			.on_province_selected = select_production_state,
+			.keycode_mapping = replace_keycodes_map_movement,
+			.handle_hotkeys = production_screen_hotkeys,
+			.console_log = console_log_other,
+			.render_ui = render_unitless_ui_ingame,
+			.recalculate_mouse_probe = recalculate_mouse_probe_unitless,
+			.recalculate_tooltip_probe = recalculate_tooltip_probe_unitless,
+			.on_game_state_update = generic_map_scene_update,
+			.on_game_state_update_update_ui = do_nothing,
+			.on_map_movement_stopped = notify_production_map_movement_stopped,
+			.update_highlight_texture = highlight_given_state
+		};
+		{
+			auto ptr = alice_ui::display_at_front<alice_ui::make_production_main>(state);
+			ptr->base_data.size.y = state.ui_state.root_production_view->base_data.size.y;
+		}
+		{
+			auto ptr = alice_ui::display_at_front<alice_ui::make_production_rh_view>(state);
+			ptr->base_data.size.y = state.ui_state.root_production_view->base_data.size.y;
+		}
+		alice_ui::display_at_front<alice_ui::make_production_directives_window>(state);
+
+	} break;
 	case scene_id::count: // this should never happen
 		assert(false);
-		return;
+		break;
 	}
 	
 	state.game_state_updated.store(true, std::memory_order_release);
+}
+
+void notify_production_map_movement_stopped(sys::state& state) {
+	alice_ui::display_at_front<alice_ui::make_production_rh_view>(state, alice_ui::display_closure_command::return_pointer)->impl_on_update(state);
 }
 
 void do_nothing_province_target(sys::state& state,
@@ -98,6 +137,8 @@ bool belongs_on_map(sys::state& state, ui::element_base* checked_element) {
 	while(checked_element != nullptr) {
 		if(checked_element == state.ui_state.units_root.get())
 			return true;
+		if(checked_element == state.ui_state.unit_counter_box.get())
+			return true;
 		if(checked_element == state.ui_state.unit_details_box.get())
 			return true;
 		checked_element = checked_element->parent;
@@ -105,15 +146,8 @@ bool belongs_on_map(sys::state& state, ui::element_base* checked_element) {
 	return false;
 }
 
-map::map_view get_view(sys::state& state) {
-	auto current_view = map::map_view::globe;
-	if(state.user_settings.map_is_globe == sys::projection_mode::flat) {
-		current_view = map::map_view::flat;
-	} else if(state.user_settings.map_is_globe == sys::projection_mode::globe_perpect) {
-		current_view = map::map_view::globe_perspect;
-	}
-
-	return current_view;
+sys::projection_mode get_view(sys::state& state) {
+	return state.user_settings.map_is_globe;
 }
 
 float get_effects_volume(sys::state& state) {
@@ -134,8 +168,8 @@ void selected_units_control(
 	float volume = get_effects_volume(state);
 	if(reset_orders) {
 		for(auto a : state.selected_armies) {
-			if(command::can_move_or_stop_army(state, state.local_player_nation, a, target)) {
-				command::move_or_stop_army(state, state.local_player_nation, a, target, state.ui_state.selected_army_order);
+			if(command::can_retreat_move_or_stop_army(state, state.local_player_nation, a, target)) {
+				command::move_retreat_or_stop_army(state, state.local_player_nation, a, target, state.ui_state.selected_army_order);
 				army_play = true;
 			}
 			else {
@@ -187,9 +221,24 @@ void open_diplomacy(
 ) {
 	auto owner = state.world.province_get_nation_from_province_ownership(target);
 	if(owner) {
-		state.open_diplomacy(owner);
+		sys::open_diplomacy_window(state, owner);
 	} else {
-		state.open_diplomacy(nation);
+		sys::open_diplomacy_window(state, nation);
+	}
+}
+
+void select_production_state(sys::state& state) {
+	auto si = state.world.province_get_state_membership(state.map_state.selected_province);
+	if(si.get_nation_from_state_ownership() == state.local_player_nation) {
+		auto ptr = alice_ui::display_at_front<alice_ui::make_production_main>(state, alice_ui::display_closure_command::return_pointer);
+		auto location_ptr = ptr->get_by_name(state, "selected_location");
+		*((dcon::state_instance_id*)location_ptr) = si.id;
+		ptr->impl_on_update(state);
+	} else {
+		auto ptr = alice_ui::display_at_front<alice_ui::make_production_main>(state, alice_ui::display_closure_command::return_pointer);
+		auto location_ptr = ptr->get_by_name(state, "selected_location");
+		*((dcon::state_instance_id*)location_ptr) = dcon::state_instance_id{};
+		ptr->impl_on_update(state);
 	}
 }
 
@@ -274,14 +323,13 @@ void on_lbutton_up_map(sys::state& state, int32_t x, int32_t y, sys::key_modifie
 
 void handle_rbutton_down_map_interaction(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mod) {
 	auto current_view = get_view(state);
-	auto mouse_pos = glm::vec2(x, y);
+	screen_space::point_ui mouse_pos = {glm::vec2(x, y)};
 	auto screen_size = glm::vec2(state.x_size, state.y_size);
-	glm::vec2 map_pos;
-	if(!state.map_state.screen_to_map(mouse_pos, screen_size, current_view, map_pos)) {
+	map_space::point_normalized_inverted_y raw_map_pos;
+	if(!state.map_state.screen_to_map(mouse_pos, screen_size, current_view, raw_map_pos)) {
 		return;
 	}
-	map_pos *= glm::vec2(float(state.map_state.map_data.size_x), float(state.map_state.map_data.size_y));
-	auto idx = int32_t(state.map_state.map_data.size_y - map_pos.y) * int32_t(state.map_state.map_data.size_x) + int32_t(map_pos.x);
+	auto idx = map_space::to_idx(raw_map_pos, (float)state.map_state.map_data.size_x, (float)state.map_state.map_data.size_y);
 
 	if(0 <= idx && size_t(idx) < state.map_state.map_data.province_id_map.size()) {
 		sound::play_interface_sound(state, sound::get_random_province_select_sound(state), get_effects_volume(state));
@@ -376,10 +424,10 @@ bool province_mid_point_is_in_selection(sys::state& state, int32_t x, int32_t y,
 	auto mid_point = state.world.province_get_mid_point(province);
 	auto map_pos = state.map_state.normalize_map_coord(mid_point);
 	auto screen_size = glm::vec2{ float(state.x_size), float(state.y_size) };
-	glm::vec2 screen_pos;
-	if(state.map_state.map_to_screen(state, map_pos, screen_size, screen_pos, { 5.f, 5.f })) {
-		if(state.x_drag_start <= int32_t(screen_pos.x) && int32_t(screen_pos.x) <= x
-			&& state.y_drag_start <= int32_t(screen_pos.y) && int32_t(screen_pos.y) <= y) {
+	screen_space::point_ui screen_pos;
+	if(state.map_state.map_to_screen(map_pos, screen_size, state.user_settings.map_is_globe, screen_pos, { 5.f, 5.f })) {
+		if(state.x_drag_start <= int32_t(screen_pos.data.x) && int32_t(screen_pos.data.x) <= x
+			&& state.y_drag_start <= int32_t(screen_pos.data.y) && int32_t(screen_pos.data.y) <= y) {
 			return true;
 		}
 	}
@@ -391,20 +439,20 @@ bool province_port_is_in_selection(sys::state& state, int32_t x, int32_t y, dcon
 	auto adj = state.world.get_province_adjacency_by_province_pair(province, port_to);
 	if(adj) {
 		auto id = adj.index();
-		auto& border = state.map_state.map_data.borders[id];
-		auto& vertex = state.map_state.map_data.border_vertices[border.start_index + border.count / 4];
+		auto& border_idx = state.map_state.map_data.adj_index_to_border_edge[id];
+		auto& border = state.map_state.map_data.border_edges[border_idx];
+		auto& vertex = state.map_state.map_data.province_border_vertices[border.offset + border.count / 2];
 
 		auto map_x = vertex.position.x;
 		auto map_y = vertex.position.y;
-
-		glm::vec2 map_pos(map_x, 1.0f - map_y);
+		map_space::point_normalized map_pos { vertex.position };
 		auto screen_size = glm::vec2{ float(state.x_size), float(state.y_size) };
-		glm::vec2 screen_pos;
-		if(state.map_state.map_to_screen(state, map_pos, screen_size, screen_pos, { 5.f, 5.f })) {
-			if(state.x_drag_start <= int32_t(screen_pos.x)
-				&& int32_t(screen_pos.x) <= x
-				&& state.y_drag_start <= int32_t(screen_pos.y)
-				&& int32_t(screen_pos.y) <= y
+		screen_space::point_ui screen_pos;
+		if(state.map_state.map_to_screen(map_space::inverted_from_normalized(map_pos), screen_size, state.user_settings.map_is_globe, screen_pos, { 5.f, 5.f })) {
+			if(state.x_drag_start <= int32_t(screen_pos.data.x)
+				&& int32_t(screen_pos.data.x) <= x
+				&& state.y_drag_start <= int32_t(screen_pos.data.y)
+				&& int32_t(screen_pos.data.y) <= y
 			) {
 				return true;
 			}
@@ -432,38 +480,72 @@ bool navy_is_in_selection(sys::state& state, int32_t x, int32_t y, dcon::navy_id
 	return false;
 }
 
-void select_units(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mod) {
-	if((int32_t(sys::key_modifiers::modifiers_shift) & int32_t(mod)) == 0) {
-		deselect_units(state);
-	}
-	// Hide selected province
-	if(state.ui_state.province_window) {
-		state.ui_state.province_window->set_visible(state, false);
-		state.set_selected_province(dcon::province_id{}); //ensure we deselect from map too
-	}
+
+bool select_land_units(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mod) {
+	bool selected_anything = false;
 	if((int32_t(sys::key_modifiers::modifiers_ctrl) & int32_t(mod)) == 0) {
 		for(auto a : state.world.in_army) {
 			if(a.is_valid() && !a.get_navy_from_army_transport() && military::get_effective_unit_commander(state, a) == state.local_player_nation) {
 				if(army_is_in_selection(state, x, y, a)) {
 					state.select(a);
+					selected_anything = true;
 				}
 			}
 		}
 	}
+	return selected_anything;
+}
+bool select_naval_units(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mod) {
+	bool selected_anything = false;
 	for(auto a : state.world.in_navy) {
 		if(a.is_valid() && military::get_effective_unit_commander(state, a) == state.local_player_nation) {
 			if(navy_is_in_selection(state, x, y, a)) {
 				state.select(a);
+				selected_anything = true;
 			}
+		}
+	}
+	return selected_anything;
+}
+
+void select_units(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mod) {
+	// Hide selected province
+	if(state.ui_state.province_window) {
+		state.ui_state.province_window->set_visible(state, false);
+		state.set_selected_province(dcon::province_id{}); //ensure we deselect from map too
+	}
+	bool selected_army = false;
+	bool selected_navy = false;
+	if((int32_t(sys::key_modifiers::modifiers_shift) & int32_t(mod)) != 0) {
+		// If shift is held down, select either land or naval units depending on which ones are currently selected. If nothing is selected, try select land units then naval units if that fails
+		if(!state.selected_armies.empty()) {
+			selected_army = select_land_units(state, x, y, mod);
+		}
+		else if(!state.selected_navies.empty()) {
+			selected_navy = select_naval_units(state, x, y, mod);
+		}
+		else {
+			selected_army = select_land_units(state, x, y, mod);
+			if(!selected_army) {
+				selected_navy = select_naval_units(state, x, y, mod);
+			}
+		}
+	}
+	else {
+		// otherwise, delect units first, and then try first land units, then naval units
+		deselect_units(state);
+		selected_army = select_land_units(state, x, y, mod);
+		if(!selected_army) {
+			selected_navy = select_naval_units(state, x, y, mod);
 		}
 	}
 	if(!state.selected_armies.empty() && !state.selected_navies.empty()) {
 		state.selected_navies.clear();
 	}
 	// Play selection sound effect
-	if(!state.selected_armies.empty()) {
+	if(selected_army) {
 		sound::play_effect(state, sound::get_army_select_sound(state), get_effects_volume(state));
-	} else {
+	} else if(selected_navy) {
 		sound::play_effect(state, sound::get_navy_select_sound(state), get_effects_volume(state));
 	}
 	state.game_state_updated.store(true, std::memory_order_release);
@@ -555,9 +637,9 @@ sys::virtual_key replace_keycodes(sys::state& state, sys::virtual_key keycode, s
 void nation_picker_hotkeys(sys::state& state, sys::virtual_key keycode, sys::key_modifiers mod) {
 	if(state.ui_state.nation_picker->impl_on_key_down(state, keycode, mod) != ui::message_result::consumed) {
 		if(keycode == sys::virtual_key::ESCAPE) {
-			ui::show_main_menu_nation_picker(state);
+			alice_ui::display_at_front<alice_ui::make_main_menu_base>(state);
 		} else if(keycode == sys::virtual_key::TAB) {
-			ui::open_chat_window(state);
+			state.current_scene.open_chat(state);
 		}
 		state.map_state.on_key_down(keycode, mod);
 	}
@@ -655,6 +737,16 @@ void economy_screen_hotkeys(sys::state& state, sys::virtual_key keycode, sys::ke
 	}
 }
 
+void production_screen_hotkeys(sys::state& state, sys::virtual_key keycode, sys::key_modifiers mod) {
+	if(state.ui_state.select_states_legend->impl_on_key_down(state, keycode, mod) != ui::message_result::consumed) {
+		state.map_state.on_key_down(keycode, mod);
+		if(keycode == sys::virtual_key::ESCAPE) {
+			switch_scene(state, scene_id::in_game_basic);
+			state.ui_state.root->impl_on_update(state);
+		}
+	}
+}
+
 void handle_escape_basic(sys::state& state, sys::virtual_key keycode, sys::key_modifiers mod) {
 	if(state.ui_state.console_window->is_visible()) {
 		ui::console_window::show_toggle(state);
@@ -662,7 +754,7 @@ void handle_escape_basic(sys::state& state, sys::virtual_key keycode, sys::key_m
 		deselect_units(state);
 		state.game_state_updated.store(true, std::memory_order::release);
 	} else {
-		ui::show_main_menu_nation_basic(state);
+		alice_ui::display_at_front<alice_ui::make_main_menu_base>(state);
 	}
 }
 
@@ -684,13 +776,15 @@ void in_game_hotkeys(sys::state& state, sys::virtual_key keycode, sys::key_modif
 		} else if(keycode == sys::virtual_key::HOME) {
 			center_on_capital(state, state.local_player_nation);
 		} else if(keycode == sys::virtual_key::TAB) {
-			ui::open_chat_window(state);
+			state.current_scene.open_chat(state);
 		} else if(keycode == sys::virtual_key::Z && state.ui_state.ctrl_held_down) {
 			// Battleplanner scene hotkey
 			switch_scene(state, scene_id::in_game_military);
 		} else if(keycode == sys::virtual_key::N && state.ui_state.ctrl_held_down) {
 			// Economy scene hotkey
 			switch_scene(state, scene_id::in_game_economy_viewer);
+		}else if(keycode == sys::virtual_key::M && state.ui_state.ctrl_held_down) {
+			switch_scene(state, scene_id::in_game_production_view);
 		} else if(keycode == sys::virtual_key::NUMPAD1 || keycode == sys::virtual_key::NUM_1) {
 			ctrl_group = 1;
 		} else if(keycode == sys::virtual_key::NUMPAD2 || keycode == sys::virtual_key::NUM_2) {
@@ -776,29 +870,16 @@ void console_log_other(sys::state& state, std::string_view message) {
 	auto dt = state.current_date.to_ymd(state.start_date);
 	auto dtstr = std::to_string(dt.year) + "." + std::to_string(dt.month) + "." + std::to_string(dt.day);
 	msg = "" + std::string(state.network_state.nickname.to_string_view()) + "|" + dtstr + "| " + msg;
+#ifndef NDEBUG
 #ifdef _WIN32
 	OutputDebugStringA(msg.c_str());
 	OutputDebugStringA("\n");
+#else
+	std::clog << msg + "\n";
 #endif
-
-	auto folder = simple_fs::get_or_create_data_dumps_directory();
-
-	msg += "\n";
-
-	simple_fs::append_file(
-			folder,
-			NATIVE("console_log.txt"),
-			msg.c_str(),
-			uint32_t(msg.size())
-	);
-	/*if(state.ui_state.console_window) {
-		Cyto::Any payload = std::string(message);
-		state.ui_state.console_window->impl_get(state, payload);
-		if(true && !(state.ui_state.console_window->is_visible())) {
-			state.ui_state.root->move_child_to_front(state.ui_state.console_window);
-			state.ui_state.console_window->set_visible(state, true);
-		}
-	}*/
+#else
+	state.push_log_message(std::move(msg));
+#endif
 }
 
 
@@ -806,6 +887,12 @@ void render_units(sys::state& state) {
 	if(state.ui_state.units_root) {
 		state.ui_state.units_root->impl_render(state, 0, 0);
 	}
+	if(state.ui_state.colonization_icons_root) {
+		state.ui_state.colonization_icons_root->impl_render(state, 0, 0);
+	}
+
+	auto counter = (static_cast<ui::unit_counter_window*>(state.ui_state.unit_counter_box.get()));
+	counter->impl_render(state, 0, 0);
 }
 
 void render_units_info_box(sys::state& state) {
@@ -850,18 +937,18 @@ void render_ui_ingame(sys::state& state) {
 				auto capital = state.world.nation_get_capital(nid);
 				auto& midpoint = state.world.province_get_mid_point(capital);
 				auto map_pos = state.map_state.normalize_map_coord(midpoint);
-				glm::vec2 screen_pos{};
-				if(!state.map_state.map_to_screen(state, map_pos, screen_size, screen_pos, { 200.f, 200.f })) {
+				screen_space::point_ui screen_pos{};
+				if(!state.map_state.map_to_screen(map_pos, screen_size, state.user_settings.map_is_globe, screen_pos, { 200.f, 200.f })) {
 					return;
 				}
-				screen_pos.y += 40.f;
+				screen_pos.data.y += 40.f;
 				iui::move_to(
 					label_rect,
-					screen_pos.x - label_rect.w / 2.f, screen_pos.y - label_rect.h / 2.f
+					screen_pos.data.x - label_rect.w / 2.f, screen_pos.data.y - label_rect.h / 2.f
 				);
 				iui::move_to(
 					label_text_rect,
-					screen_pos.x - label_text_rect.w / 2.f, screen_pos.y - label_text_rect.h / 2.f + 2.f
+					screen_pos.data.x - label_text_rect.w / 2.f, screen_pos.data.y - label_text_rect.h / 2.f + 2.f
 				);
 				state.iui_state.panel_textured(state, label_rect, state.iui_state.map_label.texture_handle);
 				state.iui_state.localized_string(
@@ -875,18 +962,18 @@ void render_ui_ingame(sys::state& state) {
 				auto capital = state.world.administration_get_capital(aid);
 				auto& midpoint = state.world.province_get_mid_point(capital);
 				auto map_pos = state.map_state.normalize_map_coord(midpoint);
-				glm::vec2 screen_pos{};
-				if(!state.map_state.map_to_screen(state, map_pos, screen_size, screen_pos, { 200.f, 200.f })) {
+				screen_space::point_ui screen_pos{};
+				if(!state.map_state.map_to_screen(map_pos, screen_size, state.user_settings.map_is_globe, screen_pos, { 200.f, 200.f })) {
 					return;
 				}
-				screen_pos.y += 40.f;
+				screen_pos.data.y += 40.f;
 				iui::move_to(
 					label_rect,
-					screen_pos.x - label_rect.w / 2.f, screen_pos.y - label_rect.h / 2.f
+					screen_pos.data.x - label_rect.w / 2.f, screen_pos.data.y - label_rect.h / 2.f
 				);
 				iui::move_to(
 					label_text_rect,
-					screen_pos.x - label_text_rect.w / 2.f, screen_pos.y - label_text_rect.h / 2.f + 2.f
+					screen_pos.data.x - label_text_rect.w / 2.f, screen_pos.data.y - label_text_rect.h / 2.f + 2.f
 				);
 				state.iui_state.panel_textured(state, label_rect, state.iui_state.map_label.texture_handle);
 				state.iui_state.localized_string(
@@ -915,6 +1002,30 @@ void render_ui_ingame(sys::state& state) {
 	state.iui_state.frame_end();
 }
 
+void render_unitless_ui_ingame(sys::state& state) {
+	if(state.ui_state.tl_chat_list) {
+		state.ui_state.root->move_child_to_back(state.ui_state.tl_chat_list);
+	}
+	if(state.map_state.get_zoom() > map::zoom_close) {
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glUseProgram(state.open_gl.ui_shader_program);
+		glUniform1i(state.open_gl.ui_shader_texture_sampler_uniform, 0);
+		glUniform1i(state.open_gl.ui_shader_secondary_texture_sampler_uniform, 1);
+		glUniform1f(state.open_gl.ui_shader_screen_width_uniform, float(state.x_size) / state.user_settings.ui_scale);
+		glUniform1f(state.open_gl.ui_shader_screen_height_uniform, float(state.y_size) / state.user_settings.ui_scale);
+		glUniform1f(state.open_gl.ui_shader_gamma_uniform, state.user_settings.gamma);
+		glViewport(0, 0, state.x_size, state.y_size);
+		glDepthRange(-1.0f, 1.0f);
+
+		auto screen_size = glm::vec2(state.x_size, state.y_size) / state.user_settings.ui_scale;
+
+		if(state.ui_state.ctrl_held_down && (state.map_state.get_zoom() >= ui::big_counter_cutoff && state.ui_state.province_details_root)) {
+			state.ui_state.province_details_root->impl_render(state, 0, 0);
+		}
+	}
+}
+
 ui::mouse_probe recalculate_mouse_probe_identity(sys::state& state, ui::mouse_probe mouse_probe, ui::mouse_probe tooltip_probe) {
 	return mouse_probe;
 }
@@ -937,12 +1048,25 @@ ui::mouse_probe recalculate_mouse_probe_units(sys::state& state, ui::mouse_probe
 	float scaled_mouse_x = state.mouse_x_position / state.user_settings.ui_scale;
 	float scaled_mouse_y = state.mouse_y_position / state.user_settings.ui_scale;
 
-	return state.ui_state.units_root->impl_probe_mouse(
+	if(!mouse_probe.under_mouse) {
+		mouse_probe =  state.ui_state.unit_counter_box->impl_probe_mouse(
+				state,
+				int32_t(scaled_mouse_x),
+				int32_t(scaled_mouse_y),
+				ui::mouse_probe_type::click
+		);
+	}
+
+	if(!mouse_probe.under_mouse && state.ui_state.units_root) {
+		mouse_probe =  state.ui_state.units_root->impl_probe_mouse(
 			state,
 			int32_t(scaled_mouse_x),
 			int32_t(scaled_mouse_y),
 			ui::mouse_probe_type::click
-	);
+		);
+	}
+
+	return mouse_probe;
 }
 
 ui::mouse_probe recalculate_mouse_probe_units_and_details(sys::state& state, ui::mouse_probe mouse_probe, ui::mouse_probe tooltip_probe) {
@@ -956,6 +1080,9 @@ ui::mouse_probe recalculate_mouse_probe_units_and_details(sys::state& state, ui:
 	return mouse_probe;
 }
 
+ui::mouse_probe recalculate_mouse_probe_unitless(sys::state& state, ui::mouse_probe mouse_probe, ui::mouse_probe tooltip_probe) {
+	return mouse_probe;
+}
 
 ui::mouse_probe recalculate_mouse_probe_basic(sys::state& state, ui::mouse_probe mouse_probe, ui::mouse_probe tooltip_probe) {
 	if(!state.ui_state.units_root || state.ui_state.ctrl_held_down) {
@@ -986,6 +1113,11 @@ ui::mouse_probe recalculate_mouse_probe_military(sys::state& state, ui::mouse_pr
 	);
 }
 
+ui::mouse_probe recalculate_tooltip_probe_unitless(sys::state& state, ui::mouse_probe mouse_probe, ui::mouse_probe tooltip_probe) {
+	return tooltip_probe;
+}
+
+
 ui::mouse_probe recalculate_tooltip_probe_units_and_details(sys::state& state, ui::mouse_probe mouse_probe, ui::mouse_probe tooltip_probe) {
 	float scaled_mouse_x = state.mouse_x_position / state.user_settings.ui_scale;
 	float scaled_mouse_y = state.mouse_y_position / state.user_settings.ui_scale;
@@ -1005,6 +1137,17 @@ ui::mouse_probe recalculate_tooltip_probe_units_and_details(sys::state& state, u
 			int32_t(scaled_mouse_x),
 			int32_t(scaled_mouse_y),
 			ui::mouse_probe_type::tooltip);
+	}
+	if(!tooltip_probe.under_mouse) {
+		auto counter = (static_cast<ui::unit_counter_window*>(state.ui_state.unit_counter_box.get()));
+		tooltip_probe = counter->impl_probe_mouse(
+			state,
+			int32_t(scaled_mouse_x),
+			int32_t(scaled_mouse_y),
+			ui::mouse_probe_type::tooltip);
+		if(tooltip_probe.under_mouse) {
+			return tooltip_probe;
+		}
 	}
 
 	return tooltip_probe;
@@ -1125,6 +1268,8 @@ void update_ui_unit_details(sys::state& state) {
 	}
 	if(state.ui_state.units_root) {
 		state.ui_state.units_root->impl_on_update(state);
+		state.ui_state.colonization_icons_root->impl_on_update(state);
+		state.ui_state.unit_counter_box->impl_on_update(state);
 	}
 }
 
@@ -1187,6 +1332,16 @@ void highlight_player_nation(sys::state& state, std::vector<uint32_t>& data, dco
 void highlight_given_province(sys::state& state, std::vector<uint32_t>& data, dcon::province_id selected_province) {
 	if(selected_province) {
 		data[province::to_map_id(selected_province)] = 0x2B2B2B2B;
+	}
+}
+
+void highlight_given_state(sys::state& state, std::vector<uint32_t>& data, dcon::province_id selected_province) {
+	if(selected_province) {
+		if(auto si = state.world.province_get_state_membership(selected_province); si) {
+			province::for_each_province_in_state_instance(state, si, [&](dcon::province_id p) {
+				data[province::to_map_id(p)] = 0x2B2B2B2B;
+			});
+		}
 	}
 }
 

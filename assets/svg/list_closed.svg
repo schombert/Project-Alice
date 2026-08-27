@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="200mm"
+   height="200mm"
+   viewBox="0 0 200 200"
+   version="1.1"
+   id="svg1"
+   inkscape:version="1.3 (0e150ed6c4, 2023-07-21)"
+   sodipodi:docname="list_closed.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <rect
+        fill="#000000"
+     fill-opacity="1"
+     stroke="#000000"
+     stroke-width="0"
+     stroke-dasharray="none"
+     stroke-opacity="0"
+     class="primarycolor"
+       id="rect1"
+       width="157.3598"
+       height="23.598042"
+       x="22.530792"
+       y="30.83161" />
+    <rect
+       fill="#000000"
+     fill-opacity="1"
+     stroke="#000000"
+     stroke-width="0"
+     stroke-dasharray="none"
+     stroke-opacity="0"
+     class="primarycolor"
+       id="rect1-8"
+       width="90"
+       height="18"
+       x="90"
+       y="70" />
+    <rect
+        fill="#000000"
+     fill-opacity="1"
+     stroke="#000000"
+     stroke-width="0"
+     stroke-dasharray="none"
+     stroke-opacity="0"
+     class="primarycolor"
+       id="rect1-8-7"
+       width="90"
+       height="18"
+       x="90"
+       y="100" />
+    <rect
+        fill="#000000"
+     fill-opacity="1"
+     stroke="#000000"
+     stroke-width="0"
+     stroke-dasharray="none"
+     stroke-opacity="0"
+     class="primarycolor"
+       id="rect1-8-6"
+       width="90"
+       height="18"
+       x="90"
+       y="130" />
+    <rect
+       fill="#000000"
+     fill-opacity="1"
+     stroke="#000000"
+     stroke-width="0"
+     stroke-dasharray="none"
+     stroke-opacity="0"
+     class="primarycolor"
+       id="rect1-8-7-5"
+       width="90"
+       height="18"
+       x="90"
+       y="160" />
+    <path
+       fill="#000000"
+     fill-opacity="1"
+     stroke="#000000"
+     stroke-width="0"
+     stroke-dasharray="none"
+     stroke-opacity="0"
+     class="primarycolor"
+       d="m 48.06598,149.25444 c 0,0 -29.651387,-55.382912 -28.632779,-55.145744 1.01861,0.23717 28.632779,7.356744 28.632779,7.356744 l 28.632778,-7.356744 c 0,0 -29.311853,55.738664 -28.632778,55.145744 z"
+       id="path2"
+       sodipodi:nodetypes="csccc" />
+  </g>
+</svg>

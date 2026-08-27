@@ -2,6 +2,7 @@
 
 #include "gui_common_elements.hpp"
 #include "gui_element_types.hpp"
+#include "text_utility.hpp"
 
 namespace ui {
 
@@ -117,7 +118,7 @@ public:
 			auto ptr = make_element_by_type<generic_tab_button<dcon::modifier_id>>(state, id);
 			ptr->target = ([&]() {
 				dcon::modifier_id filter_mod_id{0};
-				auto k = state.lookup_key(parsers::lowercase_str(filter_name));
+				auto k = state.lookup_key(text::lowercase_str(filter_name));
 				if(k)
 					state.world.for_each_modifier([&](dcon::modifier_id mod_id) {
 						auto fat_id = dcon::fatten(state.world, mod_id);

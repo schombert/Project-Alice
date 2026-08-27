@@ -1,0 +1,27 @@
+<svg 
+	xmlns = "http://www.w3.org/2000/svg"
+	viewBox = "0 0 [[W;1000;0]] [[H;1000;0]] " 
+	width = "[[W;1000;0]]" 
+	height = "[[H;1000;0]]" >  
+	
+	<defs>
+		<pattern id="lbfill" x="0" y="0" width="[[P;128;0]]" height="[[P;128;0]]" patternUnits="userSpaceOnUse" >
+			<image href="lbwc.png" height="[[P;128;0]]" width="[[P;128;0]]" />
+		</pattern>
+		<linearGradient id="leftfade">
+			<stop stop-color="white" offset="0%" />
+			<stop stop-color="white" offset="50%" />
+			<stop stop-color="black" offset="100%" />
+		</linearGradient>
+		<mask  id="fademask">
+			<rect  x="0" y="0" fill="url(#leftfade)" width="[[H;1000;0]]" height="[[H;1000;0]]" />
+		</mask>
+		<pattern id="bgfill" x="0" y="0" width="[[P;64;0]]" height="[[P;64;0]]" patternUnits="userSpaceOnUse" >
+			<image preserveAspectRatio="none" href="blue_watercolor.png" width="[[P;64;0]]" height="[[P;64;0]]"  />
+		</pattern>
+	</defs>
+	<rect fill="url(#bgfill)" x="0" y="0" width="[[W;1000;0]]" height="[[H;1000;0]]" />
+	<g mask="url(#fademask)">
+		<rect fill="url(#lbfill)" x="0" y="0" width="[[H;1000;0]]" height="[[H;1000;0]]" />
+	</g>
+</svg>

@@ -1,184 +1,186 @@
-message_notify_rebels_defeat_label;Notify when defeating rebels?
-message_settings_spectator;Preset: Spectate only
-msg_revolt_title;Rebel Uprising
-msg_revolt_1;$x$ rebels have risen up in the following provinces:
-msg_revolt_2;$x$ rebels have risen up (unsuccessfully)
-msg_war_title;War Declared
-msg_war_1;$x$ has declared war on $y$, starting the $val$.
-msg_wargoal_title;War Goal Added
-msg_wargoal_1;$x$ has added to our war the following war goal:
-msg_war_join_title;Nation joins war
-msg_war_join_1;$x$ has joined the ongoing $val$
-msg_war_becomes_great_title;War Escalates
-msg_war_becomes_great_1;The $x$ has become the $y$
-msg_siegeover_title;Siege finishes
-msg_siegeover_1;The siege of $x$ has ended.
-msg_siegeover_2;$y$ no longer controls the province.
-msg_siegeover_3;$y$ rebels no longer control the province.
-msg_siegeover_4;The province is now controlled by $y$.
-msg_siegeover_5;The province is now controlled by $y$ rebels.
-msg_new_crisis_title;Crisis Brewing
-msg_new_crisis_1;A crisis is brewing over the ownership of $x$.
-msg_new_crisis_2;A crisis is brewing over the colonization of $x$.
-msg_tech_title;Technology Researched
-msg_tech_1;$x$ has been researched, with the following effects:
-msg_inv_title;Invention Discovered
-msg_inv_1;$x$ has been discovered, with the following effects:
-msg_fab_discovered_title;Fabrication Discovered
-msg_fab_discovered_1;Our casus belli fabrication has been discovered, resulting in ?R$x$?! infamy.
-msg_fab_discovered_2;$x$ has been discovered fabricating a casus belli on $y$
-msg_fab_canceled_title;Fabrication Canceled
-msg_fab_canceled_1;The casus belli we were fabricating has become invalid and fabrication has been canceled.
-msg_fab_finished_title;Fabrication Complete
-msg_fab_finished_1;We have finished fabricating a $x$ casus belli against $y$.
-msg_leader_died_title;A Military Leader Has Died
-msg_leader_died_1;One of our generals leading an army in $y$, $x$, has died.
-msg_leader_died_2;One of our admirals commanding a navy in $y$, $x$, has died.
-msg_peace_offer_accepted_title;Peace Offer Accepted
-msg_peace_offer_accepted_1;$x$ has accepted a peace offer from $y$ as part of the $val$.
-msg_peace_offer_rejected_title;Peace Offer Rejected
-msg_peace_offer_rejected_1;$x$ has rejected a peace offer from $y$ as part of the $val$.
-msg_upper_house_title;Upper House Formed
-msg_upper_house_1;A new upper house has been assembled with the following composition:
-msg_upper_house_2;$x$%: $y$
-msg_election_start_title;Elections Starting
-msg_election_start_1;The election will finish on $x$.
-msg_dec_rel_title;Relations Worsened
-msg_dec_rel_1;$x$ has decreased their relations with $y$.
-msg_inc_rel_title;Relations Improved
-msg_inc_rel_1;$x$ has improved their relations with $y$.
-msg_add_sphere_title;Nation Sphered
-msg_add_sphere_1;$x$ has added $y$ to their sphere of influence.
-msg_rem_sphere_title;Nation Removed from Sphere
-msg_rem_sphere_1;$x$ has removed $y$ from their sphere of influence.
-msg_rem_sphere_2;$x$ has removed $y$ from the sphere of influence of $val$.
-msg_op_dec_title;Opinion Decreased
-msg_op_dec_1;$x$ has decreased $y$'s opinion of $val$.
-msg_op_inc_title;Opinion Increased
-msg_op_inc_1;$x$ has increased $y$'s opinion of them.
-msg_expel_title;Advisors Expelled
-msg_expel_1;$x$ has expelled $val$'s advisors to $y$.
-msg_ban_title;Embassy Banned
-msg_ban_1;$x$ has caused $val$'s embassy to $y$ to be banned.
-msg_ban_2;This will last until $x$.
-msg_discredit_title;Nation Discredited
-msg_discredit_1;$x$ has caused $val$ to be discredited with $y$.
-msg_discredit_2;This will last until $x$.
-msg_ally_call_accepted_title;Alliance Honored
-msg_ally_call_accepted_1;$x$ has honored their alliance with $y$ and joined the $val$.
-msg_ally_call_declined_title;Alliance Dishonored
-msg_ally_call_decline_1;$x$ has refused to honor their alliance with $y$ and join the $val$.
-msg_alliance_declined_title;Alliance Refused
-msg_alliance_declined_1;$x$ has refused $y$'s offer to form an alliance.
-msg_alliance_starts_title;Alliance Formed
-msg_alliance_starts_1;$x$ and $y$ have formed an alliance.
-msg_alliance_ends_title;Alliance Broken
-msg_alliance_ends_1;The alliance between $x$ and $y$ has ended.
-msg_access_refused_title;Access Refused
-msg_access_refused_1;$x$ has refused to give $y$ military access to their nation.
-msg_access_granted_title;Access Granted
-msg_access_granted_1;$x$ has given $y$ military access to their nation.
-msg_access_canceled_a_title;Access Revoked
-msg_access_canceled_a_1;$x$ has revoked military access from $y$.
-msg_access_canceled_b_title;Access Canceled
-msg_access_canceled_b_1;$x$ no longer requires military access to $y$.
-msg_wsub_start_title;War Subsidies Start
-msg_wsub_start_1;$x$ has begun subsidizing $y$'s current wars.
-msg_wsub_end_title;War Subsidies End
-msg_wsub_end_1;$x$ has stopped subsidizing $y$'s current wars.
-msg_new_gp_title;New Great Power
-msg_new_gp_1;$x$ is now a great power.
-msg_lost_gp_title;Lost Great Power
-msg_lost_gp_1;$x$ is no longer considered to be a great power.
-msg_decision_title;Decision Made
-msg_decision_1;$x$ has taken the $y$ decision
-msg_decision_2;Effect:
-msg_rebels_win_title;Rebel victory
-msg_rebels_win_1;$x$ rebels have won.
-msg_rebels_win_2;?R$x$?! prestige lost
-msg_rebels_win_3;Government changes to $x$
-msg_rebels_win_4;Government ideology changed to $x$
-msg_rebels_win_5;All diplomatic relationships are ended
-msg_rebels_win_6;Effect:
-msg_election_end_title;Election Finished
-msg_election_end_1;$x$ is the new ruling party, receiving $y$ of the vote.
-msg_election_end_2;$x$ is the new ruling party, as part of a coalition government, receiving $y$ of the vote.
-msg_crisis_joffer_accepted;Nation Takes a Side
-msg_crisis_joffer_accepted_1;$x$ has accepted an offer by $y$ to take their side in the current crisis.
-msg_crisis_joffer_rejected;Nation Remains Neutral
-msg_crisis_joffer_reject_1;$x$ has rejected an offer by $y$ to take their side in the current crisis.
-msg_crisis_settled_title;Crisis Resolved
-msg_crisis_settled_1;$x$ has accepted an offer by $y$ to resolve the current crisis.
-msg_crisis_not_settled_title;Crisis Resolution Rejected
-msg_crisis_not_settled_1;$x$ has rejected an offer by $y$ to resolve the current crisis.
-msg_crisis_escalates_title;Crisis Escalates
-msg_crisis_escalates_1;The current crisis has escalated into the $x$.
-msg_crisis_fizzle_title;Crisis Adverted
-msg_crisis_fizzle_1;The brewing crisis has failed to attract international attention.
-msg_crisis_fizzle_2;The brewing crisis failed to attract a defender
-msg_crisis_attacker_title;Crisis Backer
-msg_crisis_attacker_1;$x$ has become involved in the current crisis, backing the attacker.
-msg_crisis_defender_title;Crisis Backer
-msg_crisis_defender_1;$x$ has become involved in the current crisis, backing the defender.
-msg_crisis_vol_join_title;Nation Takes a Side
-msg_crisis_vol_join_1;$x$ has decided to join the current crisis on the side of the attackers.
-msg_crisis_vol_join_2;$x$ has decided to join the current crisis on the side of the defenders.
-msg_entered_automatic_alliance_title;Entered alliance automatically
-msg_entered_automatic_alliance_1;$x$ has entered in an alliance with us automatically, because we marked that we're interested in allying them if possible
-msg_chat_message_title;Chat message
-msg_chat_message_1;$x$ says:
+#Powered_by_ParaTranz;
+#CODE;ENGLISH;FRENCH;GERMAN;;SPANISH;;;;;;;;x
+message_notify_rebels_defeat_label;반군 격파 시 알림을 받으시겠습니까?
+message_settings_spectator;사전설정: 관전자 전용
+msg_revolt_title;반군 봉기
+msg_revolt_1;$x$ 반군이 다음 주에서 반란을 일으켰습니다:
+msg_revolt_2;$x$ 반군이 반란을 일으켰습니다(성공하지 못함)
+msg_war_title;선전포고
+msg_war_1;$x$이(가) $y$에 선전포고하여 $val$이(가) 시작되었습니다.
+msg_wargoal_title;전쟁 목표 추가됨
+msg_wargoal_1;$x$이(가) 우리의 전쟁에 다음 전쟁 목표를 추가했습니다:
+msg_war_join_title;국가 참전
+msg_war_join_1;$x$이(가) 진행 중인 $val$에 참가했습니다
+msg_war_becomes_great_title;전쟁 격화
+msg_war_becomes_great_1;$x$이(가) $y$(으)로 확대되었습니다
+msg_siegeover_title;공성전 종료
+msg_siegeover_1;$x$에 대한 공성전이 종료되었습니다.
+msg_siegeover_2;$y$은(는) 더 이상 이 주를 통제하지 않습니다.
+msg_siegeover_3;$y$ 반군은 더 이상 이 주를 통제하지 않습니다.
+msg_siegeover_4;이 주는 이제 $y$의 통제하에 있습니다.
+msg_siegeover_5;이 주는 이제 $y$ 반군의 통제하에 있습니다.
+msg_new_crisis_title;위기 고조
+msg_new_crisis_1;$x$의 소유권을 둘러싼 위기가 고조되고 있습니다.
+msg_new_crisis_2;$x$ 식민지를 둘러싼 위기가 고조되고 있습니다.
+msg_tech_title;기술 연구 완료
+msg_tech_1;$x$ 연구가 완료되었으며, 다음 효과를 가집니다:
+msg_inv_title;발명 획득
+msg_inv_1;$x$이(가) 발명되었으며, 다음 효과를 가집니다:
+msg_fab_discovered_title;조작 발각
+msg_fab_discovered_1;우리의 전쟁 명분 조작이 발각되어 악명이 ?R$x$?! 증가합니다.
+msg_fab_discovered_2;$y$에 대한 $x$ 전쟁 명분 정당화 진행이 발각되었습니다
+msg_fab_canceled_title;조작 취소
+msg_fab_canceled_1;목표 명분이 유효하지 않게 되어 조작이 강제로 취소되었습니다.
+msg_fab_finished_title;조작 완료
+msg_fab_finished_1;우리는 $y$에 대한 $x$ 명분을 완성했습니다.
+msg_leader_died_title;장군 사망
+msg_leader_died_1;$y$ 군을 지휘하던 지휘관 $x$이(가) 사망했습니다.
+msg_leader_died_2;$y$ 함대를 지휘하던 제독 $x$이(가) 사망했습니다.
+msg_peace_offer_accepted_title;평화 협정 수락
+msg_peace_offer_accepted_1;$x$의 일원으로서, $y$이(가) $val$ 평화 협정을 수락했습니다.
+msg_peace_offer_rejected_title;평화 협정 거부됨
+msg_peace_offer_rejected_1;$x$의 일원으로서, $y$이(가) $val$의 평화 협정을 거부했습니다.
+msg_upper_house_title;상원 개편
+msg_upper_house_1;새로운 상원 구성은 다음과 같습니다:
+msg_upper_house_2;$x$ %: $y$
+msg_election_start_title;선거 시작
+msg_election_start_1;선거는 $x$에 종료됩니다.
+msg_dec_rel_title;관계 악화
+msg_dec_rel_1;$x$이(가) $y$와의 외교 관계를 악화시켰습니다.
+msg_inc_rel_title;관계 개선
+msg_inc_rel_1;$x$이(가) $y$와의 외교 관계를 개선했습니다.
+msg_add_sphere_title;국가가 세력권에 편입됨
+msg_add_sphere_1;$x$이(가) $y$을(를) 세력권에 편입했습니다.
+msg_rem_sphere_title;국가가 세력권에서 제외됨
+msg_rem_sphere_1;$x$이(가) $y$을(를) 세력권에서 제외했습니다
+msg_rem_sphere_2;$x$이(가) $y$을(를) $val$의 세력권에서 제외했습니다.
+msg_op_dec_title;평가 하락
+msg_op_dec_1;$x$이(가) $y$에 대한 $val$의 평가를 낮췄습니다.
+msg_op_inc_title;평가 상승
+msg_op_inc_1;$x$이(가) 자신에 대한 $y$의 평가를 높였습니다.
+msg_expel_title;고문 추방
+msg_expel_1;$y$이(가) $x$에게 $val$ 고문을 추방하게 했습니다.
+msg_ban_title;대사관 봉쇄
+msg_ban_1;$x$이(가) $y$ 주재 $val$ 대사관을 봉쇄했습니다.
+msg_ban_2;이는 $x$까지 지속됩니다.
+msg_discredit_title;평판 실추
+msg_discredit_1;$x$이(가) $y$로 하여금 $val$의 평판을 깎아내리게 했습니다.
+msg_discredit_2;이는 $x$까지 지속됩니다.
+msg_ally_call_accepted_title;동맹 이행
+msg_ally_call_accepted_1;$x$이(가) $y$ 동맹을 이행하고 $val$에 참가했습니다.
+msg_ally_call_declined_title;동맹 파기
+msg_ally_call_decline_1;$x$이(가) $y$ 동맹 요청을 거절하고 $val$에 참가하지 않았습니다.
+msg_alliance_declined_title;동맹 거절
+msg_alliance_declined_1;$x$이(가) $y$의 동맹 제안을 거절했습니다.
+msg_alliance_starts_title;동맹 체결
+msg_alliance_starts_1;$x$와(과) $y$이(가) 동맹을 맺었습니다.
+msg_alliance_ends_title;동맹 해체
+msg_alliance_ends_1;$x$와(과) $y$ 사이의 동맹이 종료되었습니다.
+msg_access_refused_title;군사 통행 거부
+msg_access_refused_1;$x$이(가) $y$에게 군사 통행권 부여를 거부했습니다.
+msg_access_granted_title;군사 통행 허가
+msg_access_granted_1;$x$이(가) $y$에게 군사 통행권을 부여했습니다.
+msg_access_canceled_a_title;군사 통행 회수
+msg_access_canceled_a_1;$x$이(가) $y$의 군사 통행권을 회수했습니다.
+msg_access_canceled_b_title;군사 통행 취소
+msg_access_canceled_b_1;$x$은(는) 더 이상 $y$에 대한 군사 통행권이 필요하지 않습니다.
+msg_wsub_start_title;전쟁 지원 시작
+msg_wsub_start_1;$x$이(가) $y$의 현재 전쟁 지원을 시작했습니다.
+msg_wsub_end_title;전쟁 지원 종료
+msg_wsub_end_1;$x$이(가) $y$의 현재 전쟁 지원을 중단했습니다.
+msg_new_gp_title;신흥 열강
+msg_new_gp_1;$x$은(는) 이제 열강입니다.
+msg_lost_gp_title;열강 상실
+msg_lost_gp_1;$x$은(는) 더 이상 열강이 아닙니다.
+msg_decision_title;결정 실행
+msg_decision_1;$x$이(가) $y$ 결정을 실행했습니다.
+msg_decision_2;효과:
+msg_rebels_win_title;반군 승리
+msg_rebels_win_1;$x$ 반군이 승리했습니다.
+msg_rebels_win_2;위신이 ?R$x$?! 감소했습니다
+msg_rebels_win_3;정체가 $x$(으)로 변경됨
+msg_rebels_win_4;정부 이념이 $x$(으)로 변경됨
+msg_rebels_win_5;모든 외교 관계 폐기
+msg_rebels_win_6;효과:
+msg_election_end_title;선거 종료
+msg_election_end_1;$x$가 $y$%의 표를 얻어 이제 집권당이 되었습니다.
+msg_election_end_2;$x$가 $y$%의 표를 얻어 이제 연립정부의 집권당이 되었습니다.
+msg_crisis_joffer_accepted;국가 편들기
+msg_crisis_joffer_accepted_1;$x$가 $y$의 조건을 받아들여 현재 위기에서 그들을 지지합니다.
+msg_crisis_joffer_rejected;국가 중립 유지
+msg_crisis_joffer_reject_1;$x$가 $y$ 측에 합류하라는 제안을 거절했습니다.
+msg_crisis_settled_title;위기 해결
+msg_crisis_settled_1;$x$가 $y$의 조건을 받아들여 현재 위기를 해결했습니다.
+msg_crisis_not_settled_title;위기 해결안 거부
+msg_crisis_not_settled_1;$x$가 $y$가 제안한 현재 위기 해결안을 거부했습니다.
+msg_crisis_escalates_title;위기 고조
+msg_crisis_escalates_1;현재 위기가 $x$(으)로 발전했습니다.
+msg_crisis_fizzle_title;위기 진정
+msg_crisis_fizzle_1;무르익던 이 위기는 국제적 관심을 끌지 못했습니다.
+msg_crisis_fizzle_2;무르익던 이 위기는 지지를 받지 못했습니다.
+msg_crisis_attacker_title;위기 지지
+msg_crisis_attacker_1;$x$가 현재 위기에 가담하여 공격 측을 지지합니다.
+msg_crisis_defender_title;위기 지지
+msg_crisis_defender_1;$x$가 현재 위기에 가담하여 방어 측을 지지합니다.
+msg_crisis_vol_join_title;국가 편들기
+msg_crisis_vol_join_1;$x$가 현재 위기에 가담하여 공격 측을 지지합니다.
+msg_crisis_vol_join_2;$x$가 현재 위기에 가담하여 방어 측을 지지합니다.
+msg_entered_automatic_alliance_title;자동 동맹 가입
+msg_entered_automatic_alliance_1;$x$가 우리가 관심 동맹으로 표시한 조약 때문에 자동으로 우리와 동맹을 맺었습니다.
+msg_chat_message_title;채팅 메시지
+msg_chat_message_1;$x$의 말:
 msg_chat_message_2;$x$
-msg_n_event_title;National Event
-msg_p_event_title;Provincial Event
-msg_m_event_title;Major Event
-msg_revolt;When a revolt occurs
-msg_war_on_nation;When we declare war
-msg_war_by_nation;When we are declared war
-msg_wargoal_added;When a wargoal is added
-msg_siegeover_by_nation;Siege done against us
-msg_siegeover_on_nation;Siege done against them
-msg_colony_finished;When we finish colonizing
-msg_reform_gained;When we gain a reform
-msg_reform_lost;When we lose a reform
-msg_ruling_party_change;When the ruling party changes
-msg_upperhouse;When the upperhouse changes
-msg_electionstart;When elections start
-msg_electiondone;When elections end
-msg_breakcountry;When a country is broken
-msg_peace_accepted_from_nation;When we accept a peace offer
-msg_peace_rejected_from_nation;When we reject a peace offer
-msg_peace_accepted_by_nation;When they accept a peace offer
-msg_peace_rejected_by_nation;When they reject a peace offer
-msg_mobilization_start;When we mobilize
-msg_mobilization_end;When we demobilize
-msg_factory_complete;When a factory gets constructed
-msg_rr_complete;When a railroad gets constructed
-msg_fort_complete;When a fort gets constructed
-msg_naval_base_complete;When a naval base gets constructed
-msg_province_event;When a province event occurs
-msg_national_event;When a national event occurs
-msg_major_event;When a major event occurs
-msg_invention;When an invention is discovered
-msg_tech;When we finish research
-msg_leader_dies;When a leader dies
-msg_land_combat_starts_on_nation;When we start land combat
-msg_naval_combat_starts_on_nation;When we start naval combat
-msg_land_combat_starts_by_nation;When land combat is started
-msg_naval_combat_starts_by_nation;When naval combat is started
-msg_movement_finishes;When movement finishes
-msg_decision;When a decision is done
-msg_lose_great_power;When we lose great power
-msg_become_great_power;When we become great power
-msg_war_subsidies_start_by_nation;When war subsidies are given
-msg_war_subsidies_start_on_nation;When we give war subsidies
-msg_war_subsidies_end_by_nation;When war subsidies are ended
-msg_war_subsidies_end_on_nation;When we end war subsidies
-msg_reparations_start_by_nation;When war reparations are placed
-msg_reparations_start_on_nation;When we pay have to war reparations
-msg_reparations_end_by_nation;When war reparations are paid off
-msg_reparations_end_on_nation;When we pay off war reparations
-msg_mil_access_start_by_nation;When we are given military access
-msg_mil_access_start_on_nation;When we give military access
+msg_n_event_title;국가 이벤트
+msg_p_event_title;주 이벤트
+msg_m_event_title;중요 이벤트
+msg_revolt;반란 시
+msg_war_on_nation;선전포고를 받을 때
+msg_war_by_nation;선전포고할 때
+msg_wargoal_added;전쟁 목표 추가 시
+msg_siegeover_by_nation;우리를 포위할 때
+msg_siegeover_on_nation;그들을 포위할 때
+msg_colony_finished;식민 완료 시
+msg_reform_gained;개혁 시
+msg_reform_lost;개혁 상실 시
+msg_ruling_party_change;집권당 변경 시
+msg_upperhouse;상원 개편 시
+msg_electionstart;선거 시
+msg_electiondone;선거 종료 시
+msg_breakcountry;국가 파산 시
+msg_peace_accepted_from_nation;평화안을 수락할 때
+msg_peace_rejected_from_nation;평화안을 거부할 때
+msg_peace_accepted_by_nation;그들이 평화안을 수락할 때
+msg_peace_rejected_by_nation;그들이 평화안을 거부할 때
+msg_mobilization_start;총동원 시
+msg_mobilization_end;동원 해제 시
+msg_factory_complete;공장 완공 시
+msg_rr_complete;철도 완공 시
+msg_fort_complete;요새 완공 시
+msg_naval_base_complete;해군기지 완공 시
+msg_province_event;주 이벤트 발생 시
+msg_national_event;국가 이벤트 발생 시
+msg_major_event;중요 이벤트 발생 시
+msg_invention;발명 발견 시
+msg_tech;연구 완료 시
+msg_leader_dies;지휘관 사망 시
+msg_land_combat_starts_on_nation;육상 전투 시
+msg_naval_combat_starts_on_nation;해상 전투 시
+msg_land_combat_starts_by_nation;육상 전투 시
+msg_naval_combat_starts_by_nation;해상 전투 시
+msg_movement_finishes;이동 완료 시
+msg_decision;결정 완료 시
+msg_lose_great_power;열강 지위 상실 시
+msg_become_great_power;열강이 될 때
+msg_war_subsidies_start_by_nation;전쟁 보조금을 받을 때
+msg_war_subsidies_start_on_nation;전쟁 보조금을 제공할 때
+msg_war_subsidies_end_by_nation;보조금 수령 종료 시
+msg_war_subsidies_end_on_nation;전쟁 보조금 중단 시
+msg_reparations_start_by_nation;전쟁 배상금을 받을 때
+msg_reparations_start_on_nation;전쟁 배상금을 지불할 때
+msg_reparations_end_by_nation;전쟁 배상금 상환 완료 시
+msg_reparations_end_on_nation;전쟁 배상금 상환 완료 시
+msg_mil_access_start_by_nation;군사 통행권 획득 시
+msg_mil_access_start_on_nation;군사 통행권 부여 시
 msg_mil_access_end_by_nation;
 msg_mil_access_end_on_nation;
 msg_mil_access_declined_by_nation;
@@ -201,24 +203,24 @@ msg_decrease_opinion_on_nation;
 msg_rem_sphere_by_nation;
 msg_rem_sphere_on_nation;
 msg_removed_from_sphere;
-msg_add_sphere;When we add to our sphere
-msg_added_to_sphere;When we are added to a sphere
-msg_increase_relation_by_nation;When they increase relations
-msg_increase_relation_on_nation;When we increase relations
-msg_decrease_relation_by_nation;When they decrease relations
-msg_decrease_relation_on_nation;When we decrease relations
-msg_join_war_by_nation;When a nation joins a war
-msg_join_war_on_nation;When we join a war
-msg_gw_unlocked;When great wars are unlocked
-msg_war_becomes_great;When a war becomes a great war
+msg_add_sphere;우리나라가 세력권에 편입됨
+msg_added_to_sphere;우리나라가 세력권에 편입됨
+msg_increase_relation_by_nation;그들이 관계를 개선할 때
+msg_increase_relation_on_nation;우리가 관계를 개선할 때
+msg_decrease_relation_by_nation;그들이 관계를 악화시킬 때
+msg_decrease_relation_on_nation;우리가 관계를 악화시킬 때
+msg_join_war_by_nation;한 국가가 전쟁에 참전할 때
+msg_join_war_on_nation;우리가 전쟁에 참전할 때
+msg_gw_unlocked;세계 대전이 가능해질 때
+msg_war_becomes_great;전쟁이 세계 대전으로 발전할 때
 msg_cb_detected_on_nation;
 msg_cb_detected_by_nation;
 msg_crisis_join_offer_accepted_by_nation;
 msg_crisis_join_offer_declined_by_nation;
 msg_crisis_join_offer_accepted_from_nation;
 msg_crisis_join_offer_declined_from_nation;
-msg_crisis_resolution_accepted;When a crisis resolution is accepted
-msg_crisis_becomes_war;When a crisis war starts
+msg_crisis_resolution_accepted;위기 해결안이 수락될 때
+msg_crisis_becomes_war;위기가 시작될 때
 msg_crisis_resolution_declined_from_nation;
 msg_crisis_starts;
 msg_crisis_attacker_backer;
@@ -229,118 +231,125 @@ msg_war_join_on;
 msg_cb_fab_finished;
 msg_cb_fab_cancelled;
 msg_crisis_voluntary_join;
-msg_bankruptcy_title;Bankruptcy
-amsg_bankruptcy;When a nation goes bankrupt
-msg_bankruptcy_1;$x$ has gone bankrupt
-message_name_text;Message
-msg_for_us;About: your nation
-msg_for_interesting;Interesting nations
-msg_for_other;Other nations
-msg_handling_ignore;Ignore the message
-msg_handling_log;Log the message
-msg_handling_sound;Log the message with a sound effect
-msg_handling_popup;Pop up a notification for the message
-msg_handling_pause;Pop up a notification for the message and pause the game until it's dismissed
-amsg_revolt;A revolt happens in the nation
-amsg_war_on_nation;War is declared on the nation
-amsg_war_by_nation;War is declared by the nation
-amsg_wargoal_added;The nation adds a war goal
-amsg_siegeover_by_nation;The nation completes a siege
-amsg_siegeover_on_nation;A siege finishes on a province the nation controls
-amsg_colony_finished;The nation finishes a colony
-amsg_reform_gained;The nation passes a reform
-amsg_reform_lost;The nation loses a reform
-amsg_ruling_party_change;The ruling party of the nation changes
-amsg_upperhouse;The composition of the upper house of the nation changes
-amsg_electionstart;An election starts in the nation
-amsg_electiondone;An election ends in the nation
-amsg_breakcountry;Rebels enforce their demands on the nation
-amsg_peace_accepted_from_nation;The nation's peace offer is accepted
-amsg_peace_rejected_from_nation;The nation's peace offer is rejected
-amsg_peace_accepted_by_nation;The nation accepts a peace offer
-amsg_peace_rejected_by_nation;The nation rejects a peace offer
-amsg_mobilization_start;The nation mobilizes
-amsg_mobilization_end;The nation ends its mobilization
-amsg_factory_complete;The nation finishes building a factory
-amsg_rr_complete;The nation finishes building a railroad
-amsg_fort_complete;The nation finishes building a fort
-amsg_naval_base_complete;The nation finishes building a naval base
-amsg_province_event;A province event happens to the nation
-amsg_national_event;A national event happens to the nation
-amsg_major_event;A major event happens to the nation
-amsg_invention;The nation discovers an invention
-amsg_tech;The nation finishes researching a technology
-amsg_leader_dies;One of the nation's military leaders dies
-amsg_land_combat_starts_on_nation;One of the nation's armies is attacked
-amsg_naval_combat_starts_on_nation;One of the nation's navies is attacked
-amsg_land_combat_starts_by_nation;One of the nation's armies makes an attack
-amsg_naval_combat_starts_by_nation;One of the nation's navies makes an attack
-amsg_movement_finishes;One of the nation's units finishes moving
-amsg_decision;The nation takes a decision
-amsg_lose_great_power;The nation loses great power status
-amsg_become_great_power;The nation gains great power status
-amsg_war_subsidies_start_by_nation;The nation starts providing war subsidies
-amsg_war_subsidies_start_on_nation;The nation starts being given war subsidies
-amsg_war_subsidies_end_by_nation;The nation stops providing war subsidies
-amsg_war_subsidies_end_on_nation;The nation stops being provided with war subsidies
-amsg_reparations_start_by_nation;The nation starts paying reparations
-amsg_reparations_start_on_nation;The nation starts being paid reparations
-amsg_reparations_end_by_nation;The nation stops paying reparations
-amsg_reparations_end_on_nation;Reparations stop being paid to the nation
-amsg_mil_access_start_by_nation;The nation starts giving military access
-amsg_mil_access_start_on_nation;The nation starts receiving military access
-amsg_mil_access_end_by_nation;The nation stops giving military access
-amsg_mil_access_end_on_nation;The nation stops receiving military access
-amsg_mil_access_declined_by_nation;The nation's military access request is declined
-amsg_mil_access_declined_on_nation;The nation declines a military access request
-amsg_alliance_starts;The nation enters into a new alliance
-amsg_alliance_ends;The nation ends an alliance
-amsg_alliance_declined_by_nation;The nation declines an alliance offer
-amsg_alliance_declined_on_nation;The nation's alliance offer is declined
-amsg_ally_called_accepted_by_nation;The nation honors a call to arms
-amsg_ally_called_declined_by_nation;The nation declines a call to arms
-amsg_discredit_by_nation;The nation discredits another nation
-amsg_ban_by_nation;The nation bans the embassy of another nation
-amsg_expell_by_nation;The nation expels the advisors of another nation
-amsg_discredit_on_nation;The nation is discredited
-amsg_ban_on_nation;The nation's embassy is banned
-amsg_expell_on_nation;The nation's advisors are expelled
-amsg_increase_opinion;The nation increases another nation's opinion of them
-amsg_decrease_opinion_by_nation;The nation causes the opinion of another nation to decrease
-amsg_decrease_opinion_on_nation;The opinion of this nation is caused to decrease
-amsg_rem_sphere_by_nation;The nation removes another nation from a sphere of influence
-amsg_rem_sphere_on_nation;The nation has another nation removed from its sphere of influence
-amsg_removed_from_sphere;The nation is removed from a sphere of influence
-amsg_add_sphere;The nation adds another nation to their sphere of influence
-amsg_added_to_sphere;The nation is added to a sphere of influence
-amsg_increase_relation_by_nation;The nation increases another nation's relationship with it
-amsg_increase_relation_on_nation;The nation has its relationship with someone else increased
-amsg_decrease_relation_by_nation;The nation decreases another nation's relationship with it
-amsg_decrease_relation_on_nation;The nation has its relationship with someone else decreased
-amsg_join_war_by_nation;The nation joins an existing war
-amsg_join_war_on_nation;A new nation joins an existing war against this nation
-amsg_gw_unlocked;Great wars are unlocked
-amsg_war_becomes_great;A war involving this nation becomes great
-amsg_cb_detected_on_nation;CB justification targeting this nation is detected
-amsg_cb_detected_by_nation;This nation is detected justifying a CB
-amsg_crisis_join_offer_accepted_by_nation;The nation accepts an offer to join a crisis
-amsg_crisis_join_offer_declined_by_nation;The nation declines an offer to join a crisis
-amsg_crisis_join_offer_accepted_from_nation;An offer to join a crisis from this nation is accepted
-amsg_crisis_join_offer_declined_from_nation;An offer to join a crisis from this nation is declined
-amsg_crisis_resolution_accepted;A crisis resolution is accepted
-amsg_crisis_becomes_war;A crisis becomes a war
-amsg_crisis_resolution_declined_from_nation;An crisis resolution offer from this nation is declined
-amsg_crisis_starts;A new crisis starts
-amsg_crisis_attacker_backer;A great power becomes the primary attacker in a crisis
-amsg_crisis_defender_backer;A great power becomes the primary defender in a crisis
-amsg_crisis_fizzle;A crisis fails to attract great power interest
-amsg_war_join_by;The nation joins a war
-amsg_war_join_on;A nation joins a war against this nation
-amsg_cb_fab_finished;The nation finished fabricating a CB
-amsg_cb_fab_cancelled;CB fabrication by the nation is canceled
-amsg_crisis_voluntary_join;The nation joins a crisis without an offer
-amsg_army_built;The nation built an army
-amsg_navy_built;The nation built a navy
-amsg_bankruptcy;Nation goes bankrupt
-amsg_entered_automatic_alliance;The nation is automatically allied by another
-amsg_chat_message;The nation sent a message in chat
+msg_bankruptcy_title;파산
+amsg_bankruptcy;한 국가가 파산할 때
+msg_bankruptcy_1;$x$ 파산
+message_name_text;메시지
+msg_for_us;대상: 우리나라
+msg_for_interesting;관심 국가
+msg_for_other;기타 국가
+msg_handling_ignore;이 메시지 무시
+msg_handling_log;이 메시지 기록
+msg_handling_sound;이 메시지를 소리와 함께 기록
+msg_handling_popup;메시지 팝업
+msg_handling_pause;메시지를 팝업하고 닫을 때까지 게임 일시정지
+amsg_revolt;반란 발생
+amsg_war_on_nation;이 국가에 선전포고
+amsg_war_by_nation;선전포고
+amsg_wargoal_added;전쟁 목표 추가
+amsg_siegeover_by_nation;포위 완료
+amsg_siegeover_on_nation;이 주 점령
+amsg_colony_finished;식민지 완성
+amsg_reform_gained;개혁 통과
+amsg_reform_lost;개혁 상실
+amsg_ruling_party_change;집권당 변경
+amsg_upperhouse;상원 개편
+amsg_electionstart;전국 선거
+amsg_electiondone;선거 종료
+amsg_breakcountry;반란군 요구
+amsg_peace_accepted_from_nation;평화 협정이 수락됨
+amsg_peace_rejected_from_nation;평화 협정이 거절됨
+amsg_peace_accepted_by_nation;평화 협정 수락
+amsg_peace_rejected_by_nation;평화 협정 거절
+amsg_mobilization_start;총동원
+amsg_mobilization_end;동원 해제
+amsg_factory_complete;공장 완공
+amsg_rr_complete;철도 완공
+amsg_fort_complete;요새 완공
+amsg_naval_base_complete;해군 기지 완공
+amsg_province_event;주 이벤트 발생
+amsg_national_event;국가 이벤트 발생
+amsg_major_event;주요 이벤트 발생
+amsg_invention;발명 발견
+amsg_tech;연구 완료
+amsg_leader_dies;장군 사망
+amsg_land_combat_starts_on_nation;우리 육군이 공격받음
+amsg_naval_combat_starts_on_nation;우리 해군이 공격받음
+amsg_land_combat_starts_by_nation;적군 공격
+amsg_naval_combat_starts_by_nation;해전 발생
+amsg_movement_finishes;부대 대기
+amsg_decision;결정 시행
+amsg_lose_great_power;열강 지위 상실
+amsg_become_great_power;열강이 됨
+amsg_war_subsidies_start_by_nation;전쟁 보조금
+amsg_war_subsidies_start_on_nation;전쟁 보조금을 받음
+amsg_war_subsidies_end_by_nation;전쟁 보조금 중단
+amsg_war_subsidies_end_on_nation;전쟁 보조금이 중단됨
+amsg_reparations_start_by_nation;배상금 지급 시작
+amsg_reparations_start_on_nation;배상금 획득
+amsg_reparations_end_by_nation;배상금 지급 중단
+amsg_reparations_end_on_nation;배상금 지급이 중단됨
+amsg_mil_access_start_by_nation;군사 통행권 부여
+amsg_mil_access_start_on_nation;군사 통행권 획득
+amsg_mil_access_end_by_nation;군사 통행권 회수
+amsg_mil_access_end_on_nation;군사 통행권이 회수됨
+amsg_mil_access_declined_by_nation;군사 통행 요청이 거절됨
+amsg_mil_access_declined_on_nation;군사 통행 요청 거절
+amsg_alliance_starts;동맹 체결
+amsg_alliance_ends;동맹 파기
+amsg_alliance_declined_by_nation;동맹 제안 거절
+amsg_alliance_declined_on_nation;동맹이 거부됨
+amsg_ally_called_accepted_by_nation;동맹 이행
+amsg_ally_called_declined_by_nation;동맹 파기
+amsg_discredit_by_nation;타국 비방
+amsg_ban_by_nation;타국 대사관 봉쇄
+amsg_expell_by_nation;타국 고문 추방
+amsg_discredit_on_nation;비방당함
+amsg_ban_on_nation;대사관이 봉쇄됨
+amsg_expell_on_nation;고문이 추방됨
+amsg_increase_opinion;평가 상승
+amsg_decrease_opinion_by_nation;평가 하락
+amsg_decrease_opinion_on_nation;평가가 하락함
+amsg_rem_sphere_by_nation;타국을 세력권에서 제외
+amsg_rem_sphere_on_nation;타국을 세력권에서 제외
+amsg_removed_from_sphere;세력권에서 제외됨
+amsg_add_sphere;타국을 세력권에 편입
+amsg_added_to_sphere;세력권에 편입됨
+amsg_increase_relation_by_nation;관계 개선
+amsg_increase_relation_on_nation;관계가 개선됨
+amsg_decrease_relation_by_nation;관계 악화
+amsg_decrease_relation_on_nation;관계가 악화됨
+amsg_join_war_by_nation;참전
+amsg_join_war_on_nation;적이 참전
+amsg_gw_unlocked;세계 대전 가능
+amsg_war_becomes_great;세계 대전!
+amsg_cb_detected_on_nation;명분이 발각됨
+amsg_cb_detected_by_nation;명분 정당화가 발각됨
+amsg_crisis_join_offer_accepted_by_nation;위기 참가 제안 수락
+amsg_crisis_join_offer_declined_by_nation;위기 참가 제안 거절
+amsg_crisis_join_offer_accepted_from_nation;위기 참가 제안이 수락됨
+amsg_crisis_join_offer_declined_from_nation;위기 참가 제안이 거절됨
+amsg_crisis_resolution_accepted;위기 해결안 수락
+amsg_crisis_becomes_war;위기가 전쟁이 됨
+amsg_crisis_resolution_declined_from_nation;위기 해결안이 거절됨
+amsg_crisis_starts;새 위기
+amsg_crisis_attacker_backer;열강이 위기 공격측을 지지
+amsg_crisis_defender_backer;열강이 위기 방어측을 지지
+amsg_crisis_fizzle;위기가 관심을 받지 못해 소멸
+amsg_war_join_by;참전
+amsg_war_join_on;적이 참전
+amsg_cb_fab_finished;명분 정당화 성공
+amsg_cb_fab_cancelled;명분 정당화 취소
+amsg_crisis_voluntary_join;무조건 위기에 참가
+amsg_army_built;육군 창설
+amsg_navy_built;해군 창설
+amsg_bankruptcy;국가 파산
+amsg_entered_automatic_alliance;자동 동맹
+amsg_chat_message;채팅 메시지
+amsg_embargo;해당 국가가 금수조치를 선포함
+msg_embargo_issued_title;금수조치 선포
+msg_embargo_issued;?Y$y$?!가 ?Y$x$?!에 금수조치를 선포했습니다.
+msg_embargo_lifted_title;금수조치 해제
+msg_embargo_lifted;?Y$y$?!가 ?Y$x$?!에 대한 금수조치를 해제했습니다.
+msg_free_trade_agreement_signed_title;자유무역협정 체결
+msg_free_trade_agreement_signed; 우리 $x$와 $y$는 자유무역협정을 체결하여 상호 관세를 철폐합니다.

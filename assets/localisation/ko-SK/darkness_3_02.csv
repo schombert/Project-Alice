@@ -1,0 +1,31 @@
+JAN_reactionary;스트리트 파르티에트
+EXILED_DESC;이 부대는 평화 시에 군사 통행권 없이 외국 영토에 있으므로 §R추방§!되었습니다. 추방된 부대는 전투에 참여할 수 없으며 정찰 능력이 감소하지만, 외국 영토를 거쳐 본국으로 행군할 수 있습니다. 부대를 가장 가까운 아군 소유 프로빈스로 귀환시키십시오!
+TWS_FULFILLED;$PERC$ 충족됨
+TWS_NOT_FULFILLED;§R충족되지 않음§!
+TICKING_WARSCORE_DESC_CURR;현재 $VAL$.
+UNIT_BORROWED;이 부대는 일시적으로 우리의 지휘 아래 있습니다.
+DISBAND_TOO_SMALL_UNIT;인원 미달 여단 해산
+DISBAND_TOO_SMALL_UNIT_DRO;이 옵션은 현재 최대 병력의 병사 POP이 지원하지 않는 모든 여단을 해산합니다.
+CONFIRM_DISBAND_TOO_SMALL_TITLE;모든 인원 미달 여단을 해산하시겠습니까?
+CONFIRM_DISBAND_TOO_SMALL_DESC;이를 통해 최대 병력의 병사 POP이 지원하지 않는 모든 여단을 해산하게 되며, 더 이상 이에 대한 유지비를 지불하지 않아도 됩니다. 해당 여단에 남아 있는 병력은 인력 풀로 반환됩니다.
+MODIFIER_RESEARCH_POINTS_ON_CONQUER;정복 시 연구 점수 보너스
+colonial_negotiations;식민지 협상
+colonial_negotiations_desc;무슨 일이 일어나든, 우리에겐 \n맥심 기관총이 있고, 그들에겐 없다'\n\n 기관총은 군대가 밀집 돌격 전술을 사용하는 적군을 초토화시킬 수 있게 해주었으며, 이는 식민화에 반대하는 '비문명국'을 타도할 때 특히 유용한 능력이었습니다.
+PRODUCTION_BONUS_POSSIBLE;가능한 보너스:
+COLONIZE_PHASE_INITIAL_INTEREST;탐험대 파견
+COLONIZE_PHASE_INITIAL_INTEREST_DESC;어떤 지역에 영향을 미치기 위한 첫 번째 단계는 탐험대를 파견하는 것입니다. §Y$DAYS$§!일 내에 경쟁이 발생하지 않으면 보호령을 창설할 수 있습니다.
+INITIAL_COLONIZE_DEFAULT_TIME;§Y$DATE$§!까지 탐험대와 경쟁하는 국가가 없다면 곧바로 보호령을 창설할 수 있습니다.
+COUNTRYALERT_ColonialGood_protectorate;§G우리는 §!§Y$REGION$§!§G에 보호령을 창설할 수 있습니다§!
+COUNTRYALERT_ColonialGood_colony;§G우리는 §!§Y$REGION$§!§G에 식민지를 창설할 수 있습니다§!
+COUNTRYALERT_ColonialGood_state;§G우리는 §!§Y$REGION$§!§G에 주를 창설할 수 있습니다§!
+COUNTRYALERT_ColonialBad_colonizationtimer;§Y$DATE$§!§R 이전에 §!§Y$REGION$§!§R에 보호령을 창설하지 않으면 이를 잃게 됩니다.§!
+COUNTRYALERT_ColonialBad_influence;§R우리는 §!§Y$REGION$§!§R에서 경합에 밀리고 있습니다§!
+NON_COLONIAL_POWER;우리는 아직 준열강이나 열강이 아니므로 식민지 국력이 없습니다.
+CRISIS_DESCRIPTION_COLONIZE;식민화 권리를 둘러싼 위기입니다.
+colonial_competition;식민지 영유권 주장 관철
+colonial_competition_desc;§Y식민 지역§! 획득
+colonial_competition_short;식민지 $REGION$ 획득
+colonial_competition_setup;식민지 $REGION$ 획득
+CB_COLONY_CLAIMS;식민지 영유권 주장 관철
+COLONY_TENSION_DRIFT;변동치: §Y$VAL$§!
+COLONY_IN_CRISIS;현재 식민지 위기에 연루됨

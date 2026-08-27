@@ -1,6 +1,8 @@
+#include "system_state.hpp"
 #include "ai_influence.hpp"
 #include "economy_stats.hpp"
 #include "demographics.hpp"
+#include "commands.hpp"
 
 namespace ai {
 
@@ -85,7 +87,7 @@ void update_influence_priorities(sys::state& state) {
 				weight *= 4.0f;
 			}
 			//Focus on gaining influence against nations we have active wargoals against so we can remove their protector, even if it's us
-			if(military::can_use_cb_against(state, n.nation, t) && t.get_in_sphere_of()) {
+			if(military::can_use_cb_against<false>(state, n.nation, t) && t.get_in_sphere_of()) {
 				weight += 1.0f;
 				weight *= 1000.0f;
 			}

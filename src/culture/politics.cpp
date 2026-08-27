@@ -1,10 +1,13 @@
 #include "politics.hpp"
-#include "dcon_generated.hpp"
+#include "dcon_generated_ids.hpp"
 #include "demographics.hpp"
 #include "effects.hpp"
 #include "prng.hpp"
 #include "province_templates.hpp"
 #include "triggers.hpp"
+#include "economy.hpp"
+#include "economy_factory_view.hpp"
+#include "events.hpp"
 
 namespace politics {
 

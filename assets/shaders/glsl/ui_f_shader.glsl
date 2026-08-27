@@ -100,7 +100,7 @@ vec4 linegraph(vec2 tc) {
 }
 //layout(index = 15) subroutine(font_function_class)
 vec4 subsprite_b(vec2 tc) {
-	return vec4(inner_color, texture(texture_sampler, vec2(tc.x * subrect.y + subrect.x, tc.y * subrect.a + subrect.z)).a);
+	return vec4(inner_color, texture(texture_sampler, vec2(tc.x * subrect.y + subrect.x, tc.y * subrect.a + subrect.z)).r * texture(texture_sampler, vec2(tc.x * subrect.y + subrect.x, tc.y * subrect.a + subrect.z)).a);
 }
 //layout(index = 17) subroutine(font_function_class)
 vec4 linegraph_color(vec2 tc) {

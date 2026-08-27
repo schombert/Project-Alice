@@ -1,0 +1,66 @@
+#Powered_by_ParaTranz
+Start Research;연구 시작
+LEDGER;통계표
+BUY;구매
+Ideology;이념
+Culture;문화
+Workforce;직업
+OL_VIEW_rebel_occupations;반란군 점령
+OL VIEW rebel occupations;반란군 점령
+OL_VIEW_sieges;포위
+OL VIEW sieges;포위
+OL_VIEW_hostile_sieges;적군 포위
+OL VIEW hostile sieges;적군 포위
+OL_VIEW_combat;육상전
+OL VIEW combat;육상전
+OL_VIEW_navalcombat;해전
+OL VIEW navalcombat;해전
+OL_VIEW_armies;육군
+OL VIEW armies;육군
+OL_VIEW_navies;해군
+OL VIEW navies;해군
+OL_VIEW_factories;공장
+OL VIEW factories;공장
+OL_VIEW_buildings;건설
+OL VIEW buildings;건설
+OL_VIEW_army_construction;육군 모집
+OL VIEW army construction;육군 모집
+OL_VIEW_navy_construction;해군 건설
+OL VIEW navy construction;해군 건설
+OL_VIEW_gp_influence;영향권 국가
+OL VIEW gp influence;영향권 국가
+OL_VIEW_natfocus;국가 중점
+OL VIEW natfocus;국가 중점
+OL_VIEW_rallypoints;집결지
+OL VIEW rallypoints;집결지
+PAP_absolute_monarchy;교황령
+PAP_prussian_constitutionalism;교황령
+AUS_absolute_monarchy;오스트리아 제국
+AUS_prussian_constitutionalism;오스트리아 제국
+KUK_absolute_monarchy;오스트리아-헝가리 제국
+KUK_prussian_constitutionalism;오스트리아-헝가리 제국
+SPA_absolute_monarchy;스페인 제국
+FRA_absolute_monarchy;프랑스 제국
+TUR_absolute_monarchy;오스만 제국
+TUR_absolute_monarchy_ADJ;오스만
+TUR_prussian_constitutionalism;오스만 제국
+TUR_prussian_constitutionalism_ADJ;오스만
+CHI_absolute_monarchy;대청제국
+CHI_absolute_monarchy_ADJ;대청
+CHI_prussian_constitutionalism;대청제국
+CHI_absolute_monarchy_ADJ;대청
+DAI_absolute_monarchy;대남제국
+DAI_prussian_constitutionalism;대남제국
+SAR_absolute_monarchy;사르데냐 왕국
+SAR_prussian_constitutionalism;사르데냐 왕국
+SIA_absolute_monarchy;시암
+SIA_absolute_monarchy_ADJ;시암
+SIA_prussian_constitutionalism;시암
+SIA_prussian_constitutionalism_ADJ;시암
+ETH_absolute_monarchy;에티오피아 제국
+ETH_prussian_constitutionalism;에티오피아 제국
+MAD_absolute_monarchy;메리나 왕국
+MAD_prussian_constitutionalism;메리나 왕국
+BRZ_absolute_monarchy;브라질 제국
+BRZ_prussian_constitutionalism;브라질 제국
+BRZ_hms_government;브라질 제국

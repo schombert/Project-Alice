@@ -5,35 +5,19 @@
 #include <vector>
 #include <string>
 #include <string_view>
-#include "dcon_generated.hpp"
+#include "dcon_generated_ids.hpp"
 #include "nations.hpp"
 #include "unordered_dense.h"
 #include "fonts.hpp"
+#include "gui_graphics.hpp"
+#include "constants_ui.hpp"
 
 namespace sys {
 struct state;
 }
 
 namespace text {
-enum class text_color : uint8_t {
-	black,
-	white,
-	red,
-	green,
-	yellow,
-	unspecified,
-	light_blue,
-	dark_blue,
-	orange,
-	lilac,
-	light_grey,
-	dark_red,
-	dark_green,
-	gold,
-	reset,
-	brown
-};
-enum class alignment : uint8_t { left, right, center };
+
 enum class variable_type : uint16_t {
 	error_no_matching_value,
 	action,
@@ -781,9 +765,6 @@ struct int_percentage {
 struct int_wholenum {
 	int32_t value = 0;
 };
-enum class embedded_icon : uint8_t {
-	check, xmark, check_desaturated, xmark_desaturated, army, navy
-};
 struct embedded_unit_icon {
 	dcon::unit_type_id unit_type;
 };
@@ -855,7 +836,7 @@ struct layout_base {
 			}
 		}
 	}
-
+	virtual ~layout_base() = default;
 	virtual void internal_close_box(layout_box& box) = 0;
 };
 
@@ -866,9 +847,9 @@ struct columnar_layout : public layout_base {
 	int32_t current_column_x = 0;
 	int32_t column_width = 0;
 
-	columnar_layout(layout& base_layout, layout_parameters const& fixed_parameters, layout_base::rtl_status native_rtl, int32_t used_height = 0, int32_t used_width = 0, int32_t y_cursor = 0, int32_t column_width = 0)
-			: layout_base(base_layout, fixed_parameters, native_rtl), used_height(used_height), used_width(used_width), y_cursor(y_cursor),
-				current_column_x(fixed_parameters.left), column_width(column_width) {
+	columnar_layout(layout& layout, layout_parameters const& parameters, layout_base::rtl_status rtl, int32_t used_height = 0, int32_t used_width = 0, int32_t y_cursor = 0, int32_t column_width = 0)
+			: layout_base(layout, parameters, rtl), used_height(used_height), used_width(used_width), y_cursor(y_cursor),
+				current_column_x(parameters.left), column_width(column_width) {
 		layout_base::fixed_parameters.left = 0;
 	}
 
@@ -878,8 +859,8 @@ struct columnar_layout : public layout_base {
 struct endless_layout : public layout_base {
 	int32_t y_cursor = 0;
 
-	endless_layout(layout& base_layout, layout_parameters const& fixed_parameters, layout_base::rtl_status native_rtl, int32_t y_cursor = 0)
-			: layout_base(base_layout, fixed_parameters, native_rtl), y_cursor(y_cursor) { }
+	endless_layout(layout& layout, layout_parameters const& parameters, layout_base::rtl_status rtl, int32_t y_cursor = 0)
+			: layout_base(layout, parameters, rtl), y_cursor(y_cursor) { }
 
 	void internal_close_box(layout_box& box) final;
 };
@@ -889,8 +870,8 @@ layout_box open_layout_box(layout_base& dest, int32_t indent = 0);
 struct single_line_layout : public layout_base {
 	layout_box box;
 
-	single_line_layout(layout& base_layout, layout_parameters const& fixed_parameters, layout_base::rtl_status native_rtl)
-		: layout_base(base_layout, fixed_parameters, native_rtl), box(open_layout_box(*this, 0)) {
+	single_line_layout(layout& layout, layout_parameters const& parameters, layout_base::rtl_status rtl)
+		: layout_base(layout, parameters, rtl), box(open_layout_box(*this, 0)) {
 
 		base_layout.number_of_lines = 0;
 		base_layout.contents.clear();
@@ -898,7 +879,7 @@ struct single_line_layout : public layout_base {
 
 	void internal_close_box(layout_box& box) final;
 
-	~single_line_layout() {
+	~single_line_layout() override {
 		internal_close_box(box);
 	}
 
@@ -959,14 +940,6 @@ std::string format_wholenum(int32_t num);
 std::string format_percentage(float num, size_t digits = 2);
 std::string format_float(float num, size_t digits = 2);
 std::string format_ratio(int32_t left, int32_t right);
-template<class T>
-std::string get_name_as_string(sys::state& state, T t) {
-	return text::produce_simple_string(state, t.get_name());
-}
-template<class T>
-std::string get_adjective_as_string(sys::state& state, T t) {
-	return text::produce_simple_string(state, t.get_adjective());
-}
 std::string get_short_state_name(sys::state& state, dcon::state_instance_id state_id);
 std::string get_dynamic_state_name(sys::state& state, dcon::state_instance_id state_id);
 std::string get_province_state_name(sys::state& state, dcon::province_id prov_id);
@@ -974,19 +947,26 @@ std::string get_focus_category_name(sys::state const& state, nations::focus_type
 std::string get_influence_level_name(sys::state const& state, uint8_t v);
 dcon::text_key get_name(sys::state& state, dcon::nation_id n);
 dcon::text_key get_adjective(sys::state& state, dcon::nation_id n);
+dcon::text_key get_adjective(sys::state& state, dcon::national_identity_id n);
 dcon::text_key get_ruler_title(sys::state& state, dcon::nation_id n);
-inline std::string get_name_as_string(sys::state& state, dcon::nation_id n) {
-	return text::produce_simple_string(state, get_name(state, n));
-}
-inline std::string get_adjective_as_string(sys::state& state, dcon::nation_id n) {
-	return text::produce_simple_string(state, get_adjective(state, n));
-}
-inline std::string get_name_as_string(sys::state& state, dcon::nation_fat_id n) {
-	return text::produce_simple_string(state, get_name(state, n));
-}
-inline std::string get_adjective_as_string(sys::state& state, dcon::nation_fat_id n) {
-	return text::produce_simple_string(state, get_adjective(state, n));
-}
+
+std::string get_name_as_string(sys::state& state, dcon::nation_id n);
+std::string get_name_as_string(sys::state& state, dcon::ideology_id n);
+std::string get_name_as_string(sys::state& state, dcon::political_party_id n);
+std::string get_name_as_string(sys::state& state, dcon::religion_id n);
+std::string get_name_as_string(sys::state& state, dcon::technology_id n);
+std::string get_name_as_string(sys::state& state, dcon::culture_id n);
+std::string get_name_as_string(sys::state& state, dcon::commodity_id n);
+std::string get_name_as_string(sys::state& state, dcon::issue_id n);
+std::string get_name_as_string(sys::state& state, dcon::issue_option_id n);
+std::string get_name_as_string(sys::state& state, dcon::modifier_id n);
+std::string get_name_as_string(sys::state& state, dcon::province_id n);
+std::string get_name_as_string(sys::state& state, dcon::national_identity_id n);
+std::string get_name_as_string(sys::state& state, dcon::reform_option_id n);
+std::string get_name_as_string(sys::state& state, dcon::state_definition_id n);
+
+std::string get_adjective_as_string(sys::state& state, dcon::nation_id n);
+std::string get_adjective_as_string(sys::state& state, dcon::national_identity_id n);
 
 std::string get_commodity_name_with_icon(sys::state& state, dcon::commodity_id cid);
 std::string get_commodity_text_icon(sys::state& state, dcon::commodity_id cid);

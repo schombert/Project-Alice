@@ -1,6 +1,7 @@
 #include "gui_graphics.hpp"
 #include "simple_fs.hpp"
 #include "gui_element_base.hpp"
+#include "parsers_declarations.hpp"
 
 namespace ui {
 
@@ -325,6 +326,12 @@ void populate_definitions_map(sys::state& state) {
 		auto value = dcon::gfx_object_id(dcon::gfx_object_id::value_base_t(i));
 		state.ui_state.gfx_by_name.insert_or_assign(state.ui_defs.gfx[value].name, value);
 	}
+}
+
+void place_in_drag_and_drop(sys::state& state, element_base& elm, std::any const& data, drag_and_drop_data type) {
+	state.ui_state.drag_and_drop_image.capture_element(state, elm);
+	state.ui_state.current_drag_and_drop_data = data;
+	state.ui_state.current_drag_and_drop_data_type = type;
 }
 
 } // namespace ui

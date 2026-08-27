@@ -102,6 +102,14 @@ Copy the assets folder to your V2 directory. **Note: when the asset files are up
 
 Note that `args` contains the command line parameters to launch the program with. If you want to debug a specific scenario file, you would change it to something like `"9DCA2D56-0.bin"`.
 
+### WARRRING!
+
+If you're using a VPN, your port is most likely not the default port. This means that unless you change Git's port, it won't benefit from your VPN.
+
+This will make it highly likely that the files you download will be corrupted. I spent an entire afternoon troubleshooting this and even missed dinner.
+
+Also, when modifying .json files, pay close attention to syntax errors.I almost smashed my computer because of a tiny comma.
+
 ### Incremental Build
 
 The `Alice` build target combines nearly all of the game's source files into one large translation unit which means that changing a single line of source code almost always requires recompiling the entire game. This can take up to 10 minutes depending on build configuration and system specifications even if you change a single line. Therefore it's recommended that any contributors use the `AliceIncremental` build target as this breaks the game into smaller translation units that can be compiled in parallel and also greatly reduces the amount of time required to recompile any changes. Github CI builds the `Alice` target so it will catch any changes that do not compile under the `Alice` target.

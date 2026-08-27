@@ -1,33 +1,34 @@
 save_and_exit;Salir y Guardar
 save;Guardar
 exit;Salir
-graphics_options;Opciones graficas
-sound_options;Opciones de audio
-controls_options;Opciones extra
+graphics_options;Opc. graficas
+sound_options;Opc. de audio
+controls_options;Opc. extra
+message_settings_options;Opc. de mensajes
 window_mode_label;Pantalla completa
 map_projection;Proyeccion
 map_projection_globe;Ortografica
 map_projection_flat;Equirectangular
 map_projection_globe_perspective;Vertical
-dm_popup_label;Mensajes diplomaticos son Pop-Ups
+dm_popup_label;Mens. diplomaticos como Pop-Ups
 ui_scale;Escala de la interfaz
-zoom_mode_label;Estilo del zoom
+zoom_mode_label;Tipo de zoom
 zoom_mode_panning;Panoramico
 zoom_mode_inverted;Invertido
 zoom_mode_centered;Centrado
 zoom_mode_to_cursor;Al cursor
-zoom_mode_away_from_cursor;Alejandose
-zoom_speed_label;Aceleracion de zoom
+zoom_mode_away_from_cursor;Alej. del cursor
+zoom_speed_label;Vel. del zoom
 river_label;Rios
-mute_on_focus_lost_label;Mutear al salir del enfoque
+mute_on_focus_lost_label;Mutear cuando no esta enfocado
 wasd_for_map_movement_label;WASD para moverse
-vassal_color_label;Color de vasallios
+vassal_color_label;Color de vasallos
 vassal_color_inherit;Heredar
 vassal_color_same;Igual
 vassal_color_none;Ninguno
-black_map_font_label;Texto negro
+black_map_font_label;Fuente de mapa negra
 edge_scrolling_label;Scroll al borde
-color_blind_mode_label;Deficit de color
+color_blind_mode_label;Daltonismo
 color_blind_mode_none;Ninguno
 color_blind_mode_deutan;Deutan
 color_blind_mode_protan;Protan
@@ -37,7 +38,7 @@ render_models_label;Mostrar modelos 3D
 language_label;Lenguaje
 fow_label;Neblina de guerra
 railroad_label;Redes de ferrocarriles
-master_volume_label;Volumen total
+master_volume_label;Volumen general
 music_volume_label;Volumen de la musica
 interface_volume_label;Volumen de la interfaz
 effect_volume_label;Volumen de los efectos de sonido
@@ -51,5 +52,11 @@ map_label_0;Ninguna
 map_label_1;Linear
 map_label_2;Cuadratica
 map_label_3;Cubica
+map_label_4;Esferica
 antialiasing_label;Antialiasing
-spoilers_label;Spoilers
+spoilers_label;Tooltips Det. Extra
+graphics_details_label;Graficos
+graphics_details_0;Feo
+graphics_details_1;Clasico
+graphics_details_2;Moderno
+disband_confirmation_label;Confirmar Elm. de unidad

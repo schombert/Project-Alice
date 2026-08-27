@@ -1,6 +1,7 @@
 #pragma once
-#include "dcon_generated.hpp"
+#include "dcon_generated_ids.hpp"
 #include "ai_types.hpp"
+#include "container_types.hpp"
 
 namespace sys {
 struct state;

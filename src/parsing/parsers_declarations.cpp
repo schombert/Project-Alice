@@ -5,6 +5,8 @@
 #include "fonts.hpp"
 #include "demographics.hpp"
 #include "military_templates.hpp"
+#include "demographics_templates.hpp"
+#include "lua_alice_api.hpp"
 
 namespace parsers {
 
@@ -70,7 +72,7 @@ void scripted_gamerule::option(gamerule_option option, error_handler& err, int32
 		has_default = true;
 	}
 	auto opt_name_key = text::find_or_add_key(context.state, option.defined_name, false);
-	options[option.option_id] = sys::gamerule_option{ opt_name_key, option.on_select, option.on_deselect };
+	options[option.option_id] = sys::gamerule_option{ opt_name_key, option.on_select_lua_function, option.on_deselect_lua_function };
 }
 
 
@@ -81,7 +83,7 @@ void gamerule_option::name(association_type, std::string_view text, error_handle
 	defined_name = text;
 	auto gamerule_opt_it = context.map_of_gamerule_options.find(std::string(text));
 	if(gamerule_opt_it == context.map_of_gamerule_options.end()) {
-		err.accumulated_errors += "Could not find previously declared gamerule option " + std::string(text) + " in map (" + err.file_name + ")" + " line" + std::to_string(line) + ". This shouldn't happen, report this as a bug!\n";
+		err.accumulated_errors += "Could not find previously declared gamerule option " + std::string(text) + " in file (" + err.file_name + ")" + " line" + std::to_string(line) + ". This shouldn't happen, report this as a bug!\n";
 		return;
 	}
 	else {
@@ -92,6 +94,27 @@ void gamerule_option::name(association_type, std::string_view text, error_handle
 
 void gamerule_option::finish(scenario_building_context& context) {
 
+}
+
+void gamerule_option::on_select(association_type, std::string_view text, error_handler& err, int32_t line, scenario_building_context& context) {
+	std::string function_name = std::string(text);
+	if(lua_alice_api::has_named_function(context.state, function_name.c_str())) {
+		on_select_lua_function = text::find_or_add_key(context.state, function_name, false);
+
+	} else {
+		err.accumulated_errors += "Lua function " + function_name + " dosen't exist. (Line " + std::to_string(line) + " in gamerules.txt)\n";
+	}
+}
+
+void gamerule_option::on_deselect(association_type, std::string_view text, error_handler& err, int32_t line, scenario_building_context& context) {
+	std::string function_name = std::string(text);
+	if(lua_alice_api::has_named_function(context.state, function_name.c_str())) {
+		on_deselect_lua_function = text::find_or_add_key(context.state, function_name, false);
+
+	}
+	else {
+		err.accumulated_errors += "Lua function " + function_name + " dosen't exist. (Line " + std::to_string(line) + " in gamerules.txt)\n";
+	}
 }
 
 void gamerule_file::finish(scenario_building_context& context) {
@@ -196,6 +219,7 @@ void good::color(color_from_3i v, error_handler& err, int32_t line, good_context
 
 void good::cost(association_type, float v, error_handler& err, int32_t line, good_context& context) {
 	context.outer_context.state.world.commodity_set_cost(context.id, v);
+	context.outer_context.state.world.commodity_set_median_price(context.id, v);
 }
 
 void good::available_from_start(association_type, bool b, error_handler& err, int32_t line, good_context& context) {
@@ -2515,27 +2539,16 @@ void oob_regiment::home(association_type, int32_t value, error_handler& err, int
 			"Province id " + std::to_string(value) + " is too large (" + err.file_name + " line " + std::to_string(line) + ")\n";
 	} else {
 		auto army = fatten(context.outer_context.state.world, context.outer_context.state.world.regiment_get_army_from_army_membership(context.id));
-		auto controller = context.outer_context.state.world.army_get_controller_from_army_control(army);
+		auto army_owner = context.outer_context.state.world.army_get_controller_from_army_control(army);
 		auto province_id = context.outer_context.original_id_to_prov_id_map[value];
+		auto province_owner = context.outer_context.state.world.province_get_nation_from_province_ownership(province_id);
 		// if not a rebel brigade
-		if(bool(controller)) {
-			auto pop = military::find_available_soldier_parsing(context.outer_context.state, province_id, [](sys::state& state, dcon::pop_id pop) {
-				return state.world.pop_get_poptype(pop) == state.culture_definitions.soldiers;
-			});
-			// dont spawn the brigade if home province is not owned by the army controller
-			if(context.outer_context.state.world.province_get_nation_from_province_ownership(province_id) != controller) {
+		if(bool(army_owner)) {
+			// Fallback to finding a pop from an owned province if the regiment home province is not owned by the army controller (this is how vic2 works apparently)
+			if(province_owner != army_owner) {
 				err.accumulated_warnings += "Regiment home province is owned by someone else other than the army controller (" + err.file_name + " line " + std::to_string(line) + ")\n";
-			}
-			else if(bool(pop)) {
-				context.outer_context.state.world.force_create_regiment_source(context.id, pop);
-			}
-			// try to find a pop in a diffrent province if none are available in home, and log warning that this is the case
-			else {
-				err.accumulated_warnings +=
-					"Not enough soldiers in province to form a regiment, picking a pop from a diffrent province (" + err.file_name + " line " + std::to_string(line) + ")\n";
-				
-				for(auto prov : context.outer_context.state.world.nation_get_province_ownership(controller)) {
-					pop = military::find_available_soldier_parsing(context.outer_context.state, prov.get_province(), [](sys::state& state, dcon::pop_id pop) {
+				for(auto prov : context.outer_context.state.world.nation_get_province_ownership(army_owner)) {
+					auto pop = military::find_available_soldier_parsing(context.outer_context.state, prov.get_province(), [](sys::state& state, dcon::pop_id pop) {
 						return state.world.pop_get_poptype(pop) == state.culture_definitions.soldiers;
 					});
 					if(pop) {
@@ -2543,9 +2556,33 @@ void oob_regiment::home(association_type, int32_t value, error_handler& err, int
 						return;
 					}
 				}
-				err.accumulated_errors +=
+				err.accumulated_warnings +=
 					"No fitting soldier pop in any owned province to form a regiment (" + err.file_name + " line " + std::to_string(line) + ")\n";
+			}
+			// try to find a pop in the same province. If that fails, try to find one in any owned province
+			else {
+				auto pop = military::find_available_soldier_parsing(context.outer_context.state, province_id, [](sys::state& state, dcon::pop_id pop) {
+					return state.world.pop_get_poptype(pop) == state.culture_definitions.soldiers;
+				});
+				if(pop) {
+					context.outer_context.state.world.force_create_regiment_source(context.id, pop);
+				}
+				else {
 
+					for(auto prov : context.outer_context.state.world.nation_get_province_ownership(army_owner)) {
+						pop = military::find_available_soldier_parsing(context.outer_context.state, prov.get_province(), [](sys::state& state, dcon::pop_id pop) {
+							return state.world.pop_get_poptype(pop) == state.culture_definitions.soldiers;
+						});
+						if(pop) {
+							context.outer_context.state.world.force_create_regiment_source(context.id, pop);
+							err.accumulated_warnings +=
+								"Not enough soldiers in province to form a regiment, picking a pop from a diffrent province (" + err.file_name + " line " + std::to_string(line) + ")\n";
+							return;
+						}
+					}
+					err.accumulated_warnings +=
+						"No fitting soldier pop in any owned province to form a regiment (" + err.file_name + " line " + std::to_string(line) + ")\n";
+				}
 				
 			}
 		}
@@ -2783,6 +2820,17 @@ void country_history_file::set_country_flag(association_type, std::string_view v
 	}
 }
 
+
+void country_history_file::clr_country_flag(association_type, std::string_view value, error_handler& err, int32_t line, country_history_context& context) {
+	if(!context.holder_id)
+		return;
+	if(auto it = context.outer_context.map_of_national_flags.find(std::string(value)); it != context.outer_context.map_of_national_flags.end()) {
+		context.outer_context.state.world.nation_set_flag_variables(context.holder_id, it->second, false);
+	} else {
+		// unused flag variable: ignore
+	}
+}
+
 void country_history_file::set_global_flag(association_type, std::string_view value, error_handler& err, int32_t line, country_history_context& context) {
 	if(!context.holder_id)
 		return;
@@ -2956,6 +3004,23 @@ void country_history_file::schools(association_type, std::string_view value, err
 	}
 }
 
+void country_history_file::oob(association_type, std::string_view value, error_handler& err, int32_t line,
+		country_history_context& context) {
+	if(!context.holder_id)
+		return;
+	std::string file_name = std::string(value);
+	// If the nation owns no provinces and it is not the rebel tag, then we dont want to process it's oob
+	auto prov_ownership = context.outer_context.state.world.nation_get_province_ownership(context.holder_id);
+	auto rebel_nation =  context.outer_context.state.world.national_identity_get_nation_from_identity_holder( context.outer_context.state.national_definitions.rebel_id);
+	if(prov_ownership.begin() == prov_ownership.end() && context.holder_id != rebel_nation) {;
+		return;
+	}
+	if(context.holder_id.index() >= int32_t(context.outer_context.oob_files_to_read.size())) {
+		context.outer_context.oob_files_to_read.resize(static_cast<size_t>(context.holder_id.index() + 1));
+	}
+	context.outer_context.oob_files_to_read[context.holder_id] = pending_oob_file{ file_name, err.file_name, context.holder_id };
+}
+
 void country_history_file::civilized(association_type, bool value, error_handler& err, int32_t line,
 		country_history_context& context) {
 	if(!context.holder_id)
@@ -3098,6 +3163,7 @@ void country_history_file::decision(association_type, std::string_view value, er
 
 void commodity_array::finish(scenario_building_context& context) {
 	data.resize(context.state.world.commodity_size());
+	defined = true;
 }
 
 void country_file::color(color_from_3i cvalue, error_handler& err, int32_t line, country_file_context& context) {

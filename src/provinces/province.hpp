@@ -1,7 +1,11 @@
 #pragma once
 
-#include "dcon_generated.hpp"
-#include "constants.hpp"
+#include "dcon_generated_ids.hpp"
+#include "constants_dcon.hpp"
+#include "unordered_dense.h"
+#include "container_types_dcon.hpp"
+#include "container_types.hpp"
+#include "system_state_forward.hpp"
 
 namespace province {
 
@@ -17,20 +21,6 @@ inline constexpr dcon::province_id from_map_id(uint16_t id) {
 		return dcon::province_id(id - 1);
 }
 
-struct global_provincial_state {
-	std::vector<dcon::province_adjacency_id> canals;
-	std::vector<dcon::province_id> canal_provinces;
-	ankerl::unordered_dense::map<dcon::modifier_id, dcon::gfx_object_id, sys::modifier_hash> terrain_to_gfx_map;
-	std::vector<bool> connected_region_is_coastal;
-	dcon::province_id first_sea_province;
-	dcon::modifier_id europe;
-	dcon::modifier_id asia;
-	dcon::modifier_id africa;
-	dcon::modifier_id north_america;
-	dcon::modifier_id south_america;
-	dcon::modifier_id oceania;
-};
-
 struct naval_range_data {
 	float distance;
 	bool is_reachable;
@@ -40,6 +30,7 @@ bool province_is_deep_waters(sys::state& state, dcon::province_id prov);
 bool sea_province_is_adjacent_to_accessible_coast(sys::state& state, dcon::province_id prov, dcon::nation_id nation);
 
 bool nations_are_adjacent(sys::state& state, dcon::nation_id a, dcon::nation_id b);
+bool provinces_are_adjacent(sys::state& state, dcon::province_id a, dcon::province_id b);
 void update_connected_regions(sys::state& state);
 void update_cached_values(sys::state& state);
 void update_blockaded_cache(sys::state& state);
@@ -66,7 +57,7 @@ bool has_province_building_being_built(sys::state& state, dcon::province_id id, 
 bool can_build_province_building(sys::state& state, dcon::province_id id, dcon::nation_id n, economy::province_building_type t);
 bool has_an_owner(sys::state& state, dcon::province_id id);
 float effective_life_rating_growth(sys::state& state, dcon::province_id prov); // returns the effective life rating for popgrowth for a province
-dcon::province_id state_get_coastal_capital(sys::state& state, dcon::state_instance_id s);
+dcon::province_id state_get_coastal_capital(sys::state const& state, dcon::state_instance_id s);
 bool state_is_coastal(sys::state& state, dcon::state_instance_id s);
 bool state_is_coastal_non_core_nb(sys::state& state, dcon::state_instance_id s);
 bool state_borders_nation(sys::state& state, dcon::nation_id n, dcon::state_instance_id si);
@@ -128,25 +119,52 @@ bool has_naval_access_to_province(sys::state& state, dcon::nation_id nation_as, 
 // determines whether a land unit is allowed to move to / be in a province that isn't an active enemy
 bool has_safe_access_to_province(sys::state& state, dcon::nation_id nation_as, dcon::province_id prov);
 
+enum class blackflagged_state : uint8_t {
+	not_blackflagged,
+	blackflagged
+};
+
 //
 // when pathfinding, check that the destination province is valid on its own (i.e. accessible for normal, or embark-able for sea)
 //
 
-// normal pathfinding
-std::vector<dcon::province_id> make_land_path(sys::state& state, dcon::province_id start, dcon::province_id end, dcon::nation_id nation_as, dcon::army_id a);
+// wrapper for checking if adjacencies are valid for make_land_unit_path
+bool make_land_unit_path_adjacency_valid(sys::state& state, dcon::nation_id nation_as, dcon::province_adjacency_id adj, dcon::army_id army);
+
+// wrapper for checking if provinces are valid for make_land_unit_path
+template<blackflagged_state BlackflagState>
+bool make_land_unit_path_province_valid(sys::state& state, dcon::nation_id nation_as, dcon::province_id to, dcon::army_id army);
+
+// normal pathfinding, also includes logic for handling blackflagged units
+std::vector<dcon::province_id> make_land_unit_path(sys::state& state, dcon::province_id start, dcon::province_id end, dcon::nation_id nation_as, dcon::army_id a);
 // pathfind through non-enemy controlled, not under siege provinces
 std::vector<dcon::province_id> make_safe_land_path(sys::state& state, dcon::province_id start, dcon::province_id end, dcon::nation_id nation_as);
-std::vector<dcon::province_id> make_unowned_path(sys::state& state, dcon::province_id start, dcon::province_id end);
-// used for rebel unit and black-flagged unit pathfinding
+std::vector<dcon::province_id> make_land_trade_path(sys::state& state, dcon::province_id start, dcon::province_id end);
+// creates a path in which only impassable provinces and sea provinces obstructs pathing
 std::vector<dcon::province_id> make_unowned_land_path(sys::state& state, dcon::province_id start, dcon::province_id end);
+
+// wrapper for checking if adjacencies are valid for make_naval_unit_path
+bool make_naval_unit_path_adjacency_valid(sys::state& state, dcon::nation_id nation_as, dcon::province_id to, dcon::province_id from, dcon::province_adjacency_id adj);
+
+// wrapper for checking if provinces are valid for make_naval_unit_path
+bool make_naval_unit_path_province_valid(sys::state& state, dcon::nation_id nation_as, dcon::province_id to);
+
 // naval unit pathfinding; start and end provinces may be land provinces; function assumes you have naval access to both
-std::vector<dcon::province_id> make_naval_path(sys::state& state, dcon::province_id start, dcon::province_id end, dcon::nation_id nation_as);
+std::vector<dcon::province_id> make_naval_unit_path(sys::state& state, dcon::province_id start, dcon::province_id end, dcon::nation_id nation_as);
 //for sea trade routes
-std::vector<dcon::province_id> make_unowned_naval_path(sys::state& state, dcon::province_id start, dcon::province_id end);
-
+std::vector<dcon::province_id> make_sea_trade_route_path(sys::state& state, dcon::province_id start, dcon::province_id end);
+//naval retreats
 std::vector<dcon::province_id> make_naval_retreat_path(sys::state& state, dcon::nation_id nation_as, dcon::province_id start);
-std::vector<dcon::province_id> make_land_retreat_path(sys::state& state, dcon::nation_id nation_as, dcon::province_id start);
+// For clicking on the retreat button, or forced retreats
+std::vector<dcon::province_id> make_land_auto_retreat_path(sys::state& state, dcon::nation_id nation_as, dcon::province_id start);
 
+bool make_land_manual_retreat_path_adjacency_valid(sys::state& state, dcon::nation_id nation_as, dcon::province_adjacency_id adj);
+bool make_land_manual_retreat_path_province_valid(sys::state& state, dcon::nation_id nation_as, dcon::province_id start, dcon::province_id to, dcon::army_id a);
+
+// for manual retreating (ie right-clicking a unit out of a battle)
+std::vector<dcon::province_id> make_land_manual_retreat_path(sys::state& state, dcon::province_id start, dcon::province_id end, dcon::nation_id nation_as, dcon::army_id a);
+
+//ai pathfinding to nearest coast
 std::vector<dcon::province_id> make_path_to_nearest_coast(sys::state& state, dcon::nation_id nation_as, dcon::province_id start);
 std::vector<dcon::province_id> make_unowned_path_to_nearest_coast(sys::state& state, dcon::province_id start);
 

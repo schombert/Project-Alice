@@ -975,6 +975,58 @@ dcon::text_key get_ruler_title(sys::state& state, dcon::nation_id n) {
 	return state.world.government_type_get_ruler_name(gov);
 }
 
+std::string get_name_as_string(sys::state& state, dcon::nation_id n) {
+	return text::produce_simple_string(state, get_name(state, n));
+}
+std::string get_name_as_string(sys::state& state, dcon::ideology_id n) {
+	return text::produce_simple_string(state, state.world.ideology_get_name(n));
+}
+std::string get_name_as_string(sys::state& state, dcon::political_party_id n) {
+	return text::produce_simple_string(state, state.world.political_party_get_name(n));
+}
+std::string get_name_as_string(sys::state& state, dcon::religion_id n) {
+	return text::produce_simple_string(state, state.world.religion_get_name(n));
+}
+std::string get_name_as_string(sys::state& state, dcon::technology_id n){
+	return text::produce_simple_string(state, state.world.technology_get_name(n));
+}
+std::string get_name_as_string(sys::state& state, dcon::culture_id n){
+	return text::produce_simple_string(state, state.world.culture_get_name(n));
+}
+std::string get_name_as_string(sys::state& state, dcon::commodity_id n) {
+	return text::produce_simple_string(state, state.world.commodity_get_name(n));
+}
+std::string get_name_as_string(sys::state& state, dcon::issue_id n) {
+	return text::produce_simple_string(state, state.world.issue_get_name(n));
+}
+std::string get_name_as_string(sys::state& state, dcon::issue_option_id n) {
+	return text::produce_simple_string(state, state.world.issue_option_get_name(n));
+}
+std::string get_name_as_string(sys::state& state, dcon::modifier_id n) {
+	return text::produce_simple_string(state, state.world.modifier_get_name(n));
+}
+std::string get_name_as_string(sys::state& state, dcon::province_id n) {
+	return text::produce_simple_string(state, state.world.province_get_name(n));
+}
+std::string get_name_as_string(sys::state& state, dcon::national_identity_id n) {
+	return text::produce_simple_string(state, state.world.national_identity_get_name(n));
+}
+std::string get_name_as_string(sys::state& state, dcon::reform_option_id n) {
+	return text::produce_simple_string(state, state.world.reform_option_get_name(n));
+}
+std::string get_name_as_string(sys::state& state, dcon::state_definition_id n) {
+	return text::produce_simple_string(state, state.world.state_definition_get_name(n));
+}
+dcon::text_key get_adjective(sys::state& state, dcon::national_identity_id ident) {
+	return state.world.national_identity_get_adjective(ident);
+}
+std::string get_adjective_as_string(sys::state& state, dcon::nation_id n) {
+	return text::produce_simple_string(state, get_adjective(state, n));
+}
+std::string get_adjective_as_string(sys::state& state, dcon::national_identity_id n) {
+	return text::produce_simple_string(state, get_adjective(state, n));
+}
+
 std::string get_focus_category_name(sys::state const& state, nations::focus_type category) {
 	switch(category) {
 	case nations::focus_type::rail_focus:
@@ -1233,7 +1285,7 @@ void add_line_break_to_layout(sys::state& state, endless_layout& dest) {
 }
 
 void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, embedded_flag ico) {
-	auto v_amount = state.font_collection.get_font(state, text::font_index_from_font_id(state, dest.fixed_parameters.font_id)).internal_ascender * text::size_from_font_id(dest.fixed_parameters.font_id) / 64.0f;
+	auto v_amount = state.font_collection.get_font(state, text::font_index_from_font_id(state, dest.fixed_parameters.font_id)).retrieve_instance(state, text::size_from_font_id(dest.fixed_parameters.font_id)).ascender(state);
 
 	if(dest.native_rtl == layout_base::rtl_status::rtl) {
 		box.x_position -= v_amount * 1.5f;
@@ -1244,7 +1296,7 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, em
 	}
 }
 void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, embedded_icon ico) {
-	auto v_amount = state.font_collection.get_font(state, text::font_index_from_font_id(state, dest.fixed_parameters.font_id)).internal_ascender * text::size_from_font_id(dest.fixed_parameters.font_id) / 64.0f;
+	auto v_amount = state.font_collection.get_font(state, text::font_index_from_font_id(state, dest.fixed_parameters.font_id)).retrieve_instance(state, text::size_from_font_id(dest.fixed_parameters.font_id)).ascender(state);
 
 	if(dest.native_rtl == layout_base::rtl_status::rtl) {
 		box.x_position -= v_amount;
@@ -1256,7 +1308,7 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, em
 }
 
 void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, embedded_unit_icon ico) {
-	auto v_amount = state.font_collection.get_font(state, text::font_index_from_font_id(state, dest.fixed_parameters.font_id)).internal_ascender * text::size_from_font_id(dest.fixed_parameters.font_id) / 64.0f;
+	auto v_amount = state.font_collection.get_font(state, text::font_index_from_font_id(state, dest.fixed_parameters.font_id)).retrieve_instance(state, text::size_from_font_id(dest.fixed_parameters.font_id)).ascender(state);
 
 	if(dest.native_rtl == layout_base::rtl_status::rtl) {
 		box.x_position -= v_amount;
@@ -1268,7 +1320,7 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, em
 }
 
 void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, embedded_commodity_icon ico) {
-	auto v_amount = state.font_collection.get_font(state, text::font_index_from_font_id(state, dest.fixed_parameters.font_id)).internal_ascender * text::size_from_font_id(dest.fixed_parameters.font_id) / 64.0f;
+	auto v_amount = state.font_collection.get_font(state, text::font_index_from_font_id(state, dest.fixed_parameters.font_id)).retrieve_instance(state, text::size_from_font_id(dest.fixed_parameters.font_id)).ascender(state);
 
 	if(dest.native_rtl == layout_base::rtl_status::rtl) {
 		box.x_position -= v_amount;
@@ -1341,7 +1393,6 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, st
 
 	bool first_in_line = true;
 	auto font_size = text::size_from_font_id(dest.fixed_parameters.font_id);
-	auto font_scaling_factor = state.font_collection.scaling_factor(state, dest.fixed_parameters.font_id);
 
 	UErrorCode errorCode = U_ZERO_ERROR;
 	UBreakIterator* lb_it = ubrk_openBinaryRules(state.font_collection.compiled_ubrk_rules.data(), int32_t(state.font_collection.compiled_ubrk_rules.size()), (UChar const*)text.data(), int32_t(text.size()), &errorCode);
@@ -1352,15 +1403,13 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, st
 
 	ubrk_first(lb_it);
 
-	text::stored_glyphs all_glyphs(state, text::font_index_from_font_id(state, dest.fixed_parameters.font_id), std::span<uint16_t>((uint16_t*)(const_cast<char16_t*>(text.data())), text.size()), text::stored_glyphs::no_bidi{});
+	text::stored_glyphs all_glyphs(state, text::size_from_font_id(dest.fixed_parameters.font_id), text::font_index_from_font_id(state, dest.fixed_parameters.font_id), std::span<uint16_t>((uint16_t*)(const_cast<char16_t*>(text.data())), text.size()), text::stored_glyphs::no_bidi{});
 
-	if(dest.edit_details)
-		dest.edit_details->scaling_factor = font_scaling_factor;
 
 	auto append_glyphs = [&](std::span<uint16_t> glyph_span, uint32_t cluster_start_position, int16_t extent) {
 		size_t details_glyphs_start_pos = dest.edit_details ? dest.edit_details->grapheme_placement.size() : size_t(0);
 		dest.base_layout.contents.push_back(text_chunk{
-					text::stored_glyphs(state, text::font_index_from_font_id(state, dest.fixed_parameters.font_id), glyph_span, cluster_start_position, dest.edit_details),
+					text::stored_glyphs(state,text::size_from_font_id(dest.fixed_parameters.font_id), text::font_index_from_font_id(state, dest.fixed_parameters.font_id), glyph_span, cluster_start_position, dest.edit_details, dest.fixed_parameters.font_id),
 					box.x_position, (!dest.fixed_parameters.suppress_hyperlinks) ? source : std::monostate{}, int16_t(box.y_position), extent, int16_t(text_height), tmp_color });
 		if(dest.edit_details) {
 			for(size_t i = details_glyphs_start_pos; i < dest.edit_details->grapheme_placement.size(); ++i) {
@@ -1403,10 +1452,6 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, st
 				box.y_size = std::max(box.y_size, box.y_position + line_height);
 				box.x_size = std::max(box.x_size, int32_t(dest.fixed_parameters.right - box.x_position));
 
-				//dest.base_layout.contents.push_back(text_chunk{
-				//	text::stored_glyphs(state, text::font_index_from_font_id(state, dest.fixed_parameters.font_id), std::span<uint16_t>((uint16_t*)(text.data()) + cluster_start_position, next_cluster_position - cluster_start_position), uint32_t(cluster_start_position), dest.edit_details),
-				//	box.x_position, (!dest.fixed_parameters.suppress_hyperlinks) ? source : std::monostate{}, int16_t(box.y_position), int16_t(extent), int16_t(text_height), tmp_color });
-
 				append_glyphs(std::span<uint16_t>((uint16_t*)(const_cast<char16_t*>(text.data())) + cluster_start_position, next_cluster_position - cluster_start_position),
 					uint32_t(cluster_start_position), int16_t(extent));
 
@@ -1424,10 +1469,6 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, st
 				box.y_size = std::max(box.y_size, box.y_position + line_height);
 				box.x_size = std::max(box.x_size, int32_t(dest.fixed_parameters.right - box.x_position));
 
-				//dest.base_layout.contents.push_back(
-				//	text_chunk{ text::stored_glyphs(state, text::font_index_from_font_id(state, dest.fixed_parameters.font_id), std::span<uint16_t>((uint16_t*)(text.data()) + cluster_start_position, cluster_position - cluster_start_position), uint32_t(cluster_start_position), dest.edit_details),
-				//	box.x_position, (!dest.fixed_parameters.suppress_hyperlinks) ? source : std::monostate{}, int16_t(box.y_position), int16_t(extent), int16_t(text_height), tmp_color });
-
 				append_glyphs(std::span<uint16_t>((uint16_t*)(const_cast<char16_t*>(text.data())) + cluster_start_position, cluster_position - cluster_start_position),
 					uint32_t(cluster_start_position), int16_t(extent));
 
@@ -1439,14 +1480,20 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, st
 				ubrk_previous(lb_it);
 				first_in_line = true;
 			} else if(dest.fixed_parameters.single_line && box.x_position - extent <= dest.fixed_parameters.left) {
-				auto glyphid = FT_Get_Char_Index(font.font_face, 0x2026);
+				auto& font_inst = font.retrieve_instance(state, font_size);
+				auto glyphid = FT_Get_Char_Index(font_inst.font_face, 0x2026);
 
 				bool ellipsis_valid = true;
-				auto width_of_ellipsis = font.base_glyph_width(glyphid) * font_size / 64.f;
+				font_inst.make_glyph(uint16_t(glyphid), 0);
+				auto& gso = font_inst.get_glyph(uint16_t(glyphid), 0);
+				auto width_of_ellipsis = float(gso.bitmap_left + gso.width) / state.user_settings.ui_scale;
 
 				if(width_of_ellipsis <= 0 || glyphid == 0) {
 					ellipsis_valid = false;
-					width_of_ellipsis = font.base_glyph_width(FT_Get_Char_Index(font.font_face, '.')) * 3.0f * font_size / 64.f;
+					auto dot_g = FT_Get_Char_Index(font_inst.font_face, '.');
+					font_inst.make_glyph(uint16_t(dot_g), 0);
+					auto& gso2 = font_inst.get_glyph(uint16_t(dot_g), 0);
+					width_of_ellipsis = float(gso2.bitmap_left + gso2.width) * 3.0f / state.user_settings.ui_scale;
 				}
 				if(state.user_settings.use_classic_fonts) {
 					ellipsis_valid = false;
@@ -1471,10 +1518,6 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, st
 					tempv.push_back('.'); tempv.push_back('.'); tempv.push_back('.');
 				}
 
-				//dest.base_layout.contents.push_back(
-				//	text_chunk{ text::stored_glyphs(state, text::font_index_from_font_id(state, dest.fixed_parameters.font_id), std::span<uint16_t>(tempv.data(), tempv.size()), uint32_t(cluster_start_position), dest.edit_details),
-				//	box.x_position, (!dest.fixed_parameters.suppress_hyperlinks) ? source : std::monostate{}, int16_t(box.y_position), int16_t(extent), int16_t(text_height), tmp_color });
-
 				append_glyphs(std::span<uint16_t>(tempv.data(), tempv.size()),
 					uint32_t(cluster_start_position), int16_t(extent));
 
@@ -1488,9 +1531,6 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, st
 				box.y_size = std::max(box.y_size, box.y_position + line_height);
 				box.x_size = std::max(box.x_size, int32_t(dest.fixed_parameters.right - box.x_position));
 
-				//dest.base_layout.contents.push_back(text_chunk{
-				//	text::stored_glyphs(state, text::font_index_from_font_id(state, dest.fixed_parameters.font_id), std::span<uint16_t>((uint16_t*)(text.data()) + cluster_start_position, next_cluster_position - cluster_start_position), uint32_t(cluster_start_position), dest.edit_details),
-				//	box.x_position, (!dest.fixed_parameters.suppress_hyperlinks) ? source : std::monostate{}, int16_t(box.y_position), int16_t(extent), int16_t(text_height), tmp_color });
 				append_glyphs(std::span<uint16_t>((uint16_t*)(const_cast<char16_t*>(text.data())) + cluster_start_position, next_cluster_position - cluster_start_position),
 					uint32_t(cluster_start_position), int16_t(extent));
 
@@ -1537,7 +1577,6 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, st
 			if(!dest.fixed_parameters.single_line && first_in_line && int32_t(box.x_offset + dest.fixed_parameters.left) == box.x_position && box.x_position + extent >= dest.fixed_parameters.right) {
 				// too long, but no line breaking opportunities earlier in the line
 
-				//dest.base_layout.contents.push_back(text_chunk{ text::stored_glyphs(state, text::font_index_from_font_id(state, dest.fixed_parameters.font_id), std::span<uint16_t>((uint16_t*)(text.data()) + cluster_start_position, next_cluster_position - cluster_start_position), uint32_t(cluster_start_position), dest.edit_details), box.x_position, (!dest.fixed_parameters.suppress_hyperlinks) ? source : std::monostate{}, int16_t(box.y_position), int16_t(extent), int16_t(text_height), tmp_color });
 				append_glyphs(std::span<uint16_t>((uint16_t*)(const_cast<char16_t*>(text.data())) + cluster_start_position, next_cluster_position - cluster_start_position),
 					uint32_t(cluster_start_position), int16_t(extent));
 
@@ -1555,9 +1594,6 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, st
 			} else if(!dest.fixed_parameters.single_line && box.x_position + extent >= dest.fixed_parameters.right) {
 
 				extent = state.font_collection.text_extent(state, all_glyphs, glyph_start_position, glyph_position - glyph_start_position, dest.fixed_parameters.font_id);
-				//dest.base_layout.contents.push_back(
-				//	text_chunk{ text::stored_glyphs(state, text::font_index_from_font_id(state, dest.fixed_parameters.font_id), std::span<uint16_t>((uint16_t*)(text.data()) + cluster_start_position, cluster_position - cluster_start_position), uint32_t(cluster_start_position), dest.edit_details),
-				//	box.x_position, (!dest.fixed_parameters.suppress_hyperlinks) ? source : std::monostate{}, int16_t(box.y_position), int16_t(extent), int16_t(text_height), tmp_color });
 				append_glyphs(std::span<uint16_t>((uint16_t*)(const_cast<char16_t*>(text.data())) + cluster_start_position, cluster_position - cluster_start_position),
 					uint32_t(cluster_start_position), int16_t(extent));
 				box.x_position += extent;
@@ -1572,14 +1608,20 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, st
 				ubrk_previous(lb_it);
 				first_in_line = true;
 			} else if(dest.fixed_parameters.single_line && box.x_position + extent >= dest.fixed_parameters.right) {
-				auto glyphid = FT_Get_Char_Index(font.font_face, 0x2026);
+				auto& font_inst = font.retrieve_instance(state, font_size);
+				auto glyphid = FT_Get_Char_Index(font_inst.font_face, 0x2026);
 
 				bool ellipsis_valid = true;
-				auto width_of_ellipsis = font.base_glyph_width(glyphid) * font_size / 64.f;
+				font_inst.make_glyph(uint16_t(glyphid), 0);
+				auto& gso = font_inst.get_glyph(uint16_t(glyphid), 0);
+				auto width_of_ellipsis = float(gso.bitmap_left + gso.width) / state.user_settings.ui_scale;
 
 				if(width_of_ellipsis <= 0 || glyphid == 0) {
 					ellipsis_valid = false;
-					width_of_ellipsis = font.base_glyph_width(FT_Get_Char_Index(font.font_face, '.')) * 3.0f * font_size / 64.f;
+					auto dot_g = FT_Get_Char_Index(font_inst.font_face, '.');
+					font_inst.make_glyph(uint16_t(dot_g), 0);
+					auto& gso2 = font_inst.get_glyph(uint16_t(dot_g), 0);
+					width_of_ellipsis = float(gso2.bitmap_left + gso2.width) * 3.0f / state.user_settings.ui_scale;
 				}
 				if(state.user_settings.use_classic_fonts) {
 					ellipsis_valid = false;
@@ -1604,9 +1646,6 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, st
 					tempv.push_back('.'); tempv.push_back('.'); tempv.push_back('.');
 				}
 
-				//dest.base_layout.contents.push_back(
-				//	text_chunk{ text::stored_glyphs(state, text::font_index_from_font_id(state, dest.fixed_parameters.font_id), std::span<uint16_t>(tempv.data(), tempv.size()), uint32_t(cluster_start_position), dest.edit_details),
-				//	box.x_position, (!dest.fixed_parameters.suppress_hyperlinks) ? source : std::monostate{}, int16_t(box.y_position), int16_t(extent), int16_t(text_height), tmp_color });
 				append_glyphs(std::span<uint16_t>(tempv.data(), tempv.size()),
 					uint32_t(cluster_start_position), int16_t(extent));
 				box.x_position = dest.fixed_parameters.right;
@@ -1615,7 +1654,6 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, st
 			} else if(next_cluster_position >= int32_t(text.size())) {
 				// no remaining text
 
-				//dest.base_layout.contents.push_back(text_chunk{ text::stored_glyphs(state, text::font_index_from_font_id(state, dest.fixed_parameters.font_id), std::span<uint16_t>((uint16_t*)(text.data()) + cluster_start_position, next_cluster_position - cluster_start_position), uint32_t(cluster_start_position), dest.edit_details), box.x_position, (!dest.fixed_parameters.suppress_hyperlinks) ? source : std::monostate{}, int16_t(box.y_position), int16_t(extent), int16_t(text_height), tmp_color });
 				append_glyphs(std::span<uint16_t>((uint16_t*)(const_cast<char16_t*>(text.data())) + cluster_start_position, next_cluster_position - cluster_start_position),
 					uint32_t(cluster_start_position), int16_t(extent));
 
@@ -1931,9 +1969,12 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, st
 }
 void add_space_to_layout_box(sys::state& state, layout_base& dest, layout_box& box) {
 	auto& font = state.font_collection.get_font(state, text::font_index_from_font_id(state, dest.fixed_parameters.font_id));
-	auto glyphid = FT_Get_Char_Index(font.font_face, ' ');
-	float amount = font.base_glyph_width(glyphid) * text::size_from_font_id(dest.fixed_parameters.font_id) / 64.f;;
+	auto& font_inst = font.retrieve_instance(state, text::size_from_font_id(dest.fixed_parameters.font_id));
+	auto glyphid = FT_Get_Char_Index(font_inst.font_face, ' ');
 
+	FT_Load_Glyph(font_inst.font_face, glyphid, FT_LOAD_TARGET_NORMAL);
+	float amount = float(font_inst.font_face->glyph->metrics.horiAdvance) / (text::fixed_to_fp * state.user_settings.ui_scale) ;
+	
 	if(dest.native_rtl == layout_base::rtl_status::rtl)
 		box.x_position -= amount;
 	else
