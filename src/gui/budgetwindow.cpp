@@ -282,6 +282,10 @@ struct budgetwindow_main_espenses_table_t : public layout_generator {
 struct budgetwindow_section_header_label_t : public alice_ui::template_label {
 // BEGIN section_header::label::variables
 // END
+	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
+		return ui::tooltip_behavior::variable_tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override;
 	void on_update(sys::state& state) noexcept override;
 };
 struct budgetwindow_section_header_llbutton_t : public alice_ui::template_icon_button {
@@ -2683,6 +2687,126 @@ std::unique_ptr<ui::element_base> make_budgetwindow_main(sys::state& state) {
 	auto ptr = std::make_unique<budgetwindow_main_t>();
 	ptr->on_create(state);
 	return ptr;
+}
+void budgetwindow_section_header_label_t::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
+	budgetwindow_section_header_t& section_header = *((budgetwindow_section_header_t*)(parent));
+	auto n = state.local_player_nation;
+	auto spending_details = economy::national_budget::estimate_budget_detailed(state, n, economy::estimate_next_budget(state, n));
+	auto taxes = economy::explain_tax_income(state, n);
+
+	std::string_view tooltip_key;
+	int32_t setting = -1;
+	float actual_amount = 0.f;
+
+	switch(section_header.section_type) {
+	case budget_categories::diplomatic_income:
+		tooltip_key = "alice_budget_diplomatic_income_tt";
+		actual_amount = economy::estimate_diplomatic_income(state, n);
+		break;
+	case budget_categories::poor_tax:
+		tooltip_key = "alice_budget_poor_tax_tt";
+		setting = state.world.nation_get_poor_tax(n);
+		actual_amount = taxes.poor;
+		break;
+	case budget_categories::middle_tax:
+		tooltip_key = "alice_budget_middle_tax_tt";
+		setting = state.world.nation_get_middle_tax(n);
+		actual_amount = taxes.mid;
+		break;
+	case budget_categories::rich_tax:
+		tooltip_key = "alice_budget_rich_tax_tt";
+		setting = state.world.nation_get_rich_tax(n);
+		actual_amount = taxes.rich;
+		break;
+	case budget_categories::tariffs_import:
+		tooltip_key = "alice_budget_tariffs_import_tt";
+		setting = state.world.nation_get_tariffs_import(n);
+		actual_amount = economy::estimate_tariff_import_income(state, n);
+		break;
+	case budget_categories::tariffs_export:
+		tooltip_key = "alice_budget_tariffs_export_tt";
+		setting = state.world.nation_get_tariffs_export(n);
+		actual_amount = economy::estimate_tariff_export_income(state, n);
+		break;
+	case budget_categories::gold:
+		tooltip_key = "alice_budget_gold_tt";
+		actual_amount = economy::estimate_gold_income(state, n);
+		break;
+	case budget_categories::diplomatic_expenses:
+		tooltip_key = "alice_budget_diplomatic_expenses_tt";
+		actual_amount = spending_details.diplomacy.actual_spending;
+		break;
+	case budget_categories::social:
+		tooltip_key = "alice_budget_social_tt";
+		setting = state.world.nation_get_social_spending(n);
+		actual_amount = spending_details.social.actual_spending;
+		break;
+	case budget_categories::military:
+		tooltip_key = "alice_budget_military_tt";
+		setting = state.world.nation_get_military_spending(n);
+		actual_amount = spending_details.military_wages.actual_spending;
+		break;
+	case budget_categories::education:
+		tooltip_key = "alice_budget_education_tt";
+		setting = state.world.nation_get_education_spending(n);
+		actual_amount = spending_details.education_wages.actual_spending;
+		break;
+	case budget_categories::admin:
+		tooltip_key = "alice_budget_administration_tt";
+		setting = state.world.nation_get_administrative_spending(n);
+		actual_amount = spending_details.administration_wages.actual_spending;
+		break;
+	case budget_categories::domestic_investment:
+		tooltip_key = "alice_budget_domestic_investment_tt";
+		setting = state.world.nation_get_domestic_investment_spending(n);
+		actual_amount = spending_details.domestic_investments.actual_spending;
+		break;
+	case budget_categories::overseas_spending:
+		tooltip_key = "alice_budget_overseas_tt";
+		setting = state.world.nation_get_overseas_spending(n);
+		actual_amount = spending_details.overseas_penalty.actual_spending;
+		break;
+	case budget_categories::subsidies:
+		tooltip_key = "alice_budget_subsidies_tt";
+		setting = state.world.nation_get_subsidies_spending(n);
+		actual_amount = spending_details.subsidy.actual_spending;
+		break;
+	case budget_categories::construction:
+		tooltip_key = "alice_budget_construction_tt";
+		setting = state.world.nation_get_construction_spending(n);
+		actual_amount = spending_details.construction_supplies.actual_spending;
+		break;
+	case budget_categories::army_upkeep:
+		tooltip_key = "alice_budget_army_upkeep_tt";
+		setting = state.world.nation_get_land_spending(n);
+		actual_amount = spending_details.military_supplies_land.actual_spending;
+		break;
+	case budget_categories::navy_upkeep:
+		tooltip_key = "alice_budget_navy_upkeep_tt";
+		setting = state.world.nation_get_naval_spending(n);
+		actual_amount = spending_details.military_supplies_navy.actual_spending;
+		break;
+	case budget_categories::debt_payment:
+		tooltip_key = "alice_budget_debt_tt";
+		actual_amount = spending_details.interest.actual_spending;
+		break;
+	case budget_categories::stockpile:
+		tooltip_key = "alice_budget_stockpile_tt";
+		actual_amount = spending_details.stockpile.actual_spending;
+		break;
+	default:
+		return;
+	}
+
+	text::add_line(state, contents, tooltip_key);
+	text::add_line_break_to_layout(state, contents);
+	auto formatted_amount = text::prettify_currency(actual_amount);
+	if(setting >= 0) {
+		text::add_line(state, contents, "alice_budget_tooltip_setting_actual", text::variable_type::x,
+			text::fp_percentage{ float(setting) / 100.f }, text::variable_type::val, std::string_view{ formatted_amount });
+	} else {
+		text::add_line(state, contents, "alice_budget_tooltip_actual", text::variable_type::val, std::string_view{ formatted_amount });
+	}
 }
 void budgetwindow_section_header_label_t::on_update(sys::state& state) noexcept {
 	budgetwindow_section_header_t& section_header = *((budgetwindow_section_header_t*)(parent)); 

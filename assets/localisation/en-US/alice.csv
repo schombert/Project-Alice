@@ -1647,7 +1647,7 @@ alice_budget_gold;Gold Mines
 alice_budget_construction;Construction
 alice_budget_army_upkeep;Army Upkeep
 alice_budget_navy_upkeep;Navy Upkeep
-alice_budget_domestic_investment;Public Works
+alice_budget_domestic_investment;Investment Subsidies
 alice_budget_debt_service;Debt Service
 alice_budget_diplo_income;Diplomatic
 alice_budget_diplo_expenses;Diplomatic
@@ -1665,6 +1665,28 @@ alice_budget_min;Min $x$
 alice_budget_overlord;Taxes to overlord
 alice_budget_expand_tt;Show detailed breakdown
 alice_budget_contract_tt;Hide detailed breakdown
+alice_budget_tooltip_setting_actual;Setting: ?Y$x$?W. Current amount: ?Y$val$?W.
+alice_budget_tooltip_actual;Current amount: ?Y$val$?W.
+alice_budget_poor_tax_tt;Collects a share of income from lower-class POPs. Higher taxes reduce their savings and ability to buy goods. Actual collection also depends on provincial control and administrative efficiency.
+alice_budget_middle_tax_tt;Collects a share of income from middle-class POPs. Higher taxes reduce their savings and ability to buy goods. Actual collection also depends on provincial control and administrative efficiency.
+alice_budget_rich_tax_tt;Collects a share of income from upper-class POPs. Higher taxes reduce their savings and investment capacity. Actual collection also depends on provincial control and administrative efficiency.
+alice_budget_tariffs_import_tt;Collects duties on goods entering your market. Higher duties make imports more expensive and can reduce their volume. They do not apply to domestic trade or tariff-free agreements.
+alice_budget_tariffs_export_tt;Collects duties on goods leaving your market. Higher duties raise export prices and can reduce their competitiveness and volume.
+alice_budget_diplomatic_income_tt;Automatic income from war subsidies, reparations and subject payments. This category has no budget setting.
+alice_budget_gold_tt;Income from gold production converted directly into money. It is not affected by tax settings.
+alice_budget_diplomatic_expenses_tt;Automatic payments for war subsidies, reparations and overlord contributions. This category has no budget setting.
+alice_budget_social_tt;Pays pensions and unemployment benefits to POPs. It only has an effect when the corresponding social reforms are active.
+alice_budget_military_tt;Pays the needs of military POPs, chiefly soldiers and officers. It is separate from the goods used to supply military units.
+alice_budget_education_tt;Funds schools and universities that provide free education. Their output helps POPs gain literacy when qualified labour is available.
+alice_budget_administration_tt;Employs central and local administrators. They build state control, improving tax collection and crime fighting.
+alice_budget_domestic_investment_tt;Transfers public support to capitalists and aristocrats. It supports private investment, but does not directly build state projects.
+alice_budget_overseas_tt;Buys special goods for non-central possessions. Adequate funding reduces militancy pressure in overseas provinces.
+alice_budget_subsidies_tt;Supports production selected through national or state production priorities. Funds are distributed by actual output, not simply by factory losses.
+alice_budget_construction_tt;Buys materials for state construction, factories and military units. Progress depends on funding and the availability of required goods.
+alice_budget_army_upkeep_tt;Buys supplies and reinforcements for land units. Market shortages can limit the effective level of supply.
+alice_budget_navy_upkeep_tt;Buys supplies, repairs and reinforcements for naval units. Market shortages can limit the effective level of supply.
+alice_budget_debt_tt;Mandatory interest payments on loans. These are paid before most other budget categories.
+alice_budget_stockpile_tt;Buys goods toward targets set in the Trade window. Purchases depend on available funds and market supply.
 alice_budget_admin_eff1;Admin.
 alice_budget_admin_eff2;Efficiency:
 alice_budget_chart_top;100%
