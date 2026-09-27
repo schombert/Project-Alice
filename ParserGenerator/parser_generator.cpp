@@ -381,6 +381,13 @@ std::string final_match_condition_internal(std::string_view const key, int32_t s
 	if(starting_position >= ending_position)
 		return "";
 
+#if defined(__GNUC__) || defined(__clang__)
+	if(ending_position - starting_position >= 16) {
+		return
+			" && (*(uint128_t const*)(&cur.content[" + std::to_string(starting_position) + "]) | (uint128_t(0x2020202020202020) << 64 | uint128_t(0x2020202020202020)) == uint128_t(" + string_to_hex(key, starting_position + 8, 8) + ") << 64 | uint128_t(" + string_to_hex(key, starting_position, 8) + "))"
+			+ final_match_condition_internal(key, starting_position + 8, ending_position);
+	}
+#endif
 	if(ending_position - starting_position >= 8) {
 		return
 			" && (*(uint64_t const*)(&cur.content[" + std::to_string(starting_position) + "]) | uint64_t(0x2020202020202020) ) == uint64_t(" + string_to_hex(key, starting_position, 8) + ")"
@@ -593,13 +600,18 @@ std::string construct_match_tree_outer(auto const& vector, auto const& generator
 
 void file_write_out(std::fstream& stream, std::vector<group_contents>& groups) {
 	//	process the parsed content into the generated file
-	std::string output;
-	output += "#include \"parsers.hpp\"\n";
-	// output += "#pragma warning( push )\n";
-	// output += "#pragma warning( disable : 4065 )\n";
-	// output += "#pragma warning( disable : 4189 )\n";
-	output += "\n";
-	output += "namespace parsers {\n";
+	std::string output =
+	"#include \"parsers.hpp\"\n"
+	//"#pragma warning( push )\n"
+	//"#pragma warning( disable : 4065 )\n"
+	//"#pragma warning( disable : 4189 )\n"
+	"\n"
+	"namespace parsers {\n"
+#if defined(__GNUC__) || defined(__clang__)
+	"typedef __int128 int128_t;\n"
+	"typedef unsigned __int128 uint128_t;\n"
+#endif
+	;
 	// fn bodies
 	std::vector<bool> declared_groups(groups.size(), false);
 	for(size_t i = 0; i < groups.size(); i++) {
