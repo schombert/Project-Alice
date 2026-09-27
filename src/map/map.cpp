@@ -960,11 +960,13 @@ void display_data::render(
 			impassible_border_rendering_data.push_back(to_add);
 			impassible_count++;
 		}
-		glBufferStorage(
-			GL_DRAW_INDIRECT_BUFFER,
-			impassible_border_rendering_data.size() * sizeof(DrawArraysIndirectCommand),
-			impassible_border_rendering_data.data(), 0
-		);
+		if(!impassible_border_rendering_data.empty()) {
+			glBufferStorage(
+				GL_DRAW_INDIRECT_BUFFER,
+				impassible_border_rendering_data.size() * sizeof(DrawArraysIndirectCommand),
+				impassible_border_rendering_data.data(), 0
+			);
+		}
 		glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);
 	}
 
@@ -1278,7 +1280,7 @@ void display_data::render(
 				//glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);
 			}
 			// impassible borders
-			{
+			if (impassible_count > 0 && impassible_indirect_buffer != 0) {
 				glUniform1f(shader_uniforms[shader_borders][uniform_width], 0.001f); // width
 				glActiveTexture(GL_TEXTURE2);
 				glBindTexture(GL_TEXTURE_2D, textures[texture_imp_border]);
