@@ -9220,7 +9220,7 @@ void update_movement(sys::state& state) {
 				}
 			}
 		}
-		}
+	}
 
 	// Navy movement
 	for(auto n : state.world.in_navy) {

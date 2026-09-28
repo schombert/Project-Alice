@@ -4012,9 +4012,6 @@ void state::fill_unsaved_data() { // reconstructs derived values that are not di
 	world.navy_resize_unit_build_commodity_float_buffer_1(world.unit_build_commodity_size());
 	world.navy_resize_unit_supply_commodity_float_buffer_1(world.unit_supply_commodity_size());
 
-	world.nation_resize_prov_supply_throughput_cache(world.province_size());
-	world.nation_resize_prov_supply_loss_cache(world.province_size());
-
 	province::restore_distances(*this);
 
 	world.for_each_nation([&](dcon::nation_id id) { politics::update_displayed_identity(*this, id); });
@@ -4164,8 +4161,6 @@ void state::fill_unsaved_data() { // reconstructs derived values that are not di
 
 	province::update_cached_values(*this);
 	nations::update_cached_values(*this);
-
-	supply_routes::update_nations_supply_cache(*this);
 
 	ai::identify_focuses(*this);
 	ai::initialize_ai_tech_weights(*this);
@@ -4492,8 +4487,6 @@ void state::single_game_tick() {
 		// ALTERNATE PAR DEMO START POINT B
 		//
 
-		// Update cache before doing daily supply routes stuff
-		supply_routes::update_nations_supply_cache(*this);
 
 		supply_routes::update_supply_routes_daily(*this);
 
@@ -4501,6 +4494,7 @@ void state::single_game_tick() {
 
 		economy::resolve_constructions(*this);
 
+		// Ship repair happens daily now, and can be done in parallel with org calculations
 		concurrency::parallel_invoke(
 			[&]() {
 				military::recover_land_org(*this);

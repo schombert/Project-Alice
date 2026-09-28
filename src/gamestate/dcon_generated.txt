@@ -4655,14 +4655,6 @@ object {
 		type{ bitfield }
 	}
 	property{
-		name{ prov_supply_throughput_cache }
-		type{ array{province_id}{float}}
-	}
-	property{
-		name{ prov_supply_loss_cache }
-		type{ array{province_id}{float}}
-	}
-	property{
 		name{ ai_rival }
 		type{ nation_id }
 		tag{ save }

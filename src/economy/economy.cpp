@@ -1015,21 +1015,9 @@ dcon::unilateral_relationship_id nation_gives_direct_free_trade_rights(sys::stat
 	return dcon::unilateral_relationship_id{};
 }
 
-
-
-
-
-
-
-
-
-
-
-
-void update_yesterday_stockpiles_cache(sys::state& state) {
-	concurrency::parallel_for(uint32_t(0), uint32_t(state.world.commodity_size()), [&](uint32_t index) {
-		dcon::commodity_id com_id{ dcon::commodity_id::value_base_t(index) };
-		state.world.execute_serial_over_nation([&](auto nations) {
+void update_yesterday_govt_stockpiles_cache(sys::state& state) {
+	state.world.execute_parallel_over_nation([&](auto nations) {
+		for_each_commodity_no_money(state, [&](dcon::commodity_id com_id) {
 			auto to_apply = state.world.nation_get_total_stockpiles(nations, com_id);
 			state.world.nation_set_yesterday_total_stockpiles(nations, com_id, to_apply);
 		});
@@ -2737,7 +2725,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 
 	set_profile_point(state, "start");
 
-	update_yesterday_stockpiles_cache(state);
+	update_yesterday_govt_stockpiles_cache(state);
 
 	update_government_stockpile_market_demand_weights(state); // Functions will later will use these calculated values
 	
@@ -2746,7 +2734,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 	/* initialization parallel block */
 	
 
-	concurrency::parallel_for(0, 9, [&](int32_t index) {
+	concurrency::parallel_for(0, 10, [&](int32_t index) {
 		switch(index) {
 		case 0:
 			populate_navy_consumption(state);
@@ -2790,18 +2778,13 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			});
 			break;
 		case 8:
-			decay_government_stockpiles(state);
+			populate_private_construction_consumption(state);
+			break;
+		case 9:
+			update_factory_triggered_modifiers(state);
 			break;
 		}
 	});
-
-	concurrency::parallel_invoke([&]() {
-			populate_private_construction_consumption(state);
-		},
-		[&]() {
-			update_factory_triggered_modifiers(state);
-		}
-	);
 
 	set_profile_point(state, "init1");
 
@@ -2814,7 +2797,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 	set_profile_point(state, "create_buffers");
 
 
-	concurrency::parallel_for(0, 6, [&](int32_t index) {
+	concurrency::parallel_for(0, 7, [&](int32_t index) {
 		switch(index) {
 		case 0:
 			state.world.execute_serial_over_market([&](auto ids) {
@@ -2852,6 +2835,9 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			break;
 		case 5:
 			populate_government_construction_consumption(state);
+			break;
+		case 6:
+			decay_government_stockpiles(state);
 			break;
 		
 		}

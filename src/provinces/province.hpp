@@ -29,7 +29,9 @@ bool is_sea(const sys::state& state, dcon::province_id prov);
 
 bool is_land(const sys::state& state, dcon::province_id prov);
 
-bool is_port(const sys::state& state, dcon::province_id prov);
+bool prov_is_coastal(const sys::state& state, dcon::province_id prov);
+
+bool adj_is_coastal(const sys::state& state, dcon::province_adjacency_id adj);
 
 // Checks if the port province is connected to the given sea province
 bool is_port_connected_to(const sys::state& state, dcon::province_id port, dcon::province_id port_to);

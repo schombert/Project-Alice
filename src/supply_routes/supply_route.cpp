@@ -556,6 +556,12 @@ bool supply_route_path_is_active(const sys::state& state, dcon::supply_route_pat
 	return state.world.supply_route_path_get_is_active(path);
 }
 
+static bool adj_province_pair_valid(const sys::state& state, dcon::province_adjacency_id prov_adj, dcon::province_id prov_1, dcon::province_id prov_2) {
+	dcon::province_id adj_prov_1 = state.world.province_adjacency_get_connected_provinces(prov_adj, 0);
+	dcon::province_id adj_prov_2 = state.world.province_adjacency_get_connected_provinces(prov_adj, 1);
+	return (prov_1 != prov_2) && (adj_prov_1 == prov_1 || adj_prov_1 == prov_2) && (adj_prov_2 == prov_1 || adj_prov_2 == prov_2);
+}
+
 
 template<concepts::unit_supply_or_build_commodity_type commodity_type, concepts::military_supply_route_type route_type>
 float military_route_get_buffered_goods(const sys::state& state, route_type route, commodity_type commodity_id) {
@@ -792,30 +798,6 @@ void schedule_active_ineffective_supply_paths_update(sys::state& state) {
 	});
 }
 
-
-
-
-void update_nations_supply_cache(sys::state& state) {
-	auto begin = std::chrono::steady_clock::now();
-	static std::vector<dcon::nation_id> existing_nations;
-	existing_nations.clear();
-	nations::get_existing_nations(state, existing_nations);
-
-	concurrency::parallel_for_each(existing_nations.begin(), existing_nations.end(), [&](dcon::nation_id nation) {
-		// Cache supply throughput and loss by-province for use later
-		state.world.for_each_province([&](dcon::province_id prov) {
-			float supply_throughput = supply_routes::calculate_supply_throughput_in_province(state, prov, nation);
-			float supply_loss = supply_routes::calculate_supply_loss_in_province(state, prov, nation);
-			state.world.nation_set_prov_supply_throughput_cache(nation, prov, supply_throughput);
-			state.world.nation_set_prov_supply_loss_cache(nation, prov, supply_loss);
-		});
-
-	});
-	auto end = std::chrono::steady_clock::now();
-	state.console_log(std::string("caching time " + std::to_string(std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count())));
-
-}
-
 float compute_efficiency(float consumed, float available) {
 	if(consumed == 0.0f) {
 		if(available == 0.0f) {
@@ -834,26 +816,32 @@ float port_supply_capacity_mult_hostile_troops_modifier(const sys::state& state,
 }
 
 float port_supply_capacity_mult_blockaded_modifier(const sys::state& state, dcon::province_id port_prov, dcon::nation_id nation_as) {
-	assert(province::is_port(state, port_prov));
+	assert(province::prov_is_coastal(state, port_prov));
 	auto port_to_prov = state.world.province_get_port_to(port_prov);
 	auto enemy_blockade_power = military::navy_strength_present<military::battle_included::yes, military::retreat_included::no, military::participants_included::enemies>(state, port_to_prov, nation_as);
 	return navy_port_supply_capacity_blockade_threshold > 0.0f ? std::max((navy_port_supply_capacity_blockade_threshold - enemy_blockade_power) / navy_port_supply_capacity_blockade_threshold, 0.f) : 1.0f;
 }
 float port_supply_capacity_mult_supply_access_modifier(const sys::state& state, dcon::province_id port_prov, dcon::nation_id nation_as) {
-	assert(province::is_port(state, port_prov));
+	assert(province::prov_is_coastal(state, port_prov));
 	bool has_access = province::has_supply_access_to_province(state, nation_as, port_prov);
 	return has_access ? 1.0f : 0.0f;
 }
 
 
 float port_supply_capacity_in_province(const sys::state& state, dcon::province_id port_prov, dcon::nation_id nation_as) {
-	assert(province::is_port(state, port_prov));
+	assert(province::prov_is_coastal(state, port_prov));
+
 	float access_mult = port_supply_capacity_mult_supply_access_modifier(state, port_prov, nation_as);
-	float hostile_units_mult = port_supply_capacity_mult_hostile_troops_modifier(state, port_prov, nation_as);
-	float capacity_add = state.world.province_get_modifier_values(port_prov, sys::provincial_mod_offsets::port_supply_capacity_add) + state.world.nation_get_modifier_values(nation_as, sys::national_mod_offsets::national_port_supply_capacity_add);
-	float capacity_percent = state.world.province_get_modifier_values(port_prov, sys::provincial_mod_offsets::port_supply_capacity_percent) + state.world.nation_get_modifier_values(nation_as, sys::national_mod_offsets::national_port_supply_capacity_percent) + 1.0f;
-	float capacity_mul = state.world.province_get_modifier_values(port_prov, sys::provincial_mod_offsets::port_supply_capacity_mul) * state.world.nation_get_modifier_values(nation_as, sys::national_mod_offsets::national_port_supply_capacity_mul) * port_supply_capacity_mult_blockaded_modifier(state, port_prov, nation_as) * access_mult * hostile_units_mult;
-	return std::max(capacity_add * capacity_percent * capacity_mul, 0.0f);
+	if(access_mult != 0.0f) {
+		float hostile_units_mult = port_supply_capacity_mult_hostile_troops_modifier(state, port_prov, nation_as);
+		float capacity_add = state.world.province_get_modifier_values(port_prov, sys::provincial_mod_offsets::port_supply_capacity_add) + state.world.nation_get_modifier_values(nation_as, sys::national_mod_offsets::national_port_supply_capacity_add);
+		float capacity_percent = state.world.province_get_modifier_values(port_prov, sys::provincial_mod_offsets::port_supply_capacity_percent) + state.world.nation_get_modifier_values(nation_as, sys::national_mod_offsets::national_port_supply_capacity_percent) + 1.0f;
+		float capacity_mul = state.world.province_get_modifier_values(port_prov, sys::provincial_mod_offsets::port_supply_capacity_mul) * state.world.nation_get_modifier_values(nation_as, sys::national_mod_offsets::national_port_supply_capacity_mul) * port_supply_capacity_mult_blockaded_modifier(state, port_prov, nation_as) * access_mult * hostile_units_mult;
+		return std::max(capacity_add * capacity_percent * capacity_mul, 0.0f);
+	}
+	else {
+		return 0.0f;
+	}
 }
 
 
@@ -894,63 +882,87 @@ float calculate_supply_throughput_in_province(const sys::state& state, dcon::pro
 	}
 }
 
-float calculate_supply_throughput_in_adjacency(const sys::state& state, dcon::province_adjacency_id adj, dcon::nation_id nation) {
-	auto prov_1 = state.world.province_adjacency_get_connected_provinces(adj, 0);
-	auto prov_2 = state.world.province_adjacency_get_connected_provinces(adj, 1);
-	float supply_throughput_1 = state.world.nation_get_prov_supply_throughput_cache(nation, prov_1);
-	float supply_throughput_2 = state.world.nation_get_prov_supply_throughput_cache(nation, prov_2);
-	if(supply_throughput_1 > 0.0f && supply_throughput_2 > 0.0f) {
-		return std::min(supply_throughput_1, supply_throughput_2);
+float calculate_supply_throughput_in_noncoastal_adjacency(const sys::state& state, dcon::province_adjacency_id adj, dcon::province_id prov_1, dcon::province_id prov_2, float prov_1_throughput, float prov_2_throughput, dcon::nation_id nation) {
+	assert(!province::adj_is_coastal(state, adj));
+	assert(adj_province_pair_valid(state, adj, prov_1, prov_2));
+	if(prov_1_throughput > 0.0f && prov_2_throughput > 0.0f) {
+		return std::min(prov_1_throughput, prov_2_throughput);
 	}
 	// Special condition: Even if one edge of the adjacency has no throughput, allow it if there is a friendly army on the other side and the other edge has some throughput (balancing so that battles just inside enemy territory can be supplied if just near a friendly province)
-	else if(supply_throughput_1 > 0.0f && military::province_has_army<military::battle_included::yes, military::retreat_included::no, military::blackflag_included::no, military::participants_included::ourselves>(state, prov_2, nation)) {
-		return supply_throughput_1;
-	}
-	else if(supply_throughput_2 > 0.0f && military::province_has_army<military::battle_included::yes, military::retreat_included::no, military::blackflag_included::no, military::participants_included::ourselves>(state, prov_1, nation)) {
-		return supply_throughput_2;
-	}
-	else {
+	else if(prov_1_throughput > 0.0f && military::province_has_army<military::battle_included::yes, military::retreat_included::no, military::blackflag_included::no, military::participants_included::ourselves>(state, prov_2, nation)) {
+		return prov_1_throughput;
+	} else if(prov_2_throughput > 0.0f && military::province_has_army<military::battle_included::yes, military::retreat_included::no, military::blackflag_included::no, military::participants_included::ourselves>(state, prov_1, nation)) {
+		return prov_2_throughput;
+	} else {
 		return 0.0f;
 	}
 }
 
-float calculate_effective_supply_throughput_in_adjacency(const sys::state& state, dcon::province_adjacency_id adj, dcon::nation_id nation) {
-	auto prov_1 = state.world.province_adjacency_get_connected_provinces(adj, 0);
-	auto prov_2 = state.world.province_adjacency_get_connected_provinces(adj, 1);
+float calculate_supply_throughput_in_noncoastal_adjacency(const sys::state& state, dcon::province_adjacency_id adj, dcon::province_id prov_1, dcon::province_id prov_2, dcon::nation_id nation) {
+	float supply_throughput_1 = calculate_supply_throughput_in_province(state, prov_1, nation);
+	float supply_throughput_2 = calculate_supply_throughput_in_province(state, prov_2, nation);
+	return calculate_supply_throughput_in_noncoastal_adjacency(state, adj, prov_1, prov_2, supply_throughput_1, supply_throughput_2, nation);
+}
+
+
+float calculate_supply_throughput_in_coastal_adjacency(const sys::state& state, dcon::province_adjacency_id adj, dcon::province_id prov_1, dcon::province_id prov_2, float prov_1_capacity, float prov_2_capacity, dcon::nation_id nation) {
+	assert(province::adj_is_coastal(state, adj));
+	assert(adj_province_pair_valid(state, adj, prov_1, prov_2));
 	auto port_1_port_to = state.world.province_get_port_to(prov_1);
 	auto port_2_port_to = state.world.province_get_port_to(prov_2);
 	bool port_1_is_port = (port_1_port_to == prov_2);
 	bool port_2_is_port = (port_2_port_to == prov_1);
-	bool is_port = (port_1_is_port || port_2_is_port);
-	float sup_throughput;
-	// Is not a port (land -> land or sea -> sea). Use regular supply throughput compuation
-	if(!is_port) {
-		sup_throughput = calculate_supply_throughput_in_adjacency(state, adj, nation);
+	if(port_1_is_port) {
+		// use port supply capacity on prov 1 (the port prov)
+		return prov_1_capacity;
+	} else if(port_2_is_port) {
+		// use port supply capacity on prov 2 (the port prov)
+		return prov_2_capacity;
+	} else {
+		// There is no port connection between the two provinces
+		return 0.0f;
 	}
+}
+
+float calculate_supply_throughput_in_coastal_adjacency(const sys::state& state, dcon::province_adjacency_id adj, dcon::province_id prov_1, dcon::province_id prov_2, dcon::nation_id nation) {
+	assert(province::adj_is_coastal(state, adj));
+	assert(adj_province_pair_valid(state, adj, prov_1, prov_2));
+	auto port_1_port_to = state.world.province_get_port_to(prov_1);
+	auto port_2_port_to = state.world.province_get_port_to(prov_2);
+	bool port_1_is_port = (port_1_port_to == prov_2);
+	bool port_2_is_port = (port_2_port_to == prov_1);
+	if(port_1_is_port) {
+		// use port supply capacity on prov 1 (the port prov)
+		return port_supply_capacity_in_province(state, prov_1, nation);
+	} else if(port_2_is_port) {
+		// use port supply capacity on prov 2 (the port prov)
+		return port_supply_capacity_in_province(state, prov_2, nation);
+	} else {
+		// There is no port connection between the two provinces
+		return 0.0f;
+	}
+}
+
+float calculate_supply_throughput_in_adjacency(const sys::state& state, dcon::province_adjacency_id adj, dcon::nation_id nation) {
+	bool coastal_adj = province::adj_is_coastal(state, adj);
+	auto prov_1 = state.world.province_adjacency_get_connected_provinces(adj, 0);
+	auto prov_2 = state.world.province_adjacency_get_connected_provinces(adj, 1);
+	// Is coastal (land -> sea or sea -> land). Use port supply capacity compuation
+	if(coastal_adj) {
+		return calculate_supply_throughput_in_coastal_adjacency(state, adj, prov_1, prov_2, nation);
+	}
+	// Is not coastal (land -> land or sea -> sea). Use regular supply throughput compuation
 	else {
-		if(port_1_is_port) {
-			// If its sea -> land, use port supply capacity computation
-			sup_throughput = port_supply_capacity_in_province(state, prov_1, nation);
-		}
-		else {
-			// If its land -> sea use port supply capacity computation
-			sup_throughput = port_supply_capacity_in_province(state, prov_2, nation);
-		}
+		return calculate_supply_throughput_in_noncoastal_adjacency(state, adj, prov_1, prov_2, nation);
 	}
-	return sup_throughput;
 }
 
 float supply_throughput_efficiency(const sys::state& state, dcon::province_adjacency_id adj, dcon::nation_id nation_as) {
 	assert(nation_as);
+	auto prov_1 = state.world.province_adjacency_get_connected_provinces(adj, 0);
+	auto prov_2 = state.world.province_adjacency_get_connected_provinces(adj, 1);
 	float used_supply_throughput = state.world.province_adjacency_get_used_supply_throughput(adj);
 	float throughput = calculate_supply_throughput_in_adjacency(state, adj, nation_as);
-	return compute_efficiency(used_supply_throughput, throughput);
-}
-
-float effective_supply_throughput_efficiency(const sys::state& state, dcon::province_adjacency_id adj, dcon::nation_id nation_as) {
-	assert(nation_as);
-	float used_supply_throughput = state.world.province_adjacency_get_used_supply_throughput(adj);
-	float throughput = calculate_effective_supply_throughput_in_adjacency(state, adj, nation_as);
 	return compute_efficiency(used_supply_throughput, throughput);
 }
 
@@ -972,10 +984,15 @@ float calculate_supply_loss_in_province(const sys::state& state, dcon::province_
 	return std::max(add_mods * percent_mods * mul_mods, 0.0f);
 }
 
-float calculate_adjacency_avg_supply_loss(const sys::state& state, dcon::province_id prov_1, dcon::province_id prov_2, dcon::nation_id nation_as) {
-	//assert(state.world.get_province_adjacency_by_province_pair(prov_1, prov_2));
-	auto avg_supply_attr = (state.world.nation_get_prov_supply_loss_cache(nation_as, prov_1) + state.world.nation_get_prov_supply_loss_cache(nation_as, prov_1)) / 2.0f;
+float calculate_adjacency_avg_supply_loss(const sys::state& state, dcon::province_id prov_1, dcon::province_id prov_2, float prov_1_loss, float prov_2_loss, dcon::nation_id nation_as) {
+	auto avg_supply_attr = (prov_1_loss + prov_2_loss) / 2.0f;
 	return avg_supply_attr;
+}
+
+float calculate_adjacency_avg_supply_loss(const sys::state& state, dcon::province_id prov_1, dcon::province_id prov_2, dcon::nation_id nation_as) {
+	float prov_1_loss = supply_routes::calculate_supply_loss_in_province(state, prov_1, nation_as);
+	float prov_2_loss = supply_routes::calculate_supply_loss_in_province(state, prov_2, nation_as);
+	return calculate_adjacency_avg_supply_loss(state, prov_1, prov_2, prov_1_loss, prov_2_loss, nation_as);
 }
 float calculate_adjacency_avg_supply_loss(const sys::state& state, dcon::province_adjacency_id province_adj, dcon::nation_id nation_as) {
 	auto prov_1 = state.world.province_adjacency_get_connected_provinces(province_adj, 0);
@@ -983,35 +1000,51 @@ float calculate_adjacency_avg_supply_loss(const sys::state& state, dcon::provinc
 	return calculate_adjacency_avg_supply_loss(state, prov_1, prov_2, nation_as);
 }
 
-float calculate_adjacency_net_supply_loss(const sys::state& state, dcon::province_adjacency_id province_adj, dcon::nation_id nation_as) {
-	auto prov_1 = state.world.province_adjacency_get_connected_provinces(province_adj, 0);
-	auto prov_2 = state.world.province_adjacency_get_connected_provinces(province_adj, 1);
-	auto avg_supply_loss_per_km = calculate_adjacency_avg_supply_loss(state, prov_1, prov_2, nation_as) / state.map_state.map_data.world_circumference; // Get supply loss measured in loss per km
+float calculate_adjacency_net_supply_loss(const sys::state& state, dcon::province_adjacency_id province_adj, dcon::province_id prov_1, dcon::province_id prov_2, float prov_1_loss, float prov_2_loss, dcon::nation_id nation_as) {
+	assert(adj_province_pair_valid(state, province_adj, prov_1, prov_2));
+	auto avg_supply_loss_per_km = calculate_adjacency_avg_supply_loss(state, prov_1, prov_2, prov_1_loss, prov_2_loss, nation_as) / state.map_state.map_data.world_circumference; // Get supply loss measured in loss per km
 	auto distance = state.world.province_adjacency_get_distance_km(province_adj) * military::get_avg_movement_cost_modifier(state, nation_as, prov_1, prov_2);
 	assert(std::isfinite(distance * avg_supply_loss_per_km));
 	return distance * avg_supply_loss_per_km;
 }
 
-float calculate_supply_route_throughput(const sys::state& state, std::span<const dcon::province_adjacency_id> adj_path, dcon::province_id origin_prov, dcon::province_id destination, dcon::nation_id controller) {
-	assert(origin_prov);
-	assert(destination);
+float calculate_adjacency_net_supply_loss(const sys::state& state, dcon::province_adjacency_id province_adj, dcon::province_id prov_1, dcon::province_id prov_2, dcon::nation_id nation_as) {
+	float prov_1_loss = supply_routes::calculate_supply_loss_in_province(state, prov_1, nation_as);
+	float prov_2_loss = supply_routes::calculate_supply_loss_in_province(state, prov_2, nation_as);
+	return calculate_adjacency_net_supply_loss(state, province_adj, prov_1, prov_2, prov_1_loss, prov_2_loss, nation_as);
+}
+
+float calculate_supply_route_throughput(const sys::state& state, std::span<const dcon::province_adjacency_id> adj_path, dcon::nation_id controller) {
 	float smallest_supply_throughput = 1.0f;
 	for(auto adj : adj_path) {
-		float throughput_eff = effective_supply_throughput_efficiency(state, adj, controller);
+		float throughput_eff = supply_throughput_efficiency(state, adj, controller);
 		smallest_supply_throughput = std::min(smallest_supply_throughput, throughput_eff);
 	}
 	return smallest_supply_throughput;
 }
 
-float calculate_supply_route_supply_loss(const sys::state& state, std::span<const dcon::province_adjacency_id> adj_path, dcon::province_id origin_prov, dcon::province_id destination, dcon::nation_id controller) {
-	assert(origin_prov);
-	assert(destination);
+float calculate_supply_route_supply_loss(const sys::state& state, std::span<const dcon::province_adjacency_id> adj_path, dcon::province_id start_prov, dcon::nation_id controller) {
+	assert(start_prov);
+
 	float total_attrition_mod = 0.0f;
+	// Keep track of the "last" and "next" province while iterating through the adjacencies, so that we need only compute 1+1*N supply loss computations, instead of 2*N
+	dcon::province_id last_province = start_prov;
+	float last_province_sup_loss = supply_routes::calculate_supply_loss_in_province(state, last_province, controller);
 	for(auto adj : adj_path) {
-		total_attrition_mod += calculate_adjacency_net_supply_loss(state, adj, controller);
+		auto prov_1 = state.world.province_adjacency_get_connected_provinces(adj, 0);
+		auto prov_2 = state.world.province_adjacency_get_connected_provinces(adj, 1);
+		dcon::province_id next_province = (prov_1 == last_province ? prov_2 : prov_1);
+
+		assert(adj_province_pair_valid(state, adj, last_province, next_province));
+
+		float next_province_sup_loss = supply_routes::calculate_supply_loss_in_province(state, next_province, controller);
+		total_attrition_mod += calculate_adjacency_net_supply_loss(state, adj, last_province, next_province, last_province_sup_loss, next_province_sup_loss, controller);
+		last_province = next_province;
+		last_province_sup_loss = next_province_sup_loss;
 		assert(std::isfinite(total_attrition_mod));
 	}
 	return std::max(1.0f - total_attrition_mod, max_supply_route_loss);
+	
 }
 
 
@@ -1024,12 +1057,21 @@ void add_used_supply_throughput(sys::state& state, std::span<const dcon::provinc
 
 void update_supply_path_throughput_attrition(sys::state& state, dcon::supply_route_path_id path_handle, dcon::nation_id controller) {
 
-	auto origin_prov = supply_route_path_get_origin_prov(state, path_handle);
-	dcon::province_id dest = state.world.supply_route_path_get_destination(path_handle);
+	auto prov_path = state.world.supply_route_path_get_path(path_handle);
+	assert(prov_path.size() > 0); // A valid province path should never be empty
 	auto adj_path = state.world.supply_route_path_get_adjacency_path(path_handle);
-	float supply_loss = calculate_supply_route_supply_loss(state, adj_path, origin_prov, dest, controller);
-	float new_throughput = calculate_supply_route_throughput(state, adj_path, origin_prov, dest, controller);
 	float old_throughput = state.world.supply_route_path_get_throughput(path_handle);
+	float supply_loss;
+	float new_throughput;
+	// If adjacency path is greater than 0 then compute the throughput and loss. If size is 0 it must mean that the path is only a single province (and thus no edges). In that case there is no travel between edges needed, and throughput is always 100%, and loss 0%
+	if(adj_path.size() > 0) {
+		supply_loss = calculate_supply_route_supply_loss(state, adj_path, prov_path[0], controller);
+		new_throughput = calculate_supply_route_throughput(state, adj_path, controller);
+	}
+	else {
+		supply_loss = 1.0f;
+		new_throughput = 1.0f; 
+	}
 	state.world.supply_route_path_set_expected_throughput(path_handle, (new_throughput + old_throughput) / 2.0f);
 	state.world.supply_route_path_set_throughput(path_handle, new_throughput);
 	state.world.supply_route_path_set_supply_loss(path_handle, supply_loss);
