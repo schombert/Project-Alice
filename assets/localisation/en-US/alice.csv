@@ -2043,3 +2043,6 @@ factory_investments_header;Investments
 total_investments_label;Total
 investment_efficiency_tooltip;Tools, efficiency inputs and machines
 investment_expansion_tooltip;Expansion
+alice_budget_military_expense;Military Pay
+alice_budget_education_expense;Public Education
+alice_budget_administration_expense;Official Pay
