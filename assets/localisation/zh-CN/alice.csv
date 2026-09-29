@@ -495,7 +495,7 @@ factory_upgrade_condition_9;工厂未处于升级过程
 factory_upgrade_condition_10;工厂不处于最大等级
 factory_delete_header;移除工厂
 factory_delete_not_allowed;执政党不允许我们移除工厂
-factory_stats_4;它在昨天获利 $val$
+factory_stats_4;昨天获利 $val$
 factory_stats_5;投入有效性
 factory_stats_6;修正后的可用投入：
 factory_stats_wage;工资：
@@ -588,7 +588,7 @@ pop_lit_5;国内教育效率修正：$x$
 pop_lit_6;国内教育效率修正：$x$
 pop_lit_7;基础识字率变化率：$x$
 pop_lit_8;和 0.01
-pop_growth_topbar;下月增长速度预计： ?G$x$?W
+pop_growth_topbar;下月增长速度预计：?G$x$?W
 pop_growth_topbar_2;人口变化幅度 ?G$x$?W 在最后 ?Y30?W 天。
 pop_growth_topbar_3;我国成年男性人口：?Y$curr$?W。我们男人
 pop_growth_topbar_4;我国总人口：?Y$val$?W。
@@ -975,7 +975,7 @@ as_a_vassal;作为附庸
 change_state_name_to;地区名将变成 $text$
 alice_join_crisis_offer;$ACTOR$会给予我们如下好处如果我们在本场危机中加入他们
 alice_unit_disable_rebel_hunt;停止围剿叛军
-alice_regiment_battle_info;$m$ $name$ ?Y$type$?!\n组织度： ?Y$organisation$?W\n兵力： ?Y$strength$?W
+alice_regiment_battle_info;$m$ $name$ ?Y$type$?!\n组织度：?Y$organisation$?W\n兵力：?Y$strength$?W
 understaffed_regiment;?RT这个团人手不足并且只有 $value$ 名士兵!?W
 tech_queue_explain;按?YSHIFT?W 加入队列，?Y右键?W 移除
 alice_province_building_build;?YSHIFT?W 建造在整个 ?G地区?W。\n?YSHIFT-右键?W 建造在整个?G国家?W。
@@ -1065,7 +1065,7 @@ alice_spending_land_construction;陆军建设在 $name$：?R$cost$?W
 alice_spending_naval_construction;海军建设在 $name$：?R$cost$?W
 alice_spending_building_construction;建筑建设在 $name$：?R$cost$?W
 alice_spending_factory_construction;工厂建设在 $name$：?R$cost$?W
-alice_spending_unit;在此单位上的总花费，取决于 $name$： ?R$cost$?W
+alice_spending_unit;此单位总花费，取决于 $name$：?R$cost$?W
 alice_spending_unit_1;此单位总花费：?R$cost$?W
 alice_spending_total;?Y总费用：?W
 alice_spending_commodity;?R$cost$?W - 需要 $name$（$val$）的$need$
@@ -1203,7 +1203,7 @@ CANCEL_WARSUBSIDIES_WE_ACCEPT_LOG;$ACTOR$ 已停止给与我们战争援助
 CANCEL_WARSUBSIDIES_OTHER_ACCEPT_LOG;$ACTOR$ 已停止给与 $RECIPIENT$ 战争援助
 CANCEL_WARSUBSIDIES_DESC;取消对此国的资金援助
 ledger_standard_of_living;生活条件
-alice_ledger_header_gdp_history;购买力（通胀调整）GDP 历史
+alice_ledger_header_gdp_history;通胀后购买力 GDP 历史
 alice_countryalert_colonialgood_start;我们可以在 $region$ 开始殖民
 alice_overseas_mil_description;海外部队
 alice_armygroup_go_to_selection;添加/删除单位
@@ -1528,8 +1528,8 @@ alice_construction_cost;施工成本：
 alice_factory_construction_explain_3;购买的商品价值：?Y$x$?W
 alice_factory_construction_explain_4;总价预计：?Y$x$?W
 alice_factory_construction_explain_5;进展：?Y$x$?W
-ledger_inflation_adjusted_gdp;GDP（通胀调整）
-ledger_inflation_adjusted_gdp_per_capita;百万人平均GDP（通胀调整）
+ledger_inflation_adjusted_gdp;通胀后 GDP
+ledger_inflation_adjusted_gdp_per_capita;通胀后百万人平均GDP
 province_victory_points;胜利点，表示战时计算占领分，此省份相对于其他省份的价值。
 province_victory_points_base;?G+1 基本分?W
 province_victory_points_nb;?G+$X$ 海军基地等级分数?W
@@ -1598,7 +1598,7 @@ trade_centre_imports_volume;进口量：?Y$val$
 trade_centre_imports_value;进口价值：?Y$val$
 trade_centre_exports_volume;出口量：?Y$val$
 trade_centre_exports_value;出口价值：?Y$val$
-trade_centre_trade_routes_profit;从贸易路线中获利：?Y$val$
+trade_centre_trade_routes_profit;贸易路线获利：?Y$val$
 trade_centre_money;结余：?Y$val$
 administration_tile;当地行政
 market_tile;当地市场
@@ -2024,3 +2024,15 @@ private_education_demand_1;公立需求 ?Y$val$?!
 private_education_demand_2;私立需求 ?Y$val$?!
 private_education_size_public;公立规模 ?Y$val$?!
 private_education_size_private;私立规模 ?Y$val$?!
+trade_route_volume_transport_cost;运费：?Y$val$?W
+trade_route_volume_import_price;关税后进口价：?Y$val$?W
+trade_route_volume_export_price;关税后出口价：?Y$val$?W
+trade_route_volume_transport_availability;运输可用性：?Y$val$?W
+trade_route_volume_budget_availability;进口预算：?Y$val$?W
+trade_route_volume_risk;交易风险（取决于价格与可用资金之比）?Y$val$?W
+trade_route_confidence_export;出口价信心：?Y$val$
+trade_route_confidence_import;进口价信心：?Y$val$
+trade_centre_wealth;库存总成本：?Y$val$
+trade_centre_wealth_and_money;总资产：?Y$val$
+trade_centre_arbitrage;贸易中心获利：?Y$val$
+province_market_stockpiles_sales;库存销售目标：?Y$val$?!
