@@ -1050,9 +1050,9 @@ alice_budget_scaled_5;陆军维护：?R$value$
 alice_budget_scaled_6;海军维护：?R$value$
 alice_budget_scaled_7;建设：?R$value$
 alice_budget_scaled_8;教育：?R$value$
-alice_budget_scaled_9;行政：?R$value$
+alice_budget_scaled_9;公俸：?R$value$
 alice_budget_scaled_10;社会支出：?R$value$
-alice_budget_scaled_11;军事支出：?R$value$
+alice_budget_scaled_11;军饷：?R$value$
 alice_budget_scaled_12;国内投资：?R$value$
 alice_budget_scaled_13;海外支出：?R$value$
 alice_budget_scaled_14;库存买入：?R$value$
@@ -1240,8 +1240,8 @@ rgo_production;RGO产出
 artisan_production;工匠产出
 factory_production;工厂产出
 artisan_distribution;工匠优先级
-produced_nation;库存
-consumed_nation;消费
+produced_nation;市场供应
+consumed_nation;实际消费
 nation_name;国家
 demanded_nation;需求
 method_name;名字
@@ -1334,8 +1334,8 @@ alice_budget_item;项目
 alice_budget_amount;数量
 alice_budget_minimum_button;设最低值
 alice_budget_maximum_button;设最大值
-alice_budget_decrease_button;值少10（shift+以精确控制）
-alice_budget_increase_button;值多10（shift+以精确控制）
+alice_budget_decrease_button;-10 (shift -1)
+alice_budget_increase_button;+10 (shift +1)
 alice_budget_max;最大 $x$
 alice_budget_min;最小 $x$
 alice_budget_overlord;宗主税
@@ -1602,7 +1602,7 @@ trade_centre_trade_routes_profit;从贸易路线中获利：?Y$val$
 trade_centre_money;结余：?Y$val$
 administration_tile;当地行政
 market_tile;当地市场
-alice_sort_pops;种族
+alice_sort_pops;民族
 alice_sort_states;地区
 alice_topbar_avg_literacy_in_states;非殖民地人口 ?Y$x$?W 是平均?Y识字率?W
 employment_type_guild_education;雇佣类型：?Y行会教育?W
@@ -1690,7 +1690,7 @@ gdp_factory;二级产业（大规模）：
 gdp_artisans;二级产业（手工业）：
 gdp_selected;所选省份GDP
 gdp_rest;国内其他省份GDP
-market_report;?Y$province$?W 当地市场出口贸易
+market_report;?Y$province$?W 贸易
 market_prices_report;?Y$province$?W 市场价格
 rgo_report;?Y$province$?W 资源运营
 trade_balance;结余
@@ -1844,7 +1844,7 @@ province_market_demand;需求：?R$val$?!
 province_market_production;生产：?G$val$?!
 province_market_consumption;消费：?R$val$?!
 province_market_stockpiles;库存：?Y$val$?!
-province_market_balance;结余：?Y$val$?!
+province_market_balance;供需比倒数差：?Y$val$?!
 province_market_trade_in;进口：?G$val$?!
 province_market_trade_out;出口：?R$val$?!
 province_market_trade_balance;贸易结余：?Y$val$?!
@@ -1945,10 +1945,10 @@ alice_gamerule_command_units_opt_enabled;启用
 alice_gamerule_command_units_desc;玩家战时是否可指挥AI附庸单位
 trade_centre_estimated_money;下次采购预计：?Y$val$
 trade_centre_estimated_change;变化预计：?Y$val$
-trade_centre_import;进口商品采购：?Y$val$
+trade_centre_import;进口采购：?Y$val$
 trade_centre_export;出口盈亏：?Y$val$
 trade_centre_sold;销售收入：?Y$val$
-trade_centre_bought;当地商品采购：?Y$val$
+trade_centre_bought;当地采购：?Y$val$
 trade_centre_investments;人群贸易预算：?Y$val$
 trade_centre_dividents;投资者分红：?Y$val$
 trade_centre_factories;工厂采购：?Y$val$
@@ -1971,16 +1971,16 @@ alice_unit_dug_in;单位设防级别 ?Y$NUM$?W
 alice_unit_targeting_dug_in_modifier;单位在攻击设防单位时获得 ?Y$NUM$?W 战斗骰子修正
 pop_literacy_spending_actually_spent;当地教育满足度：?Y$val$?W.
 private_education_price;教育价 ?Y$val$?!
-port_price;当地港口价 ?Y$val$?!
+port_price;港口价 ?Y$val$?!
 housing_price;住房价 ?Y$val$?!
-housing_supply;住房供应 ?Y$val$?!
-housing_demand;住房需求 ?Y$val$?!
+housing_supply;供应 ?Y$val$?!
+housing_demand;需求 ?Y$val$?!
 rgo_bank;RGO 结余 ?Y$val$?W
-rgo_bank_in;RGOs 生产盈利 ?Y$val$?W
-rgo_bank_out;RGOs 人群分红 ?Y$val$?W
+rgo_bank_in;生产盈利 ?Y$val$?W
+rgo_bank_out;人群分红 ?Y$val$?W
 factory_bank;工厂结余 ?Y$val$?W
-factory_bank_in;工厂生产盈利 ?Y$val$?W
-factory_bank_out;工厂人群分红 ?Y$val$?W
+factory_bank_in;生产盈利 ?Y$val$?W
+factory_bank_out;人群分红 ?Y$val$?W
 colonial_crisis;殖民危机
 add_wargoal_wargoal_count;当继续时会添加 ?Y$COUNT$?W 战争目标
 artisan_bank;工匠结余 ?Y$val$?W
@@ -2018,9 +2018,9 @@ factory_investments_header;投资
 total_investments_label;总计
 investment_efficiency_tooltip;工具、效率输入和机器
 investment_expansion_tooltip;扩张
-private_education_supply_1;私立教育供应 ?Y$val$?!
-private_education_supply_2;公立教育供应 ?Y$val$?!
-private_education_demand_1;公立教育需求 ?Y$val$?!
-private_education_demand_2;私立教育需求 ?Y$val$?!
-private_education_size_public;公立教育规模 ?Y$val$?!
-private_education_size_private;私立教育规模 ?Y$val$?!
+private_education_supply_1;私立供应 ?Y$val$?!
+private_education_supply_2;公立供应 ?Y$val$?!
+private_education_demand_1;公立需求 ?Y$val$?!
+private_education_demand_2;私立需求 ?Y$val$?!
+private_education_size_public;公立规模 ?Y$val$?!
+private_education_size_private;私立规模 ?Y$val$?!
