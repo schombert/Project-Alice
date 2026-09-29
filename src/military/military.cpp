@@ -9965,8 +9965,8 @@ float get_naval_org_regain_modifiers(const sys::state& state, dcon::ship_id ship
 
 
 // supply_type: Do we assume we have full supply, or do we scale it based on current satisfaction?
-// potential_reinforcement: Do we cap the reinforcement at max org, or not?
-template<supply_estimation supply_type, bool potential_reinforcement>
+// cap_rule: Do we want the uncapped org regain above max strength?
+template<supply_estimation supply_type, organization_cap cap_rule>
 float calculate_regiment_org_regain(sys::state& state, dcon::regiment_id regiment, float supply_mods) {
 	float supply_fufillment;
 
@@ -9983,30 +9983,33 @@ float calculate_regiment_org_regain(sys::state& state, dcon::regiment_id regimen
 	auto current_raw_org = cur_org * max_raw_org;
 	auto raw_org_gain = supply_fufillment * supply_mods / 5.0f;
 	auto percentage_org_gain = raw_org_gain / max_raw_org;
-	if constexpr(!potential_reinforcement) {
+	if constexpr(cap_rule == organization_cap::capped_at_max_org) {
 		// US13AC7 Unfulfilled supply doesn't lower max org as it makes half the game unplayable
 		// US13AC8 Unfilfilled supply doesn't prevent org regain as it makes half the game unplayable
 		// US13AC6 Max organization of the regiment is 100% (1.0)
 		float new_org = std::min(cur_org + percentage_org_gain, 1.0f);
 		return new_org - cur_org;
-	} else {
+	} else if constexpr(cap_rule == organization_cap::uncapped) {
 		return percentage_org_gain;
+	}
+	else {
+		static_assert(false, "Unknown enum");
 	}
 
 }
 
 // supply_type: Do we assume we have full supply, or do we scale it based on current satisfaction?
-// potential_reinforcement: Do we cap the org at max org, or not?
-template<supply_estimation supply_type, bool potential_reinforcement>
+// cap_rule: Do we want the uncapped org regain above max org?
+template<supply_estimation supply_type, organization_cap cap_rule>
 float calculate_regiment_org_regain(sys::state& state, dcon::regiment_id regiment) {
 	auto mods = get_land_org_regain_modifiers(state, regiment);
-	return calculate_regiment_org_regain<supply_type, potential_reinforcement>(state, regiment, mods);
+	return calculate_regiment_org_regain<supply_type, cap_rule>(state, regiment, mods);
 
 }
 
 // supply_type: Do we assume we have full supply, or do we scale it based on current satisfaction?
-// potential_reinforcement: Do we cap the org at max org, or not?
-template<supply_estimation supply_type, bool potential_reinforcement>
+// cap_rule: Do we want the uncapped org regain above max org?
+template<supply_estimation supply_type, organization_cap cap_rule>
 float calculate_ship_org_regain(sys::state& state, dcon::ship_id ship, float supply_mods) {
 	float supply_fufillment;
 
@@ -10023,24 +10026,27 @@ float calculate_ship_org_regain(sys::state& state, dcon::ship_id ship, float sup
 	auto current_raw_org = cur_org * max_raw_org;
 	auto raw_org_gain = supply_fufillment * supply_mods / 5.0f;
 	auto percentage_org_gain = raw_org_gain / max_raw_org;
-	if constexpr(!potential_reinforcement) {
+	if constexpr(cap_rule == organization_cap::capped_at_max_org) {
 		// US13AC7 Unfulfilled supply doesn't lower max org as it makes half the game unplayable
 		// US13AC8 Unfilfilled supply doesn't prevent org regain as it makes half the game unplayable
 		// US13AC6 Max organization of the regiment is 100% (1.0)
 		float new_org = std::min(cur_org + percentage_org_gain, 1.0f);
 		return new_org - cur_org;
-	} else {
+	} else if constexpr(cap_rule == organization_cap::uncapped) {
 		return percentage_org_gain;
+	}
+	else {
+		static_assert(false, "Unknown enum");
 	}
 
 }
 
 // supply_type: Do we assume we have full supply, or do we scale it based on current satisfaction?
-// potential_reinforcement: Do we cap the reinforcement at max org, or not?
-template<supply_estimation supply_type, bool potential_reinforcement>
+// cap_rule: Do we want the uncapped org regain above max org?
+template<supply_estimation supply_type, organization_cap cap_rule>
 float calculate_ship_org_regain(sys::state& state, dcon::ship_id ship) {
 	auto mods = get_naval_org_regain_modifiers(state, ship);
-	return calculate_ship_org_regain<supply_type, potential_reinforcement>(state, ship, mods);
+	return calculate_ship_org_regain<supply_type, cap_rule>(state, ship, mods);
 
 }
 
@@ -10056,7 +10062,7 @@ void recover_land_org(sys::state& state) {
 	*/
 	state.world.for_each_regiment([&](dcon::regiment_id reg) {
 		auto regiment = fatten(state.world, reg);
-		auto org_regain = calculate_regiment_org_regain<supply_estimation::based_on_satisfaction, false>(state, regiment);
+		auto org_regain = calculate_regiment_org_regain<supply_estimation::based_on_satisfaction, organization_cap::capped_at_max_org>(state, regiment);
 		assert(std::isfinite(org_regain));
 		regiment.set_org(regiment.get_org() + org_regain);
 				
@@ -10071,7 +10077,7 @@ void recover_naval_org(sys::state& state) {
 	*/
 	state.world.for_each_ship([&](dcon::ship_id shp) {
 		auto ship = fatten(state.world, shp);
-		auto org_regain = calculate_ship_org_regain<supply_estimation::based_on_satisfaction, false>(state, ship);
+		auto org_regain = calculate_ship_org_regain<supply_estimation::based_on_satisfaction, organization_cap::capped_at_max_org>(state, ship);
 		assert(std::isfinite(org_regain));
 		ship.set_org(ship.get_org() + org_regain);
 
@@ -10118,7 +10124,7 @@ float calculate_battle_reinforcement(sys::state& state, dcon::land_battle_id b, 
 		bool battle_attacker = is_attacker_in_battle(state, army.get_army());
 		if((battle_attacker && attacker) || (!battle_attacker && !attacker)) {
 			for(auto reg : state.world.army_get_army_membership(army.get_army())) {
-				total += estimate_reinforcement<military::interval_estimation::monthly, supply_estimation::based_on_satisfaction, true>(state, reg.get_regiment()) * state.defines.pop_size_per_regiment;
+				total += estimate_reinforcement<military::interval_estimation::monthly, supply_estimation::based_on_satisfaction, reinforcement_cap::capped_at_max_strength>(state, reg.get_regiment()) * state.defines.pop_size_per_regiment;
 			}
 		}
 	}
@@ -10167,7 +10173,7 @@ maximum-strength x (technology-repair-rate + provincial-modifier-to-repair-rate 
 	for(auto ship : state.world.in_ship) {
 		auto navy = ship.get_navy_from_navy_membership();
 		auto in_nation = navy.get_controller_from_navy_control();
-		auto reinforcement = estimate_reinforcement<interval_estimation::daily, supply_estimation::based_on_satisfaction, false>(state, ship);
+		auto reinforcement = estimate_reinforcement<interval_estimation::daily, supply_estimation::based_on_satisfaction, reinforcement_cap::capped_at_max_strength>(state, ship);
 		assert(std::isfinite(reinforcement));
 		assert(std::isfinite(ship.get_strength()));
 		ship.set_strength(ship.get_strength() + reinforcement);

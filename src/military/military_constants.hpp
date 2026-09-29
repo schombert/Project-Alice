@@ -30,6 +30,15 @@ enum class retreat_type : bool {
 	manual = 1,
 };
 
+enum class reinforcement_cap : uint8_t {
+	capped_at_max_strength,
+	uncapped
+};
+enum class organization_cap : uint8_t {
+	capped_at_max_org,
+	uncapped
+};
+
 
 constexpr uint8_t min_combat_width = 2;
 

@@ -1121,25 +1121,6 @@ void delete_supply_route(sys::state& state, route_type route) {
 	}
 }
 
-dcon::supply_route_path_id create_supply_route_path(sys::state& state, dcon::province_id destination, dcon::market_id origin, float expected_volume) {
-	static std::vector<dcon::province_id> path{};
-	static thread_local std::vector<dcon::province_adjacency_id> adj_path{};
-	path.clear();
-	adj_path.clear();
-	path.clear();
-	auto state_inst = state.world.market_get_zone_from_local_market(origin);
-	auto capital = state.world.state_instance_get_capital(state_inst);
-	dcon::nation_id controller = state.world.state_instance_get_nation_from_state_control(state_inst);
-	bool valid = province::make_military_supply_path(state, capital, destination, controller, expected_volume, path, adj_path);
-	auto handle = state.world.force_create_supply_route_path(destination, origin);
-	state.world.supply_route_path_get_path(handle).load_range(path.data(), path.data() + path.size());
-	state.world.supply_route_path_get_adjacency_path(handle).load_range(adj_path.data(), adj_path.data() + adj_path.size());
-	state.world.supply_route_path_set_path_out_of_date(handle, !valid);
-	state.world.supply_route_path_set_valid_path(handle, valid);
-	state.world.supply_route_path_set_inactive_days(handle, 0);
-	return handle;
-}
-
 dcon::supply_route_path_id create_supply_route_path_no_pathing(sys::state& state, dcon::province_id destination, dcon::market_id origin, bool attempting_to_route) {
 	auto state_inst = state.world.market_get_zone_from_local_market(origin);
 	auto capital = state.world.state_instance_get_capital(state_inst);
@@ -2287,7 +2268,7 @@ void update_supply_routes_daily(sys::state& state) {
 			// Compute the "required_x_of_base_cost" meaning how much of the base cost is required to reach 100% satisfaction for supply and reinforcement need respectively. These are used later
 			float required_supply_goods_of_base_cost = military::get_supply_cost_modifiers(state, subunit);
 			military::subunit_set_required_supply_base_cost(state, subunit, required_supply_goods_of_base_cost);
-			float required_reinf_goods_of_base_cost = military::estimate_reinforcement<military::interval_estimation::daily, military::supply_estimation::full_supply_always, false>(state, subunit); // The reinforcement available (from 0.0-1.0f) requires that % of the base build cost to fufill
+			float required_reinf_goods_of_base_cost = military::estimate_reinforcement<military::interval_estimation::daily, military::supply_estimation::full_supply_always, military::reinforcement_cap::capped_at_max_strength>(state, subunit); // The reinforcement available (from 0.0-1.0f) requires that % of the base build cost to fufill
 			military::subunit_set_required_reinforcement_base_cost(state, subunit, required_reinf_goods_of_base_cost);
 			// Then accumulate each commodity required, which will call the prev. lambdas with the commodity and amount required
 			military::accumulate_subunit_consumption(state, nation, subunit, accumulate_supply, accumulate_reinf);

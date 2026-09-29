@@ -322,8 +322,8 @@ dcon::pop_id find_available_soldier_parsing(sys::state& state, dcon::province_id
 // Estimates reinforcement for a regiment while using the passed-in modifiers
 // interval_type: Do we estimate the reinforcement per day, or per month?
 // supply_type: Do we assume we have full supply, or do we scale it based on current satisfaction?
-// potential_reinforcement: Do we cap the reinforcement at max strength, or not?
-template<interval_estimation interval_type, supply_estimation supply_type, bool potential_reinforcement>
+// cap_rule: Do we want the uncapped reinforcement regain above max strength? For regiments, the queued potential reinforcements counts as the current strength
+template<interval_estimation interval_type, supply_estimation supply_type, reinforcement_cap cap_rule>
 float estimate_reinforcement(const sys::state& state, dcon::regiment_id regiment, float reinforcement_mods) {
 	float reinf_fufillment;
 	if constexpr(interval_type == interval_estimation::daily) {
@@ -351,33 +351,37 @@ float estimate_reinforcement(const sys::state& state, dcon::regiment_id regiment
 	float curstr = state.world.regiment_get_strength(regiment);
 	auto pop_size = state.world.pop_get_size(pop);
 	float pending_reinf = state.world.regiment_get_total_pending_reinforcement(regiment);
-	if constexpr(!potential_reinforcement) {
+	if constexpr(cap_rule == reinforcement_cap::capped_at_max_strength) {
 		combined = std::min(combined, 1.0f - (curstr + pending_reinf)); // Can only reinforce up to the amount of missing strength
 		auto limit_fraction = std::max(state.defines.alice_full_reinforce, std::min(1.0f, pop_size / state.defines.pop_size_per_regiment));
 		newstr = std::min(curstr + combined, limit_fraction);
 		return std::max(newstr - curstr, 0.0f); 
-	} else {
+	} else if constexpr(cap_rule == reinforcement_cap::uncapped) {
 		return combined;
+	}
+
+	else {
+		static_assert(false, "Unknown enum value");
 	}
 
 }
 // Estimates reinforcement for a regiment, and computes the modifiers on its own
 // US14 Calculates reinforcement for a particular regiment
-template<interval_estimation interval_type, supply_estimation supply_type, bool potential_reinforcement>
+template<interval_estimation interval_type, supply_estimation supply_type, reinforcement_cap cap_rule>
 float estimate_reinforcement(const sys::state& state, dcon::regiment_id regiment) {
 	auto army = state.world.regiment_get_army_from_army_membership(regiment);
 	auto mods = get_land_reinforcement_modifiers(state, army);
-	return estimate_reinforcement<interval_type, supply_type, potential_reinforcement>(state, regiment, mods);
+	return estimate_reinforcement<interval_type, supply_type, cap_rule>(state, regiment, mods);
 
 }
 
 // Estimates combined reinforcement for an entire army
-template<interval_estimation interval_type, supply_estimation supply_type, bool potential_reinforcement>
+template<interval_estimation interval_type, supply_estimation supply_type, reinforcement_cap cap_rule>
 float estimate_reinforcement(const sys::state& state, dcon::army_id army) {
 	float total_reinforcement = 0.0f;
 	for(auto r : state.world.army_get_army_membership(army)) {
 		auto regiment = r.get_regiment();
-		total_reinforcement += estimate_reinforcement<interval_type, supply_type, potential_reinforcement>(state, regiment);
+		total_reinforcement += estimate_reinforcement<interval_type, supply_type, cap_rule>(state, regiment);
 	}
 	return total_reinforcement;
 
@@ -387,8 +391,8 @@ float estimate_reinforcement(const sys::state& state, dcon::army_id army) {
 // Estimates reinforcement for a ship while using the passed-in modifiers
 // interval_type: Do we estimate the reinforcement per day, or per month?
 // supply_type: Do we assume we have full supply, or do we scale it based on current satisfaction?
-// potential_reinforcement: Do we cap the reinforcement at max strength + pending reinforcements, or not?
-template<interval_estimation interval_type, supply_estimation supply_type, bool potential_reinforcement>
+// cap_rule: Do we want the uncapped reinforcement regain above max strength?
+template<interval_estimation interval_type, supply_estimation supply_type, reinforcement_cap cap_rule>
 float estimate_reinforcement(const sys::state& state, dcon::ship_id ship, float reinforcement_mods) {
 	float reinf_fufillment;
 	if constexpr(interval_type == interval_estimation::daily) {
@@ -412,11 +416,14 @@ float estimate_reinforcement(const sys::state& state, dcon::ship_id ship, float 
 	}
 	auto combined = reinf_fufillment * reinforcement_mods;
 	float curstr = state.world.ship_get_strength(ship);
-	if constexpr(!potential_reinforcement) {
+	if constexpr(cap_rule == reinforcement_cap::capped_at_max_strength) {
 		combined = std::min(combined, 1.0f - curstr); // Can only reinforce up to the amount of missing strength
 		return std::max(combined, 0.0f);
-	} else {
+	} else if constexpr(cap_rule == reinforcement_cap::uncapped) {
 		return combined;
+	}
+	else {
+		static_assert(false, "Unknown enum");
 	}
 
 }
@@ -424,22 +431,25 @@ float estimate_reinforcement(const sys::state& state, dcon::ship_id ship, float 
 // Estimates reinforcement for a regiment while computing the modifiers on its own
 // interval_type: Do we estimate the reinforcement per day, or per month?
 // supply_type: Do we assume we have full supply, or do we scale it based on current satisfaction?
-// potential_reinforcement: Do we cap the reinforcement at max strength, or not?
-template<interval_estimation interval_type, supply_estimation supply_type, bool potential_reinforcement>
+// cap_rule: Do we want the uncapped reinforcement regain above max strength?
+template<interval_estimation interval_type, supply_estimation supply_type, reinforcement_cap cap_rule>
 float estimate_reinforcement(const sys::state& state, dcon::ship_id ship) {
 	auto navy = state.world.ship_get_navy_from_navy_membership(ship);
 	auto mods = get_naval_reinforcement_modifiers(state, navy);
-	return estimate_reinforcement<interval_type, supply_type, potential_reinforcement>(state, ship, mods);
+	return estimate_reinforcement<interval_type, supply_type, cap_rule>(state, ship, mods);
 
 }
 
 // Estimates combined reinforcement for a whole navy
-template<interval_estimation interval_type, supply_estimation supply_type, bool potential_reinforcement>
+// interval_type: Do we estimate the reinforcement per day, or per month?
+// supply_type: Do we assume we have full supply, or do we scale it based on current satisfaction?
+// cap_rule: Do we want the uncapped reinforcement regain above max strength?
+template<interval_estimation interval_type, supply_estimation supply_type, reinforcement_cap cap_rule>
 float estimate_reinforcement(const sys::state& state, dcon::navy_id navy) {
 	float total_reinforcement = 0.0f;
 	for(auto r : state.world.navy_get_navy_membership(navy)) {
 		auto ship = r.get_ship();
-		total_reinforcement += estimate_reinforcement<interval_type, supply_type, potential_reinforcement>(state, ship);
+		total_reinforcement += estimate_reinforcement<interval_type, supply_type, cap_rule>(state, ship);
 	}
 	return total_reinforcement;
 
@@ -460,7 +470,7 @@ void accumulate_subunit_consumption(const sys::state& state, dcon::nation_id own
 	});
 
 	const auto& build_cost = state.military_definitions.unit_base_definitions[type].build_cost;
-	float reinforcement = military::estimate_reinforcement<military::interval_estimation::daily, military::supply_estimation::full_supply_always, false>(state, subunit);
+	float reinforcement = military::estimate_reinforcement<military::interval_estimation::daily, military::supply_estimation::full_supply_always, reinforcement_cap::capped_at_max_strength>(state, subunit);
 
 	build_cost.for_each_commodity([&](dcon::commodity_id com_id, float required_amounts) {
 		reinf_acc_func(com_id, required_amounts * reinforcement);
