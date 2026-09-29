@@ -125,6 +125,7 @@ int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPWSTR
 				mode = run_mode::battles_data;
 			}
 		}
+		native_string scenario = parsed_cmd[1];
 		LocalFree(parsed_cmd);
 
 
@@ -133,7 +134,7 @@ int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPWSTR
 
 		if (mode == run_mode::economy_tick) {
 			// scenario loading functions (would have to run these even when scenario is pre-built)
-			if(sys::try_read_scenario_and_save_file(game_state, parsed_cmd[1])) {
+			if(sys::try_read_scenario_and_save_file(game_state, scenario)) {
 				game_state.fill_unsaved_data();
 			} else {
 				return 0;
@@ -146,6 +147,7 @@ int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPWSTR
 			for(int i = 0; i < 1000; i++) {
 				economy::update_employment(game_state, false, 1.f);
 				economy::daily_update(game_state, false, 1.f);
+				game_state.current_date += 1;
 			}
 			network::finish(game_state, true);
 		}
@@ -171,8 +173,8 @@ int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPWSTR
 			for(int attack = 0; attack < 8; attack++) {
 				for(int defense = 0; defense < 8; defense++) {
 					auto trait = state.world.create_leader_trait();
-					state.world.leader_trait_set_attack(trait, attack);
-					state.world.leader_trait_set_defense(trait, defense);
+					state.world.leader_trait_set_attack(trait, (float)attack);
+					state.world.leader_trait_set_defense(trait, (float)defense);
 				}
 			}
 
@@ -254,8 +256,8 @@ int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPWSTR
 
 				state.world.province_set_modifier_values(test_location, sys::provincial_mod_offsets::defense, defense_bonus);
 
-				auto tactic_attacker = float(rng::reduce(rng::get_random(state, battle_simulation ^ (1 << 31)), 300)) / 100.f;
-				auto tactic_defender = float(rng::reduce(rng::get_random(state, battle_simulation ^ (1 << 30)), 300)) / 100.f;
+				auto tactic_attacker = float(rng::reduce((uint32_t)rng::get_random(state, battle_simulation ^ (1 << 31)), 300)) / 100.f;
+				auto tactic_defender = float(rng::reduce((uint32_t)rng::get_random(state, battle_simulation ^ (1 << 30)), 300)) / 100.f;
 
 				state.world.nation_set_modifier_values(attacker, sys::national_mod_offsets::military_tactics, tactic_attacker);
 				state.world.nation_set_modifier_values(defender, sys::national_mod_offsets::military_tactics, tactic_defender);
@@ -272,7 +274,7 @@ int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPWSTR
 				new_battle.set_war_from_land_battle_in_war(test_war);
 				new_battle.set_location_from_land_battle_location(test_location);
 				new_battle.set_dice_rolls(military::make_dice_rolls(state, uint32_t(new_battle.id.value)));
-				new_battle.set_combat_width(starting_combat_width);
+				new_battle.set_combat_width((uint8_t)starting_combat_width);
 
 
 				std::vector<dcon::regiment_id> clean_up_vector {};
@@ -286,18 +288,18 @@ int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPWSTR
 					data.maximum_speed = 1.f;
 					data.default_organisation = 10;
 
-					data.defence_or_hull = float(rng::reduce(rng::get_random(state, battle_simulation^i + (1 << 10)) , 3000)) / 100.f;
-					data.attack_or_gun_power = float(rng::reduce(rng::get_random(state, battle_simulation ^ i + (1 << 11)), 3000)) / 100.f;
-					data.supply_consumption = float(rng::reduce(rng::get_random(state, battle_simulation ^ i + (1 << 12)), 3000)) / 100.f;
-					data.support = float(rng::reduce(rng::get_random(state, battle_simulation ^ i + (1 << 13)), 3000)) / 100.f;
-					data.siege_or_torpedo_attack = float(rng::reduce(rng::get_random(state, battle_simulation ^ i + (1 << 14)), 3000)) / 100.f;
-					data.reconnaissance_or_fire_range = float(rng::reduce(rng::get_random(state, battle_simulation ^ i + (1 << 15)), 3000)) / 100.f;
-					data.discipline_or_evasion = float(rng::reduce(rng::get_random(state, battle_simulation ^ i + (1 << 16)), 3000)) / 100.f;
-					data.maneuver = float(rng::reduce(rng::get_random(state, battle_simulation ^ i + (1 << 17)), 3000)) / 100.f;
+					data.defence_or_hull = float(rng::reduce((uint32_t)rng::get_random(state, battle_simulation^i + (1 << 10)) , 3000)) / 100.f;
+					data.attack_or_gun_power = float(rng::reduce((uint32_t)rng::get_random(state, battle_simulation ^ i + (1 << 11)), 3000)) / 100.f;
+					data.supply_consumption = float(rng::reduce((uint32_t)rng::get_random(state, battle_simulation ^ i + (1 << 12)), 3000)) / 100.f;
+					data.support = float(rng::reduce((uint32_t)rng::get_random(state, battle_simulation ^ i + (1 << 13)), 3000)) / 100.f;
+					data.siege_or_torpedo_attack = float(rng::reduce((uint32_t)rng::get_random(state, battle_simulation ^ i + (1 << 14)), 3000)) / 100.f;
+					data.reconnaissance_or_fire_range = float(rng::reduce((uint32_t)rng::get_random(state, battle_simulation ^ i + (1 << 15)), 3000)) / 100.f;
+					data.discipline_or_evasion = float(rng::reduce((uint32_t)rng::get_random(state, battle_simulation ^ i + (1 << 16)), 3000)) / 100.f;
+					data.maneuver = float(rng::reduce((uint32_t)rng::get_random(state, battle_simulation ^ i + (1 << 17)), 3000)) / 100.f;
 
 					data.is_land = true;
 
-					auto type_data = rng::reduce(rng::get_random(state, battle_simulation ^ i + (1 << 18)), 3);
+					auto type_data = rng::reduce((uint32_t)rng::get_random(state, battle_simulation ^ i + (1 << 18)), 3);
 
 					if(type_data == 0) {
 						data.type = military::unit_type::cavalry;

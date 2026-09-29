@@ -8,7 +8,7 @@ namespace lunasvg {
 class SVGLayoutState {
 public:
     SVGLayoutState() = default;
-    SVGLayoutState(const SVGLayoutState& parent, const SVGElement* element);
+    SVGLayoutState(const SVGLayoutState& parent, const SVGElement* element );
 
     const SVGLayoutState* parent() const { return m_parent; }
     const SVGElement* element() const { return m_element; }

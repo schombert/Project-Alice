@@ -17,7 +17,7 @@ class SVGRootElement;
 
 class SVGNode {
 public:
-    SVGNode(Document* document)
+    SVGNode(Document* document )
         : m_document(document)
     {}
 
@@ -385,7 +385,7 @@ public:
 
     const SVGLength& x() const { return m_x; }
     const SVGLength& y() const { return m_y; }
-    const SVGLength& width() const { return m_width; }
+    const SVGLength& width() const  { return m_width; }
     const SVGLength& height() const { return m_height; }
     const SVGPreserveAspectRatio& preserveAspectRatio() const { return m_preserveAspectRatio; }
     const Bitmap& image() const { return m_image; }

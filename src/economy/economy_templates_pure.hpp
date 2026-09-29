@@ -17,17 +17,14 @@ struct tariff_data {
 	using BOOL_VALUE = typename std::conditional_t<ve::is_vector_type_s<TRADE_ROUTE>::value, ve::mask_vector, bool>;
 	using MARKET = convert_value_type<TRADE_ROUTE, dcon::trade_route_id, dcon::market_id>;
 
-	std::array<BOOL_VALUE, 2> applies_tariff;
-	std::array<VALUE, 2> export_tariff;
-	std::array<VALUE, 2> import_tariff;
-	std::array<MARKET, 2> markets;
+	BOOL_VALUE applies_export_tariff;
+	BOOL_VALUE applies_import_tariff;
+	VALUE export_tariff;
+	VALUE import_tariff;
 
 	VALUE distance;
 	VALUE loss;
-	VALUE base_distance_cost;
-	VALUE workers_satisfaction;
-	VALUE effect_of_scale;
-	VALUE distance_cost_scaled;
+	VALUE transportation_cost;
 };
 
 template<typename TRADE_ROUTE>
@@ -56,11 +53,14 @@ struct trade_and_tariff {
 	VALUE price_target;
 
 	VALUE transport_cost;
+
 	VALUE transportaion_loss;
 	VALUE distance;
 
-	VALUE payment_per_unit;
-	VALUE payment_received_per_unit;
+	VALUE origin_earn_per_unit;
+	VALUE target_spend_per_unit;
+	VALUE owner_earn_per_unit;
+	VALUE owner_spend_per_unit;
 };
 
 

@@ -1898,13 +1898,15 @@ std::unique_ptr<element_base> land_combat_end_popup::make_child(sys::state& stat
 	} else if(name == "enemy_total_left") {
 		return make_element_by_type<lc_t_rem_total>(state, id);
 	} else if(name == "agreebutton") {
-		auto ptr = make_element_by_type<lc_close_button>(state, id);
-		ptr->base_data.position.y += 146; // Nudge
-		return ptr;
-	} else if(name == "declinebutton") {
 		auto ptr = make_element_by_type<lc_goto_location_button>(state, id);
 		ptr->base_data.position.y += 146; // Nudge
+		ptr->base_data.position.x -= 320;
 		ptr->set_button_text(state, text::produce_simple_string(state, "landbattleover_btn3"));
+		return ptr;
+	} else if(name == "declinebutton") {
+		auto ptr = make_element_by_type<lc_close_button>(state, id);
+		ptr->base_data.position.y += 146; // Nudge
+		ptr->base_data.position.x += 320;
 		return ptr;
 	} else if(name == "centerok") {
 		return make_element_by_type<invisible_element>(state, id);

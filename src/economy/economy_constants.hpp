@@ -27,8 +27,8 @@ inline constexpr float effect_of_transportation_scale = 0.0005f;
 inline constexpr float trade_distance_covered_by_pair_of_workers_per_unit_of_good = 10.f;
 // Huge values could cause massive spikes of demand for transportation labor
 inline constexpr float invalid_trade_route_distance = 0.01f;
-inline constexpr float trade_loss_per_distance_unit = 0.001f;
-inline constexpr float trade_effect_of_scale_lower_bound = 0.1f;
+// Assume 1% of goods is destroyed when shipping from London to NY
+inline constexpr float trade_goods_lost_per_km = 0.01f / 6000.f;
 inline constexpr float trade_base_multiplicative_decay = 0.0002f;
 inline constexpr float trade_base_additive_decay = 0.1f;
 inline constexpr float min_trade_expansion_multiplier = 0.15f;
@@ -40,8 +40,8 @@ constexpr inline uint32_t expand_factory = issue_rule::pop_expand_factory;
 constexpr inline uint32_t can_invest = expand_factory | build_factory;
 
 // stockpile related things:
-inline constexpr float stockpile_to_supply = 0.1f;
-inline constexpr float stockpile_spoilage = 0.01f;
+inline constexpr float stockpile_to_supply = 1.f / 365.f / 3.f;
+inline constexpr float stockpile_spoilage = 1.f / 36500.f;
 inline constexpr float stockpile_expected_spending_per_commodity = 1'000.f;
 inline constexpr float market_savings_target = 1'000'000.f;
 inline constexpr float trade_transaction_soft_limit = 1'000.f;

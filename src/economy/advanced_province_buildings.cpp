@@ -130,7 +130,7 @@ const advanced_building_definition definitions[services::list::total] = {
 	.throughput_labour_type = economy::labor::basic_education,
 	.output = services::list::urban_housing,
 	.output_amount = 1.f,
-	.maintenance_rate = 0.00001f,
+	.maintenance_rate = 0.000001f,
 	.associated_building = economy::province_building_type::railroad,
 	.requires_labor = false
 }
@@ -182,7 +182,7 @@ void update_consumption(sys::state& state) {
 		auto id = list::local_cities_and_towns;
 		auto& def = definitions[id];
 		auto& costs = state.economy_definitions.building_definitions[(size_t)(def.associated_building)].cost;
-		auto build_time = state.economy_definitions.building_definitions[(size_t)(def.associated_building)].time;
+		auto build_time = 10000.f; // state.economy_definitions.building_definitions[(size_t)(def.associated_building)].time;
 
 		province::for_each_market_province_parallel_over_market(state, [&](dcon::market_id mid, dcon::state_instance_id sid, dcon::province_id pid) {
 			auto output_cost = state.world.province_get_service_price(pid, def.output);

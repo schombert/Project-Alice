@@ -22,7 +22,7 @@ concept abs_is_defined = requires (T x) {
 };
 
 template<typename T>
-concept is_vector = (std::same_as<T, ve::fp_vector> || std::same_as<T, ve::int_vector> || std::same_as<T, ve::mask_vector>);
+concept is_vector = (std::same_as<T, ve::fp_vector> || std::same_as<T, ve::int_vector> || std::same_as<T, ve::mask_vector> || std::same_as<T, ve::vbitfield_type>);
 
 template<typename T>
 using convert_to_float = std::conditional_t<ve::is_vector_type_s<T>::value, ve::fp_vector, float>;
