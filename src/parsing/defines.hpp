@@ -712,7 +712,7 @@
 	LUA_DEFINES_LIST_ELEMENT(alice_spherelings_only_ally_sphere, 0.0) \
 	LUA_DEFINES_LIST_ELEMENT(alice_overseas_mil, 0.035) \
 	LUA_DEFINES_LIST_ELEMENT(alice_militancy_decay, 0.015) \
-	LUA_DEFINES_LIST_ELEMENT(alice_rgo_per_size_employment, 40000.0) \
+	LUA_DEFINES_LIST_ELEMENT(alice_rgo_per_size_employment, 10000.0) \
 	LUA_DEFINES_LIST_ELEMENT(alice_rgo_generate_distribution, 1.0) \
 	LUA_DEFINES_LIST_ELEMENT(alice_eval_ai_mil_everyday, 0.0) \
 	LUA_DEFINES_LIST_ELEMENT(alice_allow_subjects_declare_wars, 0.0) \

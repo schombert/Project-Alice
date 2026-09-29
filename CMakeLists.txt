@@ -4,6 +4,8 @@
 
 cmake_minimum_required (VERSION 3.16)
 
+cmake_policy(SET CMP0118 NEW)
+
 project (ProjectAlice LANGUAGES CXX C)
 set(CMAKE_CXX_STANDARD 20 CACHE STRING "The C++ standard to use")
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -21,7 +23,9 @@ if(WIN32)
 	string(REPLACE "/RTC1" "" CMAKE_C_FLAGS_DEBUG ${CMAKE_C_FLAGS_DEBUG})
 endif()
 
-list(APPEND ALICE_SOURCE_BLOB "${PROJECT_SOURCE_DIR}/src/main.cpp")
+list(APPEND ALICE_SOURCE_BLOB
+	"${PROJECT_SOURCE_DIR}/src/main.cpp"
+)
 
 list(APPEND ALICE_CORE_SOURCES_LIST
 	"${PROJECT_SOURCE_DIR}/src/map/projections.cpp"
@@ -203,6 +207,7 @@ set_source_files_properties(
 	PROPERTIES UNITY_GROUP "bucket-GAMESTATE"
 )
 
+
 list(APPEND ALICE_INCREMENTAL_SOURCES_LIST_RARELY_CHANGED	
 	"${PROJECT_SOURCE_DIR}/src/network/SHA512.cpp"
 	"${PROJECT_SOURCE_DIR}/src/network/network.cpp"
@@ -218,10 +223,11 @@ list(APPEND ALICE_INCREMENTAL_SOURCES_LIST_RARELY_CHANGED
 	"${PROJECT_SOURCE_DIR}/src/common_types/date_interface.cpp"
 	"${PROJECT_SOURCE_DIR}/src/common_types/prng.cpp"
 	"${PROJECT_SOURCE_DIR}/src/common_types/debug_string_convertions.cpp"
+	"${PROJECT_SOURCE_DIR}/src/gamestate/dcon_oos_reporter_generated.cpp"
 )
 set_source_files_properties(
 	${ALICE_INCREMENTAL_SOURCES_LIST_RARELY_CHANGED}
-	PROPERTIES UNITY_GROUP "bucket-GAMESTATE"
+	PROPERTIES UNITY_GROUP "bucket-RARELY_CHANGED"
 )
 
 list(APPEND ALICE_INCREMENTAL_SOURCES_LIST
@@ -322,7 +328,7 @@ if(WIN32)
 	set(CMAKE_CXX_FLAGS_RELEASE "")
 	if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
 	# All common flags for all Clang Windows builds
-	set(CommonClangWinFlags /bigobj /wd4100 /wd4189 /wd4065 /wd4201 /wd4324 /GR- /W4 /permissive- /WX /GF /w34388 /w34389 -Wno-unused-macros -Wno-array-bounds-pointer-arithmetic -Wno-unused-lambda-capture -Wno-zero-length-array -Wno-switch-default -Wno-reserved-identifier -Wno-unused-parameter -Wno-unused-variable -Wno-unused-private-field /Z7 -Wno-invalid-offsetof -Wno-deprecated-volatile -Wno-missing-prototypes -Wno-implicit-int-float-conversion -Wno-unsafe-buffer-usage -Wno-float-equal -Wno-shadow-field-in-constructor -Wno-gnu-anonymous-struct -Wno-nested-anon-types -Wno-double-promotion -Wno-shadow-uncaptured-local -Wno-nonportable-system-include-path -Wno-format-nonliteral -Wno-shorten-64-to-32 -Wno-ctad-maybe-unsupported -Wno-implicit-int-conversion -Wno-disabled-macro-expansion -Wno-comma -Wno-cast-function-type-strict -Wno-cast-function-type -Wno-invalid-offsetof -Wno-microsoft-cast -Wno-unused-but-set-variable -Wno-padded -Wno-unique-object-duplication -Wno-nrvo -Wno-declaration-after-statement -Wno-undefined-func-template -Wno-bad-function-cast -Wno-unused-function -Wno-cast-qual -Wno-format-security -Wno-overriding-option -Wno-suggest-destructor-override)
+	set(CommonClangWinFlags /bigobj /wd4100 /wd4189 /wd4065 /wd4201 /wd4324 /GR- /W4 /permissive- /WX /GF /w34388 /w34389 -Wno-unused-macros -Wno-array-bounds-pointer-arithmetic -Wno-unused-lambda-capture -Wno-zero-length-array -Wno-switch-default -Wno-reserved-identifier -Wno-unused-parameter -Wno-unused-variable -Wno-unused-private-field /Z7 -Wno-invalid-offsetof -Wno-deprecated-volatile -Wno-missing-prototypes -Wno-implicit-int-float-conversion -Wno-unsafe-buffer-usage -Wno-float-equal -Wno-shadow-field-in-constructor -Wno-gnu-anonymous-struct -Wno-nested-anon-types -Wno-double-promotion -Wno-shadow-uncaptured-local -Wno-nonportable-system-include-path -Wno-format-nonliteral -Wno-shorten-64-to-32 -Wno-ctad-maybe-unsupported -Wno-implicit-int-conversion -Wno-disabled-macro-expansion -Wno-comma -Wno-cast-function-type-strict -Wno-cast-function-type -Wno-invalid-offsetof -Wno-microsoft-cast -Wno-unused-but-set-variable -Wno-padded -Wno-unique-object-duplication -Wno-nrvo -Wno-declaration-after-statement -Wno-undefined-func-template -Wno-bad-function-cast -Wno-unused-function -Wno-cast-qual -Wno-format-security -Wno-overriding-option -Wno-suggest-destructor-override -Wno-lifetime-safety-invalidation -Wno-lifetime-safety-cross-tu-suggestions -Wno-lifetime-safety-intra-tu-suggestions -Wno-unused-template -Wno-lifetime-safety-use-after-scope-moved -Wno-lifetime-safety-dangling-field-moved -Wno-lifetime-safety-return-stack-addr-moved)
 		if(OPTIMIZE_MODE STREQUAL "On")
 			message(STATUS "Optimizing with PGO data")
 			target_compile_options(AliceCommon INTERFACE
@@ -595,7 +601,7 @@ add_custom_command(
 )
 
 add_custom_command(
-	OUTPUT ${PROJECT_SOURCE_DIR}/src/gamestate/dcon_oos_reporter_generated.hpp
+	OUTPUT ${PROJECT_SOURCE_DIR}/src/gamestate/dcon_oos_reporter_generated.hpp ${PROJECT_SOURCE_DIR}/src/gamestate/dcon_oos_reporter_generated.cpp
 	COMMAND DataContainer_OOS_Reporter alice ${CONTAINER_PATH}.txt dcon_oos_reporter_generated.cpp dcon_oos_reporter_generated.hpp ${PROJECT_SOURCE_DIR}/src/gamestate/
 	DEPENDS ${CONTAINER_PATH}.txt
 	DEPENDS DataContainer_OOS_Reporter
@@ -605,10 +611,11 @@ add_custom_command(
 # Sets a dependency on the generated file
 
 
-add_custom_target(GENERATE_CONTAINER DEPENDS ${CONTAINER_PATH}.hpp)
+add_custom_target(GENERATE_CONTAINER DEPENDS ${CONTAINER_PATH}.hpp ${CONTAINER_PATH}_ids.hpp)
 add_custom_target(GENERATE_CONTAINERIFACE DEPENDS ${PROJECT_SOURCE_DIR}/src/gamestate/fif_dcon_generated.hpp)
 add_custom_target(GENERATE_CONTAINER_LUA DEPENDS ${PROJECT_SOURCE_DIR}/src/gamestate/lua_dcon_generated.hpp)
-add_custom_target(GENERATE_CONTAINER_OOS DEPENDS ${PROJECT_SOURCE_DIR}/src/gamestate/dcon_oos_reporter_generated.hpp)
+add_custom_target(GENERATE_CONTAINER_OOS DEPENDS ${PROJECT_SOURCE_DIR}/src/gamestate/dcon_oos_reporter_generated.hpp ${PROJECT_SOURCE_DIR}/src/gamestate/dcon_oos_reporter_generated.cpp)
+
 
 foreach( AliceTarget ${AllAliceTargets} )
 	add_dependencies(${AliceTarget} GENERATE_CONTAINER ParserGenerator)

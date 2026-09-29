@@ -25,13 +25,13 @@ if(WIN32)
 
 	if (CMAKE_BUILD_TYPE STREQUAL "Debug")
 		if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-			set_target_properties(freetype PROPERTIES COMPILE_FLAGS "/MTd /wd4100 /wd4189 /wd4065 /GR- /W3 /permissive- /GF /w34388 /w34389 /RTC1 /EHsc /Od /RTC1")
+			set_target_properties(freetype PROPERTIES COMPILE_FLAGS "/MTd /wd4100 /wd4189 /wd4065 /GR- /W3 /permissive- /GF /w34388 /w34389 /RTC1 /EHsc /Od /RTC1 -Wno-unused-template")
 		else()
 			set_target_properties(freetype PROPERTIES COMPILE_FLAGS "/MTd /wd4100 /wd4189 /wd4065 /GR- /W3 /permissive- /Zc:preprocessor /GF /w34388 /w34389 /RTC1 /EHsc /Od /RTC1")
 		endif()
 	else()
 		if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-			set_target_properties(freetype PROPERTIES COMPILE_FLAGS "/MT /wd4100 /wd4189 /wd4065 /GR- /W3 /permissive- /GF /w34388 /w34389 /wd4530 /O2 /Oi /sdl- /GS- /Gy /Gw /Zc:inline")
+			set_target_properties(freetype PROPERTIES COMPILE_FLAGS "/MT /wd4100 /wd4189 /wd4065 /GR- /W3 /permissive- /GF /w34388 /w34389 /wd4530 /O2 /Oi /sdl- /GS- /Gy /Gw /Zc:inline -Wno-unused-template")
 		else()
 			set_target_properties(freetype PROPERTIES COMPILE_FLAGS "/MT /wd4100 /wd4189 /wd4065 /GR- /W3 /permissive- /Zc:preprocessor /GF /w34388 /w34389 /wd4530 /O2 /Oi /GL /sdl- /GS- /Gy /Gw /Zc:inline")
 		endif()
@@ -45,7 +45,7 @@ set(HB_HAVE_FREETYPE ON)
 FetchContent_Declare(
 	harfbuzz
 	GIT_REPOSITORY https://github.com/harfbuzz/harfbuzz
-	GIT_TAG 8.5.0
+	GIT_TAG 14.4.0
 	GIT_SHALLOW 1
 	GIT_PROGRESS TRUE
 )
@@ -56,13 +56,13 @@ if(WIN32)
 	set(CMAKE_CXX_FLAGS_RELEASE "")
 	if (CMAKE_BUILD_TYPE STREQUAL "Debug")
 		if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-			set_target_properties(harfbuzz PROPERTIES COMPILE_FLAGS "/MTd /wd4100 /wd4189 /wd4065 /GR- /W3 /permissive- /GF /w34388 /w34389 /RTC1 /EHsc /Od /RTC1")
+			set_target_properties(harfbuzz PROPERTIES COMPILE_FLAGS "/MTd /wd4100 /wd4189 /wd4065 /GR- /W3 /permissive- /GF /w34388 /w34389 /RTC1 /EHsc /Od /RTC1 -Wno-unused-template")
 		else()
 			set_target_properties(harfbuzz PROPERTIES COMPILE_FLAGS "/MTd /wd4100 /wd4189 /wd4065 /GR- /W3 /permissive- /Zc:preprocessor /GF /w34388 /w34389 /RTC1 /EHsc /Od /RTC1")
 		endif()
 	else()
 		if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-			set_target_properties(harfbuzz PROPERTIES COMPILE_FLAGS "/MT /wd4100 /wd4189 /wd4065 /GR- /W3 /permissive- /GF /w34388 /w34389 /wd4530 /O2 /Oi /sdl- /GS- /Gy /Gw /Zc:inline")
+			set_target_properties(harfbuzz PROPERTIES COMPILE_FLAGS "/MT /wd4100 /wd4189 /wd4065 /GR- /W3 /permissive- /GF /w34388 /w34389 /wd4530 /O2 /Oi /sdl- /GS- /Gy /Gw /Zc:inline -Wno-unused-template")
 		else()
 			set_target_properties(harfbuzz PROPERTIES COMPILE_FLAGS "/MT /wd4100 /wd4189 /wd4065 /GR- /W3 /permissive- /Zc:preprocessor /GF /w34388 /w34389 /wd4530 /O2 /Oi /GL /sdl- /GS- /Gy /Gw /Zc:inline")
 		endif()

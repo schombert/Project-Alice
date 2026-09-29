@@ -3244,7 +3244,6 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	world.state_instance_resize_production_directive(production_directives::size(*this));
 
 	world.trade_route_resize_volume(world.commodity_size());
-	world.trade_route_resize_stabilization_volume(world.commodity_size());
 
 	world.nation_resize_factory_type_experience(world.factory_type_size());
 	world.nation_resize_factory_type_experience_priority_national(world.factory_type_size());
@@ -3253,9 +3252,11 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	world.factory_resize_efficiency_level(economy::commodity_set::set_size);
 
 	world.market_resize_price(world.commodity_size());
+	world.market_resize_price_confidence(world.commodity_size());
 	world.market_resize_supply(world.commodity_size());
 	world.market_resize_demand(world.commodity_size());
 	world.market_resize_stockpile(world.commodity_size());
+	world.market_resize_stockpile_sales(world.commodity_size());
 	world.market_resize_consumption(world.commodity_size());
 	world.market_resize_intermediate_demand(world.commodity_size());
 
@@ -3271,6 +3272,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	world.market_resize_satisfied_ratio_of_demanded_life_needs(world.pop_type_size());
 	world.market_resize_satisfied_ratio_of_demanded_everyday_needs(world.pop_type_size());
 	world.market_resize_satisfied_ratio_of_demanded_luxury_needs(world.pop_type_size());
+	world.market_resize_owned_ships(uint32_t(military_definitions.unit_base_definitions.size()));
 
 	world.market_resize_import(world.commodity_size());
 	world.market_resize_export(world.commodity_size());

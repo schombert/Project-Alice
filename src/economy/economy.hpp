@@ -8,6 +8,8 @@
 
 namespace economy {
 
+void initialize_needs_weights(sys::state& state, dcon::market_id n);
+
 template<typename T>
 auto desired_needs_spending([[maybe_unused]] sys::state const& state, [[maybe_unused]] T pop_indices) {
 	// TODO: gather pop types, extract cached needs sum, etc etc

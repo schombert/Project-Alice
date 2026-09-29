@@ -100,14 +100,8 @@ inline void init(sys::state& state) noexcept {
 		for(auto cid : state.world.in_commodity) {
 			state.world.for_each_trade_route([&](dcon::trade_route_id trade_route) {
 				auto current_volume = state.world.trade_route_get_volume(trade_route, cid);
-				auto origin =
-					current_volume > 0.f
-					? state.world.trade_route_get_connected_markets(trade_route, 0)
-					: state.world.trade_route_get_connected_markets(trade_route, 1);
-				auto target =
-					current_volume <= 0.f
-					? state.world.trade_route_get_connected_markets(trade_route, 0)
-					: state.world.trade_route_get_connected_markets(trade_route, 1);
+				auto origin = state.world.trade_route_get_origin(trade_route);
+				auto target = state.world.trade_route_get_target(trade_route);
 
 				auto s_origin = state.world.market_get_zone_from_local_market(origin);
 				auto s_target = state.world.market_get_zone_from_local_market(target);
@@ -124,7 +118,7 @@ inline void init(sys::state& state) noexcept {
 					return;
 				}
 
-				bool is_sea = state.world.trade_route_get_distance(trade_route) == state.world.trade_route_get_sea_distance(trade_route);
+				bool is_sea = state.world.trade_route_get_is_sea_route(trade_route);
 
 				auto commodity_name = text::produce_simple_string(state, state.world.commodity_get_name(cid));
 

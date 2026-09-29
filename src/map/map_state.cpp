@@ -170,14 +170,8 @@ void update_trade_flow_arrows(sys::state& state, display_data& map_data) {
 
 	state.world.for_each_trade_route([&](dcon::trade_route_id trade_route) {
 		auto current_volume = state.world.trade_route_get_volume(trade_route, cid);
-		auto origin =
-			current_volume > 0.f
-			? state.world.trade_route_get_connected_markets(trade_route, 0)
-			: state.world.trade_route_get_connected_markets(trade_route, 1);
-		auto target =
-			current_volume <= 0.f
-			? state.world.trade_route_get_connected_markets(trade_route, 0)
-			: state.world.trade_route_get_connected_markets(trade_route, 1);
+		auto origin = state.world.trade_route_get_origin(trade_route);
+		auto target = state.world.trade_route_get_target(trade_route);
 		auto sat = state.world.market_get_actual_probability_to_buy(origin, cid);
 		auto absolute_volume = std::abs(sat * current_volume);
 		total_volume += absolute_volume;
@@ -271,14 +265,8 @@ void update_trade_flow_arrows(sys::state& state, display_data& map_data) {
 
 	state.world.for_each_trade_route([&](dcon::trade_route_id trade_route) {
 		auto current_volume = state.world.trade_route_get_volume(trade_route, cid);
-		auto origin =
-			current_volume > 0.f
-			? state.world.trade_route_get_connected_markets(trade_route, 0)
-			: state.world.trade_route_get_connected_markets(trade_route, 1);
-		auto target =
-			current_volume <= 0.f
-			? state.world.trade_route_get_connected_markets(trade_route, 0)
-			: state.world.trade_route_get_connected_markets(trade_route, 1);
+		auto origin = state.world.trade_route_get_origin(trade_route);
+		auto target = state.world.trade_route_get_target(trade_route);
 		auto s_origin = state.world.market_get_zone_from_local_market(origin);
 		auto s_target = state.world.market_get_zone_from_local_market(target);
 		auto p_origin = state.world.state_instance_get_capital(s_origin);
@@ -352,23 +340,13 @@ void update_trade_flow_arrows(sys::state& state, display_data& map_data) {
 		auto total_in = 0.f;
 		auto total_out = 0.f;
 
-		state.world.market_for_each_trade_route(mid, [&](auto route) {
+		state.world.market_for_each_trade_route_as_origin(mid, [&](auto route) {
 			auto current_volume = state.world.trade_route_get_volume(route, cid);
-			auto origin =
-				current_volume > 0.f
-				? state.world.trade_route_get_connected_markets(route, 0)
-				: state.world.trade_route_get_connected_markets(route, 1);
-			auto target =
-				current_volume <= 0.f
-				? state.world.trade_route_get_connected_markets(route, 0)
-				: state.world.trade_route_get_connected_markets(route, 1);
+			auto origin = state.world.trade_route_get_origin(route);
+			auto target = state.world.trade_route_get_target(route);
 			auto sat = state.world.market_get_actual_probability_to_buy(origin, cid);
 
-			if(state.world.trade_route_get_connected_markets(route, 1) == mid) {
-				current_volume = -current_volume;
-			}
-
-			bool is_sea = state.world.trade_route_get_distance(route) == state.world.trade_route_get_sea_distance(route);
+			bool is_sea = state.world.trade_route_get_is_sea_route(route);
 
 			if(is_sea) {
 				trade_balance_sea += current_volume * sat;

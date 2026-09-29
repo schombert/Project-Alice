@@ -6,8 +6,8 @@
 #include "common_types.cpp"
 #include "lua_alice_api.cpp"
 #include "system_state.cpp"
-#include "dcon_oos_reporter_generated.cpp"
 #ifndef INCREMENTAL
+#include "dcon_oos_reporter_generated.cpp"
 #include "stateless_render.cpp"
 #include "ui_state.cpp"
 #include "create_windows.cpp"

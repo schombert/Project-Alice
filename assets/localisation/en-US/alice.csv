@@ -1583,10 +1583,18 @@ merchants_received_per_unit;Seller merchants profit per unit: ?Y$val$
 trade_route_volume_profit_score;Profit score: ?Y$val$?W (decides base rate of change). It is calculated as a sum of the following values:
 trade_route_volume_profit_score_export;Export score: ?Y$val$?W. Export profit ?Y$x$?W divided by our export price ?Y$y$?W
 trade_route_volume_profit_score_import;Import score: ?Y$val$?W. Minus import profit ?Y$x$?W divided by their export price ?Y$y$?W
+trade_route_volume_transport_cost;Cost of transportation: ?Y$val$?W
+trade_route_volume_import_price;Import price (tariff adjusted): ?Y$val$?W
+trade_route_volume_export_price;Export price (tariff adjusted): ?Y$val$?W
 trade_route_volume_base_change;Base expected change: ?Y$val$?W (Profit score times expansion multiplier)
 trade_route_volume_expansion_multiplier;Expansion multiplier: ?Y$val$?W (Depends on actual access to commodity in exporting market)
+trade_route_volume_transport_availability;Transport availability: ?Y$val$?W
+trade_route_volume_budget_availability;Available import budget: ?Y$val$?W
+trade_route_volume_risk;Riskiness of the trade (Depends on ratio of price to available funds) : ?Y$val$?W
 trade_route_volume_decay;Decay: ?Y$val$?W (Prevents trade volume from running too far away and slowly decreases volume of low profit routes)
 trade_route_volume_final_change;Expected change: ?Y$val$
+trade_route_confidence_export;Confidence in export price: ?Y$val$
+trade_route_confidence_import;Confidence in import price: ?Y$val$
 trade_centre_trade_volume;Trade volume: ?Y$val$
 trade_centre_trade_value;Trade value: ?Y$val$
 trade_centre_imports_volume;Imports volume: ?Y$val$
@@ -1595,11 +1603,14 @@ trade_centre_exports_volume;Exports volume: ?Y$val$
 trade_centre_exports_value;Exports value: ?Y$val$
 trade_centre_trade_routes_profit;Profit from trade routes: ?Y$val$
 trade_centre_money;Money stockpile: ?Y$val$
+trade_centre_wealth;Total cost of stockpiles: ?Y$val$
+trade_centre_wealth_and_money;Total wealth: ?Y$val$
 trade_centre_estimated_money;Estimated next balance: ?Y$val$
 trade_centre_estimated_change;Estimated change: ?Y$val$
 trade_centre_import;Import purchases: ?Y$val$
 trade_centre_export;Export margin: ?Y$val$
 trade_centre_sold;Sales: ?Y$val$
+trade_centre_arbitrage;Arbitrage: ?Y$val$
 trade_centre_bought;Local purchases: ?Y$val$
 trade_centre_investments;Pops investment in trade: ?Y$val$
 trade_centre_dividents;Dividents to investors: ?Y$val$
@@ -1752,6 +1763,7 @@ province_market_demand;Demand: ?R$val$?!
 province_market_production;Production: ?G$val$?!
 province_market_consumption;Consumption: ?R$val$?!
 province_market_stockpiles;Stockpiles: ?Y$val$?!
+province_market_stockpiles_sales;Stockpiles sale target: ?Y$val$?!
 province_market_balance;Balance: ?Y$val$?!
 province_market_trade_in;Trade in: ?G$val$?!
 province_market_trade_out;Trade out: ?R$val$?!

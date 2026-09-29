@@ -416,8 +416,6 @@ object {
 	property{
 		name{ producer_payout_fraction }
 		type{ float }
-		
-		
 	}
 	property{
 		name{ price_record }
@@ -4491,6 +4489,18 @@ object{
 	storage_type{ erasable }
 	size{ 6000 }
 	tag{ save }
+
+	property {
+		name{ total_earn }
+		type{ float }
+		tag{ save }
+	}
+	property {
+		name{ total_paid }
+		type{ float }
+		tag{ save }
+	}
+
 	property {
 		name{ gdp }
 		type{ float }
@@ -4527,12 +4537,185 @@ object{
 		tag{ save }
 	}
 	property {
+		name{ stockpile_sales }
+		type{ array{commodity_id}{float} }
+		tag{ save }
+	}
+	property {
 		name{ wealth }
 		type{ float }
 		tag{ save }
 	}
 	property {
+		name{import_spending}
+		type{ float }
+		tag{ save }
+	}
+	property {
+		name{export_cut}
+		type{ float }
+		tag{ save }
+	}
+	property {
+		name{arbitrage}
+		type{ float }
+		tag{ save }
+	}
+	property {
+		name{pop_investments}
+		type{ float }
+		tag{ save }
+	}
+	property {
+		name{pop_dividends}
+		type{ float }
+		tag{ save }
+	}
+	property {
+		name{last_pop_dividends}
+		type{ float }
+		tag{ save }
+	}
+	property {
+		name{pop_dividends_national}
+		type{ float }
+		tag{ save }
+	}
+	property {
+		name{last_pop_dividends_national}
+		type{ float }
+		tag{ save }
+	}
+	property {
+		name{ total_port_capacity_supply }
+		type{ float }
+	}
+	property {
+		name{ total_port_capacity }
+		type{ float }
+	}
+	property {
+		name{ total_port_capacity_demand }
+		type{ float }
+	}
+	property {
+		name{ weighted_port_price_cost }
+		type{ float }
+	}
+	property {
+		name{ total_port_capacity_weight }
+		type{ float }
+	}
+	property {
+		name{sales}
+		type{ float }
+		tag{ save }
+	}
+	property {
+		name{ shipbuilding_refund }
+		type{ float }
+		tag{ save }
+	}	
+	property {
+		name{ shipbuilding_spending_ratio }
+		type{ float }
+	}	
+	property {
+		name{ ships_maintenance_spending_ratio }
+		type{ float }
+	}
+	property {
+		name{ port_services_weighted_price }
+		type{ float }
+	}
+	property {
+		name{ port_services_demand }
+		type{ float }
+	}
+	property {
+		name{ port_services_demand_satisfaction }
+		type{ float }
+	}
+	property {
+		name{purchases}
+		type{ float }
+		tag{ save }
+	}
+	property {
+		name{ trade_house_budget }
+		type{ float }
+		tag{ save }
+	}
+	property {
+		name{ trade_house_budget_scale }
+		type{ float }
+		tag{ save }
+	}
+	property {
+		name{ trade_house_budget_import_scale }
+		type{ float }
+		tag{ save }
+	}
+	property {
+		name{ naval_transportation_supply }
+		type{ float }
+		tag{ save }
+	}
+	property {
+		name{ naval_transportation_demand }
+		type{ float }
+		tag{ save }
+	}	
+	property {
+		name{ naval_transportation_demand_satisfaction }
+		type{ float }
+		tag{ save }
+	}
+	property {
+		name{ naval_transportation_price }
+		type{ float }
+		tag{ save }
+	}
+	property {
+		name{ land_transportation_supply }
+		type{ float }
+		tag{ save }
+	}
+	property {
+		name{ land_transportation_demand }
+		type{ float }
+		tag{ save }
+	}	
+	property {
+		name{ land_transportation_demand_satisfaction }
+		type{ float }
+		tag{ save }
+	}
+	property {
+		name{ land_transportation_price }
+		type{ float }
+		tag{ save }
+	}
+	property{
+		name{ land_transportation_total_weight }
+		type{ float }
+	}
+	property{
+		name{ naval_transportation_total_weight }
+		type{ float }
+	}
+	property{
+		name{ owned_ships }
+		type{array{unit_type_id}{float}}
+		tag{ save }
+	}
+	property {
 		name{ price }
+		type{ array{commodity_id}{float} }
+		tag{ save }
+	}
+	property {
+		name{ price_confidence }
 		type{ array{commodity_id}{float} }
 		tag{ save }
 	}
@@ -4742,76 +4925,68 @@ relationship{
 	storage_type{ compactable }
 	size{ 80000 }
 	tag{ save }
-
 	link{
 		object{market}
-		name{connected_markets}
+		name{origin}
 		type{many}
-		index_storage{array}
-		multiple{2}
 	}
-	
-	composite_key{
-		name{province_pair}
-		index{connected_markets}
+	link{
+		object{market}
+		name{target}
+		type{many}
 	}
-
 	property{
-		name{ distance }
+		name{ owner }
+		type{ market_id }
+		tag{ save }
+	}
+	property{
+		name{ origin_earn }
 		type{ float }
 		tag{ save }
 	}
-
 	property{
-		name{ sea_distance }
+		name{ target_pay }
 		type{ float }
 		tag{ save }
 	}
-
 	property{
-		name{ land_distance }
+		name{origin_cut_rate}
 		type{ float }
 		tag{ save }
 	}
-
+	property{
+		name{ owner_balance }
+		type{ float }
+		tag{ save }
+	}
+	property{
+		name{ distance_km }
+		type{ float }
+		tag{ save }
+	}
 	property{
 		name{ is_sea_route }
 		type{ bitfield }
 		tag{ save }
 	}
-
-	property{
-		name{ is_land_route }
-		type{ bitfield }
-		tag{ save }
-	}
-
 	property{
 		name{ is_trade_forbidden }
 		type{ bitfield }
 		tag{ save }
 	}
-
-
 	property{
-		name{ is_tariff_applied_0 }
+		name{ is_tariff_applied_origin }
 		type{ bitfield }
 		tag{ save }
 	}
-
 	property{
-		name{ is_tariff_applied_1 }
+		name{ is_tariff_applied_target }
 		type{ bitfield }
-		tag{ save }
-	}
-
-	property {
-		name{ volume }
-		type{ array{commodity_id}{float} }
 		tag{ save }
 	}
 	property {
-		name{ stabilization_volume }
+		name{ volume }
 		type{ array{commodity_id}{float} }
 		tag{ save }
 	}
@@ -5050,6 +5225,11 @@ object {
 	}
 	property {
 		name{ input_cost_per_worker }
+		type{ float }
+		tag{ save }
+	}	
+	property {
+		name{ input_expected_cost_per_worker }
 		type{ float }
 		tag{ save }
 	}	

@@ -540,7 +540,7 @@ public:
     bool operator!=(const Node& node) const { return m_node != node.m_node; }
 
 protected:
-    Node(SVGNode* node);
+    Node(SVGNode* node );
     SVGNode* node() const { return m_node; }
     SVGNode* m_node{nullptr};
     friend class Element;

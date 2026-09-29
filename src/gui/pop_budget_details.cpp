@@ -639,6 +639,10 @@ void pop_budget_details_main_t::create_layout_level(sys::state& state, layout_le
 		layout_item_types t;
 		buffer.read(t);
 		switch(t) {
+			case layout_item_types::control:
+			case layout_item_types::window:
+			case layout_item_types::generator:
+				abort();
 			case layout_item_types::texture_layer:
 			{
 				texture_layer temp;
@@ -1482,6 +1486,10 @@ void pop_budget_details_wage_income_t::create_layout_level(sys::state& state, la
 		layout_item_types t;
 		buffer.read(t);
 		switch(t) {
+			case layout_item_types::control:
+			case layout_item_types::window:
+			case layout_item_types::generator:
+				abort();
 			case layout_item_types::texture_layer:
 			{
 				texture_layer temp;
@@ -1728,6 +1736,10 @@ void pop_budget_details_production_income_t::create_layout_level(sys::state& sta
 		layout_item_types t;
 		buffer.read(t);
 		switch(t) {
+			case layout_item_types::control:
+			case layout_item_types::window:
+			case layout_item_types::generator:
+				abort();
 			case layout_item_types::texture_layer:
 			{
 				texture_layer temp;
@@ -1977,6 +1989,10 @@ void pop_budget_details_consumption_t::create_layout_level(sys::state& state, la
 		layout_item_types t;
 		buffer.read(t);
 		switch(t) {
+			case layout_item_types::control:
+			case layout_item_types::window:
+			case layout_item_types::generator:
+				abort();
 			case layout_item_types::texture_layer:
 			{
 				texture_layer temp;
@@ -2220,6 +2236,10 @@ void pop_budget_details_consumption_category_t::create_layout_level(sys::state& 
 		layout_item_types t;
 		buffer.read(t);
 		switch(t) {
+			case layout_item_types::control:
+			case layout_item_types::window:
+			case layout_item_types::generator:
+				abort();
 			case layout_item_types::texture_layer:
 			{
 				texture_layer temp;

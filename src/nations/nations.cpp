@@ -200,10 +200,13 @@ void recalculate_markets_distance(sys::state& state) {
 	to_delete.resize(state.world.trade_route_size());
 	std::fill(to_delete.begin(), to_delete.end(), false);
 
+	// distance is calculated in km now
+	// speed is accounted for in calculation of transportation supply
+
 	state.world.execute_parallel_over_trade_route([&](auto routes) {
 		// recalculate effective distance
-		auto markets_0 = ve::apply([&](auto route) { return state.world.trade_route_get_connected_markets(route, 0); }, routes);
-		auto markets_1 = ve::apply([&](auto route) { return state.world.trade_route_get_connected_markets(route, 1); }, routes);
+		auto markets_0 = state.world.trade_route_get_origin(routes);
+		auto markets_1 = state.world.trade_route_get_target(routes);
 
 		auto sids_0 = state.world.market_get_zone_from_local_market(markets_0);
 		auto sids_1 = state.world.market_get_zone_from_local_market(markets_1);
@@ -220,49 +223,24 @@ void recalculate_markets_distance(sys::state& state) {
 					to_delete[route] = true;
 					return;
 				}
-				auto owner_0 = state.world.province_get_nation_from_province_ownership(coast_0);
-				auto owner_1 = state.world.province_get_nation_from_province_ownership( coast_1);
-				auto transport_0 = military::get_best_transport(state, owner_0, false, false);
-				auto transport_1 = military::get_best_transport(state, owner_1, false, false);
-				auto stats_0 = state.world.nation_get_unit_stats(owner_0, transport_0);
-				auto stats_1 = state.world.nation_get_unit_stats(owner_1, transport_1);
-
-				auto speed = std::max(0.01f, std::max(stats_0.maximum_speed, stats_1.maximum_speed));
 
 				path = province::make_sea_trade_route_path(state, coast_0, coast_1);
 				p_prev = coast_0;
 
 				auto ps = path.size();
-				auto effective_distance = 0.f;
-				auto worst_movement_cost = 0.f;
+				auto total_distance_km = 0.f;
 
 				for(size_t i = 0; i < ps; i++) {
 					auto p_current = path[i];
 					auto adj = state.world.get_province_adjacency_by_province_pair(p_prev, p_current);
-					float distance = province::distance(state, adj);
-					float sum_mods =
-						state.world.province_get_modifier_values(p_current, sys::provincial_mod_offsets::movement_cost)
-						+ state.world.province_get_modifier_values(p_prev, sys::provincial_mod_offsets::movement_cost);
-					effective_distance += std::max(0.01f, distance * std::max(0.01f, (sum_mods * 2.f + 1.0f)));
-					if(sum_mods > worst_movement_cost)
-						worst_movement_cost = std::max(0.01f, sum_mods);
-
+					float distance = province::distance_km(state, adj);
+					// sea routes ignore modifiers
+					total_distance_km += distance;
 					p_prev = p_current;
 				}
 
-				if(effective_distance == 0.f) {
-					// no path, remove sea connection
-					state.world.trade_route_set_sea_distance(route, 99999.f);
-				} else {
-					assert(speed > 0.f);
-					state.world.trade_route_set_sea_distance(route, effective_distance / speed);
-				}
-
+				state.world.trade_route_set_distance_km(route, total_distance_km);
 			} else {
-				state.world.trade_route_set_sea_distance(route, 99999.f);
-			}
-
-			if(state.world.trade_route_get_is_land_route(route)) {
 				std::vector<dcon::province_id> path{ };
 				dcon::province_id p_prev{ };
 
@@ -270,18 +248,10 @@ void recalculate_markets_distance(sys::state& state) {
 				auto market_1_center = state.world.state_instance_get_capital(sid_1);
 				path = province::make_land_trade_path(state, market_0_center, market_1_center);
 
-				auto owner_0 = state.world.province_get_nation_from_province_ownership(market_0_center);
-				auto owner_1 = state.world.province_get_nation_from_province_ownership(market_1_center);
-				auto cav_0 = military::get_best_cavalry(state, owner_0, false, false);
-				auto cav_1 = military::get_best_cavalry(state, owner_1, false, false);
-				auto stats_0 = state.world.nation_get_unit_stats(owner_0, cav_0);
-				auto stats_1 = state.world.nation_get_unit_stats(owner_1, cav_1);
-
-				auto speed = std::max(1.f, std::max(stats_0.maximum_speed, stats_1.maximum_speed));
 				p_prev = market_0_center;
 
 				auto ps = path.size();
-				auto effective_distance = 0.f;
+				auto total_distance_km = 0.f;
 				auto worst_movement_cost = 0.f;
 				auto min_railroad_level = 0.f;
 
@@ -290,44 +260,27 @@ void recalculate_markets_distance(sys::state& state) {
 					auto adj = state.world.get_province_adjacency_by_province_pair(p_prev, p_current);
 					auto bits = state.world.province_adjacency_get_type(adj);
 
-					float distance = province::distance(state, adj);
+					float distance = province::distance_km(state, adj);
 					float sum_mods =
 						state.world.province_get_modifier_values(p_current, sys::provincial_mod_offsets::movement_cost)
 						+ state.world.province_get_modifier_values(p_prev, sys::provincial_mod_offsets::movement_cost);
-					float local_effective_distance = distance * std::max(0.01f, sum_mods * 3.f);
-					auto railroad_origin = state.world.province_get_building_level(p_prev, uint8_t(economy::province_building_type::railroad));
-					auto railroad_target = state.world.province_get_building_level(p_current, uint8_t(economy::province_building_type::railroad));
-					if(railroad_origin > 0 && railroad_target > 0) {
-						local_effective_distance = local_effective_distance / 2.f;
-					}
-					local_effective_distance -= 0.03f * std::min(railroad_target, railroad_origin) * local_effective_distance;
 
+					// no magical speed-up... for now
+					float local_terrain_mod = std::max(0.f, sum_mods / 2.f - 1.f);
+
+					// rivers ignore terrain
 					if(bits & province::border::river_connection_bit) {
-						local_effective_distance = local_effective_distance / 2.f;
+						local_terrain_mod = 0.f;
 					}
+					
+					float local_distance_km = distance * std::max(0.1f, (1.f + local_terrain_mod));
 
-					if(bits & province::border::coastal_bit) {
-						local_effective_distance = local_effective_distance / 2.f;
-					}
-
-					effective_distance += std::max(0.01f, local_effective_distance);
-					if(sum_mods > worst_movement_cost)
-						worst_movement_cost = std::max(0.01f, sum_mods);
+					total_distance_km += local_distance_km;
 
 					p_prev = p_current;
 				}
 
-				if(effective_distance == 0.f) {
-					// no path, remove sea connection
-					state.world.trade_route_set_land_distance(route, 99999.f);
-				} else {
-					assert(speed > 0.f);
-					state.world.trade_route_set_land_distance(route, effective_distance / speed);
-				}
-
-				state.world.trade_route_set_land_distance(route, effective_distance / speed);
-			} else {
-				state.world.trade_route_set_land_distance(route, 99999.f);
+				state.world.trade_route_set_distance_km(route, total_distance_km);
 			}
 		}, sids_0, sids_1, routes);
 	});
@@ -347,19 +300,6 @@ struct parent_link {
 };
 
 void generate_sea_trade_routes(sys::state& state) {
-	float total_transport_speed = 0.f;
-	float total_amount_of_transports = 0.f;
-
-	for(uint32_t i = 2; i < state.military_definitions.unit_base_definitions.size(); ++i) {
-		dcon::unit_type_id j{ dcon::unit_type_id::value_base_t(i) };
-		if(state.military_definitions.unit_base_definitions[j].type == military::unit_type::transport) {
-			total_transport_speed += state.military_definitions.unit_base_definitions[j].maximum_speed;
-			total_amount_of_transports += 1.f;
-		}
-	}
-
-	auto base_speed = total_transport_speed / total_amount_of_transports;
-
 	// buffer for "capitals" of connected regions:
 	std::array<dcon::state_instance_id, 4000> capital_of_region = {};
 	std::array<float, 10000> population_of_region = { };
@@ -402,7 +342,11 @@ void generate_sea_trade_routes(sys::state& state) {
 
 	// baseline: connection between new york and london
 
-	constexpr float M = 0.17f * 0.000'000'1f;
+	constexpr float london_to_ny = 6'000.f;
+	constexpr float london_pop = 4.f * 4.f * 500'000.f;
+	constexpr float ny_pop = 4.f * 4.f * 200'000.f;
+	//constexpr float M = 0.01f * london_to_ny * london_to_ny * london_to_ny / (london_pop + ny_pop * 0.01f);//0.17f * 0.000'000'1f;
+
 
 	float world_population = 0.f;
 	state.world.for_each_nation([&](auto nation) {
@@ -435,9 +379,17 @@ void generate_sea_trade_routes(sys::state& state) {
 			auto coast_1 = province::state_get_coastal_capital(state, sid);
 
 			auto target_market = state.world.state_instance_get_market_from_local_market(sid);
-			auto route = state.world.get_trade_route_by_province_pair(market, target_market);
-			if(route) {
-				state.world.trade_route_set_is_sea_route(route, true);
+
+			bool route_already_exists = false;
+			state.world.market_for_each_trade_route_as_origin(market, [&](auto route){
+				auto target = state.world.trade_route_get_target(route);
+				auto owner = state.world.trade_route_get_owner(route);
+				auto sea_route = state.world.trade_route_get_is_sea_route(route);
+				if(target == target_market && owner == market && sea_route) {
+					route_already_exists = true;
+				}
+			});
+			if(route_already_exists) {
 				return;
 			}
 
@@ -482,7 +434,7 @@ void generate_sea_trade_routes(sys::state& state) {
 			mult += std::min(naval_base_origin, naval_base_target) * naval_base_level_to_market_attractiveness;
 			bool must_connect = same_owner && different_region && capital_and_connected_region;
 
-			auto distance_approximation = province::direct_distance(state, coast_0, coast_1) / base_speed;
+			auto distance_approximation = province::direct_distance_km(state, coast_0, coast_1);
 
 
 			float score_origin = population_origin;
@@ -490,48 +442,57 @@ void generate_sea_trade_routes(sys::state& state) {
 			if(capital_of_region[connected_region_target] == sid && capital_of_region[connected_region] == origin) {
 				score_origin = population_of_region[connected_region];
 				score_target = population_of_region[connected_region_target];
-				mult *= 20.f;
+				mult *= 10.f;
 			}
 
-			float score_approximation = mult * M * score_origin * score_target / distance_approximation / distance_approximation / distance_approximation;
+			auto distance_approximation_scale = std::min(1.f, london_to_ny / distance_approximation);
+			distance_approximation_scale = distance_approximation_scale * distance_approximation_scale * distance_approximation_scale;
+			auto pop_scale_origin = score_origin / london_pop;
+			auto pop_scale_target = score_target / ny_pop;
+
+			float score_approximation = (mult * pop_scale_origin * (0.1f + pop_scale_target)) * distance_approximation_scale;
 
 			if(!(score_approximation >= 1.f || must_connect)) {
 				return;
 			}
 
-			auto distance = 9999.f;
+			auto distance_km = 9999.f;
 			{
 				std::vector<dcon::province_id> path{ };
-				auto speed = base_speed;
 				dcon::province_id p_prev{ };
 				path = province::make_sea_trade_route_path(state, coast_0, coast_1);
 				p_prev = coast_0;
 
 				auto ps = path.size();
-				auto effective_distance = 0.f;
-				auto worst_movement_cost = 0.f;
+				distance_km = 0.f;
 
 				for(size_t i = 0; i < ps; i++) {
 					auto p_current = path[i];
 					auto adj = state.world.get_province_adjacency_by_province_pair(p_prev, p_current);
-					float local_distance = province::distance(state, adj);
-					float sum_mods =
-						state.world.province_get_modifier_values(p_current, sys::provincial_mod_offsets::movement_cost)
-						+ state.world.province_get_modifier_values(p_prev, sys::provincial_mod_offsets::movement_cost);
-					effective_distance += std::max(0.01f, local_distance * std::max(0.01f, (sum_mods * 2.f + 1.0f)));
-					if(sum_mods > worst_movement_cost)
-						worst_movement_cost = std::max(0.01f, sum_mods);
-
+					float local_distance = province::distance_km(state, adj);
+					// sea routes ignore modifiers
+					distance_km += local_distance;
 					p_prev = p_current;
 				}
-				distance = effective_distance / speed;
+
 			}
 
-			float score = mult * M * score_origin * score_target / distance / distance / distance;
+			auto distance_scale = std::min(1.f, london_to_ny / distance_km);
+			distance_scale = distance_scale * distance_scale * distance_scale;
+
+			float score = (mult * pop_scale_origin * (0.1f + pop_scale_target)) * distance_scale;
 
 			if(score >= 1.f || must_connect) {
-				auto new_route = state.world.force_create_trade_route(market, target_market);
-				state.world.trade_route_set_is_sea_route(new_route, true);
+				{
+					auto new_route = state.world.force_create_trade_route(market, target_market);
+					state.world.trade_route_set_is_sea_route(new_route, true);
+					state.world.trade_route_set_owner(new_route, market);
+				}
+				{
+					auto opposite_route = state.world.force_create_trade_route(target_market, market);
+					state.world.trade_route_set_is_sea_route(opposite_route, true);
+					state.world.trade_route_set_owner(opposite_route, market);
+				}
 			}
 		});
 	});
@@ -580,18 +541,28 @@ void generate_sea_trade_routes(sys::state& state) {
 				return;
 			}
 
-
-			auto route = state.world.get_trade_route_by_province_pair(origin_market, target_market);
-			if(route) {
-				state.world.trade_route_set_is_sea_route(route, true);
+			bool route_already_exists = false;
+			state.world.market_for_each_trade_route_as_origin(origin_market, [&](auto route) {
+				auto target = state.world.trade_route_get_target(route);
+				//auto owner = state.world.trade_route_get_owner(route);
+				//auto sea_route = state.world.trade_route_get_is_sea_route(route);
+				if(target == target_market) {
+					route_already_exists = true;
+				}
+			});
+			if(route_already_exists) {
 				return;
 			}
 
 			bool target_is_major_node = target_connected_region_population > 0.7f * nation_to_max_population[target_owner.index()];
 
 			if(origin_is_major_node && target_is_major_node) {
-				auto new_route = state.world.force_create_trade_route(origin_market, target_market);
-				state.world.trade_route_set_is_sea_route(new_route, true);
+				auto new_route_to = state.world.force_create_trade_route(origin_market, target_market);
+				auto new_route_from = state.world.force_create_trade_route(target_market, origin_market);
+				state.world.trade_route_set_is_sea_route(new_route_to, true);
+				state.world.trade_route_set_is_sea_route(new_route_from, true);
+				state.world.trade_route_set_owner(new_route_to, origin_market);
+				state.world.trade_route_set_owner(new_route_from, origin_market);
 				return;
 			}
 
@@ -633,8 +604,12 @@ void generate_sea_trade_routes(sys::state& state) {
 
 		parent_found[best_parent[i].leaf.index()] = true;
 
-		auto new_route = state.world.force_create_trade_route(best_parent[i].leaf, best_parent[i].parent);
-		state.world.trade_route_set_is_sea_route(new_route, true);
+		auto new_route_to = state.world.force_create_trade_route(best_parent[i].leaf, best_parent[i].parent);
+		auto new_route_from = state.world.force_create_trade_route(best_parent[i].parent, best_parent[i].leaf);
+		state.world.trade_route_set_is_sea_route(new_route_to, true);
+		state.world.trade_route_set_is_sea_route(new_route_from, true);
+		state.world.trade_route_set_owner(new_route_to, best_parent[i].parent);
+		state.world.trade_route_set_owner(new_route_from, best_parent[i].parent);
 	}
 }
 
@@ -711,11 +686,11 @@ void generate_initial_trade_routes(sys::state& state) {
 			auto si = dcon::state_instance_id{ uint16_t(candidate_trade_partner_val - 1) };
 			auto target_market = state.world.state_instance_get_market_from_local_market(si);
 			auto new_route = state.world.force_create_trade_route(market, target_market);
-
-			if(province::state_is_coastal(state, sid) && province::state_is_coastal(state, si)) {
-				state.world.trade_route_set_is_sea_route(new_route, true);
-			}
-			state.world.trade_route_set_is_land_route(new_route, true);
+			auto opposite_route = state.world.force_create_trade_route(target_market, market);
+			state.world.trade_route_set_is_sea_route(new_route, false);
+			state.world.trade_route_set_is_sea_route(opposite_route, false);
+			state.world.trade_route_set_owner(new_route, market);
+			state.world.trade_route_set_owner(opposite_route, market);
 		}
 	});
 
@@ -970,9 +945,9 @@ void update_administrative_efficiency(sys::state& state) {
 
 	// propagate control better for state capitals via market connections
 	state.world.for_each_trade_route([&](dcon::trade_route_id trid) {
-		auto distance = state.world.trade_route_get_distance(trid);
-		auto A_market = state.world.trade_route_get_connected_markets(trid, 0);
-		auto B_market = state.world.trade_route_get_connected_markets(trid, 1);
+		auto distance = state.world.trade_route_get_distance_km(trid);
+		auto A_market = state.world.trade_route_get_origin(trid);
+		auto B_market = state.world.trade_route_get_target(trid);
 		auto A_state_instance = state.world.market_get_zone_from_local_market(A_market);
 		auto B_state_instance = state.world.market_get_zone_from_local_market(B_market);
 		auto A_owner = state.world.state_instance_get_nation_from_state_ownership(A_state_instance);
@@ -1033,9 +1008,8 @@ void update_administrative_efficiency(sys::state& state) {
 				assert(std::isfinite(state.world.province_get_control_scale(port_A)));
 				assert(std::isfinite(state.world.province_get_control_scale(port_B)));
 			}
-		}
-		// propagate along land trade routes
-		{
+		} else {
+			// propagate along land trade routes
 			auto capital_A = state.world.state_instance_get_capital(A_state_instance);
 			auto capital_B = state.world.state_instance_get_capital(B_state_instance);
 

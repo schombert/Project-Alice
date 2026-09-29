@@ -196,7 +196,7 @@ void factory_stats_tooltip(sys::state& state, text::columnar_layout& contents, d
 		);
 
 		text::add_line(state, contents, "factory_input_multiplier_modifiers",
-			text::variable_type::val, text::format_percentage(details.input_multipliers.from_modifiers * details.input_multipliers.from_triggered_modifiers),
+			text::variable_type::val, text::format_percentage(details.input_multipliers.from_modifiers),
 			indent
 		);
 	}

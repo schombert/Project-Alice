@@ -1175,9 +1175,13 @@ void populate_province_building_construction_private_demand(
 		if(!cid) break;
 		auto current = current_purchased.commodity_amounts[i];
 		auto required = base_cost.commodity_amounts[i] * details.cost_multiplier;
+		// Try to avoid generating demand when local price is changing way too fast: we want predictable spendings
+		auto price_confidence = state.world.market_get_price_confidence(details.market, cid);
+		auto probability_to_buy = state.world.market_get_expected_probability_to_buy(details.market, cid);
+		auto confidence_factor = std::min(1.f, std::max(0.f, 0.1f + price_confidence * probability_to_buy));
 		if(current >= required) continue;
 		auto& cur_demand = state.world.market_get_private_construction_demand(details.market, cid);
-		state.world.market_set_private_construction_demand(details.market, cid, cur_demand + required / details.construction_time);
+		state.world.market_set_private_construction_demand(details.market, cid, cur_demand + required / details.construction_time * confidence_factor);
 	}
 }
 
@@ -1198,9 +1202,13 @@ void populate_state_construction_private_demand(
 		if(!cid) break;
 		auto current = current_purchased.commodity_amounts[i];
 		auto required = base_cost.commodity_amounts[i] * details.cost_multiplier;
+		// Try to avoid generating demand when local price is changing way too fast: we want predictable spendings
+		auto price_confidence = state.world.market_get_price_confidence(details.market, cid);
+		auto probability_to_buy = state.world.market_get_expected_probability_to_buy(details.market, cid);
+		auto confidence_factor = std::min(1.f, std::max(0.f, 0.1f + price_confidence * probability_to_buy));
 		if(current >= required) continue;
 		auto& cur_demand = state.world.market_get_private_construction_demand(details.market, cid);
-		state.world.market_set_private_construction_demand(details.market, cid, cur_demand + required / details.construction_time);
+		state.world.market_set_private_construction_demand(details.market, cid, cur_demand + required / details.construction_time * confidence_factor);
 	}
 }
 

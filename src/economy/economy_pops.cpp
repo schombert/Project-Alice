@@ -237,6 +237,7 @@ auto prepare_pop_budget_templated(
 			auto can_spend = adaptive_ve::min<VALUE>(2.f * cost, spend_on_categories);
 			auto depends_on = state.world.consumption_category_get_buy_after(cat).id;
 			auto scales_with = state.world.consumption_category_get_scale_with(cat).id;
+			auto scale = ve::fp_vector{1.f};
 
 			// avoid spending when we depend on not fulfilled category
 			if(depends_on && depends_on.index() < (int)result.per_consumption_category.size()) {
@@ -246,9 +247,11 @@ auto prepare_pop_budget_templated(
 					auto weight = state.world.market_get_local_consumption_weights(markets, scales_with.index() + depends_on.index() * state.world.commodity_size());
 					// for example, if we don't buy cars for transportation, don't buy fuel
 					can_spend = can_spend * base_scale * weight;
+					scale = base_scale * weight;
 				} else {
 					// for example, avoid luxury when starving;
 					can_spend = can_spend * base_scale * base_scale;
+					scale = base_scale * base_scale;
 				}
 			}
 
@@ -577,7 +580,7 @@ void update_consumption(
 			ve::apply(
 				[](float amount) {
 			assert(std::isfinite(amount) && amount >= 0.f);
-				}, multiplier* scale* demanded_ratio
+				}, multiplier * scale * demanded_ratio
 			);
 #endif
 			demand_consumption_category[cat.index()].set(
@@ -1158,7 +1161,6 @@ void update_income_non_labor(sys::state& state) {
 		auto valid_market = market != dcon::market_id{ };
 		if(
 			!valid_market
-			|| state.world.market_get_stockpile(market, economy::money) <= 0.f
 		) {
 			return;
 		}
@@ -1168,8 +1170,8 @@ void update_income_non_labor(sys::state& state) {
 		auto national_elites_weight = nation_trade_tokens.get(nation);
 		auto local_weight = market_trade_tokens.get(market);
 
-		auto total_money = state.world.market_get_stockpile(market, economy::money);
-		auto validated_money =local_weight > min_registered_token_size ? total_money : 0.f;
+		auto total_money = state.world.market_get_pop_dividends(market);
+		auto validated_money = local_weight > min_registered_token_size ? total_money : 0.f;
 
 		auto current = nation_trade_money.get(nation);
 		auto to_add = validated_money * local_province_weight * national_elites_weight / (local_weight + 1.f);
@@ -1215,18 +1217,17 @@ void update_income_non_labor(sys::state& state) {
 			ve::apply([](float v) { assert(std::isfinite(v) && v >= 0); }, income);
 			from_rent = income * expected_share;
 #endif // !NDEBUG
-			total_income = total_income + income;
+			total_income = total_income + income * expected_share;
 		}
 
 		{
 			auto candidates = ve::select(valid_market, market_trade_tokens.get(market), 0.f);
-			auto total_money = ve::select(valid_market && state.world.market_get_stockpile(market, economy::money) > 0, state.world.market_get_stockpile(market, economy::money), 0.f);
+			auto total_money = ve::select(valid_market, state.world.market_get_pop_dividends(market), 0.f);
 			auto income = ve::select(candidates > min_registered_token_size, total_money / candidates * size, 0.f);
 #ifndef NDEBUG
 			ve::apply([](float v) { assert(std::isfinite(v) && v >= 0); }, income);
 			from_market = income * expected_share;
 #endif // !NDEBUG
-
 			total_income = total_income + income;
 		}
 
@@ -1255,7 +1256,7 @@ void update_income_non_labor(sys::state& state) {
 			from_rgo = income * expected_share;
 #endif // !NDEBUG
 
-			total_income = total_income + income;
+			total_income = total_income + income * expected_share;
 		}
 
 		{
@@ -1266,7 +1267,7 @@ void update_income_non_labor(sys::state& state) {
 			ve::apply([](float v) { assert(std::isfinite(v) && v >= 0); }, income);
 			from_factories = income * expected_share;
 #endif // !NDEBUG
-			total_income = total_income + income;
+			total_income = total_income + income * expected_share;
 		}
 
 		auto initial_savings = state.world.pop_get_savings(pop_vector);
@@ -1274,7 +1275,7 @@ void update_income_non_labor(sys::state& state) {
 		ve::apply([](float v) { assert(std::isfinite(v) && v >= 0); }, total_income);
 		auto total = from_rgo + from_rent + from_market + from_factories + from_market_national;
 #endif // !NDEBUG
-		state.world.pop_set_savings(pop_vector, initial_savings + total_income * expected_share);
+		state.world.pop_set_savings(pop_vector, initial_savings + total_income);
 	});
 
 	/*
@@ -1284,9 +1285,18 @@ void update_income_non_labor(sys::state& state) {
 	*/
 
 	state.world.execute_serial_over_market([&](auto mid_vector){
+		auto area = state.world.market_get_zone_from_local_market(mid_vector);
+		auto nation = state.world.state_instance_get_nation_from_state_ownership(area);
+
 		auto trade_tokens = market_trade_tokens.get(mid_vector);
-		auto current = state.world.market_get_stockpile(mid_vector, economy::money);
-		state.world.market_set_stockpile(mid_vector, economy::money, ve::select(current > 0.f && trade_tokens > min_registered_token_size, current * (1.f - expected_share), current));
+		auto global_trade_tokens = nation_trade_tokens.get(nation);
+
+		auto current = state.world.market_get_pop_dividends(mid_vector);
+		state.world.market_set_pop_dividends(mid_vector, ve::select(
+			(trade_tokens > min_registered_token_size) || (global_trade_tokens > min_registered_token_size),
+			0.f,
+			current
+		));
 	});
 
 	state.world.execute_parallel_over_province([&](auto pid_vector){
@@ -1899,11 +1909,11 @@ float estimate_pop_demand_internal_category(
 ) {
 	auto total = budget.per_consumption_category[cat.index()].demand_scale
 		* budget.per_consumption_category[cat.index()].satisfied_with_money_ratio
-		* state.world.market_get_local_consumption_weights(m, c.index() + cat.index() * state.world.commodity_size());
+		* state.world.market_get_local_consumption_weights(m, c.index() + cat.index() * state.world.commodity_size())
+		* state.world.consumption_category_get_weights(cat, c);
 
 	auto pop_size = state.world.pop_get_size(pop);
-	return total * pop_size
-		/ state.defines.alice_needs_scaling_factor;
+	return total * pop_size / state.defines.alice_needs_scaling_factor;
 }
 float estimate_pop_spending_category(sys::state const& state, dcon::consumption_category_id cat, dcon::pop_id pop, dcon::commodity_id cid) {
 	auto pid = state.world.pop_get_province_from_pop_location(pop);
