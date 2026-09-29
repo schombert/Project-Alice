@@ -590,6 +590,7 @@ add_custom_command(
 	OUTPUT ${PROJECT_SOURCE_DIR}/src/gamestate/fif_dcon_generated.hpp
 	COMMAND DCONINTERFACEGEN ${CONTAINER_PATH}.txt
 	DEPENDS ${CONTAINER_PATH}.txt
+	DEPENDS DCONINTERFACEGEN
 	VERBATIM)
 
 add_custom_command(
