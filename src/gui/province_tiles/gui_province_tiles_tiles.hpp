@@ -66,7 +66,7 @@ public:
 	void button_action(sys::state& state, province_tile target, ui::element_base* parent) noexcept override { }
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents, province_tile target) noexcept override {
-		
+
 	}
 };
 
@@ -298,7 +298,7 @@ public:
 class province_build_new_tile : public tile_type_logic {
 public:
 	dcon::text_key get_name(sys::state& state, province_tile target) noexcept override {
-		return state.lookup_key("new");
+		return state.lookup_key("build_factory");
 	}
 
 	bool is_available(sys::state& state, province_tile target) noexcept override {
@@ -314,14 +314,14 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents, province_tile target) noexcept override {
-		text::add_line(state, contents, state.lookup_key("new"));
+		text::add_line(state, contents, state.lookup_key("build_factory"));
 	}
 };
 
 class factory_construction_tile : public tile_type_logic {
 public:
 	dcon::text_key get_name(sys::state& state, province_tile target) noexcept override {
-		return state.lookup_key("new");
+		return state.lookup_key("build_factory");
 	}
 
 	bool is_available(sys::state& state, province_tile target) noexcept override {
@@ -831,7 +831,7 @@ public:
 		text::add_line(state, contents, "province_market_production", text::variable_type::val, text::fp_two_places{ std::max(0.f, state.world.market_get_supply(market, target.commodity) - economy::trade_supply(state, market, target.commodity)) });
 		text::add_line(state, contents, "province_market_consumption", text::variable_type::val, text::fp_two_places{ std::max(0.f, state.world.market_get_demand(market, target.commodity) - economy::trade_demand(state, market, target.commodity)) });
 		text::add_line(state, contents, "province_market_stockpiles", text::variable_type::val, text::fp_two_places{ state.world.market_get_stockpile(market, target.commodity) });
-		text::add_line(state, contents, "province_market_stockpiles_sales", text::variable_type::val, text::fp_two_places{ state.world.market_get_stockpile_sales(market, target.commodity) });		
+		text::add_line(state, contents, "province_market_stockpiles_sales", text::variable_type::val, text::fp_two_places{ state.world.market_get_stockpile_sales(market, target.commodity) });
 		{
 			auto supply = state.world.market_get_supply(market, target.commodity);
 			auto demand = state.world.market_get_demand(market, target.commodity);

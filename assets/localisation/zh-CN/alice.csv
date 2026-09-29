@@ -474,8 +474,8 @@ value_mod_product;$val$ 结果：
 value_mod_sum;$val$ 总计：
 value_mod_sum_factor;影响力 $val$ 是 $x$（乘积）：
 admin_explain_1;行政效率修正：$val$
-admin_explain_2;应用于本土官僚比例：$val$
-admin_explain_3;对于需要的官僚人口比例为：$val$（基础 $x$ 加上来自改革的 $y$）
+admin_explain_2;应用于本土官员比例：$val$
+admin_explain_3;对于需要的官员人口比例为：$val$（基础 $x$ 加上来自改革的 $y$）
 factory_condition_1;此国已开化
 factory_condition_2;此地区不是一个殖民地区
 factory_condition_3;执政党允许修建工厂
@@ -515,7 +515,7 @@ special_rules;特殊规则：
 voting_rules;投票规则：
 hide_decision;隐藏此决议通知
 sup_point_gain;每月镇压点增加：?G+$val$
-sup_point_explain;来自：基础比例 $x$× 来自官僚的 $y$× 来自镇压点数修正的 $val$
+sup_point_explain;来自：基础比例 $x$× 来自官员的 $y$× 来自镇压点数修正的 $val$
 pop_size_1;下月人群变化预计：
 pop_size_2;来自增长：
 pop_size_3;来自升降职：
@@ -1050,9 +1050,9 @@ alice_budget_scaled_5;陆军维护：?R$value$
 alice_budget_scaled_6;海军维护：?R$value$
 alice_budget_scaled_7;建设：?R$value$
 alice_budget_scaled_8;教育：?R$value$
-alice_budget_scaled_9;公俸：?R$value$
+alice_budget_scaled_9;行政：?R$value$
 alice_budget_scaled_10;社会支出：?R$value$
-alice_budget_scaled_11;军饷：?R$value$
+alice_budget_scaled_11;军事支出：?R$value$
 alice_budget_scaled_12;国内投资：?R$value$
 alice_budget_scaled_13;海外支出：?R$value$
 alice_budget_scaled_14;库存买入：?R$value$
@@ -1472,9 +1472,9 @@ payment_received_per_unit;每单位卖方收到 ?Y$val$
 merchants_received_per_unit;每单位卖方利润 ?Y$val$
 disallow_naval_trade;海上禁运
 disallow_land_trade;陆上禁运
-pop_migration_bureaucracy;流动官僚管理地方：$x$
+pop_migration_bureaucracy;流动官员管理地方：$x$
 pop_migration_attraction_wage_ratio;工资差距：$x$
-pop_migration_attraction_bureaucracy;官僚基础吸引力：$x$
+pop_migration_attraction_bureaucracy;官员基础吸引力：$x$
 ask_free_trade_agreement;贸易协定
 revoke_trade_rights;取消贸易权利
 msg_trade_rights_revoked;国家 ?Y$y$?W 撤回了 ?Y$x$?! 在其国内的自由贸易权利。
@@ -2036,3 +2036,6 @@ trade_centre_wealth;库存总成本：?Y$val$
 trade_centre_wealth_and_money;总资产：?Y$val$
 trade_centre_arbitrage;贸易中心获利：?Y$val$
 province_market_stockpiles_sales;库存销售目标：?Y$val$?!
+alice_budget_military_expense;军人工资
+alice_budget_education_expense;公共教育
+alice_budget_administration_expense;官员工资
