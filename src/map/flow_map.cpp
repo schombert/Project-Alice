@@ -3,97 +3,58 @@
 #include "economy_stats.hpp"
 
 namespace map {
-glm::vec2 get_army_location(sys::state& state, dcon::province_id prov_id);
+glm::vec2 get_army_location(sys::state const& state, dcon::province_id prov_id);
 glm::vec2 put_in_local(glm::vec2 new_point, glm::vec2 base_point, float size_x);
 float smootherstep(float x);
 }
 
 namespace flow_map {
 
-void register_trade_flow(flow_map_data& data, int node1, int node2, float volume) {
+void register_trade_flow(flow_map_data& data, int node1, int node2, float volume, int edge_index, int edges_mult) {
 	assert(node1 >= 0);
 	assert(node2 >= 0);
-	if(data.particle_next_node_probability.contains(node1)) {
-		if(data.particle_next_node_probability[node1].contains(node2)) {
-			data.particle_next_node_probability[node1][node2] += volume;
-		} else {
-			data.particle_next_node_probability[node1][node2] = volume;
-		}
+	if(data.particle_next_node_probability[node1].contains(node2)) {
+		data.particle_next_node_probability[node1][node2][edge_index] += volume;
 	} else {
-		data.particle_next_node_probability[node1] = { };
-		data.particle_next_node_probability[node1][node2] = volume;
+		data.particle_next_node_probability[node1][node2] = { };
+		data.particle_next_node_probability[node1][node2].resize(edges_mult);
+		data.particle_next_node_probability[node1][node2][edge_index] = volume;
 	}
 
-	if(data.flow_graph.contains(node1)) {
-		if(data.flow_graph[node1].contains(node2)) {
-			data.flow_graph[node1][node2] += volume;
-		} else {
-			data.flow_graph[node1][node2] = volume;
-		}
+	if(data.flow_graph[node1].contains(node2)) {
+		data.flow_graph[node1][node2][edge_index] += volume;
 	} else {
-		data.flow_graph[node1] = std::map<int32_t, float>{ };
-		data.flow_graph[node1][node2] = volume;
+		data.flow_graph[node1][node2] = {};
+		data.flow_graph[node1][node2].resize(edges_mult);
+		data.flow_graph[node1][node2][edge_index] = volume;
 	}
 
-	data.node_total_in[node2] = data.node_total_in[node2] + volume;
-	data.node_total_out[node1] = data.node_total_out[node1] + volume;
+	data.node_total_in[node2][edge_index] = data.node_total_in[node2][edge_index] + volume;
+	data.node_total_out[node1][edge_index] = data.node_total_out[node1][edge_index] + volume;
 }
 
 int node_index(dcon::province_id prov) {
 	return prov.index();
 }
 
-void add_path(flow_map_data& data, dcon::province_id start, std::vector<dcon::province_id>& path, float volume) {
+void add_path(flow_map_data& data, dcon::province_id start, std::vector<dcon::province_id>& path, float volume, int edge_index, int edges_mult) {
 	if(path.size() > 0) {
-		register_trade_flow(data, node_index(start), node_index(path.back()), volume);
+		register_trade_flow(data, node_index(start), node_index(path.back()), volume, edge_index, edges_mult);
 	}
 	for(int i = int(path.size()) - 1; i >= 0; i--) {
 		auto end = path[i];		
 		auto start_index = node_index(start);
 		auto end_index = node_index(end);
-		register_trade_flow(data,  start_index, end_index, volume);
+		register_trade_flow(data,  start_index, end_index, volume, edge_index, edges_mult);
 		start = end;
 	}
 }
 
-void build_graph_commodity(sys::state& state, dcon::commodity_id cid) {
-	flow_map_data& data = state.flow_map;
-	map::display_data& map_data = state.map_state.map_data;
-	std::vector<float> volume_sample;
+void build_graph_commodity(sys::state const& state, flow_map_data& data, dcon::commodity_id cid) {
+	//flow_map_data& data = state.flow_map;
 
-	/*
-		Node positions are just army location for now
-	*/
-
-	//data.node_position.clear();
-	state.world.for_each_province([&](auto pid){
-		data.node_position[pid.index()] = map::get_army_location(state, pid);
-	});
-
-	/*
-		Prepare data to filter away non-significant trade routes.
-	*/
-	{
-		float total_volume = 0.f;
-		state.world.for_each_trade_route([&](dcon::trade_route_id trade_route) {
-			auto current_volume = state.world.trade_route_get_volume(trade_route, cid);
-			auto origin = state.world.trade_route_get_origin(trade_route);
-			auto target = state.world.trade_route_get_target(trade_route);
-			auto sat = state.world.market_get_actual_probability_to_buy(origin, cid);
-			auto absolute_volume = std::abs(sat * current_volume);
-			total_volume += absolute_volume;
-			volume_sample.push_back(absolute_volume);
-		});
-		if(total_volume == 0.f) {
-			data.amount_of_particles = 0;
-			return;
-		}
-
-		data.amount_of_particles = std::clamp(int(total_volume), 100, 5000);
-
-		std::sort(volume_sample.begin(), volume_sample.end());
-	}
-	data.cutoff = std::max(0.005f, volume_sample[9 * volume_sample.size() / 10] * 0.5f);
+	auto edge = cid.index();
+	auto count = state.world.commodity_size();
 
 	/*
 		Build the graph
@@ -117,54 +78,77 @@ void build_graph_commodity(sys::state& state, dcon::commodity_id cid) {
 			auto coast_target = province::state_get_coastal_capital(state, s_target);
 
 			auto origin_path = province::make_land_trade_path(state, p_origin, coast_origin);
-			add_path(data, p_origin, origin_path, absolute_volume);
+			add_path(data, p_origin, origin_path, absolute_volume, edge, count);
 
 			auto sea_path = province::make_sea_trade_route_path(state, coast_origin, coast_target);
-			add_path(data, coast_origin, sea_path, absolute_volume);
+			add_path(data, coast_origin, sea_path, absolute_volume, edge, count);
 
 			auto target_path = province::make_land_trade_path(state, coast_target, p_target);
-			add_path(data, coast_target, target_path, absolute_volume);
+			add_path(data, coast_target, target_path, absolute_volume, edge, count);
 		} else {
 			auto path = province::make_land_trade_path(state, p_origin, p_target);
-			add_path(data, p_origin, path, absolute_volume);
+			add_path(data, p_origin, path, absolute_volume, edge, count);
 		}
 	});
 }
 
-void convert_balance_to_probabilities(flow_map_data& data) {
-	float total_out = 0.f;
-	for(size_t i = 0; i < data.node_total_out.size(); ++i) {
-		auto local_balance = data.node_total_out[i] - data.node_total_in[i];
-		if(local_balance > 0) {
-			total_out += local_balance;
-		}
-	}
-	if(total_out == 0.f) {
+void convert_balance_to_probabilities(flow_map_data& data, int edges_mult) {
+	//std::vector<float> total_out {};
+	//total_out.resize(edges_mult);
+	float total_out_all_edges = 0.f;
+	data.edge_layer_probability.resize(edges_mult);
+
+	for(int edge = 0; edge < edges_mult; ++edge) {
+		float total_out = 0.f;
 		for(size_t i = 0; i < data.node_total_out.size(); ++i) {
-			data.node_probability_create[i] = 0.f;
+			auto local_balance = data.node_total_out[i][edge] - data.node_total_in[i][edge];
+			if(local_balance > 0) {
+				total_out += local_balance;
+			}
 		}
-	} else {
+		if(total_out == 0.f) {
+			for(size_t i = 0; i < data.node_total_out.size(); ++i) {
+				data.node_probability_create[i][edge] = 0.f;
+			}
+		} else {
+			for(size_t i = 0; i < data.node_total_out.size(); ++i) {
+				auto local_balance = data.node_total_out[i][edge] - data.node_total_in[i][edge];
+				data.node_probability_create[i][edge] = local_balance / total_out;
+			}
+		}
+
+		data.edge_layer_probability[edge] = total_out;
+		total_out_all_edges += total_out;
+
 		for(size_t i = 0; i < data.node_total_out.size(); ++i) {
-			auto local_balance = data.node_total_out[i] - data.node_total_in[i];
-			data.node_probability_create[i] = local_balance / total_out;
+			float total_volume_out = std::max(0.f, data.node_total_in[i][edge] - data.node_total_out[i][edge] - 0.01f);
+
+			for(auto const& [target_index, volume] : data.particle_next_node_probability[i]) {
+				total_volume_out += volume[edge];
+			}
+
+			if(total_volume_out > 0.f) {
+				for(auto const& [target_index, volume] : data.particle_next_node_probability[i]) {
+					data.particle_next_node_probability[i][target_index][edge] = volume[edge] / total_volume_out;
+				}
+			} else {
+				for(auto const& [target_index, volume] : data.particle_next_node_probability[i]) {
+					data.particle_next_node_probability[i][target_index][edge] = 0.f;
+				}
+			}
 		}
 	}
 
-	for(size_t i = 0; i < data.node_total_out.size(); ++i) {
-		if(data.particle_next_node_probability.contains(i)) {
-			float total_volume_out = 0.f;
-			for(auto const& [target_index, volume] : data.particle_next_node_probability[i]) {
-				total_volume_out += volume;
-			}
-
-			for(auto const& [target_index, volume] : data.particle_next_node_probability[i]) {
-				data.particle_next_node_probability[i][target_index] = volume / total_volume_out;
-			}
+	if(total_out_all_edges > 0.f) {
+		for(int edge = 0; edge < edges_mult; ++edge) {
+			data.edge_layer_probability[edge] /= total_out_all_edges;
 		}
 	}
 }
 
-void convert_graph_to_vertices(sys::state& state) {
+void convert_graph_to_vertices(sys::state& state, int edge) {
+	bool aggregate = edge == -1;
+
 	flow_map_data& data = state.flow_map;
 	map::display_data& map_data = state.map_state.map_data;
 	auto& graph = data.flow_graph;
@@ -188,12 +172,19 @@ void convert_graph_to_vertices(sys::state& state) {
 	// todo: use the most important node as previous by storing "volume" and updating previous only when volume gets larger
 	std::map<int32_t, int32_t> previous;
 	state.world.for_each_province([&](dcon::province_id origin) {
-		if(graph.contains(origin.index())) {
-			for(auto& [key, value] : graph[origin.index()]) {
-				previous[key] = origin.index();
-				graph_incoming[key][origin.index()] = value;
-				the_most_fat_route = std::max(the_most_fat_route, value);
+		for(auto& [key, value] : graph[origin.index()]) {
+			previous[key] = origin.index();
+			auto replace = 0.f;
+			if(aggregate) {
+				for(auto val : value) {
+					replace += val;
+				}
+			} else {
+				replace = value[edge];
 			}
+
+			graph_incoming[key][origin.index()] = replace;
+			the_most_fat_route = std::max(the_most_fat_route, replace);
 		}
 	});
 
@@ -207,13 +198,12 @@ void convert_graph_to_vertices(sys::state& state) {
 	};
 
 	state.world.for_each_province([&](dcon::province_id origin) {
-		if(graph.contains(origin.index()) || previous.contains(origin.index())) {
-
+		if(previous.contains(origin.index())) {
 			auto total_outgoing = 0.f;
 			auto total_incoming = 0.f;
 
 			for(auto const& [index, volume] : graph[origin.index()]) {
-				total_outgoing += volume;
+				total_outgoing += volume[edge];
 			}
 
 			for(auto const& [index, volume] : graph_incoming[origin.index()]) {
@@ -241,7 +231,7 @@ void convert_graph_to_vertices(sys::state& state) {
 						source_volume;
 					auto volume_end =
 						volume_start
-						* data.particle_next_node_probability[origin.index()][target_index];
+						* data.particle_next_node_probability[origin.index()][target_index][edge];
 
 					left_incoming -= volume_end;
 					left_outgoing -= volume_end;
@@ -257,7 +247,7 @@ void convert_graph_to_vertices(sys::state& state) {
 			if(left_outgoing > 0.001f) {
 				for(auto const& [target_index, target_volume] : graph[origin.index()]) {
 					auto target = dcon::province_id{ dcon::province_id::value_base_t(target_index) };
-					auto volume = target_volume * left_outgoing / total_outgoing;
+					auto volume = target_volume[edge] * left_outgoing / total_outgoing;
 
 					auto found = graph_max_incoming[target_index].find(origin.index());
 					if(found == graph_max_incoming[target_index].end())
@@ -274,7 +264,7 @@ void convert_graph_to_vertices(sys::state& state) {
 	std::vector<int32_t> to_visit;
 	size_t current_index_to_visit = 0;
 	state.world.for_each_province([&](dcon::province_id origin) {
-		if(graph.contains(origin.index()) && !visited[origin.index()]) {
+		if(!visited[origin.index()]) {
 			to_visit.clear();
 			to_visit.push_back(origin.index());
 			current_index_to_visit = 0;
@@ -284,7 +274,7 @@ void convert_graph_to_vertices(sys::state& state) {
 				auto current = to_visit[current_index_to_visit];
 				auto prev_it = previous.find(current);
 				if(prev_it != previous.end() && !visited[prev_it->second]) {
-					auto edge_volume = graph[prev_it->second][current];
+					auto edge_volume = graph[prev_it->second][current][edge];
 					auto width = std::min(std::sqrt(std::abs(edge_volume)) / data.cutoff, 5.f) * 1000.f;
 					distance_field[prev_it->second] = distance_field[current] - province::direct_distance(
 						state,
@@ -298,7 +288,7 @@ void convert_graph_to_vertices(sys::state& state) {
 				for(auto const& [target_index, volume] : graph[origin.index()]) {
 					if(!visited[target_index]) {
 						auto edge_volume = graph[current][target_index];
-						auto width = std::min(std::sqrt(std::abs(edge_volume)) / data.cutoff, 5.f) * 1000.f;
+						auto width = std::min(std::sqrt(std::abs(edge_volume[edge])) / data.cutoff, 5.f) * 1000.f;
 						distance_field[target_index] = distance_field[current] + province::direct_distance(
 							state,
 							dcon::province_id{ (dcon::province_id::value_base_t)(current) },
@@ -318,7 +308,7 @@ void convert_graph_to_vertices(sys::state& state) {
 
 	auto volume_to_width = [&](float volume) {
 		return std::abs(volume) / std::max(0.05f, the_most_fat_route) * 40000.f;
-		};
+	};
 
 	std::map<int32_t, bool> vertices_built;
 	state.world.for_each_province([&](dcon::province_id origin) { vertices_built[origin.index()] = false; });
@@ -557,12 +547,12 @@ void convert_graph_to_vertices(sys::state& state) {
 
 
 	state.world.for_each_province([&](dcon::province_id origin) {
-		if(graph.contains(origin.index()) || previous.contains(origin.index())) {
+		if(previous.contains(origin.index())) {
 			auto total_outgoing = 0.f;
 			auto total_incoming = 0.f;
 
 			for(auto const& [index, volume] : graph[origin.index()]) {
-				total_outgoing += volume;
+				total_outgoing += volume[edge];
 			}
 
 			for(auto const& [index, volume] : graph_incoming[origin.index()]) {
@@ -580,7 +570,7 @@ void convert_graph_to_vertices(sys::state& state) {
 						source_volume;
 					auto volume_end =
 						volume_start
-						* data.particle_next_node_probability[origin.index()][target_index];
+						* data.particle_next_node_probability[origin.index()][target_index][edge];
 
 					auto target = dcon::province_id{ dcon::province_id::value_base_t(target_index) };
 					glm::vec2 next_pos = map::put_in_local(data.node_position[target_index], current_pos, size_x);
@@ -674,7 +664,7 @@ void convert_graph_to_vertices(sys::state& state) {
 					//origin -> target
 					auto adj = state.world.get_province_adjacency_by_province_pair(origin, target);
 
-					auto volume_start = target_volume * left_outgoing / total_outgoing;
+					auto volume_start = target_volume[edge] * left_outgoing / total_outgoing;
 					auto volume_end = volume_start;
 					auto width_start = volume_to_width(volume_start);
 					auto width_end = volume_to_width(volume_end);
@@ -707,6 +697,7 @@ void convert_graph_to_vertices(sys::state& state) {
 
 void reset_particles(flow_map_data& data) {
 	data.flow_particles_positions.clear();
+	data.flow_particles_content.clear();
 	for(int i = 0; i < data.amount_of_particles; i++) {
 		flow_particle p{
 			.position_ = { },
@@ -716,6 +707,7 @@ void reset_particles(flow_map_data& data) {
 			.graph_node_next = -1
 		};
 		data.flow_particles_positions.push_back(p);
+		data.flow_particles_content.push_back(0);
 	}
 }
 
@@ -729,12 +721,29 @@ void update(sys::state& state) {
 		data.node_probability_create.clear();
 
 		if(data.source == data_source::commodity) {
-			if(state.selected_trade_good) {
-				build_graph_commodity(state, state.selected_trade_good);
-				convert_balance_to_probabilities(data);
-				convert_graph_to_vertices(state);
-				reset_particles(data);
-			}
+			data.cutoff = 0.005f;
+			data.flow_graph.resize(state.world.province_size());
+			data.particle_next_node_probability.resize(state.world.province_size());
+			data.node_position.resize(state.world.province_size());
+			data.node_total_in.resize(state.world.province_size());
+			data.node_total_out.resize(state.world.province_size());
+			data.node_probability_create.resize(state.world.province_size());
+			state.world.for_each_province([&](auto pid) {
+				data.node_position[pid.index()] = map::get_army_location(state, pid);
+				data.node_total_out[pid.index()].resize(state.world.commodity_size());
+				data.node_total_in[pid.index()].resize(state.world.commodity_size());
+				data.node_probability_create[pid.index()].resize(state.world.commodity_size());
+			});
+
+			state.world.for_each_commodity([&](auto item) {
+				build_graph_commodity(state, data, item);
+				//convert_graph_to_vertices(state);
+			});
+			convert_balance_to_probabilities(data, state.world.commodity_size());
+
+			data.amount_of_particles = 8000;
+
+			reset_particles(data);
 		}
 
 		data.update_requested.store(false, std::memory_order_release);

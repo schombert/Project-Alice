@@ -24,21 +24,21 @@ struct flow_map_data {
 	std::atomic<bool> update_requested = true;
 	data_source source = data_source::commodity;
 
-	// base graph
-	std::map<int32_t, std::map<int32_t, float>> flow_graph;
 	float cutoff = 0.f;
 
 	// particles
 	int amount_of_particles;
-	std::vector<flow_particle> flow_particles_positions;
-	ankerl::unordered_dense::map<int, ankerl::unordered_dense::map<int, float>> particle_next_node_probability;
+	std::vector<flow_particle> flow_particles_positions {};
+	std::vector<int32_t> flow_particles_content {};
 
-	ankerl::unordered_dense::map<int, float> node_probability_create;
+	std::vector<ankerl::unordered_dense::map<int32_t, std::vector<float>>> flow_graph {};
+	std::vector<ankerl::unordered_dense::map<int32_t, std::vector<float>>> particle_next_node_probability{};
+	std::vector<std::vector<float>> node_probability_create{};
+	std::vector<float> edge_layer_probability{};
+	std::vector<std::vector<float>> node_total_out{};
+	std::vector<std::vector<float>> node_total_in{};
 
-	ankerl::unordered_dense::map<int, float> node_total_out;
-	ankerl::unordered_dense::map<int, float> node_total_in;
-
-	ankerl::unordered_dense::map<int, glm::vec2> node_position;
+	std::vector<glm::vec2> node_position{};
 
 	void request_update(data_source s) {
 		source = s;

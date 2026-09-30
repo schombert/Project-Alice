@@ -116,7 +116,7 @@ glm::vec2 get_navy_location(sys::state& state, dcon::province_id prov_id) {
 		return get_port_location(state, prov_id);
 }
 
-glm::vec2 get_army_location(sys::state& state, dcon::province_id prov_id) {
+glm::vec2 get_army_location(sys::state const& state, dcon::province_id prov_id) {
 	return state.world.province_get_mid_point(prov_id);
 }
 

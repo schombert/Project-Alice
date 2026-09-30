@@ -2274,7 +2274,7 @@ float distance_km(sys::state& state, dcon::province_adjacency_id pair) {
 
 
 // direct distance between two provinces; does not pathfind
-float direct_distance(sys::state& state, dcon::province_id a, dcon::province_id b) {
+float direct_distance(sys::state const& state, dcon::province_id a, dcon::province_id b) {
 	auto apos = state.world.province_get_mid_point_b(a);
 	auto bpos = state.world.province_get_mid_point_b(b);
 	auto dot = (apos.x * bpos.x + apos.y * bpos.y) + apos.z * bpos.z;
@@ -2283,7 +2283,7 @@ float direct_distance(sys::state& state, dcon::province_id a, dcon::province_id 
 }
 
 
-float direct_distance_km(sys::state& state, dcon::province_id a, dcon::province_id b) {
+float direct_distance_km(sys::state const& state, dcon::province_id a, dcon::province_id b) {
 	auto apos = state.world.province_get_mid_point_b(a);
 	auto bpos = state.world.province_get_mid_point_b(b);
 	auto dot = (apos.x * bpos.x + apos.y * bpos.y) + apos.z * bpos.z;
@@ -2498,7 +2498,7 @@ Generates the path for land trade
 Allowed to path through sea provinces.
 Becase there states which can have land  connection with other states while being split by sea
 */
-std::vector<dcon::province_id> make_land_trade_path(sys::state& state, dcon::province_id start, dcon::province_id end) {
+std::vector<dcon::province_id> make_land_trade_path(sys::state const& state, dcon::province_id start, dcon::province_id end) {
 
 	auto adjacency_func = [&](dcon::province_id to, dcon::province_id from, dcon::province_adjacency_id adj) {
 		auto bits = state.world.province_adjacency_get_type(adj);
@@ -2608,7 +2608,7 @@ std::vector<dcon::province_id> make_naval_unit_path(sys::state& state, dcon::pro
 }
 
 // for sea trade routes
-std::vector<dcon::province_id> make_sea_trade_route_path(sys::state& state, dcon::province_id start, dcon::province_id end) {
+std::vector<dcon::province_id> make_sea_trade_route_path(sys::state const& state, dcon::province_id start, dcon::province_id end) {
 
 	auto adjacency_func = [&](dcon::province_id to, dcon::province_id from, dcon::province_adjacency_id adj) {
 		auto bits = state.world.province_adjacency_get_type(adj);

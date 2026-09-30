@@ -101,9 +101,9 @@ float distance(sys::state& state, dcon::province_adjacency_id pair);
 float distance_km(sys::state& state, dcon::province_adjacency_id pair);
 
 // direct distance between two provinces; does not pathfind
-float direct_distance(sys::state& state, dcon::province_id a, dcon::province_id b);
+float direct_distance(sys::state const& state, dcon::province_id a, dcon::province_id b);
 
-float direct_distance_km(sys::state& state, dcon::province_id a, dcon::province_id b);
+float direct_distance_km(sys::state const& state, dcon::province_id a, dcon::province_id b);
 
 // naval range distance between a port and a sea province. Must take the distance of a naval path instead of direct distance
 naval_range_data naval_range_distance(sys::state& state, dcon::province_id port_prov, dcon::province_id sea_prov, dcon::nation_id nation_as);
@@ -139,7 +139,7 @@ bool make_land_unit_path_province_valid(sys::state& state, dcon::nation_id natio
 std::vector<dcon::province_id> make_land_unit_path(sys::state& state, dcon::province_id start, dcon::province_id end, dcon::nation_id nation_as, dcon::army_id a);
 // pathfind through non-enemy controlled, not under siege provinces
 std::vector<dcon::province_id> make_safe_land_path(sys::state& state, dcon::province_id start, dcon::province_id end, dcon::nation_id nation_as);
-std::vector<dcon::province_id> make_land_trade_path(sys::state& state, dcon::province_id start, dcon::province_id end);
+std::vector<dcon::province_id> make_land_trade_path(sys::state const& state, dcon::province_id start, dcon::province_id end);
 // creates a path in which only impassable provinces and sea provinces obstructs pathing
 std::vector<dcon::province_id> make_unowned_land_path(sys::state& state, dcon::province_id start, dcon::province_id end);
 
@@ -152,7 +152,7 @@ bool make_naval_unit_path_province_valid(sys::state& state, dcon::nation_id nati
 // naval unit pathfinding; start and end provinces may be land provinces; function assumes you have naval access to both
 std::vector<dcon::province_id> make_naval_unit_path(sys::state& state, dcon::province_id start, dcon::province_id end, dcon::nation_id nation_as);
 //for sea trade routes
-std::vector<dcon::province_id> make_sea_trade_route_path(sys::state& state, dcon::province_id start, dcon::province_id end);
+std::vector<dcon::province_id> make_sea_trade_route_path(sys::state const& state, dcon::province_id start, dcon::province_id end);
 //naval retreats
 std::vector<dcon::province_id> make_naval_retreat_path(sys::state& state, dcon::nation_id nation_as, dcon::province_id start);
 // For clicking on the retreat button, or forced retreats
