@@ -734,6 +734,18 @@ int8_t building_construction_setting_max(const sys::state& state, dcon::nation_i
 	return 100;
 }
 
+float supply_loss_to_commodity_loss(float base_loss_rate, float commodity_loss_mult) {
+	return std::min(base_loss_rate * commodity_loss_mult, max_supply_route_loss);
+}
+
+float supply_loss_to_loss_multiplier(float base_loss_rate, float commodity_loss_mult) {
+	// The base loss rate us expressed as the percent of commodities which will be lost from 0.0 to 1.0f (the value stored in the supply paths themselves). Is multiplied with the commodity-specific loss multiplier first
+	// The resulting value is the inverse multiplier which can be used to figure out the number of goods will be able to be transported after loss
+	float loss_multiplier = 1.0f - supply_loss_to_commodity_loss(base_loss_rate, commodity_loss_mult);
+	assert(loss_multiplier >= 0.0f);
+	return loss_multiplier;
+}
+
 void schedule_immediate_supply_path_update(sys::state& state, dcon::supply_route_path_id path) {
 	state.world.supply_route_path_set_path_out_of_date(path, true);
 }
@@ -784,7 +796,7 @@ void schedule_nation_supply_paths_update(sys::state& state, dcon::nation_id nati
 }
 
 constexpr float ineffective_supply_path_throughput_cutoff = 0.9f;
-constexpr float ineffective_supply_path_loss_cutoff = 0.65f;
+constexpr float ineffective_supply_path_loss_cutoff = 0.35f;
 
 void schedule_active_ineffective_supply_paths_update(sys::state& state) {
 	state.world.for_each_supply_route_path([&](dcon::supply_route_path_id path_id) {
@@ -792,7 +804,7 @@ void schedule_active_ineffective_supply_paths_update(sys::state& state) {
 		float loss = state.world.supply_route_path_get_supply_loss(path_id);
 		bool active = state.world.supply_route_path_get_is_active(path_id);
 		// update it if throughput is less than 90%, or if loss is greater than 35%
-		if(active && (throughput < ineffective_supply_path_throughput_cutoff || loss < ineffective_supply_path_loss_cutoff)) {
+		if(active && (throughput < ineffective_supply_path_throughput_cutoff || loss > ineffective_supply_path_loss_cutoff)) {
 			schedule_immediate_supply_path_update(state, path_id);
 		}
 	});
@@ -1043,7 +1055,7 @@ float calculate_supply_route_supply_loss(const sys::state& state, std::span<cons
 		last_province_sup_loss = next_province_sup_loss;
 		assert(std::isfinite(total_attrition_mod));
 	}
-	return std::max(1.0f - total_attrition_mod, max_supply_route_loss);
+	return std::min(total_attrition_mod, max_supply_route_loss);
 	
 }
 
@@ -1069,7 +1081,7 @@ void update_supply_path_throughput_attrition(sys::state& state, dcon::supply_rou
 		new_throughput = calculate_supply_route_throughput(state, adj_path, controller);
 	}
 	else {
-		supply_loss = 1.0f;
+		supply_loss = 0.0f;
 		new_throughput = 1.0f; 
 	}
 	state.world.supply_route_path_set_expected_throughput(path_handle, (new_throughput + old_throughput) / 2.0f);
@@ -1130,7 +1142,7 @@ dcon::supply_route_path_id create_supply_route_path_no_pathing(sys::state& state
 	state.world.supply_route_path_set_valid_path(handle, false);
 	state.world.supply_route_path_set_inactive_days(handle, 0);
 	state.world.supply_route_path_set_throughput(handle, 1.0f);
-	state.world.supply_route_path_set_supply_loss(handle, 1.0f);
+	state.world.supply_route_path_set_supply_loss(handle, 0.0f);
 	return handle;
 }
 
@@ -1259,18 +1271,21 @@ static void accumulate_military_unit_supply_loss(const sys::state& state, unit_t
 	for(auto route : routes) {
 		if(supply_routes::supply_route_is_active(state, route.id)) {
 			float supply_loss = supply_routes::supply_route_get_supply_loss(state, route.id);
-			float mul_loss = (1.0f - supply_loss);
 			if constexpr(consume_type == military::unit_consumption_type::supply) {
 				state.world.for_each_unit_supply_commodity([&](dcon::unit_supply_commodity_id com) {
 					dcon::commodity_id base_com = economy::unit_commodity_get_base_commodity(state, com);
+					float com_loss_mult = state.world.commodity_get_supply_loss_rate(base_com);
+					float commodity_loss = supply_loss_to_commodity_loss(supply_loss, com_loss_mult);
 					float buffered_amount = supply_routes::military_route_get_buffered_goods(state, route.id, com);
-					accumulate_func(base_com, buffered_amount, mul_loss);
+					accumulate_func(base_com, buffered_amount, commodity_loss);
 				});
 			} else if constexpr(consume_type == military::unit_consumption_type::reinforcement) {
 				state.world.for_each_unit_build_commodity([&](dcon::unit_build_commodity_id com) {
 					dcon::commodity_id base_com = economy::unit_commodity_get_base_commodity(state, com);
+					float com_loss_mult = state.world.commodity_get_supply_loss_rate(base_com);
+					float commodity_loss = supply_loss_to_commodity_loss(supply_loss, com_loss_mult);
 					float buffered_amount = supply_routes::military_route_get_buffered_goods(state, route.id, com);
-					accumulate_func(base_com, buffered_amount, mul_loss);
+					accumulate_func(base_com, buffered_amount, commodity_loss);
 				});
 			}
 		}
@@ -1290,11 +1305,12 @@ static void accumulate_construction_supply_loss(const sys::state& state, con_typ
 	for(auto route : routes) {
 		if(supply_routes::supply_route_is_active(state, route.id)) {
 			float supply_loss = supply_routes::supply_route_get_supply_loss(state, route.id);
-			float mul_loss = (1.0f - supply_loss);
 			const economy::commodity_set& base_cost = economy::construction_get_base_build_cost(state, construction);
 			base_cost.for_each_valid_index([&](uint32_t idx) {
 				dcon::commodity_id base_com = base_cost.commodity_type[idx];
-				accumulate_func(base_com, base_cost.commodity_amounts[idx], mul_loss);
+				float com_loss_mult = state.world.commodity_get_supply_loss_rate(base_com);
+				float commodity_loss = supply_loss_to_commodity_loss(supply_loss,  com_loss_mult);
+				accumulate_func(base_com, base_cost.commodity_amounts[idx], commodity_loss);
 			});
 		}
 	}
@@ -1770,16 +1786,18 @@ void update_unit_commodity_satisfaction(sys::state& state, unit_type u) {
 			state.world.for_each_unit_supply_commodity([&](dcon::unit_supply_commodity_id com_id) {
 				dcon::commodity_id base_commodity = economy::unit_commodity_get_base_commodity(state, com_id);
 				float com_supply_loss_mod = state.world.commodity_get_supply_loss_rate(base_commodity);
+				float loss_mult = supply_loss_to_loss_multiplier(supply_loss, com_supply_loss_mod);
 				float current_avail = available_supply_goods_buffer.get(com_id);
 				float buffered_amount = route.get_buffered_supply_goods(com_id);
-				available_supply_goods_buffer.set(com_id, current_avail + (buffered_amount * throughput * supply_loss * com_supply_loss_mod));
+				available_supply_goods_buffer.set(com_id, current_avail + (buffered_amount * throughput * loss_mult));
 			});
 			state.world.for_each_unit_build_commodity([&](dcon::unit_build_commodity_id com_id) {
 				dcon::commodity_id base_commodity = economy::unit_commodity_get_base_commodity(state, com_id);
 				float com_supply_loss_mod = state.world.commodity_get_supply_loss_rate(base_commodity);
+				float loss_mult = supply_loss_to_loss_multiplier(supply_loss, com_supply_loss_mod);
 				float current_avail = available_reinforcement_goods_buffer.get(com_id);
 				float buffered_amount = route.get_buffered_reinforcement_goods(com_id);
-				available_reinforcement_goods_buffer.set(com_id, current_avail + (buffered_amount * throughput * supply_loss * com_supply_loss_mod));
+				available_reinforcement_goods_buffer.set(com_id, current_avail + (buffered_amount * throughput * loss_mult));
 			});
 		}
 	}
@@ -1870,9 +1888,10 @@ void update_construction_commodity_satisfaction(sys::state& state, construction_
 				dcon::commodity_id com_id = build_costs.commodity_type[j];
 				assert(build_costs.commodity_type[j] == current_fufilled.commodity_type[j]);
 				if(com_id) {
-					float com_supply_loss_mod = state.world.commodity_get_supply_loss_rate(com_id);
+					float com_supply_loss_mult = state.world.commodity_get_supply_loss_rate(com_id);
+					float loss_mult = supply_loss_to_loss_multiplier(supply_loss, com_supply_loss_mult);
 					float& current_amount = current_fufilled.commodity_amounts[j];
-					float route_amount = route_goods[j] * throughput * supply_loss * com_supply_loss_mod;
+					float route_amount = route_goods[j] * throughput * loss_mult;
 					current_amount += route_amount;
 				} else {
 					break;

@@ -99,20 +99,6 @@ void subunit_set_required_supply_base_cost(sys::state& state, subunit_type unit,
 }
 template void subunit_set_required_supply_base_cost(sys::state& state, dcon::regiment_id unit, float val);
 template void subunit_set_required_supply_base_cost(sys::state& state, dcon::ship_id unit, float val);
-//template<concepts::ve_military_subunit_type subunit_type>
-//void subunit_set_supply_base_cost(sys::state& state, subunit_type unit, ve::value_to_vector_type<float> val) {
-//
-//	using ID = subunit_type::wrapped_type;
-//
-//	if constexpr(std::is_same_v<ID, dcon::regiment_id>) {
-//		state.world.regiment_set_supply_base_cost(unit, val);
-//	} else if constexpr(std::is_same_v<ID, dcon::ship_id>) {
-//		state.world.ship_set_supply_base_cost(unit, val);
-//	}
-//	else {
-//		static_assert(false, "Unknown type");
-//	}
-//}
 
 template<concepts::military_subunit subunit_type>
 float subunit_get_required_supply_base_cost(const sys::state& state, subunit_type unit) {
@@ -124,16 +110,6 @@ float subunit_get_required_supply_base_cost(const sys::state& state, subunit_typ
 }
 template float subunit_get_required_supply_base_cost(const sys::state& state, dcon::regiment_id unit);
 template float subunit_get_required_supply_base_cost(const sys::state& state, dcon::ship_id unit);
-//template<concepts::ve_military_subunit_type subunit_type>
-//ve::value_to_vector_type<float> subunit_get_supply_base_cost(sys::state& state, subunit_type unit) {
-//
-//	using ID = subunit_type::wrapped_type;
-//	if constexpr(std::is_same_v<ID, dcon::regiment_id>) {
-//		return state.world.regiment_get_supply_base_cost(unit);
-//	} else if constexpr(std::is_same_v<ID, dcon::ship_id>) {
-//		return state.world.ship_get_supply_base_cost(unit);
-//	}
-//}
 
 
 template<concepts::military_subunit subunit_type>
@@ -148,19 +124,6 @@ void subunit_set_required_reinforcement_base_cost(sys::state& state, subunit_typ
 }
 template void subunit_set_required_reinforcement_base_cost(sys::state& state, dcon::regiment_id unit, float val);
 template void subunit_set_required_reinforcement_base_cost(sys::state& state, dcon::ship_id unit, float val);
-//template<concepts::ve_military_subunit_type subunit_type>
-//void subunit_set_reinforcement_base_cost(sys::state& state, subunit_type unit, ve::value_to_vector_type<float> val) {
-//
-//	using ID = subunit_type::wrapped_type;
-//
-//	if constexpr(std::is_same_v<ID, dcon::regiment_id>) {
-//		state.world.regiment_set_reinforcement_base_cost(unit, val);
-//	} else if constexpr(std::is_same_v<ID, dcon::ship_id>) {
-//		state.world.ship_set_reinforcement_base_cost(unit, val);
-//	} else {
-//		static_assert(false, "Unknown type");
-//	}
-//}
 
 template<concepts::military_subunit subunit_type>
 float subunit_get_required_reinforcement_base_cost(const sys::state& state, subunit_type unit) {
@@ -172,16 +135,6 @@ float subunit_get_required_reinforcement_base_cost(const sys::state& state, subu
 }
 template float subunit_get_required_reinforcement_base_cost(const sys::state& state, dcon::regiment_id unit);
 template float subunit_get_required_reinforcement_base_cost(const sys::state& state, dcon::ship_id unit);
-//template<concepts::ve_military_subunit_type subunit_type>
-//ve::value_to_vector_type<float> subunit_get_reinforcement_base_cost(sys::state& state, subunit_type unit) {
-//
-//	using ID = subunit_type::wrapped_type;
-//	if constexpr(std::is_same_v<ID, dcon::regiment_id>) {
-//		return state.world.regiment_get_reinforcement_base_cost(unit);
-//	} else if constexpr(std::is_same_v<ID, dcon::ship_id>) {
-//		return state.world.ship_get_reinforcement_base_cost(unit);
-//	}
-//}
 
 
 template<unit_consumption_type consumption_type>
@@ -9828,12 +9781,14 @@ static void unit_get_last_fufilled_goods_need(const sys::state& state, unit_type
 	auto routes = unit_get_supply_routes(state, unit);
 	for(auto route : routes) {
 		if (supply_routes::supply_route_is_active(state, route.id)) {
+			float supply_loss = supply_routes::supply_route_get_supply_loss(state, route.id);
 			if constexpr (consume_type == unit_consumption_type::supply) {
 				state.world.for_each_unit_supply_commodity([&](dcon::unit_supply_commodity_id supply_com_id) {
 					dcon::commodity_id base_commodity = economy::unit_commodity_get_base_commodity(state, supply_com_id);
 					float com_supply_loss_mod = state.world.commodity_get_supply_loss_rate(base_commodity);
 					float buffered_goods = route.get_buffered_supply_goods(supply_com_id);
-					accumulate_func(base_commodity, buffered_goods * supply_routes::supply_route_get_supply_loss(state, route.id) * com_supply_loss_mod * supply_routes::supply_route_get_throughput(state, route.id)); // take into account goods which will be lost to attrition and throughput
+					float loss_mult = supply_routes::supply_loss_to_loss_multiplier(supply_loss, com_supply_loss_mod);
+					accumulate_func(base_commodity, buffered_goods * loss_mult * supply_routes::supply_route_get_throughput(state, route.id)); // take into account goods which will be lost to attrition and throughput
 				});
 			}
 			else if constexpr (consume_type == unit_consumption_type::reinforcement) {
@@ -9841,7 +9796,8 @@ static void unit_get_last_fufilled_goods_need(const sys::state& state, unit_type
 					dcon::commodity_id base_commodity = economy::unit_commodity_get_base_commodity(state, reinf_com_id);
 					float com_supply_loss_mod = state.world.commodity_get_supply_loss_rate(base_commodity);
 					float buffered_goods = route.get_buffered_reinforcement_goods(reinf_com_id);
-					accumulate_func(base_commodity, buffered_goods * supply_routes::supply_route_get_supply_loss(state, route.id) * com_supply_loss_mod * supply_routes::supply_route_get_throughput(state, route.id)); // take into account goods which will be lost to attrition and throughput
+					float loss_mult = supply_routes::supply_loss_to_loss_multiplier(supply_loss, com_supply_loss_mod);
+					accumulate_func(base_commodity, buffered_goods * loss_mult * supply_routes::supply_route_get_throughput(state, route.id)); // take into account goods which will be lost to attrition and throughput
 				});
 			}
 		}

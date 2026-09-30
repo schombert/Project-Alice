@@ -86,6 +86,8 @@ int8_t building_construction_setting_min(const sys::state& state, dcon::nation_i
 int8_t building_construction_setting_max(const sys::state& state, dcon::nation_id nation);
 
 
+float supply_loss_to_loss_multiplier(float base_loss_rate, float commodity_loss_mult);
+
 // Schedules a path update on the specific supply path as soon as possible
 void schedule_immediate_supply_path_update(sys::state& state, dcon::supply_route_path_id path);
 // Schedules a path updatr on all paths which have this market as their origin as soon as possible
