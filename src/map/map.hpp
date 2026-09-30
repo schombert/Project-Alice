@@ -33,17 +33,6 @@ struct vertex {
 	glm::vec2 texcoord_;
 };
 
-struct trade_particle {
-	glm::vec2 position_;
-	glm::vec2 target_;
-	int trade_graph_node_current;
-	int trade_graph_node_prev = -1;
-	int trade_graph_node_next;
-	int adj_index = -1;
-	int adj_count = 0;
-	int adj_direction = 1;
-	std::array<glm::vec2, 5> vagon_positions {} ;
-};
 struct screen_vertex {
 	screen_vertex(float x, float y) : position_(x, y){};
 	glm::vec2 position_;
@@ -246,11 +235,6 @@ public:
 	std::vector<textured_line_with_width_vertex> trade_flow_vertices;
 	std::vector<GLint> trade_flow_arrow_starts;
 	std::vector<GLsizei> trade_flow_arrow_counts;
-	// trade particles
-	std::vector<trade_particle> trade_particles_positions;
-	ankerl::unordered_dense::map<int, ankerl::unordered_dense::map<int, float>> particle_next_node_probability;
-	ankerl::unordered_dense::map<int, float> particle_creation_probability;
-	ankerl::unordered_dense::map<int, glm::vec2> trade_node_position;
 	//
 	std::vector<curved_line_vertex> unit_arrow_vertices;
 	std::vector<GLint> unit_arrow_starts;

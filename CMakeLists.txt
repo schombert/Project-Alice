@@ -34,6 +34,7 @@ list(APPEND ALICE_CORE_SOURCES_LIST
 	"${PROJECT_SOURCE_DIR}/src/map/map_data_loading.cpp"
 	"${PROJECT_SOURCE_DIR}/src/map/map_borders.cpp"
 	"${PROJECT_SOURCE_DIR}/src/map/map.cpp"
+	"${PROJECT_SOURCE_DIR}/src/map/flow_map.cpp"
 	"${PROJECT_SOURCE_DIR}/src/graphics/xac.cpp"	
 	"${PROJECT_SOURCE_DIR}/src/graphics/stateless_render.cpp"
 	"${PROJECT_SOURCE_DIR}/src/lunasvg/graphics.cpp"

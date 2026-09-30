@@ -1572,11 +1572,11 @@ void display_data::render(
 			bool spawned_something = false;
 
 			{
-				for(size_t i = 0; i < trade_particles_positions.size(); i++) {
-					auto& p = trade_particles_positions[i];
+				for(size_t i = 0; i < state.flow_map.flow_particles_positions.size(); i++) {
+					auto& p = state.flow_map.flow_particles_positions[i];
 
 					// update movement
-					if(p.trade_graph_node_current != -1 && p.trade_graph_node_next != -1) {
+					if(p.graph_node_current != -1 && p.graph_node_next != -1) {
 						if(p.adj_index != -1) {
 							auto time_left = 1.f;
 							while(time_left > 0.f) {
@@ -1587,9 +1587,9 @@ void display_data::render(
 								if(length < speed * 2) {
 									p.adj_count += p.adj_direction;
 									if(p.adj_count >= railroad_counts[p.adj_index] || p.adj_count < 0) {
-										p.trade_graph_node_prev = p.trade_graph_node_current;
-										p.trade_graph_node_current = p.trade_graph_node_next;
-										p.trade_graph_node_next = -1;
+										p.graph_node_prev = p.graph_node_current;
+										p.graph_node_current = p.graph_node_next;
+										p.graph_node_next = -1;
 										p.adj_index = -1;
 										break;
 									}
@@ -1607,9 +1607,9 @@ void display_data::render(
 								auto direction = p.target_ - p.position_;
 								auto length = float(glm::length(direction));
 								if(length < speed * 2) {
-									p.trade_graph_node_prev = p.trade_graph_node_current;
-									p.trade_graph_node_current = p.trade_graph_node_next;
-									p.trade_graph_node_next = -1;
+									p.graph_node_prev = p.graph_node_current;
+									p.graph_node_current = p.graph_node_next;
+									p.graph_node_next = -1;
 								} else {
 									for(int vagon = (int)p.vagon_positions.size() - 1; vagon > 0; vagon--) {
 										p.vagon_positions[vagon] = p.vagon_positions[vagon - 1];
@@ -1621,7 +1621,7 @@ void display_data::render(
 					}
 
 					// choose target
-					if(p.trade_graph_node_current != -1 && p.trade_graph_node_next == -1) {
+					if(p.graph_node_current != -1 && p.graph_node_next == -1) {
 						// choose next target according to probability
 						// use time as random engine for simplicity
 						auto random = fmod(sin(time_counter * 971641.5397643) + 1.f, 1.f);
@@ -1629,26 +1629,23 @@ void display_data::render(
 						int target = -1;
 
 						auto accumulated = 0.f;
-						for(auto const& [candidate, probability] : particle_next_node_probability[p.trade_graph_node_current]) {
+						for(auto const& [candidate, probability] : state.flow_map.particle_next_node_probability[p.graph_node_current]) {
 							accumulated += probability;
 							// prevent trivial loops
-							if(random < accumulated && candidate != p.trade_graph_node_prev) {
+							if(random < accumulated && candidate != p.graph_node_prev) {
 								target = candidate;
 								break;
 							}
 						}
 
 						// moving to itself or having no paths to go out implies deletion
-						if(target == -1 || target == p.trade_graph_node_current) {
-							p.trade_graph_node_current = -1;
+						if(target == -1 || target == p.graph_node_current) {
+							p.graph_node_current = -1;
 						} else {
-							p.trade_graph_node_next = target;
-							if(target >= (int)state.world.province_size()) {
-								target -= state.world.province_size();
-							}
-							p.target_ = put_in_local(trade_node_position[target], p.position_, (float)size_x);
+							p.graph_node_next = target;
+							p.target_ = put_in_local(state.flow_map.node_position[target], p.position_, (float)size_x);
 
-							auto current = p.trade_graph_node_current;
+							auto current = p.graph_node_current;
 							if(current >= (int)state.world.province_size()) {
 								current -= state.world.province_size();
 							}
@@ -1674,14 +1671,14 @@ void display_data::render(
 
 					// spawn "new" particles
 					// don't spawn them too often
-					if(!spawned_something && p.trade_graph_node_current == -1) {
+					if(!spawned_something && p.graph_node_current == -1) {
 						spawned_something = true;
 
 						auto random = fmod(sin(time_counter * 92637.1323076) + 1.f, 1.f);
 
 						int target = -1;
 						float accumulated = 0.f;
-						for(auto const& [candidate, probability] : particle_creation_probability) {
+						for(auto const& [candidate, probability] : state.flow_map.node_probability_create) {
 							accumulated += probability;
 							if(random < accumulated) {
 								target = candidate;
@@ -1690,11 +1687,11 @@ void display_data::render(
 						}
 
 						if(target != -1) {
-							p.trade_graph_node_current = target;
-							p.position_ = trade_node_position[target];
-							p.target_ = trade_node_position[target];
-							p.trade_graph_node_next = -1;
-							p.trade_graph_node_prev = -1;
+							p.graph_node_current = target;
+							p.position_ = state.flow_map.node_position[target];
+							p.target_ = state.flow_map.node_position[target];
+							p.graph_node_next = -1;
+							p.graph_node_prev = -1;
 						}
 					}
 				}
@@ -1716,11 +1713,11 @@ void display_data::render(
 				glBindVertexArray(vao_array[vo_square]);
 				glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_square]);
 
-				for(size_t i = 0; i < trade_particles_positions.size(); i++) {
-					auto& p = trade_particles_positions[i];
-					if(p.trade_graph_node_current != -1) {
+				for(size_t i = 0; i < state.flow_map.flow_particles_positions.size(); i++) {
+					auto& p = state.flow_map.flow_particles_positions[i];
+					if(p.graph_node_current != -1) {
 						for(int vagon = (int)p.vagon_positions.size() - 1; vagon > 0; vagon--) {
-							glUniform2f(shader_uniforms[shader_map_sprite][uniform_sprite_offsets], trade_particles_positions[i].vagon_positions[vagon].x / float(size_x), trade_particles_positions[i].vagon_positions[vagon].y / float(size_y));
+							glUniform2f(shader_uniforms[shader_map_sprite][uniform_sprite_offsets], p.vagon_positions[vagon].x / float(size_x), p.vagon_positions[vagon].y / float(size_y));
 							glUniform2f(shader_uniforms[shader_map_sprite][uniform_sprite_scale], 1.f / float(size_x), 1.f / float(size_y));
 							glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 						}
@@ -1738,8 +1735,8 @@ void display_data::render(
 				glBindVertexArray(vao_array[vo_square]);
 				glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_square]);
 
-				for(size_t i = 0; i < trade_particles_positions.size(); i++) {
-					auto& p = trade_particles_positions[i];
+				for(size_t i = 0; i < state.flow_map.flow_particles_positions.size(); i++) {
+					auto& p = state.flow_map.flow_particles_positions[i];
 
 					dcon::province_adjacency_id adj{ dcon::province_adjacency_id::value_base_t(p.adj_index) };
 					auto p1 = state.world.province_adjacency_get_connected_provinces(adj, 0);
@@ -1751,8 +1748,8 @@ void display_data::render(
 						continue;
 					}
 
-					if(p.trade_graph_node_current != -1) {
-						glUniform2f(shader_uniforms[shader_map_sprite][uniform_sprite_offsets], trade_particles_positions[i].position_.x / float(size_x), trade_particles_positions[i].position_.y / float(size_y));
+					if(p.graph_node_current != -1) {
+						glUniform2f(shader_uniforms[shader_map_sprite][uniform_sprite_offsets], p.position_.x / float(size_x), p.position_.y / float(size_y));
 						glUniform2f(shader_uniforms[shader_map_sprite][uniform_sprite_scale], 1.f / float(size_x), 1.f / float(size_y));
 						glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 					}
@@ -1768,8 +1765,8 @@ void display_data::render(
 				glBindVertexArray(vao_array[vo_square]);
 				glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_square]);
 
-				for(size_t i = 0; i < trade_particles_positions.size(); i++) {
-					auto& p = trade_particles_positions[i];
+				for(size_t i = 0; i < state.flow_map.flow_particles_positions.size(); i++) {
+					auto& p = state.flow_map.flow_particles_positions[i];
 
 					dcon::province_adjacency_id adj{ dcon::province_adjacency_id::value_base_t(p.adj_index) };
 					auto p1 = state.world.province_adjacency_get_connected_provinces(adj, 0);
@@ -1781,8 +1778,8 @@ void display_data::render(
 						continue;
 					}
 
-					if(p.trade_graph_node_current != -1) {
-						glUniform2f(shader_uniforms[shader_map_sprite][uniform_sprite_offsets], trade_particles_positions[i].position_.x / float(size_x), trade_particles_positions[i].position_.y / float(size_y));
+					if(p.graph_node_current != -1) {
+						glUniform2f(shader_uniforms[shader_map_sprite][uniform_sprite_offsets], p.position_.x / float(size_x), p.position_.y / float(size_y));
 						glUniform2f(shader_uniforms[shader_map_sprite][uniform_sprite_scale], 1.f / float(size_x), 1.f / float(size_y));
 						glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 					}
@@ -2533,6 +2530,12 @@ void add_tl_segment_buffer(
 	end /= glm::vec2(size_x, size_y);
 	auto d = start - end;
 	distance += glm::length(d);
+
+	assert(start.y >= 0.f && start.y < 1.f);
+	assert(end.y >= 0.f && end.y < 1.f);
+	assert(std::isfinite(width_end) && width_end >= 0.f);
+	assert(std::isfinite(next_normal_dir.x) && std::isfinite(next_normal_dir.y));
+
 	buffer.emplace_back(textured_line_with_width_vertex{ end, +next_normal_dir, 0.0f, distance, width_end });//C
 	buffer.emplace_back(textured_line_with_width_vertex{ end, -next_normal_dir, 1.0f, distance, width_end });//D
 }
@@ -2655,9 +2658,17 @@ void add_bezier_to_buffer_variable_width(
 		auto point = bpoint(t_current);
 		auto point_next = bpoint(t_next);
 
+		if(point_prev == point && point == point_next) {
+			continue;
+		}
+
 		auto approximate_normal = glm::normalize(point - point_prev) + glm::normalize(point - point_next);
-		auto local_tangent = glm::normalize(point - point_prev);
-		if(glm::length(approximate_normal) < 0.00001f) {
+		auto local_tangent = glm::normalize(point_next - point_prev);
+		if(
+			glm::length(point - point_prev) < 0.00001f
+			|| glm::length(point - point_next) < 0.00001f
+			|| glm::length(approximate_normal) < 0.00001f
+		) {
 			approximate_normal = glm::normalize(glm::vec2(-local_tangent.y, local_tangent.x));
 		} else {
 			approximate_normal = glm::normalize(approximate_normal);
@@ -2665,6 +2676,7 @@ void add_bezier_to_buffer_variable_width(
 				approximate_normal = -approximate_normal;
 			}
 		}
+		assert(std::isfinite(approximate_normal.x) && std::isfinite(approximate_normal.y));
 
 		if(!request_higher_density) {
 			if(glm::dot(approximate_normal, last_normal) < 0.98f) {

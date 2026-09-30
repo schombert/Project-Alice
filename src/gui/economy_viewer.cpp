@@ -1192,7 +1192,7 @@ void render(sys::state& state) {
 						state.selected_trade_good = cid;
 					}
 					update(state);
-					state.update_trade_flow.store(true, std::memory_order::release);
+					state.flow_map.request_update(flow_map::data_source::commodity);
 				}
 				state.iui_state.localized_string_r(
 					state, (int32_t)static_elements::commodities + cid.index(),

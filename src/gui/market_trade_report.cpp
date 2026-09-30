@@ -1069,7 +1069,7 @@ bool market_trade_report_commodity_entry_t::button_action(sys::state& state) noe
 	} else {
 		state.selected_trade_good = commodity.item;
 	}
-	state.update_trade_flow.store(true, std::memory_order::release);
+	state.flow_map.request_update(flow_map::data_source::commodity);
 	body.on_update(state);
 // END
 	return true;
@@ -1742,7 +1742,7 @@ bool market_trade_report_trade_item_select_market_t::button_action(sys::state& s
 	auto pid_other = state.world.state_instance_get_capital(sid_other);
 	state.set_selected_province(pid_other);
 	state.map_state.center_map_on_province(state, state.map_state.get_selected_province());
-	state.update_trade_flow.store(true, std::memory_order::release);
+	state.flow_map.request_update(flow_map::data_source::commodity);
 	if(state.ui_state.province_window) {
 		state.ui_state.province_window->impl_on_update(state);
 	}
