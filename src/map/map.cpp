@@ -1559,6 +1559,13 @@ void display_data::render(
 			load_shader(shader_map_sprite);
 			auto& flow_data = state.flow_map;
 
+			auto gfx_ships = state.ui_defs.gui[
+				state.ui_state.defs_by_name.find(
+					state.lookup_key("gfx_storage_unit_types")
+				)->second.definition
+			].data.image.gfx_object;
+			auto& gfx_def_ships = state.ui_defs.gfx[gfx_ships];
+
 			auto gfx_id =
 				state.ui_defs.gui[
 					state.ui_state.defs_by_name.find(
@@ -1583,10 +1590,10 @@ void display_data::render(
 				auto& p = flow_data.flow_particles_positions[i];
 				auto edge = flow_data.flow_particles_content[i];
 
-				p.vagon_positions[0] = p.position_;
-				for(int vagon = (int)p.vagon_positions.size() - 1; vagon > 0; vagon--) {
-					p.vagon_positions[vagon] = p.vagon_positions[vagon - 1];
+				for(int wagon = (int)p.wagon_positions.size() - 1; wagon > 0; wagon--) {
+					p.wagon_positions[wagon] = p.wagon_positions[wagon - 1];
 				}
+				p.wagon_positions[0] = p.position_;
 
 				// update movement
 				if(p.graph_node_current != -1 && p.graph_node_next != -1) {
@@ -1653,14 +1660,37 @@ void display_data::render(
 					// moving to itself or having no paths to go out implies deletion
 					if(target == -1 || target == p.graph_node_current) {
 						p.graph_node_current = -1;
+						p.ship_model = {};
 					} else {
+						auto current = p.graph_node_current;
+						auto current_prov = dcon::province_id{ dcon::province_id::value_base_t(current) };
+						if(
+							current < state.province_definitions.first_sea_province.index()
+							&& target >= state.province_definitions.first_sea_province.index()
+							&& !p.ship_model 
+						) {
+							auto local_state = state.world.province_get_state_membership(current_prov);
+							auto local_market = state.world.state_instance_get_market_from_local_market(local_state);
+							auto total = 0.f;
+							for(uint32_t ui = 2; ui < state.military_definitions.unit_base_definitions.size(); ++ui) {
+								dcon::unit_type_id uid = dcon::unit_type_id{ dcon::unit_type_id::value_base_t(ui) };
+								auto count = state.world.market_get_owned_ships(local_market, uid);
+								total += count;
+							}
+							auto dice = fmod(sin(i * time_counter * 791541.5347643) + 1.f, 1.f) * total;
+							auto accumulated_ship = 0.f;
+							for(uint32_t ui = 2; ui < state.military_definitions.unit_base_definitions.size(); ++ui) {
+								dcon::unit_type_id uid = dcon::unit_type_id{ dcon::unit_type_id::value_base_t(ui) };
+								auto count = state.world.market_get_owned_ships(local_market, uid);
+								accumulated_ship += count;
+								if (accumulated_ship > dice) {
+									p.ship_model = uid;
+									break;
+								}
+							}
+						}
 						p.graph_node_next = target;
 						p.target_ = put_in_local(flow_data.node_position[target], p.position_, (float)size_x);
-
-						auto current = p.graph_node_current;
-						if(current >= (int)state.world.province_size()) {
-							current -= state.world.province_size();
-						}
 
 						auto adj = state.world.get_province_adjacency_by_province_pair(
 							dcon::province_id{ dcon::province_id::value_base_t(target) },
@@ -1745,7 +1775,6 @@ void display_data::render(
 
 				glActiveTexture(GL_TEXTURE0);
 				glBindTexture(GL_TEXTURE_2D, texture_handle);
-
 				glUniform1i(shader_uniforms[shader_map_sprite][uniform_texture_sampler], 0);
 				glUniform2f(shader_uniforms[shader_map_sprite][uniform_sprite_texture_size], 1.f / gfx_def.number_of_frames, 1.f);
 
@@ -1762,8 +1791,8 @@ void display_data::render(
 					glUniform2f(shader_uniforms[shader_map_sprite][uniform_sprite_texture_start], (float)frame / gfx_def.number_of_frames, 0.f);
 
 					if(p.graph_node_current != -1) {
-						for(int vagon = (int)p.vagon_positions.size() - 1; vagon > 0; vagon--) {
-							glUniform2f(shader_uniforms[shader_map_sprite][uniform_sprite_offsets], p.vagon_positions[vagon].x / float(size_x), p.vagon_positions[vagon].y / float(size_y));
+						for(int wagon = (int)p.wagon_positions.size() - 3; wagon > 0; wagon -= 3) {
+							glUniform2f(shader_uniforms[shader_map_sprite][uniform_sprite_offsets], p.wagon_positions[wagon].x / float(size_x), p.wagon_positions[wagon].y / float(size_y));
 							glUniform2f(shader_uniforms[shader_map_sprite][uniform_sprite_scale], 1.f / float(size_x), 1.f / float(size_y));
 							glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 						}
@@ -1801,19 +1830,20 @@ void display_data::render(
 					}
 				}
 
+
+				glBindVertexArray(vao_array[vo_square]);
+				glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_square]);
 				glActiveTexture(GL_TEXTURE0);
 				glBindTexture(GL_TEXTURE_2D, textures[texture_ship]);
-
 				glUniform1i(shader_uniforms[shader_map_sprite][uniform_texture_sampler], 0);
 				glUniform2f(shader_uniforms[shader_map_sprite][uniform_sprite_texture_start], 0.f, 0.f);
 				glUniform2f(shader_uniforms[shader_map_sprite][uniform_sprite_texture_size], 1.f, 1.f);
 
-				glBindVertexArray(vao_array[vo_square]);
-				glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_square]);
-
 				for(size_t i = 0; i < flow_data.flow_particles_positions.size(); i++) {
 					auto& p = flow_data.flow_particles_positions[i];
-
+					if(p.ship_model) {
+						continue;
+					}
 					dcon::province_adjacency_id adj{ dcon::province_adjacency_id::value_base_t(p.adj_index) };
 					auto p1 = state.world.province_adjacency_get_connected_provinces(adj, 0);
 					auto p2 = state.world.province_adjacency_get_connected_provinces(adj, 1);
@@ -1830,6 +1860,40 @@ void display_data::render(
 						glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 					}
 				}
+
+				auto texture_handle_ships = ogl::get_texture_handle(state, gfx_def_ships.primary_texture_handle, gfx_def_ships.is_partially_transparent());
+				glActiveTexture(GL_TEXTURE0);
+				glBindTexture(GL_TEXTURE_2D, texture_handle_ships);
+				glUniform1i(shader_uniforms[shader_map_sprite][uniform_texture_sampler], 0);
+				glUniform2f(shader_uniforms[shader_map_sprite][uniform_sprite_texture_size], 1.f / gfx_def_ships.number_of_frames, 1.f);
+
+				for(size_t i = 0; i < flow_data.flow_particles_positions.size(); i++) {
+					auto& p = flow_data.flow_particles_positions[i];
+					if(!p.ship_model) {
+						continue;
+					}
+
+
+					dcon::province_adjacency_id adj{ dcon::province_adjacency_id::value_base_t(p.adj_index) };
+					auto p1 = state.world.province_adjacency_get_connected_provinces(adj, 0);
+					auto p2 = state.world.province_adjacency_get_connected_provinces(adj, 1);
+					auto p1_is_sea = p1.index() >= state.province_definitions.first_sea_province.index() && p1.index() < (int)state.world.province_size();
+					auto p2_is_sea = p2.index() >= state.province_definitions.first_sea_province.index() && p2.index() < (int)state.world.province_size();
+
+					if(!(p1_is_sea || p2_is_sea)) {
+						continue;
+					}
+
+					auto frame = state.military_definitions.unit_base_definitions[p.ship_model].icon - 1;
+					glUniform2f(shader_uniforms[shader_map_sprite][uniform_sprite_texture_start], (float)frame / gfx_def_ships.number_of_frames, 0.f);
+
+					if(p.graph_node_current != -1) {
+						glUniform2f(shader_uniforms[shader_map_sprite][uniform_sprite_offsets], p.position_.x / float(size_x), p.position_.y / float(size_y));
+						glUniform2f(shader_uniforms[shader_map_sprite][uniform_sprite_scale], 1.f / float(size_x), 1.f / float(size_y));
+						glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+					}
+				}
+
 			}
 		}
 	}

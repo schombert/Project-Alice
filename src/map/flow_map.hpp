@@ -20,7 +20,9 @@ struct flow_particle {
 	int adj_index = -1;
 	int adj_count = 0;
 	int adj_direction = 1;
-	std::array<glm::vec2, 5> vagon_positions{};
+	std::array<glm::vec2, 15> wagon_positions{};
+
+	dcon::unit_type_id ship_model { };
 };
 
 struct flow_map_data {
