@@ -3072,9 +3072,9 @@ bool make_military_supply_path(const sys::state& state, dcon::province_id origin
 		return data.adj_supply_throughput > 0.0 && !is_adjacency_impassable(state, nation_as, adj);
 	};
 	auto to_province_func = [&](dcon::province_id to, const iteration_data& data) {
-		// If the province supply throughput of the to-province is 0 (eg. by being at war with the controller), then we may only path to it as long as there is a friendly army
+		// If the province supply throughput of the to-province is 0 (eg. by being at war with the controller), then we may only path to it as long as there is a friendly army due to the special condition
 		if(data.to_prov_supply_throughput == 0.0f && data.to_prov_port_capacity == 0.0f) {
-			return military::province_has_army<military::battle_included::yes, military::retreat_included::no, military::blackflag_included::no, military::participants_included::ourselves>(state, to, nation_as);
+			return military::province_has_army<military::battle_included::yes, military::retreat_included::yes, military::blackflag_included::no, military::participants_included::ourselves>(state, to, nation_as);
 		}
 		else {
 			return true;

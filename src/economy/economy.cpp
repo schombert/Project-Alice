@@ -734,12 +734,12 @@ tagged_vector<float, dcon::unit_supply_and_build_commodity_id> estimate_nation_a
 	};
 	for(auto a : state.world.nation_get_army_control(nation)) {
 		for(auto r : a.get_army().get_army_membership()) {
-			military::accumulate_subunit_consumption(state, nation, r.get_regiment().id, accumulate_func, accumulate_func);
+			military::accumulate_subunit_daily_consumption(state, nation, r.get_regiment().id, accumulate_func, accumulate_func);
 		}
 	}
 	for(auto a : state.world.nation_get_navy_control(nation)) {
 		for(auto r : a.get_navy().get_navy_membership()) {
-			military::accumulate_subunit_consumption(state, nation, r.get_ship().id, accumulate_func, accumulate_func);
+			military::accumulate_subunit_daily_consumption(state, nation, r.get_ship().id, accumulate_func, accumulate_func);
 		}
 	}
 	return consumption;
@@ -754,7 +754,7 @@ tagged_vector<float, dcon::unit_supply_and_build_commodity_id> estimate_nation_a
 	};
 	for(auto a : state.world.nation_get_army_control(nation)) {
 		for(auto r : a.get_army().get_army_membership()) {
-			military::accumulate_subunit_consumption(state, nation, r.get_regiment().id, accumulate_func, accumulate_func);
+			military::accumulate_subunit_daily_consumption(state, nation, r.get_regiment().id, accumulate_func, accumulate_func);
 		}
 	}
 	return consumption;
@@ -769,7 +769,7 @@ tagged_vector<float, dcon::unit_supply_and_build_commodity_id> estimate_nation_n
 	};
 	for(auto a : state.world.nation_get_navy_control(nation)) {
 		for(auto r : a.get_navy().get_navy_membership()) {
-			military::accumulate_subunit_consumption(state, nation, r.get_ship().id, accumulate_func, accumulate_func);
+			military::accumulate_subunit_daily_consumption(state, nation, r.get_ship().id, accumulate_func, accumulate_func);
 		}
 	}
 	return consumption;
@@ -1725,7 +1725,7 @@ void populate_army_consumption(sys::state& state) {
 				auto union_com_id = state.world.commodity_get_unit_supply_and_build_commodity(com_id);
 				demand_buffer_set(nation, union_com_id, demand_buffer_get(nation, union_com_id) + amount);
 			};
-			military::accumulate_subunit_consumption(state, nation, regiment, accumulate_consumption, accumulate_consumption);
+			military::accumulate_subunit_daily_consumption(state, nation, regiment, accumulate_consumption, accumulate_consumption);
 		}
 	});
 	// Calculate the total expected price per nation, when taking into account demand weights in their controlled states.
@@ -1807,7 +1807,7 @@ void populate_navy_consumption(sys::state& state) {
 				auto union_com_id = state.world.commodity_get_unit_supply_and_build_commodity(com_id);
 				demand_buffer_set(nation, union_com_id, demand_buffer_get(nation, union_com_id) + amount);
 			};
-			military::accumulate_subunit_consumption(state, nation, ship, accumulate_consumption, accumulate_consumption);
+			military::accumulate_subunit_daily_consumption(state, nation, ship, accumulate_consumption, accumulate_consumption);
 		}
 	});
 	// Calculate the total expected price per nation, when taking into account demand weights in their controlled states.

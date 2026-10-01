@@ -901,9 +901,9 @@ float calculate_supply_throughput_in_noncoastal_adjacency(const sys::state& stat
 		return std::min(prov_1_throughput, prov_2_throughput);
 	}
 	// Special condition: Even if one edge of the adjacency has no throughput, allow it if there is a friendly army on the other side and the other edge has some throughput (balancing so that battles just inside enemy territory can be supplied if just near a friendly province)
-	else if(prov_1_throughput > 0.0f && military::province_has_army<military::battle_included::yes, military::retreat_included::no, military::blackflag_included::no, military::participants_included::ourselves>(state, prov_2, nation)) {
+	else if(prov_1_throughput > 0.0f && military::province_has_army<military::battle_included::yes, military::retreat_included::yes, military::blackflag_included::no, military::participants_included::ourselves>(state, prov_2, nation)) {
 		return prov_1_throughput;
-	} else if(prov_2_throughput > 0.0f && military::province_has_army<military::battle_included::yes, military::retreat_included::no, military::blackflag_included::no, military::participants_included::ourselves>(state, prov_1, nation)) {
+	} else if(prov_2_throughput > 0.0f && military::province_has_army<military::battle_included::yes, military::retreat_included::yes, military::blackflag_included::no, military::participants_included::ourselves>(state, prov_1, nation)) {
 		return prov_2_throughput;
 	} else {
 		return 0.0f;
@@ -2290,7 +2290,7 @@ void update_supply_routes_daily(sys::state& state) {
 			float required_reinf_goods_of_base_cost = military::estimate_reinforcement<military::interval_estimation::daily, military::supply_estimation::full_supply_always, military::reinforcement_cap::capped_at_max_strength>(state, subunit); // The reinforcement available (from 0.0-1.0f) requires that % of the base build cost to fufill
 			military::subunit_set_required_reinforcement_base_cost(state, subunit, required_reinf_goods_of_base_cost);
 			// Then accumulate each commodity required, which will call the prev. lambdas with the commodity and amount required
-			military::accumulate_subunit_consumption(state, nation, subunit, accumulate_supply, accumulate_reinf);
+			military::accumulate_subunit_daily_consumption(state, nation, subunit, accumulate_supply, accumulate_reinf);
 		});
 	});
 	economy::parallel_for_each_construction(state, [&](auto construction) {

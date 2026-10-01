@@ -454,10 +454,10 @@ float estimate_reinforcement(const sys::state& state, dcon::navy_id navy) {
 	return total_reinforcement;
 
 }
-// Accumulates the consumption required for a subunit (regiment or ship) for full goods fufillment using the functors for supply consumption and reinforcement consumption respectively
+// Accumulates the daily consumption required for a subunit (regiment or ship) for full goods fufillment using the functors for supply consumption and reinforcement consumption respectively
 // Functor signature is: (dcon::commodity_id, float)
 template<concepts::military_subunit subunit_type, typename FSupply, typename FReinf>
-void accumulate_subunit_consumption(const sys::state& state, dcon::nation_id owner, subunit_type u, FSupply&& supply_acc_func, FReinf&& reinf_acc_func) {
+void accumulate_subunit_daily_consumption(const sys::state& state, dcon::nation_id owner, subunit_type u, FSupply&& supply_acc_func, FReinf&& reinf_acc_func) {
 	assert(owner);
 	auto subunit = fatten(state.world, u);
 	dcon::unit_type_id type = subunit.get_type();
@@ -527,13 +527,13 @@ void unit_for_each_subunit(const sys::state& state, unit_type unit, F&& func) {
 	}
 }
 
-// Accumulates the consumption required for a unit (army or navy) using the functors for Supply consumption and Reinforcement consumption respectively
+// Accumulates the daily consumption required for a unit (army or navy) using the functors for Supply consumption and Reinforcement consumption respectively
 // Functor signature is: (dcon::commodity_id, float)
 template<concepts::military_unit unit_type, typename FSupply, typename FReinf>
-void accumulate_unit_consumption(sys::state& state, unit_type unit, FSupply&& acc_supply_func, FReinf&& acc_reinf_func) {
+void accumulate_unit_daily_consumption(sys::state& state, unit_type unit, FSupply&& acc_supply_func, FReinf&& acc_reinf_func) {
 	dcon::nation_id nation = military::unit_get_controller(state, unit);
 	unit_for_each_subunit(state, unit, [&](auto subunit) {
-		accumulate_subunit_consumption(state, nation, subunit, acc_supply_func, acc_reinf_func);
+		accumulate_subunit_daily_consumption(state, nation, subunit, acc_supply_func, acc_reinf_func);
 	});
 }
 
