@@ -5,7 +5,10 @@
 namespace flow_map {
 
 enum data_source {
-	external, commodity
+	external,
+	commodity,
+	administration,
+	none
 };
 
 struct flow_particle {

@@ -1616,6 +1616,7 @@ void state::save_user_settings() const {
 	US_SAVE(locale);
 	US_SAVE(graphics_mode);
 	US_SAVE(unit_disband_confirmation);
+	US_SAVE(trade_particles_count);
 #undef US_SAVE
 
 	simple_fs::write_file(settings_location, NATIVE("user_settings.dat"), &buffer[0], uint32_t(ptr - buffer));
@@ -1686,6 +1687,7 @@ void state::load_user_settings() {
 			US_LOAD(locale);
 			US_LOAD(graphics_mode);
 			US_LOAD(unit_disband_confirmation);
+			US_LOAD(trade_particles_count);
 #undef US_LOAD
 		} while(false);
 
@@ -4030,20 +4032,17 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 		glm::vec2 next_pos = put_in_local(mid_point_1, current_pos, float(map_state.map_data.size_x));
 		distance += glm::length(next_pos - current_pos) / float(map_state.map_data.size_y);
 
-		if(mid_point_1 == current_pos) {
-			current_pos = temp_prev;
+		if(mid_point_1 != current_pos) {
+			glm::vec2 prev_perpendicular = glm::normalize(mid_point_1 - current_pos);
+			auto start_normal = glm::vec2(-prev_perpendicular.y, prev_perpendicular.x);
+			auto norm_pos = current_pos / glm::vec2(map_state.map_data.size_x, map_state.map_data.size_y);
+			auto norm_next = next_pos / glm::vec2(map_state.map_data.size_x, map_state.map_data.size_y);
+
+			map_state.map_data.railroad_vertices.emplace_back(map::textured_line_vertex{ norm_pos, +start_normal, 0.0f, 0.f });//C
+			map_state.map_data.railroad_vertices.emplace_back(map::textured_line_vertex{ norm_pos, -start_normal, 1.0f, 0.f });//D
+			map_state.map_data.railroad_vertices.emplace_back(map::textured_line_vertex{ norm_next, +start_normal, 0.0f, distance });
+			map_state.map_data.railroad_vertices.emplace_back(map::textured_line_vertex{ norm_next, -start_normal, 1.0f, distance });
 		}
-
-		glm::vec2 prev_perpendicular = glm::normalize(mid_point_1 - current_pos);
-		auto start_normal = glm::vec2(-prev_perpendicular.y, prev_perpendicular.x);
-		auto norm_pos = current_pos / glm::vec2(map_state.map_data.size_x, map_state.map_data.size_y);
-		auto norm_next = next_pos / glm::vec2(map_state.map_data.size_x, map_state.map_data.size_y);
-
-		
-		map_state.map_data.railroad_vertices.emplace_back(map::textured_line_vertex{ norm_pos, +start_normal, 0.0f, 0.f });//C
-		map_state.map_data.railroad_vertices.emplace_back(map::textured_line_vertex{ norm_pos, -start_normal, 1.0f, 0.f });//D
-		map_state.map_data.railroad_vertices.emplace_back(map::textured_line_vertex{ norm_next, +start_normal, 0.0f, distance });
-		map_state.map_data.railroad_vertices.emplace_back(map::textured_line_vertex{ norm_next, -start_normal, 1.0f, distance });
 		
 		map_state.map_data.railroad_counts.push_back(GLsizei(map_state.map_data.railroad_vertices.size() - map_state.map_data.railroad_starts.back()));
 

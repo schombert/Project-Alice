@@ -1557,6 +1557,7 @@ void display_data::render(
 		// trade particles
 		if(state.user_settings.graphics_mode != sys::graphics_mode::ugly) {
 			load_shader(shader_map_sprite);
+			auto& flow_data = state.flow_map;
 
 			auto gfx_id =
 				state.ui_defs.gui[
@@ -1564,21 +1565,37 @@ void display_data::render(
 						state.lookup_key("gfx_storage_commodity")
 							)->second.definition
 				].data.image.gfx_object;
+
+			if(flow_data.source == flow_map::administration) {
+				gfx_id = state.ui_defs.gui[
+					state.ui_state.defs_by_name.find(
+						state.lookup_key("gfx_storage_pop_types")
+					)->second.definition
+				].data.image.gfx_object;
+			}
+
 			auto& gfx_def = state.ui_defs.gfx[gfx_id];
-			const float base_speed = 0.5f;
+			const float base_speed = 0.25f;
 			bool spawned_something = false;
 			int attempts_to_spawn = 50;
 
-			auto& flow_data = state.flow_map;
 			for(size_t i = 0; i < flow_data.flow_particles_positions.size(); i++) {
 				auto& p = flow_data.flow_particles_positions[i];
 				auto edge = flow_data.flow_particles_content[i];
 
+				p.vagon_positions[0] = p.position_;
+				for(int vagon = (int)p.vagon_positions.size() - 1; vagon > 0; vagon--) {
+					p.vagon_positions[vagon] = p.vagon_positions[vagon - 1];
+				}
+
 				// update movement
 				if(p.graph_node_current != -1 && p.graph_node_next != -1) {
 					auto speed = base_speed;
-					if(p.graph_node_current >= state.province_definitions.first_sea_province.index()) {
-						speed = speed * 2.f;
+					if(
+						p.graph_node_current >= state.province_definitions.first_sea_province.index()
+						|| p.graph_node_next >= state.province_definitions.first_sea_province.index()
+					) {
+						speed = speed * 4.f;
 					}
 					if(p.adj_index != -1) {
 						auto time_left = 1.f;
@@ -1598,33 +1615,25 @@ void display_data::render(
 								}
 								time_left -= length / (speed * 2);
 							} else {
-								for(int vagon = (int)p.vagon_positions.size() - 1; vagon > 0; vagon--) {
-									p.vagon_positions[vagon] = p.vagon_positions[vagon - 1];
-								}
-								p.vagon_positions[0] = p.position_;
 								p.position_ += direction / length * speed;
 								time_left -= 1.f;
 							}
 						}
+					} else {
+						auto direction = p.target_ - p.position_;
+						auto length = float(glm::length(direction));
+						if(length < speed * 2) {
+							p.graph_node_prev = p.graph_node_current;
+							p.graph_node_current = p.graph_node_next;
+							p.graph_node_next = -1;
 						} else {
-							auto direction = p.target_ - p.position_;
-							auto length = float(glm::length(direction));
-							if(length < speed * 2) {
-								p.graph_node_prev = p.graph_node_current;
-								p.graph_node_current = p.graph_node_next;
-								p.graph_node_next = -1;
-							} else {
-								for(int vagon = (int)p.vagon_positions.size() - 1; vagon > 0; vagon--) {
-									p.vagon_positions[vagon] = p.vagon_positions[vagon - 1];
-								}
-								p.vagon_positions[0] = p.position_;
-								p.position_ += direction / length * speed;
-							}
+							p.position_ += direction / length * speed;
+						}
 					}
 				}
 
 				// choose target
-				if(p.graph_node_current != -1 && p.graph_node_next == -1) {
+				if(p.graph_node_current != -1 && p.graph_node_next == -1 && edge != -1) {
 					// choose next target according to probability
 					// use time as random engine for simplicity
 					auto random = fmod(sin(i * time_counter * 971641.5397643) + 1.f, 1.f);
@@ -1675,18 +1684,27 @@ void display_data::render(
 				// spawn "new" particles
 				// don't spawn them too often
 				if(attempts_to_spawn > 0 && !spawned_something && p.graph_node_current == -1) {
+					auto p_types = state.world.commodity_size();
+					if(flow_data.source == flow_map::administration) {
+						p_types = 1;
+					}
+
 					auto random = fmod(sin(time_counter * 92637.1323076) + 1.f, 1.f) * state.world.commodity_size();
-
-
 					auto next_edge_layer_dice = (float) int(random) / (float)state.world.commodity_size();
 					float accumulated_edge_dice = 0.f;
 					flow_data.flow_particles_content[i] = -1;
-					for(size_t candidate = 0; candidate < state.world.commodity_size(); candidate++) {
-						accumulated_edge_dice += flow_data.edge_layer_probability[candidate];
-						if(next_edge_layer_dice < accumulated_edge_dice) {
-							flow_data.flow_particles_content[i] = candidate;
-							break;
-						}
+					
+
+					if(p_types == 1) {
+						flow_data.flow_particles_content[i] = 0;
+					} else {
+						for(size_t candidate = 0; candidate < p_types; candidate++) {
+							accumulated_edge_dice += flow_data.edge_layer_probability[candidate];
+							if(next_edge_layer_dice < accumulated_edge_dice) {
+								flow_data.flow_particles_content[i] = candidate;
+								break;
+							}
+						}	
 					}
 
 					if(flow_data.flow_particles_content[i] != -1) {
@@ -1738,6 +1756,9 @@ void display_data::render(
 					auto& p = flow_data.flow_particles_positions[i];
 					auto edge = flow_data.flow_particles_content[i];
 					auto frame = state.world.commodity_get_icon(dcon::commodity_id{ (dcon::commodity_id::value_base_t)edge });
+					if(flow_data.source == flow_map::administration) {
+						frame = state.world.pop_type_get_sprite(state.culture_definitions.bureaucrat) - 1;
+					}
 					glUniform2f(shader_uniforms[shader_map_sprite][uniform_sprite_texture_start], (float)frame / gfx_def.number_of_frames, 0.f);
 
 					if(p.graph_node_current != -1) {
@@ -2684,6 +2705,7 @@ void add_bezier_to_buffer_variable_width(
 		auto point_next = bpoint(t_next);
 
 		if(point_prev == point && point == point_next) {
+			t_prev = t_current;
 			continue;
 		}
 

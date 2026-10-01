@@ -1,8 +1,7 @@
+// BEGIN prelude
+// END
+
 namespace alice_ui {
-#ifdef __clang__
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wswitch"
-#endif
 struct main_menu_base_save_and_exit_t;
 struct main_menu_base_save_t;
 struct main_menu_base_exit_t;
@@ -61,6 +60,8 @@ struct main_menu_graphics_black_map_font_label_t;
 struct main_menu_graphics_river_label_t;
 struct main_menu_graphics_railroad_label_t;
 struct main_menu_graphics_fonts_label_t;
+struct main_menu_graphics_trade_particles_count_dropdown_t;
+struct main_menu_graphics_trade_particles_label_t;
 struct main_menu_graphics_t;
 struct main_menu_message_settings_message_notify_rebels_defeat_t;
 struct main_menu_message_settings_reset_t;
@@ -499,6 +500,27 @@ struct main_menu_graphics_fonts_label_t : public alice_ui::template_toggle_butto
 	bool button_action(sys::state& state) noexcept override;
 	void on_update(sys::state& state) noexcept override;
 };
+struct main_menu_graphics_trade_particles_count_dropdown_t : public alice_ui::template_drop_down_control {
+// BEGIN graphics::trade_particles_count_dropdown::variables
+// END
+	struct string_dropdown_choice_option { int32_t index; std::string display_value; };
+	std::vector<string_dropdown_choice_option> list_contents;
+	std::vector<std::unique_ptr<main_menu_string_dropdown_choice_t >> list_pool;
+	std::unique_ptr<main_menu_string_dropdown_choice_t> label_window_internal;
+	void add_item( int32_t index,  std::string display_value);
+	ui::element_base* get_nth_item(sys::state& state, int32_t id, int32_t pool_id) override;
+	void quiet_on_selection(sys::state& state, int32_t id);
+	void on_selection(sys::state& state, int32_t id) override;
+	void clear_list();
+	void on_create(sys::state& state) noexcept override;
+	void on_update(sys::state& state) noexcept override;
+};
+struct main_menu_graphics_trade_particles_label_t : public alice_ui::template_text_button {
+// BEGIN graphics::trade_particles_label::variables
+// END
+	bool button_action(sys::state& state) noexcept override;
+	void on_update(sys::state& state) noexcept override;
+};
 struct main_menu_message_settings_message_notify_rebels_defeat_t : public alice_ui::template_toggle_button {
 // BEGIN message_settings::message_notify_rebels_defeat::variables
 // END
@@ -803,6 +825,10 @@ struct main_menu_graphics_t : public layout_window_element {
 	std::unique_ptr<main_menu_graphics_river_label_t> river_label;
 	std::unique_ptr<main_menu_graphics_railroad_label_t> railroad_label;
 	std::unique_ptr<main_menu_graphics_fonts_label_t> fonts_label;
+	std::unique_ptr<main_menu_graphics_trade_particles_count_dropdown_t> trade_particles_count_dropdown;
+	std::unique_ptr<main_menu_graphics_trade_particles_label_t> trade_particles_label;
+	std::unique_ptr<template_label> trade_particles_section_label;
+	std::unique_ptr<template_label> trade_particles_count_label;
 	std::vector<std::unique_ptr<ui::element_base>> gui_inserts;
 	void create_layout_level(sys::state& state, layout_level& lvl, char const* ldata, size_t sz);
 	void on_create(sys::state& state) noexcept override;
@@ -1084,14 +1110,14 @@ void main_menu_base_save_name_t::edit_box_update(sys::state& state, std::u16stri
 	base.save_warning_icon->impl_on_update(state);
 // END
 }
-void main_menu_base_save_name_t::on_create(sys::state& state) noexcept {
-// BEGIN base::save_name::create
-// END
-}
 void main_menu_base_save_name_t::on_update(sys::state& state) noexcept {
 	main_menu_base_t& base = *((main_menu_base_t*)(parent)); 
 // BEGIN base::save_name::update
 	disabled = !state.current_scene.game_in_progress;
+// END
+}
+void main_menu_base_save_name_t::on_create(sys::state& state) noexcept {
+// BEGIN base::save_name::create
 // END
 }
 void main_menu_base_save_warning_icon_t::on_update(sys::state& state) noexcept {
@@ -1157,6 +1183,10 @@ void main_menu_base_t::create_layout_level(sys::state& state, layout_level& lvl,
 		layout_item_types t;
 		buffer.read(t);
 		switch(t) {
+			case layout_item_types::control:
+			case layout_item_types::window:
+			case layout_item_types::generator:
+				abort();
 			case layout_item_types::texture_layer:
 			{
 				texture_layer temp;
@@ -1164,13 +1194,15 @@ void main_menu_base_t::create_layout_level(sys::state& state, layout_level& lvl,
 				buffer.read(temp.texture);
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
-			case layout_item_types::control:
+			case layout_item_types::control2:
 			{
 				layout_control temp;
 				std::string_view cname = buffer.read<std::string_view>();
 				buffer.read(temp.abs_x);
 				buffer.read(temp.abs_y);
 				buffer.read(temp.absolute_position);
+				buffer.read(temp.fill_x);
+				buffer.read(temp.fill_y);
 				temp.ptr = nullptr;
 				if(cname == "bg_extension") {
 					temp.ptr = bg_extension.get();
@@ -1220,13 +1252,15 @@ void main_menu_base_t::create_layout_level(sys::state& state, layout_level& lvl,
 				}
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
-			case layout_item_types::window:
+			case layout_item_types::window2:
 			{
 				layout_window temp;
 				std::string_view cname = buffer.read<std::string_view>();
 				buffer.read(temp.abs_x);
 				buffer.read(temp.abs_y);
 				buffer.read(temp.absolute_position);
+				buffer.read(temp.fill_x);
+				buffer.read(temp.fill_y);
 				if(cname == "base") {
 					temp.ptr = make_main_menu_base(state);
 				}
@@ -1260,7 +1294,7 @@ void main_menu_base_t::create_layout_level(sys::state& state, layout_level& lvl,
 				buffer.read(temp.amount);
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
-			case layout_item_types::generator:
+			case layout_item_types::generator2:
 			{
 				generator_instance temp;
 				std::string_view cname = buffer.read<std::string_view>();
@@ -2097,6 +2131,10 @@ void main_menu_sound_t::create_layout_level(sys::state& state, layout_level& lvl
 		layout_item_types t;
 		buffer.read(t);
 		switch(t) {
+			case layout_item_types::control:
+			case layout_item_types::window:
+			case layout_item_types::generator:
+				abort();
 			case layout_item_types::texture_layer:
 			{
 				texture_layer temp;
@@ -2104,13 +2142,15 @@ void main_menu_sound_t::create_layout_level(sys::state& state, layout_level& lvl
 				buffer.read(temp.texture);
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
-			case layout_item_types::control:
+			case layout_item_types::control2:
 			{
 				layout_control temp;
 				std::string_view cname = buffer.read<std::string_view>();
 				buffer.read(temp.abs_x);
 				buffer.read(temp.abs_y);
 				buffer.read(temp.absolute_position);
+				buffer.read(temp.fill_x);
+				buffer.read(temp.fill_y);
 				temp.ptr = nullptr;
 				if(cname == "window_title") {
 					temp.ptr = window_title.get();
@@ -2202,13 +2242,15 @@ void main_menu_sound_t::create_layout_level(sys::state& state, layout_level& lvl
 				}
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
-			case layout_item_types::window:
+			case layout_item_types::window2:
 			{
 				layout_window temp;
 				std::string_view cname = buffer.read<std::string_view>();
 				buffer.read(temp.abs_x);
 				buffer.read(temp.abs_y);
 				buffer.read(temp.absolute_position);
+				buffer.read(temp.fill_x);
+				buffer.read(temp.fill_y);
 				if(cname == "base") {
 					temp.ptr = make_main_menu_base(state);
 				}
@@ -2242,7 +2284,7 @@ void main_menu_sound_t::create_layout_level(sys::state& state, layout_level& lvl
 				buffer.read(temp.amount);
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
-			case layout_item_types::generator:
+			case layout_item_types::generator2:
 			{
 				generator_instance temp;
 				std::string_view cname = buffer.read<std::string_view>();
@@ -3144,6 +3186,10 @@ void main_menu_misc_t::create_layout_level(sys::state& state, layout_level& lvl,
 		layout_item_types t;
 		buffer.read(t);
 		switch(t) {
+			case layout_item_types::control:
+			case layout_item_types::window:
+			case layout_item_types::generator:
+				abort();
 			case layout_item_types::texture_layer:
 			{
 				texture_layer temp;
@@ -3151,13 +3197,15 @@ void main_menu_misc_t::create_layout_level(sys::state& state, layout_level& lvl,
 				buffer.read(temp.texture);
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
-			case layout_item_types::control:
+			case layout_item_types::control2:
 			{
 				layout_control temp;
 				std::string_view cname = buffer.read<std::string_view>();
 				buffer.read(temp.abs_x);
 				buffer.read(temp.abs_y);
 				buffer.read(temp.absolute_position);
+				buffer.read(temp.fill_x);
+				buffer.read(temp.fill_y);
 				temp.ptr = nullptr;
 				if(cname == "window_title") {
 					temp.ptr = window_title.get();
@@ -3213,13 +3261,15 @@ void main_menu_misc_t::create_layout_level(sys::state& state, layout_level& lvl,
 				}
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
-			case layout_item_types::window:
+			case layout_item_types::window2:
 			{
 				layout_window temp;
 				std::string_view cname = buffer.read<std::string_view>();
 				buffer.read(temp.abs_x);
 				buffer.read(temp.abs_y);
 				buffer.read(temp.absolute_position);
+				buffer.read(temp.fill_x);
+				buffer.read(temp.fill_y);
 				if(cname == "base") {
 					temp.ptr = make_main_menu_base(state);
 				}
@@ -3253,7 +3303,7 @@ void main_menu_misc_t::create_layout_level(sys::state& state, layout_level& lvl,
 				buffer.read(temp.amount);
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
-			case layout_item_types::generator:
+			case layout_item_types::generator2:
 			{
 				generator_instance temp;
 				std::string_view cname = buffer.read<std::string_view>();
@@ -3645,6 +3695,10 @@ void main_menu_string_dropdown_choice_t::create_layout_level(sys::state& state, 
 		layout_item_types t;
 		buffer.read(t);
 		switch(t) {
+			case layout_item_types::control:
+			case layout_item_types::window:
+			case layout_item_types::generator:
+				abort();
 			case layout_item_types::texture_layer:
 			{
 				texture_layer temp;
@@ -3652,13 +3706,15 @@ void main_menu_string_dropdown_choice_t::create_layout_level(sys::state& state, 
 				buffer.read(temp.texture);
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
-			case layout_item_types::control:
+			case layout_item_types::control2:
 			{
 				layout_control temp;
 				std::string_view cname = buffer.read<std::string_view>();
 				buffer.read(temp.abs_x);
 				buffer.read(temp.abs_y);
 				buffer.read(temp.absolute_position);
+				buffer.read(temp.fill_x);
+				buffer.read(temp.fill_y);
 				temp.ptr = nullptr;
 				if(cname == "contents") {
 					temp.ptr = contents.get();
@@ -3672,13 +3728,15 @@ void main_menu_string_dropdown_choice_t::create_layout_level(sys::state& state, 
 				}
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
-			case layout_item_types::window:
+			case layout_item_types::window2:
 			{
 				layout_window temp;
 				std::string_view cname = buffer.read<std::string_view>();
 				buffer.read(temp.abs_x);
 				buffer.read(temp.abs_y);
 				buffer.read(temp.absolute_position);
+				buffer.read(temp.fill_x);
+				buffer.read(temp.fill_y);
 				if(cname == "base") {
 					temp.ptr = make_main_menu_base(state);
 				}
@@ -3712,7 +3770,7 @@ void main_menu_string_dropdown_choice_t::create_layout_level(sys::state& state, 
 				buffer.read(temp.amount);
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
-			case layout_item_types::generator:
+			case layout_item_types::generator2:
 			{
 				generator_instance temp;
 				std::string_view cname = buffer.read<std::string_view>();
@@ -4223,6 +4281,66 @@ bool main_menu_graphics_fonts_label_t::button_action(sys::state& state) noexcept
 // END
 	return true;
 }
+void main_menu_graphics_trade_particles_count_dropdown_t::add_item( int32_t index,  std::string display_value) {
+	list_contents.emplace_back(string_dropdown_choice_option{index, display_value});
+	++total_items;
+}
+ui::element_base* main_menu_graphics_trade_particles_count_dropdown_t::get_nth_item(sys::state& state, int32_t id, int32_t pool_id) {
+	while(pool_id >= int32_t(list_pool.size())) {
+		list_pool.emplace_back(static_cast<main_menu_string_dropdown_choice_t*>(make_main_menu_string_dropdown_choice(state).release()));
+	}
+	list_pool[pool_id]->index = list_contents[id].index; 
+	list_pool[pool_id]->display_value = list_contents[id].display_value; 
+	return list_pool[pool_id].get();
+}
+void main_menu_graphics_trade_particles_count_dropdown_t::quiet_on_selection(sys::state& state, int32_t id) {
+	if(id < 0 || id >= int32_t(list_contents.size())) return;
+	selected_item = id;
+	label_window_internal->index = list_contents[id].index; 
+	label_window_internal->display_value = list_contents[id].display_value; 
+	label_window_internal->impl_on_update(state); 
+}
+void main_menu_graphics_trade_particles_count_dropdown_t::on_selection(sys::state& state, int32_t id) {
+	quiet_on_selection(state, id);
+	main_menu_graphics_t& graphics = *((main_menu_graphics_t*)(parent)); 
+// BEGIN graphics::trade_particles_count_dropdown::on_selection
+	state.user_settings.trade_particles_count = (uint8_t)id;
+	state.user_setting_changed = true;
+// END
+}
+void main_menu_graphics_trade_particles_count_dropdown_t::clear_list() {	list_contents.clear();
+	total_items = 0;
+}
+void main_menu_graphics_trade_particles_count_dropdown_t::on_update(sys::state& state) noexcept {
+	main_menu_graphics_t& graphics = *((main_menu_graphics_t*)(parent)); 
+// BEGIN graphics::trade_particles_count_dropdown::update
+	clear_list();
+	add_item(0, "0");
+	add_item(1, "1000");
+	add_item(2, "2000");
+	add_item(3, "4000");
+	add_item(4, "8000");
+	add_item(5, "16000");
+	quiet_on_selection(state, state.user_settings.trade_particles_count);
+// END
+}
+void main_menu_graphics_trade_particles_count_dropdown_t::on_create(sys::state& state) noexcept {
+	template_drop_down_control::on_create(state);
+// BEGIN graphics::trade_particles_count_dropdown::create
+// END
+}
+void main_menu_graphics_trade_particles_label_t::on_update(sys::state& state) noexcept {
+	main_menu_graphics_t& graphics = *((main_menu_graphics_t*)(parent)); 
+// BEGIN graphics::trade_particles_label::update
+// END
+}
+bool main_menu_graphics_trade_particles_label_t::button_action(sys::state& state) noexcept {
+	main_menu_graphics_t& graphics = *((main_menu_graphics_t*)(parent)); 
+// BEGIN graphics::trade_particles_label::lbutton_action
+	state.flow_map.request_update(flow_map::data_source::commodity);
+// END
+	return true;
+}
 ui::message_result main_menu_graphics_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
 	state.ui_state.drag_target = this;
 	return ui::message_result::consumed;
@@ -4270,6 +4388,10 @@ void main_menu_graphics_t::create_layout_level(sys::state& state, layout_level& 
 		layout_item_types t;
 		buffer.read(t);
 		switch(t) {
+			case layout_item_types::control:
+			case layout_item_types::window:
+			case layout_item_types::generator:
+				abort();
 			case layout_item_types::texture_layer:
 			{
 				texture_layer temp;
@@ -4277,13 +4399,15 @@ void main_menu_graphics_t::create_layout_level(sys::state& state, layout_level& 
 				buffer.read(temp.texture);
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
-			case layout_item_types::control:
+			case layout_item_types::control2:
 			{
 				layout_control temp;
 				std::string_view cname = buffer.read<std::string_view>();
 				buffer.read(temp.abs_x);
 				buffer.read(temp.abs_y);
 				buffer.read(temp.absolute_position);
+				buffer.read(temp.fill_x);
+				buffer.read(temp.fill_y);
 				temp.ptr = nullptr;
 				if(cname == "title") {
 					temp.ptr = title.get();
@@ -4348,6 +4472,18 @@ void main_menu_graphics_t::create_layout_level(sys::state& state, layout_level& 
 				if(cname == "fonts_label") {
 					temp.ptr = fonts_label.get();
 				} else
+				if(cname == "trade_particles_count_dropdown") {
+					temp.ptr = trade_particles_count_dropdown.get();
+				} else
+				if(cname == "trade_particles_label") {
+					temp.ptr = trade_particles_label.get();
+				} else
+				if(cname == "trade_particles_section_label") {
+					temp.ptr = trade_particles_section_label.get();
+				} else
+				if(cname == "trade_particles_count_label") {
+					temp.ptr = trade_particles_count_label.get();
+				} else
 				{
 					std::string str_cname {cname};
 					auto found = scripted_elements.find(str_cname);
@@ -4357,13 +4493,15 @@ void main_menu_graphics_t::create_layout_level(sys::state& state, layout_level& 
 				}
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
-			case layout_item_types::window:
+			case layout_item_types::window2:
 			{
 				layout_window temp;
 				std::string_view cname = buffer.read<std::string_view>();
 				buffer.read(temp.abs_x);
 				buffer.read(temp.abs_y);
 				buffer.read(temp.absolute_position);
+				buffer.read(temp.fill_x);
+				buffer.read(temp.fill_y);
 				if(cname == "base") {
 					temp.ptr = make_main_menu_base(state);
 				}
@@ -4397,7 +4535,7 @@ void main_menu_graphics_t::create_layout_level(sys::state& state, layout_level& 
 				buffer.read(temp.amount);
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
-			case layout_item_types::generator:
+			case layout_item_types::generator2:
 			{
 				generator_instance temp;
 				std::string_view cname = buffer.read<std::string_view>();
@@ -4820,6 +4958,80 @@ void main_menu_graphics_t::on_create(sys::state& state) noexcept {
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
 		} else 
+		if(child_data.name == "trade_particles_count_dropdown") {
+			trade_particles_count_dropdown = std::make_unique<main_menu_graphics_trade_particles_count_dropdown_t>();
+			trade_particles_count_dropdown->parent = this;
+			auto cptr = trade_particles_count_dropdown.get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->template_id = child_data.template_id;
+			cptr->two_columns = (child_data.text_type != aui_text_type::body);
+			cptr->target_page_height = child_data.border_size;
+			cptr->label_window_internal = std::unique_ptr<main_menu_string_dropdown_choice_t>(static_cast<main_menu_string_dropdown_choice_t*>(make_main_menu_string_dropdown_choice(state).release()));
+			cptr->element_x_size = cptr->label_window_internal->base_data.size.x;
+			cptr->element_y_size = cptr->label_window_internal->base_data.size.y;
+			cptr->label_window = cptr->label_window_internal.get();
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		} else 
+		if(child_data.name == "trade_particles_label") {
+			trade_particles_label = std::make_unique<main_menu_graphics_trade_particles_label_t>();
+			trade_particles_label->parent = this;
+			auto cptr = trade_particles_label.get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->template_id = child_data.template_id;
+			if(child_data.text_key.length() > 0)
+				cptr->default_text = state.lookup_key(child_data.text_key);
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		} else 
+		if(child_data.name == "trade_particles_section_label") {
+			trade_particles_section_label = std::make_unique<template_label>();
+			trade_particles_section_label->parent = this;
+			auto cptr = trade_particles_section_label.get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->template_id = child_data.template_id;
+			if(child_data.text_key.length() > 0)
+				cptr->default_text = state.lookup_key(child_data.text_key);
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		} else 
+		if(child_data.name == "trade_particles_count_label") {
+			trade_particles_count_label = std::make_unique<template_label>();
+			trade_particles_count_label->parent = this;
+			auto cptr = trade_particles_count_label.get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->template_id = child_data.template_id;
+			if(child_data.text_key.length() > 0)
+				cptr->default_text = state.lookup_key(child_data.text_key);
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		} else 
 		if (child_data.is_lua) { 
 			std::string str_name {child_data.name};
 			scripted_elements[str_name] = std::make_unique<ui::lua_scripted_element>();
@@ -4890,7 +5102,7 @@ measure_result  main_menu_message_settings_message_settings_list_t::place_item(s
 				destination->children.push_back(message_setting_header_pool[message_setting_header_pool_used].get());
 			((main_menu_message_setting_header_t*)(message_setting_header_pool[message_setting_header_pool_used].get()))->set_alternate(alternate);
 				message_setting_row_pool[message_setting_row_pool_used]->base_data.position.x = int16_t(x);
-				message_setting_row_pool[message_setting_row_pool_used]->base_data.position.y = int16_t(y +  message_setting_row_pool[0]->base_data.size.y + 0);
+				message_setting_row_pool[message_setting_row_pool_used]->base_data.position.y = int16_t(y +  message_setting_header_pool[0]->base_data.size.y + 0);
 				message_setting_row_pool[message_setting_row_pool_used]->parent = destination;
 				destination->children.push_back(message_setting_row_pool[message_setting_row_pool_used].get());
 				((main_menu_message_setting_row_t*)(message_setting_row_pool[message_setting_row_pool_used].get()))->id = std::get<message_setting_row_option>(values[index]).id;
@@ -4899,7 +5111,8 @@ measure_result  main_menu_message_settings_message_settings_list_t::place_item(s
 				message_setting_header_pool_used++;
 				message_setting_row_pool_used++;
 			}
-			return measure_result{std::max(message_setting_header_pool[0]->base_data.size.x, message_setting_row_pool[0]->base_data.size.x), message_setting_header_pool[0]->base_data.size.y + message_setting_row_pool[0]->base_data.size.y + 0, measure_result::special::none};
+	 	 	bool stick_to_next = false;
+			return measure_result{std::max(message_setting_header_pool[0]->base_data.size.x, message_setting_row_pool[0]->base_data.size.x), message_setting_header_pool[0]->base_data.size.y + message_setting_row_pool[0]->base_data.size.y + 0, stick_to_next ? measure_result::special::no_break : measure_result::special::none};
 		}
 		if(destination) {
 			if(message_setting_row_pool.size() <= size_t(message_setting_row_pool_used)) message_setting_row_pool.emplace_back(make_main_menu_message_setting_row(state));
@@ -4913,7 +5126,8 @@ measure_result  main_menu_message_settings_message_settings_list_t::place_item(s
 			message_setting_row_pool_used++;
 		}
 		alternate = !alternate;
-		return measure_result{ message_setting_row_pool[0]->base_data.size.x, message_setting_row_pool[0]->base_data.size.y + 0, measure_result::special::none};
+	 	 	bool stick_to_next = false;
+		return measure_result{ message_setting_row_pool[0]->base_data.size.x, message_setting_row_pool[0]->base_data.size.y + 0, stick_to_next ? measure_result::special::no_break : measure_result::special::none};
 	}
 	return measure_result{0,0,measure_result::special::none};
 }
@@ -5001,6 +5215,10 @@ void main_menu_message_settings_t::create_layout_level(sys::state& state, layout
 		layout_item_types t;
 		buffer.read(t);
 		switch(t) {
+			case layout_item_types::control:
+			case layout_item_types::window:
+			case layout_item_types::generator:
+				abort();
 			case layout_item_types::texture_layer:
 			{
 				texture_layer temp;
@@ -5008,13 +5226,15 @@ void main_menu_message_settings_t::create_layout_level(sys::state& state, layout
 				buffer.read(temp.texture);
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
-			case layout_item_types::control:
+			case layout_item_types::control2:
 			{
 				layout_control temp;
 				std::string_view cname = buffer.read<std::string_view>();
 				buffer.read(temp.abs_x);
 				buffer.read(temp.abs_y);
 				buffer.read(temp.absolute_position);
+				buffer.read(temp.fill_x);
+				buffer.read(temp.fill_y);
 				temp.ptr = nullptr;
 				if(cname == "title") {
 					temp.ptr = title.get();
@@ -5034,13 +5254,15 @@ void main_menu_message_settings_t::create_layout_level(sys::state& state, layout
 				}
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
-			case layout_item_types::window:
+			case layout_item_types::window2:
 			{
 				layout_window temp;
 				std::string_view cname = buffer.read<std::string_view>();
 				buffer.read(temp.abs_x);
 				buffer.read(temp.abs_y);
 				buffer.read(temp.absolute_position);
+				buffer.read(temp.fill_x);
+				buffer.read(temp.fill_y);
 				if(cname == "base") {
 					temp.ptr = make_main_menu_base(state);
 				}
@@ -5074,7 +5296,7 @@ void main_menu_message_settings_t::create_layout_level(sys::state& state, layout
 				buffer.read(temp.amount);
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
-			case layout_item_types::generator:
+			case layout_item_types::generator2:
 			{
 				generator_instance temp;
 				std::string_view cname = buffer.read<std::string_view>();
@@ -5629,6 +5851,10 @@ void main_menu_message_setting_row_t::create_layout_level(sys::state& state, lay
 		layout_item_types t;
 		buffer.read(t);
 		switch(t) {
+			case layout_item_types::control:
+			case layout_item_types::window:
+			case layout_item_types::generator:
+				abort();
 			case layout_item_types::texture_layer:
 			{
 				texture_layer temp;
@@ -5636,13 +5862,15 @@ void main_menu_message_setting_row_t::create_layout_level(sys::state& state, lay
 				buffer.read(temp.texture);
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
-			case layout_item_types::control:
+			case layout_item_types::control2:
 			{
 				layout_control temp;
 				std::string_view cname = buffer.read<std::string_view>();
 				buffer.read(temp.abs_x);
 				buffer.read(temp.abs_y);
 				buffer.read(temp.absolute_position);
+				buffer.read(temp.fill_x);
+				buffer.read(temp.fill_y);
 				temp.ptr = nullptr;
 				if(cname == "overlay") {
 					temp.ptr = overlay.get();
@@ -5668,13 +5896,15 @@ void main_menu_message_setting_row_t::create_layout_level(sys::state& state, lay
 				}
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
-			case layout_item_types::window:
+			case layout_item_types::window2:
 			{
 				layout_window temp;
 				std::string_view cname = buffer.read<std::string_view>();
 				buffer.read(temp.abs_x);
 				buffer.read(temp.abs_y);
 				buffer.read(temp.absolute_position);
+				buffer.read(temp.fill_x);
+				buffer.read(temp.fill_y);
 				if(cname == "base") {
 					temp.ptr = make_main_menu_base(state);
 				}
@@ -5708,7 +5938,7 @@ void main_menu_message_setting_row_t::create_layout_level(sys::state& state, lay
 				buffer.read(temp.amount);
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
-			case layout_item_types::generator:
+			case layout_item_types::generator2:
 			{
 				generator_instance temp;
 				std::string_view cname = buffer.read<std::string_view>();
@@ -6110,6 +6340,10 @@ void main_menu_message_setting_header_t::create_layout_level(sys::state& state, 
 		layout_item_types t;
 		buffer.read(t);
 		switch(t) {
+			case layout_item_types::control:
+			case layout_item_types::window:
+			case layout_item_types::generator:
+				abort();
 			case layout_item_types::texture_layer:
 			{
 				texture_layer temp;
@@ -6117,13 +6351,15 @@ void main_menu_message_setting_header_t::create_layout_level(sys::state& state, 
 				buffer.read(temp.texture);
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
-			case layout_item_types::control:
+			case layout_item_types::control2:
 			{
 				layout_control temp;
 				std::string_view cname = buffer.read<std::string_view>();
 				buffer.read(temp.abs_x);
 				buffer.read(temp.abs_y);
 				buffer.read(temp.absolute_position);
+				buffer.read(temp.fill_x);
+				buffer.read(temp.fill_y);
 				temp.ptr = nullptr;
 				if(cname == "contents") {
 					temp.ptr = contents.get();
@@ -6137,13 +6373,15 @@ void main_menu_message_setting_header_t::create_layout_level(sys::state& state, 
 				}
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
-			case layout_item_types::window:
+			case layout_item_types::window2:
 			{
 				layout_window temp;
 				std::string_view cname = buffer.read<std::string_view>();
 				buffer.read(temp.abs_x);
 				buffer.read(temp.abs_y);
 				buffer.read(temp.absolute_position);
+				buffer.read(temp.fill_x);
+				buffer.read(temp.fill_y);
 				if(cname == "base") {
 					temp.ptr = make_main_menu_base(state);
 				}
@@ -6177,7 +6415,7 @@ void main_menu_message_setting_header_t::create_layout_level(sys::state& state, 
 				buffer.read(temp.amount);
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
-			case layout_item_types::generator:
+			case layout_item_types::generator2:
 			{
 				generator_instance temp;
 				std::string_view cname = buffer.read<std::string_view>();
@@ -6305,9 +6543,5 @@ std::unique_ptr<ui::element_base> make_main_menu_message_setting_header(sys::sta
 	ptr->on_create(state);
 	return ptr;
 }
-
-#ifdef __clang__
-#pragma clang diagnostic pop
-#endif
 // LOST-CODE
 }

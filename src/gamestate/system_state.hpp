@@ -402,6 +402,7 @@ struct user_settings_s {
 	sys::graphics_mode graphics_mode = sys::graphics_mode::classic;
 	uint32_t UNUSED_UINT32_T = 0;
 	char locale[16] = "en-US";
+	uint8_t trade_particles_count = 3;
 };
 
 

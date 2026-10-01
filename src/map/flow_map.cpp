@@ -1,6 +1,8 @@
 #include "flow_map.hpp"
 #include "province.hpp"
+#include "province_templates.hpp"
 #include "economy_stats.hpp"
+#include "nations.hpp"
 
 namespace map {
 glm::vec2 get_army_location(sys::state const& state, dcon::province_id prov_id);
@@ -8,27 +10,50 @@ glm::vec2 put_in_local(glm::vec2 new_point, glm::vec2 base_point, float size_x);
 float smootherstep(float x);
 }
 
+namespace nations {
+float trade_route_control_propagation(
+	sys::state const& state,
+	ve::vectorizable_buffer<float, dcon::province_id> const& control_buffer,
+	ve::vectorizable_buffer<dcon::province_id, dcon::state_instance_id> const& coastal_capital_buffer,
+	dcon::trade_route_id trid
+);
+}
+
 namespace flow_map {
+
+void reserve_graph_edge(
+	std::vector<ankerl::unordered_dense::map<int32_t, std::vector<float>>>& graph,
+	int A, int B, int edge_index, int edges_mult
+) {
+	if(graph[A].contains(B)) {
+		return;
+	} else {
+		graph[A][B] = { };
+		graph[A][B].resize(edges_mult);
+	}
+}
+
+void perform_negation(flow_map_data& data, int node1, int node2, int edge_index, int edges_mult) {
+	reserve_graph_edge(data.flow_graph, node1, node2, edge_index, edges_mult);
+	reserve_graph_edge(data.flow_graph, node2, node1, edge_index, edges_mult);
+	float forward = data.flow_graph[node1][node2][edge_index];
+	float backward = data.flow_graph[node2][node1][edge_index];
+
+	if(forward >= backward) {
+		data.flow_graph[node1][node2][edge_index] = forward - backward;
+		data.flow_graph[node2][node1][edge_index] = 0.f;
+	} else {
+		data.flow_graph[node1][node2][edge_index] = 0.f;
+		data.flow_graph[node2][node1][edge_index] = backward - forward;
+	}
+}
 
 void register_trade_flow(flow_map_data& data, int node1, int node2, float volume, int edge_index, int edges_mult) {
 	assert(node1 >= 0);
 	assert(node2 >= 0);
-	if(data.particle_next_node_probability[node1].contains(node2)) {
-		data.particle_next_node_probability[node1][node2][edge_index] += volume;
-	} else {
-		data.particle_next_node_probability[node1][node2] = { };
-		data.particle_next_node_probability[node1][node2].resize(edges_mult);
-		data.particle_next_node_probability[node1][node2][edge_index] = volume;
-	}
-
-	if(data.flow_graph[node1].contains(node2)) {
-		data.flow_graph[node1][node2][edge_index] += volume;
-	} else {
-		data.flow_graph[node1][node2] = {};
-		data.flow_graph[node1][node2].resize(edges_mult);
-		data.flow_graph[node1][node2][edge_index] = volume;
-	}
-
+	assert(volume >= 0.f);
+	reserve_graph_edge(data.flow_graph, node1, node2, edge_index, edges_mult);
+	data.flow_graph[node1][node2][edge_index] += volume;
 	data.node_total_in[node2][edge_index] = data.node_total_in[node2][edge_index] + volume;
 	data.node_total_out[node1][edge_index] = data.node_total_out[node1][edge_index] + volume;
 }
@@ -46,6 +71,20 @@ void add_path(flow_map_data& data, dcon::province_id start, std::vector<dcon::pr
 		auto start_index = node_index(start);
 		auto end_index = node_index(end);
 		register_trade_flow(data,  start_index, end_index, volume, edge_index, edges_mult);
+		start = end;
+	}
+}
+void add_path_with_negation(flow_map_data& data, dcon::province_id start, std::vector<dcon::province_id>& path, float volume, int edge_index, int edges_mult) {
+	if(path.size() > 0) {
+		register_trade_flow(data, node_index(start), node_index(path.back()), volume, edge_index, edges_mult);
+		perform_negation(data, node_index(start), node_index(path.back()), edge_index, edges_mult);
+	}
+	for(int i = int(path.size()) - 1; i >= 0; i--) {
+		auto end = path[i];
+		auto start_index = node_index(start);
+		auto end_index = node_index(end);
+		register_trade_flow(data, start_index, end_index, volume, edge_index, edges_mult);
+		perform_negation(data, start_index, end_index, edge_index, edges_mult);
 		start = end;
 	}
 }
@@ -92,7 +131,163 @@ void build_graph_commodity(sys::state const& state, flow_map_data& data, dcon::c
 	});
 }
 
-void convert_balance_to_probabilities(flow_map_data& data, int edges_mult) {
+bool common_administration(sys::state const& state, dcon::nation_id selected_nation, dcon::nation_id candidate) {
+	auto sphere_leader = state.world.nation_get_in_sphere_of(candidate);
+	auto overlord = state.world.overlord_get_ruler(state.world.nation_get_overlord_as_subject(candidate));
+	auto selected_is_subject = false;
+	for(auto subject : state.world.nation_get_overlord_as_ruler(candidate)) {
+		if(subject.get_subject() == selected_nation)
+			selected_is_subject = true;
+	}
+	return !selected_nation
+		|| candidate == selected_nation
+		|| sphere_leader == selected_nation
+		|| overlord == selected_nation
+		|| selected_is_subject;
+}
+
+bool common_administration(sys::state const& state, dcon::nation_id selected_nation, dcon::province_id candidate) {
+	return common_administration(state, selected_nation, state.world.province_get_nation_from_province_ownership(candidate));
+}
+
+void build_graph_administration(sys::state const& state, flow_map_data& data) {
+	auto target_province = state.map_state.selected_province;
+	auto target_nation = state.world.province_get_nation_from_province_ownership(target_province);
+
+	auto control_buffer = state.world.province_make_vectorizable_float_buffer();
+	state.world.execute_serial_over_province([&](auto ids) {
+		control_buffer.set(ids, state.world.province_get_control_scale(ids));
+	});
+	auto control_buffer_out = state.world.province_make_vectorizable_float_buffer();
+	state.world.execute_serial_over_province([&](auto ids) {
+		control_buffer_out.set(ids, state.world.province_get_control_scale(ids));
+	});
+
+	auto coastal_capital_buffer = ve::vectorizable_buffer<dcon::province_id, dcon::state_instance_id>(state.world.state_instance_size());
+	state.world.execute_parallel_over_state_instance([&](auto ids) {
+		ve::apply([&](auto sid) {
+			coastal_capital_buffer.set(sid, province::state_get_coastal_capital(state, sid));
+		}, ids);
+	});
+
+	state.world.for_each_trade_route([&](dcon::trade_route_id trid) {
+		auto distance = state.world.trade_route_get_distance_km(trid);
+		auto A_market = state.world.trade_route_get_origin(trid);
+		auto B_market = state.world.trade_route_get_target(trid);
+		auto A_state_instance = state.world.market_get_zone_from_local_market(A_market);
+		auto B_state_instance = state.world.market_get_zone_from_local_market(B_market);
+		auto capital_A = state.world.state_instance_get_capital(A_state_instance);
+		auto capital_B = state.world.state_instance_get_capital(B_state_instance);
+		if(!common_administration(state, target_nation, capital_A) || !common_administration(state, target_nation, capital_B)) {
+			return;
+		}
+
+		auto shift = nations::trade_route_control_propagation(state, control_buffer, coastal_capital_buffer, trid);
+		bool is_sea = state.world.trade_route_get_is_sea_route(trid);
+
+		if(is_sea) {
+			auto coast_origin = coastal_capital_buffer.get(A_state_instance);
+			auto coast_target = coastal_capital_buffer.get(B_state_instance);
+			if(shift < 0) {
+				auto origin_path = province::make_land_trade_path(state, capital_A, coast_origin);
+				add_path(data, capital_A, origin_path, -shift, 0, 1);
+
+				auto sea_path = province::make_sea_trade_route_path(state, coast_origin, coast_target);
+				add_path(data, coast_origin, sea_path, -shift, 0, 1);
+
+				auto target_path = province::make_land_trade_path(state, coast_target, capital_B);
+				add_path(data, coast_target, target_path, -shift, 0, 1);
+			} else {
+				auto origin_path = province::make_land_trade_path(state, capital_B, coast_target);
+				add_path(data, capital_B, origin_path, shift, 0, 1);
+
+				auto sea_path = province::make_sea_trade_route_path(state, coast_target, coast_origin);
+				add_path(data, coast_target, sea_path, shift, 0, 1);
+
+				auto target_path = province::make_land_trade_path(state, coast_origin, capital_A);
+				add_path(data, coast_origin, target_path, shift, 0, 1);
+			}
+		} else {
+			if(shift < 0) {
+				auto path = province::make_land_trade_path(state, capital_A, capital_B);
+				add_path(data, capital_A, path, -shift, 0, 1);
+			} else {
+				auto path = province::make_land_trade_path(state, capital_B, capital_A);
+				add_path(data, capital_B, path, shift, 0, 1);
+			}
+		}
+
+		control_buffer_out.set(capital_A, control_buffer_out.get(capital_A) + shift);
+		control_buffer_out.set(capital_B, control_buffer_out.get(capital_B) - shift);
+	});
+
+	state.world.for_each_state_instance([&](auto sid) {
+		auto capital = state.world.state_instance_get_capital(sid);
+		if(!common_administration(state, target_nation, capital)) {
+			return;
+		}
+		province::for_each_province_in_state_instance(state, sid, [&](auto pid) {
+			auto change = (control_buffer.get(capital) - control_buffer.get(pid)) * 0.01f;
+
+			if(change < 0) {
+				auto path = province::make_land_trade_path(state, pid, capital);
+				add_path(data, pid, path, -change, 0, 1);
+			} else {
+				auto path = province::make_land_trade_path(state, capital, pid);
+				add_path(data, capital, path, change, 0, 1);
+			}
+
+			control_buffer_out.set(pid, control_buffer_out.get(pid) + change);
+			control_buffer_out.set(capital, control_buffer_out.get(capital) - change);
+		});
+	});
+
+	state.world.execute_serial_over_province([&](auto ids) {
+		control_buffer.set(ids, control_buffer_out.get(ids));
+	});
+
+	auto total_adjacency_weight = state.world.province_make_vectorizable_float_buffer();
+
+	state.world.for_each_province_adjacency([&](auto paid) {
+		auto A = state.world.province_adjacency_get_connected_provinces(paid, 0);
+		auto B = state.world.province_adjacency_get_connected_provinces(paid, 1);
+		if(!common_administration(state, target_nation, A) || !common_administration(state, target_nation, B)) {
+			return;
+		}
+		auto mult = nations::control_shift_weight_mult(state, paid);
+		auto weight_A = nations::desire_score_province(state, A) * mult;
+		auto weight_B = nations::desire_score_province(state, B) * mult;
+		auto old_A = total_adjacency_weight.get(A);
+		auto old_B = total_adjacency_weight.get(B);
+		total_adjacency_weight.set(B, old_B + weight_A);
+		total_adjacency_weight.set(A, old_A + weight_B);
+	});
+
+	state.world.for_each_province([&](auto pid) {
+		if(!common_administration(state, target_nation, pid)) {
+			return;
+		}
+		auto total_weight = total_adjacency_weight.get(pid) + 0.00001f;
+		auto control_to_transfer = control_buffer.get(pid) * 0.05f;
+		state.world.province_for_each_province_adjacency(pid, [&](auto adj) {
+			auto other = state.world.province_adjacency_get_connected_provinces(adj, 0);
+			if(other == pid) {
+				other = state.world.province_adjacency_get_connected_provinces(adj, 1);
+			}
+			if(!common_administration(state, target_nation, other)) {
+				return;
+			}
+			auto score = nations::desire_score_province(state, other);
+			auto mult = nations::control_shift_weight_mult(state, adj);
+
+			auto shift = control_to_transfer * score * mult / total_weight;
+			std::vector<dcon::province_id> path = { other };
+			add_path_with_negation(data, pid, path, shift, 0, 1);
+		});
+	});
+}
+
+void convert_balance_to_probabilities(flow_map_data& data, int sea_node_index, int edges_mult) {
 	//std::vector<float> total_out {};
 	//total_out.resize(edges_mult);
 	float total_out_all_edges = 0.f;
@@ -122,17 +317,22 @@ void convert_balance_to_probabilities(flow_map_data& data, int edges_mult) {
 
 		for(size_t i = 0; i < data.node_total_out.size(); ++i) {
 			float total_volume_out = std::max(0.f, data.node_total_in[i][edge] - data.node_total_out[i][edge] - 0.01f);
+			if(i >= (size_t)sea_node_index) {
+				total_volume_out = 0.f;
+			}
 
-			for(auto const& [target_index, volume] : data.particle_next_node_probability[i]) {
+			for(auto const& [target_index, volume] : data.flow_graph[i]) {
 				total_volume_out += volume[edge];
 			}
 
 			if(total_volume_out > 0.f) {
-				for(auto const& [target_index, volume] : data.particle_next_node_probability[i]) {
+				for(auto const& [target_index, volume] : data.flow_graph[i]) {
+					reserve_graph_edge(data.particle_next_node_probability, i, target_index, edge, edges_mult);
 					data.particle_next_node_probability[i][target_index][edge] = volume[edge] / total_volume_out;
 				}
 			} else {
-				for(auto const& [target_index, volume] : data.particle_next_node_probability[i]) {
+				for(auto const& [target_index, volume] : data.flow_graph[i]) {
+					reserve_graph_edge(data.particle_next_node_probability, i, target_index, edge, edges_mult);
 					data.particle_next_node_probability[i][target_index][edge] = 0.f;
 				}
 			}
@@ -144,6 +344,13 @@ void convert_balance_to_probabilities(flow_map_data& data, int edges_mult) {
 			data.edge_layer_probability[edge] /= total_out_all_edges;
 		}
 	}
+}
+
+void clear_vertices(sys::state& state) {
+	map::display_data& map_data = state.map_state.map_data;
+	map_data.trade_flow_vertices.clear();
+	map_data.trade_flow_arrow_counts.clear();
+	map_data.trade_flow_arrow_starts.clear();
 }
 
 void convert_graph_to_vertices(sys::state& state, int edge) {
@@ -362,33 +569,39 @@ void convert_graph_to_vertices(sys::state& state, int edge) {
 	) {
 		auto start = state.map_state.map_data.railroad_starts[hint.index()];
 		auto count = state.map_state.map_data.railroad_counts[hint.index()];
-		auto middle = count / 2;
+		auto middle = (count / 8) * 4 - 2;
 
-		if(count == 0) {
+		if(middle <= 0) {
 			return;
 		}
 
 		auto idx = start;
-
+		auto bound_left = idx;
+		auto bound_right = idx + middle;
 		if(forward && first_half) {
 			idx = start;
+			bound_left = start;
+			bound_right = start + middle;
 		} else if(!forward && first_half) {
 			idx = start + middle;
+			bound_left = start;
+			bound_right = start + middle;
 		} else if(forward && !first_half) {
 			idx = start + middle;
+			bound_left = start + middle;
+			bound_right = start + count - 2;
 		} else if(!forward && !first_half) {
 			idx = start + count - 2;
+			bound_left = start + middle;
+			bound_right = start + count - 2;
 		}
-		auto bound_left = idx;
-		auto bound_right = std::min(idx + middle, start + count - 2);
 		auto sign = 1;
 		auto step = 16;
 		if(!forward) {
 			step = -16;
-			bound_left = idx - middle;
-			bound_right = idx;
 			sign = -1;
 		}
+
 		auto initial_idx = idx;
 
 		while(bound_left <= idx && idx <= bound_right) {
@@ -445,26 +658,26 @@ void convert_graph_to_vertices(sys::state& state, int edge) {
 	) {
 		auto start_start = state.map_state.map_data.railroad_starts[hint_start.index()];
 		auto start_count = state.map_state.map_data.railroad_counts[hint_start.index()];
-		auto start_middle = start_count / 2;
+		auto start_middle = (start_count / 8) * 4 - 2;
 		auto start_idx = start_start + start_middle;
 		int start_step = step_size * 8;
 		if(!forward_start) {
 			start_step = -step_size * 8;
 		}
-		if(start_count == 0) {
+		if(start_middle <= 0) {
 			return;
 		}
 
 		auto end_start = state.map_state.map_data.railroad_starts[hint_end.index()];
 		auto end_count = state.map_state.map_data.railroad_counts[hint_end.index()];
-		auto end_middle = end_count / 2;
+		auto end_middle = (end_count / 8) * 4 - 2;
 		auto end_idx = end_start;
 		int end_step = step_size * 8;
 		if(!forward_end) {
 			end_idx = end_start + end_count - 2;
 			end_step = -step_size * 8;
 		}
-		if(end_count == 0) {
+		if(end_middle <= 0) {
 			return;
 		}
 
@@ -739,13 +952,54 @@ void update(sys::state& state) {
 				build_graph_commodity(state, data, item);
 				//convert_graph_to_vertices(state);
 			});
-			convert_balance_to_probabilities(data, state.world.commodity_size());
+			convert_balance_to_probabilities(data, state.province_definitions.first_sea_province.index(), state.world.commodity_size());
 
-			data.amount_of_particles = 8000;
+			if(state.user_settings.trade_particles_count == 0) {
+				data.amount_of_particles = 0;
+			} else if(state.user_settings.trade_particles_count == 1) {
+				data.amount_of_particles = 1000;
+			} else if(state.user_settings.trade_particles_count == 2) {
+				data.amount_of_particles = 2000;
+			} else if(state.user_settings.trade_particles_count == 3) {
+				data.amount_of_particles = 4000;
+			} else if(state.user_settings.trade_particles_count == 4) {
+				data.amount_of_particles = 8000;
+			} else if(state.user_settings.trade_particles_count == 5) {
+				data.amount_of_particles = 16000;
+			}
+
+			if(state.selected_trade_good) {
+				convert_graph_to_vertices(state, state.selected_trade_good.index());
+			}
 
 			reset_particles(data);
-		}
+		} else if(data.source == data_source::administration) {
+			data.cutoff = 0.005f;
+			data.flow_graph.resize(state.world.province_size());
+			data.particle_next_node_probability.resize(state.world.province_size());
+			data.node_position.resize(state.world.province_size());
+			data.node_total_in.resize(state.world.province_size());
+			data.node_total_out.resize(state.world.province_size());
+			data.node_probability_create.resize(state.world.province_size());
+			state.world.for_each_province([&](auto pid) {
+				data.node_position[pid.index()] = map::get_army_location(state, pid);
+				data.node_total_out[pid.index()].resize(1);
+				data.node_total_in[pid.index()].resize(1);
+				data.node_probability_create[pid.index()].resize(1);
+			});
+			build_graph_administration(state, data);
+			convert_balance_to_probabilities(data, state.province_definitions.first_sea_province.index(), 1);
+			convert_graph_to_vertices(state, 0);
 
+			data.amount_of_particles = 4000;
+
+			reset_particles(data);
+		} else if(data.source == data_source::none) {
+			data.node_position.clear();
+			data.node_total_in.clear();
+			data.node_total_out.clear();
+			clear_vertices(state);
+		}
 		data.update_requested.store(false, std::memory_order_release);
 	}
 }

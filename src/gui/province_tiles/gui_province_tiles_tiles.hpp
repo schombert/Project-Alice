@@ -460,7 +460,7 @@ public:
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents, province_tile target) noexcept override {
 		auto n = state.world.province_get_nation_from_province_ownership(target.province);
 
-		text::add_line(state, contents, "province_control_scale", text::variable_type::value, text::fp_one_place{ state.world.province_get_control_scale(target.province) });
+		text::add_line(state, contents, "province_control_scale", text::variable_type::value, text::prettify_float(state.world.province_get_control_scale(target.province)));
 
 		// Explains nations::update_administrative_efficiency
 
@@ -602,9 +602,9 @@ public:
 				control_buffer_tobe.set(pid, control_buffer_tobe.get(pid) + change * 0.01f);
 
 				if(pid == target.province) {
-					text::add_line(state, contents, "province_control_scale_from_state_capital", text::variable_type::value, text::fp_one_place{ change }, text::variable_type::prov, state.world.province_get_name(capital));
+					text::add_line(state, contents, "province_control_scale_from_state_capital", text::variable_type::value, text::prettify_float(change), text::variable_type::prov, state.world.province_get_name(capital));
 				} else if(capital == target.province) {
-					text::add_line(state, contents, "province_control_scale_to_state_capital", text::variable_type::value, text::fp_one_place{ change }, text::variable_type::prov, state.world.province_get_name(pid));
+					text::add_line(state, contents, "province_control_scale_to_state_capital", text::variable_type::value, text::prettify_float(change), text::variable_type::prov, state.world.province_get_name(pid));
 				}
 			});
 		});
@@ -629,7 +629,7 @@ public:
 
 		state.world.for_each_province([&](auto pid) {
 			auto total_weight = total_adjacency_weight.get(pid) + 0.00001f;
-			auto control_to_transfer = control_buffer_asis.get(pid) * 0.9f;
+			auto control_to_transfer = control_buffer_asis.get(pid) * 0.05f;
 			state.world.province_for_each_province_adjacency(pid, [&](auto adj) {
 				auto other = state.world.province_adjacency_get_connected_provinces(adj, 0);
 				if(other == pid) {
@@ -639,10 +639,10 @@ public:
 				auto mult = nations::control_shift_weight_mult(state, adj);
 				control_buffer_tobe.set(other, control_buffer_tobe.get(other) + control_to_transfer * score * mult / total_weight);
 				if(other == target.province) {
-					text::add_line(state, contents, "province_control_scale_adjacency_received", text::variable_type::value, text::fp_one_place{ control_to_transfer * score * mult / total_weight }, text::variable_type::prov, state.world.province_get_name(pid));
+					text::add_line(state, contents, "province_control_scale_adjacency_received", text::variable_type::value, text::prettify_float(control_to_transfer* score* mult / total_weight), text::variable_type::prov, state.world.province_get_name(pid));
 				}
 				else if(pid == target.province) {
-					text::add_line(state, contents, "province_control_scale_adjacency_sent", text::variable_type::value, text::fp_one_place{ control_to_transfer * score * mult / total_weight }, text::variable_type::prov, state.world.province_get_name(other));
+					text::add_line(state, contents, "province_control_scale_adjacency_sent", text::variable_type::value, text::prettify_float(control_to_transfer* score* mult / total_weight), text::variable_type::prov, state.world.province_get_name(other));
 				}
 			});
 			control_buffer_tobe.set(pid, control_buffer_tobe.get(pid) - control_to_transfer);
