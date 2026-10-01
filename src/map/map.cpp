@@ -1731,7 +1731,7 @@ void display_data::render(
 						for(size_t candidate = 0; candidate < p_types; candidate++) {
 							accumulated_edge_dice += flow_data.edge_layer_probability[candidate];
 							if(next_edge_layer_dice < accumulated_edge_dice) {
-								flow_data.flow_particles_content[i] = candidate;
+								flow_data.flow_particles_content[i] = (int32_t)candidate;
 								break;
 							}
 						}	
@@ -1748,7 +1748,7 @@ void display_data::render(
 						for(size_t candidate = 0; candidate < flow_data.node_probability_create.size(); candidate++) {
 							accumulated += flow_data.node_probability_create[candidate][flow_data.flow_particles_content[i]];
 							if(random < accumulated) {
-								target = candidate;
+								target = (int)candidate;
 								break;
 							}
 						}

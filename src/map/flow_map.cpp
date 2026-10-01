@@ -327,12 +327,12 @@ void convert_balance_to_probabilities(flow_map_data& data, int sea_node_index, i
 
 			if(total_volume_out > 0.f) {
 				for(auto const& [target_index, volume] : data.flow_graph[i]) {
-					reserve_graph_edge(data.particle_next_node_probability, i, target_index, edge, edges_mult);
+					reserve_graph_edge(data.particle_next_node_probability, (int)i, target_index, edge, edges_mult);
 					data.particle_next_node_probability[i][target_index][edge] = volume[edge] / total_volume_out;
 				}
 			} else {
 				for(auto const& [target_index, volume] : data.flow_graph[i]) {
-					reserve_graph_edge(data.particle_next_node_probability, i, target_index, edge, edges_mult);
+					reserve_graph_edge(data.particle_next_node_probability, (int)i, target_index, edge, edges_mult);
 					data.particle_next_node_probability[i][target_index][edge] = 0.f;
 				}
 			}
