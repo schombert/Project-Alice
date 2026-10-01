@@ -307,7 +307,7 @@ void convert_balance_to_probabilities(flow_map_data& data, int sea_node_index, i
 			}
 		} else {
 			for(size_t i = 0; i < data.node_total_out.size(); ++i) {
-				auto local_balance = data.node_total_out[i][edge] - data.node_total_in[i][edge];
+				auto local_balance = std::max(0.f, data.node_total_out[i][edge] - data.node_total_in[i][edge]);
 				data.node_probability_create[i][edge] = local_balance / total_out;
 			}
 		}

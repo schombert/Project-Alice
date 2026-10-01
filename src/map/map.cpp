@@ -1611,7 +1611,7 @@ void display_data::render(
 							auto actual_target = railroad_vertices[actual_target_offset].position_ * glm::vec2(float(size_x), float(size_y));
 							auto direction = actual_target - p.position_;
 							auto length = float(glm::length(direction));
-							if(length < speed * 2) {
+							if(length < speed * 2 || length > size_x + size_y) {
 								p.adj_count += p.adj_direction;
 								if(p.adj_count >= railroad_counts[p.adj_index] || p.adj_count < 0) {
 									p.graph_node_prev = p.graph_node_current;
@@ -1629,7 +1629,7 @@ void display_data::render(
 					} else {
 						auto direction = p.target_ - p.position_;
 						auto length = float(glm::length(direction));
-						if(length < speed * 2) {
+						if(length < speed * 2 || length > size_x + size_y) {
 							p.graph_node_prev = p.graph_node_current;
 							p.graph_node_current = p.graph_node_next;
 							p.graph_node_next = -1;
@@ -1719,7 +1719,7 @@ void display_data::render(
 						p_types = 1;
 					}
 
-					auto random = fmod(sin(time_counter * 92637.1323076) + 1.f, 1.f) * state.world.commodity_size();
+					auto random = fmod(sin(((float)i + time_counter) * 92637.1323076) + 1.f, 1.f) * state.world.commodity_size();
 					auto next_edge_layer_dice = (float) int(random) / (float)state.world.commodity_size();
 					float accumulated_edge_dice = 0.f;
 					flow_data.flow_particles_content[i] = -1;
