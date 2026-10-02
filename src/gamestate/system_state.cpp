@@ -1616,6 +1616,7 @@ void state::save_user_settings() const {
 	US_SAVE(locale);
 	US_SAVE(graphics_mode);
 	US_SAVE(unit_disband_confirmation);
+	US_SAVE(trade_particles_count);
 #undef US_SAVE
 
 	simple_fs::write_file(settings_location, NATIVE("user_settings.dat"), &buffer[0], uint32_t(ptr - buffer));
@@ -1686,6 +1687,7 @@ void state::load_user_settings() {
 			US_LOAD(locale);
 			US_LOAD(graphics_mode);
 			US_LOAD(unit_disband_confirmation);
+			US_LOAD(trade_particles_count);
 #undef US_LOAD
 		} while(false);
 
@@ -3811,9 +3813,14 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 		//	return;
 		//}
 		bool sea_route = false;
-		if(p2.index() >= province_definitions.first_sea_province.index() || p1.index() >= province_definitions.first_sea_province.index()) {
+		if(
+			p2.index() >= province_definitions.first_sea_province.index()
+			|| p1.index() >= province_definitions.first_sea_province.index()
+		) {
 			sea_route = true;
 		}
+
+		auto ignore_sea_land_province = world.province_adjacency_get_canal_or_blockade_province(adj);
 
 		auto mid_point_1 = world.province_get_mid_point(p1);
 		auto mid_point_2 = world.province_get_mid_point(p2);
@@ -3856,6 +3863,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 
 		auto handle_next = [&](int x, int y, int next_x, int next_y, float base_distance, int8_t direction, int8_t dx, int8_t dy, uint8_t speed, float prev_dist) {
 			auto next_idx = next_x + next_y * map_state.map_data.size_x;
+			auto local_idx = x + y * map_state.map_data.size_x;
 			if(!visited[next_idx]) {
 				for(int i = 1; i <= (int)speed; i++) {
 					auto nx = x + dx * i;
@@ -3869,9 +3877,18 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 				auto modifier = context.modifier_by_terrain_index[local_terrain];
 				auto& modifier_data = world.modifier_get_province_values(modifier);
 				auto move_cost_mod = terrain_cost[local_terrain];
+				dcon::province_id local_province = province::from_map_id(map_state.map_data.province_id_map[local_idx]);
+				dcon::province_id next_province = province::from_map_id(map_state.map_data.province_id_map[next_idx]);
+				bool apply_malus = true;
+				if(ignore_sea_land_province) {
+					apply_malus = (ignore_sea_land_province != local_province) && (ignore_sea_land_province != next_province);
+				}
 				if(sea_route) {
-					move_cost_mod = 100.f;
-					if (local_terrain == 255) move_cost_mod = 1.f;
+					if(local_terrain != 255 && apply_malus) {
+						move_cost_mod = 100.f;
+					} else {
+						move_cost_mod = 1.f;
+					}
 				}
 				auto next_distance = prev_dist + base_distance * std::max(0.05f, (move_cost_mod * 20.f));
 				auto scaled_x = (float)next_x / (float)map_state.map_data.size_x;
@@ -3975,6 +3992,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 		int step = 0;
 
 		glm::vec2 current_pos{ end_x, end_y };
+		glm::vec2 temp_prev = current_pos;
 
 
 		while(end_idx != start_idx && (int)(end_idx) >= 0) {
@@ -4019,21 +4037,28 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 			map_state.map_data.railroad_vertices.emplace_back(map::textured_line_vertex{ norm_next, +start_normal, 0.0f, distance });
 			map_state.map_data.railroad_vertices.emplace_back(map::textured_line_vertex{ norm_next, -start_normal, 1.0f, distance });
 
+			assert(norm_pos != norm_next);
+
 			end_idx = next_idx;
+			temp_prev = current_pos;
 			current_pos = next_pos;
 		}
 
 		glm::vec2 next_pos = put_in_local(mid_point_1, current_pos, float(map_state.map_data.size_x));
 		distance += glm::length(next_pos - current_pos) / float(map_state.map_data.size_y);
-		glm::vec2 prev_perpendicular = glm::normalize(mid_point_1 - current_pos);
-		auto start_normal = glm::vec2(-prev_perpendicular.y, prev_perpendicular.x);
-		auto norm_pos = current_pos / glm::vec2(map_state.map_data.size_x, map_state.map_data.size_y);
-		auto norm_next = next_pos / glm::vec2(map_state.map_data.size_x, map_state.map_data.size_y);
-		map_state.map_data.railroad_vertices.emplace_back(map::textured_line_vertex{ norm_pos, +start_normal, 0.0f, 0.f });//C
-		map_state.map_data.railroad_vertices.emplace_back(map::textured_line_vertex{ norm_pos, -start_normal, 1.0f, 0.f });//D
-		map_state.map_data.railroad_vertices.emplace_back(map::textured_line_vertex{ norm_next, +start_normal, 0.0f, distance });
-		map_state.map_data.railroad_vertices.emplace_back(map::textured_line_vertex{ norm_next, -start_normal, 1.0f, distance });
 
+		if(mid_point_1 != current_pos) {
+			glm::vec2 prev_perpendicular = glm::normalize(mid_point_1 - current_pos);
+			auto start_normal = glm::vec2(-prev_perpendicular.y, prev_perpendicular.x);
+			auto norm_pos = current_pos / glm::vec2(map_state.map_data.size_x, map_state.map_data.size_y);
+			auto norm_next = next_pos / glm::vec2(map_state.map_data.size_x, map_state.map_data.size_y);
+
+			map_state.map_data.railroad_vertices.emplace_back(map::textured_line_vertex{ norm_pos, +start_normal, 0.0f, 0.f });//C
+			map_state.map_data.railroad_vertices.emplace_back(map::textured_line_vertex{ norm_pos, -start_normal, 1.0f, 0.f });//D
+			map_state.map_data.railroad_vertices.emplace_back(map::textured_line_vertex{ norm_next, +start_normal, 0.0f, distance });
+			map_state.map_data.railroad_vertices.emplace_back(map::textured_line_vertex{ norm_next, -start_normal, 1.0f, distance });
+		}
+		
 		map_state.map_data.railroad_counts.push_back(GLsizei(map_state.map_data.railroad_vertices.size() - map_state.map_data.railroad_starts.back()));
 
 		clear_visited();

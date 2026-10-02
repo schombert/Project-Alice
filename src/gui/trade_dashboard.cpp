@@ -5788,7 +5788,7 @@ ui::message_result trade_dashboard_commodity_selector_name_t::on_lbutton_down(sy
 		state.selected_trade_good = commodity_selector.cid;
 		state.ui_cached_data.set_commodity(state, commodity_selector.cid);
 	}
-	state.update_trade_flow.store(true, std::memory_order::release);
+	state.flow_map.request_update(flow_map::data_source::commodity);
 	main.on_update(state);
 // END
 	return ui::message_result::consumed;

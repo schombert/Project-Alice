@@ -872,6 +872,14 @@ void set_map_mode(sys::state& state, mode mode) {
 			state.ui_state.map_rec_legend->set_visible(state, false);
 	}
 
+	if(state.flow_map.source == flow_map::data_source::administration && mode != mode::admin) {
+		if(state.selected_trade_good) {
+			state.flow_map.request_update(flow_map::data_source::commodity);
+		} else {
+			state.flow_map.request_update(flow_map::data_source::none);
+		}
+	}
+
 	switch(mode) {
 	case mode::state_select:
 		prov_color = select_states_map_from(state);
@@ -929,6 +937,7 @@ void set_map_mode(sys::state& state, mode mode) {
 		break;
 	case mode::admin:
 		prov_color = admin_map_from(state);
+		state.flow_map.request_update(flow_map::data_source::administration);
 		break;
 	case mode::naval:
 		prov_color = naval_map_from(state);
