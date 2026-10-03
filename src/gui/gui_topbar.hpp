@@ -17,7 +17,7 @@
 #include "text.hpp"
 #include "gui_event.hpp"
 #include "gui_units.hpp"
-#include "supply_route.hpp"
+#include "logistics.hpp"
 
 namespace ui {
 
@@ -390,7 +390,7 @@ class logistics_supply_loss_text : public multiline_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 
-		float sup_loss = supply_routes::nation_get_avg_supply_loss(state, state.local_player_nation);
+		float sup_loss = logistics::nation_get_avg_supply_loss(state, state.local_player_nation);
 		text::text_color color = get_color_from_loss(sup_loss);
 		auto layout = text::create_endless_layout(state, internal_layout,
 		text::layout_parameters{ 0, 0, int16_t(base_data.size.x), int16_t(base_data.size.y), base_data.data.text.font_handle, 0, text::alignment::left, text::text_color::white, false });
@@ -403,13 +403,13 @@ public:
 	}
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 
-		float total_sup_loss = supply_routes::nation_get_avg_supply_loss(state, state.local_player_nation);
+		float total_sup_loss = logistics::nation_get_avg_supply_loss(state, state.local_player_nation);
 
 		// Includes both supply and reinforcement
-		float army_routes_loss = supply_routes::nation_get_avg_military_supply_loss_by_type<dcon::army_id>(state, state.local_player_nation);
-		float navy_routes_loss = supply_routes::nation_get_avg_military_supply_loss_by_type<dcon::navy_id>(state, state.local_player_nation);
+		float army_routes_loss = logistics::nation_get_avg_military_supply_loss_by_type<dcon::army_id>(state, state.local_player_nation);
+		float navy_routes_loss = logistics::nation_get_avg_military_supply_loss_by_type<dcon::navy_id>(state, state.local_player_nation);
 
-		float construction_routes_loss = supply_routes::nation_get_avg_construction_supply_loss(state, state.local_player_nation);
+		float construction_routes_loss = logistics::nation_get_avg_construction_supply_loss(state, state.local_player_nation);
 
 		text::add_line(state, contents, "logistics_topbar_supply_loss_tooltip", text::variable_type::total, text::fp_percentage{ total_sup_loss }, text::variable_type::x, text::fp_percentage{ army_routes_loss }, text::variable_type::y, text::fp_percentage{ navy_routes_loss }, text::variable_type::val, text::fp_percentage{ construction_routes_loss });
 	}
@@ -420,7 +420,7 @@ class logistics_supply_throughput_text : public multiline_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		
-		float sup_throughput = supply_routes::nation_get_avg_supply_throughput(state, state.local_player_nation);
+		float sup_throughput = logistics::nation_get_avg_supply_throughput(state, state.local_player_nation);
 		text::text_color color = get_color_from_satisfaction(sup_throughput);
 		auto layout = text::create_endless_layout(state, internal_layout,
 		text::layout_parameters{ 0, 0, int16_t(base_data.size.x), int16_t(base_data.size.y), base_data.data.text.font_handle, 0, text::alignment::left, text::text_color::white, false });
@@ -433,13 +433,13 @@ public:
 	}
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 
-		float total_sup_throughput = supply_routes::nation_get_avg_supply_throughput(state, state.local_player_nation);
+		float total_sup_throughput = logistics::nation_get_avg_supply_throughput(state, state.local_player_nation);
 
 		// Includes both supply and reinforcement
-		float army_routes_throughput = supply_routes::nation_get_avg_military_supply_throughput_by_type<dcon::army_id>(state, state.local_player_nation);
-		float navy_routes_throughput = supply_routes::nation_get_avg_military_supply_throughput_by_type<dcon::navy_id>(state, state.local_player_nation);
+		float army_routes_throughput = logistics::nation_get_avg_military_supply_throughput_by_type<dcon::army_id>(state, state.local_player_nation);
+		float navy_routes_throughput = logistics::nation_get_avg_military_supply_throughput_by_type<dcon::navy_id>(state, state.local_player_nation);
 
-		float construction_routes_loss = supply_routes::nation_get_avg_construction_supply_throughput(state, state.local_player_nation);
+		float construction_routes_loss = logistics::nation_get_avg_construction_supply_throughput(state, state.local_player_nation);
 
 		text::add_line(state, contents, "logistics_topbar_supply_throughput_tooltip", text::variable_type::total, text::fp_percentage{ total_sup_throughput }, text::variable_type::x, text::fp_percentage{ army_routes_throughput }, text::variable_type::y, text::fp_percentage{ navy_routes_throughput }, text::variable_type::val, text::fp_percentage{ construction_routes_loss });
 	}

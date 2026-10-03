@@ -7,8 +7,8 @@
 #include "triggers.hpp"
 #include "ve_scalar_extensions.hpp"
 #include "province.hpp"
-#include "supply_route.hpp"
-#include "supply_route_templates.hpp"
+#include "logistics.hpp"
+#include "logistics_templates.hpp"
 #include "advanced_province_buildings.hpp"
 
 namespace ui {
@@ -211,12 +211,12 @@ void active_hardcoded_modifiers_description(sys::state& state, text::layout_base
 		dcon::national_modifier_value nmid, bool& header) {
 	auto fat_nation = fatten(state.world, n);
 	if(nmid == sys::national_mod_offsets::national_land_supply_throughput_add) {
-		float land_supply_speed = supply_routes::land_supply_speed(state, n);
-		active_single_hardcoded_modifier_description(state, layout, "modifier_land_supply_speed", land_supply_speed * supply_routes::supply_throughput_per_km_land_supply_speed, identation, header, sys::national_mod_offsets::national_land_supply_throughput_add);
+		float land_supply_speed = logistics::land_supply_speed(state, n);
+		active_single_hardcoded_modifier_description(state, layout, "modifier_land_supply_speed", land_supply_speed * logistics::supply_throughput_per_km_land_supply_speed, identation, header, sys::national_mod_offsets::national_land_supply_throughput_add);
 	}
 	else if(nmid == sys::national_mod_offsets::national_naval_supply_throughput_add) {
-		float naval_supply_speed = supply_routes::naval_supply_speed(state, n);
-		active_single_hardcoded_modifier_description(state, layout, "modifier_naval_supply_speed", naval_supply_speed * supply_routes::supply_throughput_per_km_naval_supply_speed, identation, header, sys::national_mod_offsets::national_naval_supply_throughput_add);
+		float naval_supply_speed = logistics::naval_supply_speed(state, n);
+		active_single_hardcoded_modifier_description(state, layout, "modifier_naval_supply_speed", naval_supply_speed * logistics::supply_throughput_per_km_naval_supply_speed, identation, header, sys::national_mod_offsets::national_naval_supply_throughput_add);
 	}
 }
 
@@ -228,7 +228,7 @@ void active_hardcoded_modifiers_description(sys::state& state, text::layout_base
 	case sys::provincial_mod_offsets::supply_throughput_percent.value:
 	{
 		auto movement_cost = province::movement_cost(state, prov);
-		float percent_mod = std::max((1.0f - movement_cost) * supply_routes::supply_throughput_from_movement_cost_mult, supply_routes::supply_throughput_from_movement_cost_max_penalty);
+		float percent_mod = std::max((1.0f - movement_cost) * logistics::supply_throughput_from_movement_cost_mult, logistics::supply_throughput_from_movement_cost_max_penalty);
 		if(percent_mod != 0.0f) {
 			active_single_hardcoded_modifier_description(state, layout, "modifier_movement_cost", percent_mod, identation, header, sys::provincial_mod_offsets::supply_throughput_percent);
 		}
@@ -237,8 +237,8 @@ void active_hardcoded_modifiers_description(sys::state& state, text::layout_base
 
 	case sys::provincial_mod_offsets::supply_throughput_mul.value:
 	{
-		float blockade_mod = supply_routes::supply_throughput_mult_hostile_troops_modifier(state, prov, local_nation);
-		float access_mod = supply_routes::supply_throughput_mult_access_modifier(state, prov, local_nation);
+		float blockade_mod = logistics::supply_throughput_mult_hostile_troops_modifier(state, prov, local_nation);
+		float access_mod = logistics::supply_throughput_mult_access_modifier(state, prov, local_nation);
 		if(access_mod != 1.0f) {
 			ui::active_single_hardcoded_modifier_description(state, layout, "supply_throughput_mult_access_modifier", access_mod, 8, header, sys::provincial_mod_offsets::supply_throughput_mul);
 		}
@@ -253,7 +253,7 @@ void active_hardcoded_modifiers_description(sys::state& state, text::layout_base
 		bool is_sea = province::is_sea(state, prov);
 		
 		if(!is_sea) {
-			float hostile_armies_add = supply_routes::supply_loss_add_hostile_armies(state, prov, local_nation);
+			float hostile_armies_add = logistics::supply_loss_add_hostile_armies(state, prov, local_nation);
 			if(hostile_armies_add != 0.0f) {
 				ui::active_single_hardcoded_modifier_description(state, layout, "supply_loss_add_hostile_armies_modifier", hostile_armies_add, 8, header, sys::provincial_mod_offsets::supply_loss_add);
 			}
@@ -262,15 +262,15 @@ void active_hardcoded_modifiers_description(sys::state& state, text::layout_base
 	}
 	case sys::provincial_mod_offsets::port_supply_capacity_mul.value:
 	{
-		float blockaded_mult = supply_routes::port_supply_capacity_mult_blockaded_modifier(state, prov, local_nation);
+		float blockaded_mult = logistics::port_supply_capacity_mult_blockaded_modifier(state, prov, local_nation);
 		if(blockaded_mult != 1.0f) {
 			ui::active_single_hardcoded_modifier_description(state, layout, "port_supply_capacity_mul_blockaded_modifier", blockaded_mult, 8, header, sys::provincial_mod_offsets::port_supply_capacity_mul);
 		}
-		float access_mult = supply_routes::port_supply_capacity_mult_supply_access_modifier(state, prov, local_nation);
+		float access_mult = logistics::port_supply_capacity_mult_supply_access_modifier(state, prov, local_nation);
 		if(access_mult != 1.0f) {
 			ui::active_single_hardcoded_modifier_description(state, layout, "port_supply_capacity_mul_access_modifier", access_mult, 8, header, sys::provincial_mod_offsets::port_supply_capacity_mul);
 		}
-		float hostile_units_mult = supply_routes::port_supply_capacity_mult_hostile_troops_modifier(state, prov, local_nation);
+		float hostile_units_mult = logistics::port_supply_capacity_mult_hostile_troops_modifier(state, prov, local_nation);
 		if(hostile_units_mult != 1.0f) {
 			ui::active_single_hardcoded_modifier_description(state, layout, "port_supply_capacity_mul_hostile_units_modifier", hostile_units_mult, 8, header, sys::provincial_mod_offsets::port_supply_capacity_mul);
 		}

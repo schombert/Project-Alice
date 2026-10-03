@@ -7,7 +7,7 @@
 #include "economy.hpp"
 #include "economy_templates.hpp"
 #include "advanced_province_buildings.hpp"
-#include "supply_route.hpp"
+#include "logistics.hpp"
 #include "nations_templates.hpp"
 
 namespace economy {
@@ -761,14 +761,14 @@ void get_last_fufilled_construction_need(const sys::state& state, con_type const
 	auto routes = construction_get_supply_routes(state, construction);
 	const economy::commodity_set& build_cost = construction_get_base_build_cost(state, construction);
 	for(auto route : routes) {
-		if(supply_routes::supply_route_is_active(state, route.id)) {
-			float supply_loss = supply_routes::supply_route_get_supply_loss(state, route.id);
+		if(logistics::supply_route_is_active(state, route.id)) {
+			float supply_loss = logistics::supply_route_get_supply_loss(state, route.id);
 			const commodity_amounts& buffered_goods = route.get_buffered_goods();
 			build_cost.for_each_valid_index([&](uint32_t idx) {
 				dcon::commodity_id com_id = build_cost.commodity_type[idx];
 				float com_supply_loss_mod = state.world.commodity_get_supply_loss_rate(com_id);;
-				float loss_mult = supply_routes::supply_loss_to_loss_multiplier(supply_loss, com_supply_loss_mod);
-				vec_out[com_id] += (buffered_goods[idx] * loss_mult * supply_routes::supply_route_get_throughput(state, route.id)); // take into account goods which will be lost to attrition and throughput
+				float loss_mult = logistics::supply_loss_to_loss_multiplier(supply_loss, com_supply_loss_mod);
+				vec_out[com_id] += (buffered_goods[idx] * loss_mult * logistics::supply_route_get_throughput(state, route.id)); // take into account goods which will be lost to attrition and throughput
 
 			});
 		}

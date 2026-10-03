@@ -20,7 +20,7 @@
 #include "advanced_province_buildings.hpp"
 #include "concept_declarations.hpp"
 #include "xac.hpp"
-#include "supply_route.hpp"
+#include "logistics.hpp"
 
 namespace duplicates {
 glm::vec2 get_port_location(sys::state& state, dcon::province_id p) {
@@ -2597,7 +2597,7 @@ void make_supply_route_path(sys::state& state, std::vector<map::curved_line_vert
 	if(auto ps = path.size(); ps > 0) {
 		auto progress = 0.0f;
 		// The "destination" is actually the start in the path, as it is more convinient to path FROM the army/construction to the origin (market stockpile).
-		dcon::province_id start_location = supply_routes::supply_route_get_destination(state, r);
+		dcon::province_id start_location = logistics::supply_route_get_destination(state, r);
 		glm::vec2 current_pos = duplicates::get_army_location(state, start_location);
 		glm::vec2 next_pos = put_in_local(duplicates::get_army_location(state, path[ps - 1]), current_pos, size_x);
 		glm::vec2 prev_perpendicular = glm::normalize(next_pos - current_pos);

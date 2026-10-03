@@ -36,6 +36,9 @@
 #include "modes/colonial.hpp"
 #include "modes/rgo_output.hpp"
 #include "modes/religion.hpp"
+#include "gui_element_types.hpp"
+#include "province_templates.hpp"
+#include "logistics.hpp"
 
 //
 // EXTRA MAP MODES
@@ -728,9 +731,7 @@ std::vector<uint32_t> players_map_from(sys::state& state) {
 	return prov_color;
 }
 
-#include "gui_element_types.hpp"
-#include <province_templates.hpp>
-#include <supply_route.hpp>
+
 
 std::vector<uint32_t> select_states_map_from(sys::state& state) {
 	uint32_t province_size = state.world.province_size();
@@ -798,12 +799,12 @@ std::vector<uint32_t> supply_loss_map_from(sys::state& state) {
 		float mx = 0.0f;
 		float mn = 99999999.0f;
 		for(auto p : state.world.nation_get_province_ownership(for_nation)) {
-			auto v = supply_routes::calculate_supply_loss_in_province(state, p.get_province(), state.local_player_nation);
+			auto v = logistics::calculate_supply_loss_in_province(state, p.get_province(), state.local_player_nation);
 			mn = std::min(mn, v);
 			mx = std::max(mx, v);
 		}
 		for(auto p : state.world.nation_get_province_ownership(for_nation)) {
-			auto v =  supply_routes::calculate_supply_loss_in_province(state, p.get_province(), state.local_player_nation);
+			auto v =  logistics::calculate_supply_loss_in_province(state, p.get_province(), state.local_player_nation);
 
 			uint32_t color = [&]() {
 				if(mx > mn) {
@@ -825,12 +826,12 @@ std::vector<uint32_t> supply_loss_map_from(sys::state& state) {
 		float mx = 0.0f;
 		float mn = 99999999.0f;
 		province::for_each_land_province(state, [&](dcon::province_id prov) {
-			auto v = supply_routes::calculate_supply_loss_in_province(state, prov, state.local_player_nation);
+			auto v = logistics::calculate_supply_loss_in_province(state, prov, state.local_player_nation);
 			mn = std::min(mn, v);
 			mx = std::max(mx, v);
 		});
 		province::for_each_land_province(state, [&](dcon::province_id prov) {
-			auto v = supply_routes::calculate_supply_loss_in_province(state, prov, state.local_player_nation);
+			auto v = logistics::calculate_supply_loss_in_province(state, prov, state.local_player_nation);
 
 			uint32_t color = [&]() {
 				if(mx > mn) {
@@ -869,7 +870,7 @@ std::vector<uint32_t> supply_throughput_map_from(sys::state& state) {
 		for(auto p : state.world.nation_get_province_ownership(for_nation)) {
 			// Only include provinces we have potential access to
 			if(province::has_supply_access_to_province(state, state.local_player_nation, p.get_province())) {
-				auto v = supply_routes::calculate_supply_throughput_in_province(state, p.get_province(), state.local_player_nation);
+				auto v = logistics::calculate_supply_throughput_in_province(state, p.get_province(), state.local_player_nation);
 				mn = std::min(mn, v);
 				mx = std::max(mx, v);
 			}
@@ -879,7 +880,7 @@ std::vector<uint32_t> supply_throughput_map_from(sys::state& state) {
 		for(auto p : state.world.nation_get_province_ownership(for_nation)) {
 			auto i = province::to_map_id(p.get_province());
 			if(province::has_supply_access_to_province(state, state.local_player_nation, p.get_province())) {
-				auto v = supply_routes::calculate_supply_throughput_in_province(state, p.get_province(), state.local_player_nation);
+				auto v = logistics::calculate_supply_throughput_in_province(state, p.get_province(), state.local_player_nation);
 
 				uint32_t color = [&]() {
 					if(mx > mn) {
@@ -908,7 +909,7 @@ std::vector<uint32_t> supply_throughput_map_from(sys::state& state) {
 		float mn = 1.0f;
 		province::for_each_land_province(state, [&](dcon::province_id prov) {
 			if(province::has_supply_access_to_province(state, state.local_player_nation, prov)) {
-				auto v = supply_routes::calculate_supply_throughput_in_province(state, prov, state.local_player_nation);
+				auto v = logistics::calculate_supply_throughput_in_province(state, prov, state.local_player_nation);
 				mn = std::min(mn, v);
 				mx = std::max(mx, v);
 			}
@@ -917,7 +918,7 @@ std::vector<uint32_t> supply_throughput_map_from(sys::state& state) {
 		province::for_each_land_province(state, [&](dcon::province_id prov) {
 			auto i = province::to_map_id(prov);
 			if(province::has_supply_access_to_province(state, state.local_player_nation, prov)) {
-				auto v = supply_routes::calculate_supply_throughput_in_province(state, prov, state.local_player_nation);
+				auto v = logistics::calculate_supply_throughput_in_province(state, prov, state.local_player_nation);
 
 				uint32_t color = [&]() {
 					if(mx > mn) {
@@ -959,7 +960,7 @@ std::vector<uint32_t> port_supply_capacity_map_from(sys::state& state) {
 		for(auto p : state.world.nation_get_province_ownership(for_nation)) {
 			// Only include ports and provinces we know we can access in the min/max gradient
 			if(province::prov_is_coastal(state, p.get_province()) && province::has_supply_access_to_province(state, state.local_player_nation, p.get_province())) {
-				auto v = supply_routes::port_supply_capacity_in_province(state, p.get_province(), state.local_player_nation);
+				auto v = logistics::port_supply_capacity_in_province(state, p.get_province(), state.local_player_nation);
 				mn = std::min(mn, v);
 				mx = std::max(mx, v);
 			}
@@ -969,7 +970,7 @@ std::vector<uint32_t> port_supply_capacity_map_from(sys::state& state) {
 			auto i = province::to_map_id(p.get_province());
 			// Non-port non-accessible provinces are blacked out
 			if(province::prov_is_coastal(state, p.get_province()) && province::has_supply_access_to_province(state, state.local_player_nation, p.get_province())) {
-				auto v = supply_routes::port_supply_capacity_in_province(state, p.get_province(), state.local_player_nation);
+				auto v = logistics::port_supply_capacity_in_province(state, p.get_province(), state.local_player_nation);
 
 				uint32_t color = [&]() {
 					if(mx > mn) {
@@ -996,7 +997,7 @@ std::vector<uint32_t> port_supply_capacity_map_from(sys::state& state) {
 		province::for_each_land_province(state, [&](dcon::province_id prov) {
 			// Only include ports and provinces we know we can access in the min/max gradient
 			if(province::prov_is_coastal(state, prov) && province::has_supply_access_to_province(state, state.local_player_nation, prov)) {
-				auto v = supply_routes::port_supply_capacity_in_province(state, prov, state.local_player_nation);
+				auto v = logistics::port_supply_capacity_in_province(state, prov, state.local_player_nation);
 				mn = std::min(mn, v);
 				mx = std::max(mx, v);
 			}
@@ -1006,7 +1007,7 @@ std::vector<uint32_t> port_supply_capacity_map_from(sys::state& state) {
 			auto i = province::to_map_id(prov);
 			// Non-port non-accessible provinces are blacked out
 			if(province::prov_is_coastal(state, prov) && province::has_supply_access_to_province(state, state.local_player_nation, prov)) {
-				auto v = supply_routes::calculate_supply_throughput_in_province(state, prov, state.local_player_nation);
+				auto v = logistics::calculate_supply_throughput_in_province(state, prov, state.local_player_nation);
 				uint32_t color = [&]() {
 					if(mx > mn) {
 						return ogl::color_gradient((v - mn) / (mx - mn),
@@ -1052,10 +1053,10 @@ std::vector<uint32_t> supply_route_efficiency_map_from(sys::state& state) {
 				for(auto adj : prov.get_province_adjacency()) {
 					auto indx = (adj.get_connected_provinces(0).id != prov ? 0 : 1);
 					auto adj_prov = adj.get_connected_provinces(indx);
-					auto available_throughput = supply_routes::calculate_supply_throughput_in_adjacency(state, adj, state.local_player_nation);
+					auto available_throughput = logistics::calculate_supply_throughput_in_adjacency(state, adj, state.local_player_nation);
 					// Only include if they have greater than 0 throughput
 					if(available_throughput > 0.0f) {
-						auto eff = supply_routes::supply_throughput_efficiency(state, adj, state.local_player_nation);
+						auto eff = logistics::supply_throughput_efficiency(state, adj, state.local_player_nation);
 
 						mn_eff = std::min(mn_eff, eff);
 						mx_eff = std::max(mx_eff, eff);
@@ -1073,9 +1074,9 @@ std::vector<uint32_t> supply_route_efficiency_map_from(sys::state& state) {
 				for(auto adj : prov.get_province_adjacency()) {
 					auto indx = (adj.get_connected_provinces(0).id != prov ? 0 : 1);
 					auto adj_prov = adj.get_connected_provinces(indx);
-					auto available_throughput = supply_routes::calculate_supply_throughput_in_adjacency(state, adj, state.local_player_nation);
+					auto available_throughput = logistics::calculate_supply_throughput_in_adjacency(state, adj, state.local_player_nation);
 					if(available_throughput > 0.0f) {
-						eff = std::min(supply_routes::supply_throughput_efficiency(state, adj, state.local_player_nation), eff);
+						eff = std::min(logistics::supply_throughput_efficiency(state, adj, state.local_player_nation), eff);
 					}
 				}
 
@@ -1108,9 +1109,9 @@ std::vector<uint32_t> supply_route_efficiency_map_from(sys::state& state) {
 				for(auto adj : prov.get_province_adjacency()) {
 					auto indx = (adj.get_connected_provinces(0).id != prov ? 0 : 1);
 					auto adj_prov = adj.get_connected_provinces(indx);
-					auto available_throughput = supply_routes::calculate_supply_throughput_in_adjacency(state, adj, state.local_player_nation);
+					auto available_throughput = logistics::calculate_supply_throughput_in_adjacency(state, adj, state.local_player_nation);
 					if(available_throughput > 0.0f) {
-						auto eff = supply_routes::supply_throughput_efficiency(state, adj, state.local_player_nation);
+						auto eff = logistics::supply_throughput_efficiency(state, adj, state.local_player_nation);
 						mn_eff = std::min(mn_eff, eff);
 						mx_eff = std::max(mx_eff, eff);
 					}
@@ -1125,9 +1126,9 @@ std::vector<uint32_t> supply_route_efficiency_map_from(sys::state& state) {
 				for(auto adj : prov.get_province_adjacency()) {
 					auto indx = (adj.get_connected_provinces(0).id != prov ? 0 : 1);
 					auto adj_prov = adj.get_connected_provinces(indx);
-					auto available_throughput = supply_routes::calculate_supply_throughput_in_adjacency(state, adj, state.local_player_nation);
+					auto available_throughput = logistics::calculate_supply_throughput_in_adjacency(state, adj, state.local_player_nation);
 					if(available_throughput > 0.0f) {
-						eff = std::min(supply_routes::supply_throughput_efficiency(state, adj, state.local_player_nation), eff);
+						eff = std::min(logistics::supply_throughput_efficiency(state, adj, state.local_player_nation), eff);
 					}
 				}
 

@@ -20,7 +20,7 @@
 //#include <filesystem>
 
 #include <set>
-#include "supply_route.hpp"
+#include "logistics.hpp"
 
 namespace map {
 
@@ -1116,11 +1116,11 @@ void update_supply_route_arrows(sys::state& state, display_data& map_data) {
 	map_data.strategy_unit_arrow_starts.clear();
 	for(auto selected_army : state.selected_armies) {
 		for(auto route : state.world.army_get_army_supply_route(selected_army)) {
-			if(!supply_routes::supply_route_is_active(state, route.id)) {
+			if(!logistics::supply_route_is_active(state, route.id)) {
 				continue;
 			}
 			// make a copy of the path so that there arent the possibilty of the path being modified while the renderer reads from it
-			auto path = state.world.supply_route_path_get_path( supply_routes::supply_route_get_path(state, route.id));
+			auto path = state.world.supply_route_path_get_path( logistics::supply_route_get_path(state, route.id));
 			if(path.size() > 0) {
 				auto path_copy = std::vector<dcon::province_id>(path.begin(), path.end());
 				auto old_size = map_data.strategy_unit_arrow_vertices.size();
@@ -1132,11 +1132,11 @@ void update_supply_route_arrows(sys::state& state, display_data& map_data) {
 	}
 	for(auto selected_navy : state.selected_navies) {
 		for(auto route : state.world.navy_get_navy_supply_route(selected_navy)) {
-			if(!supply_routes::supply_route_is_active(state, route.id)) {
+			if(!logistics::supply_route_is_active(state, route.id)) {
 				continue;
 			}
 			// make a copy of the path so that there arent the possibilty of the path being modified while the renderer reads from it
-			auto path = state.world.supply_route_path_get_path(supply_routes::supply_route_get_path(state, route.id));
+			auto path = state.world.supply_route_path_get_path(logistics::supply_route_get_path(state, route.id));
 			if(path.size() > 0) {
 				auto path_copy = std::vector<dcon::province_id>(path.begin(), path.end());
 				auto old_size = map_data.strategy_unit_arrow_vertices.size();

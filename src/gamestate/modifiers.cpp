@@ -8,31 +8,31 @@
 #include "triggers.hpp"
 #include "ve_scalar_extensions.hpp"
 #include "economy.hpp"
-#include "supply_route.hpp"
-#include "supply_route_templates.hpp"
+#include "logistics.hpp"
+#include "logistics_templates.hpp"
 #include "advanced_province_buildings.hpp"
 
 namespace sys {
 
 void apply_hardcoded_modifier_values_to_nation(sys::state& state, dcon::nation_id target_nation) {
 	auto fat_nation = fatten(state.world, target_nation);
-	float land_supply_speed = supply_routes::land_supply_speed(state, target_nation);
+	float land_supply_speed = logistics::land_supply_speed(state, target_nation);
 	float cur_land_throughput = fat_nation.get_modifier_values(sys::national_mod_offsets::national_land_supply_throughput_add);
-	fat_nation.set_modifier_values(sys::national_mod_offsets::national_land_supply_throughput_add, cur_land_throughput + land_supply_speed * supply_routes::supply_throughput_per_km_land_supply_speed);
+	fat_nation.set_modifier_values(sys::national_mod_offsets::national_land_supply_throughput_add, cur_land_throughput + land_supply_speed * logistics::supply_throughput_per_km_land_supply_speed);
 
-	float naval_supply_speed = supply_routes::naval_supply_speed(state, target_nation);
+	float naval_supply_speed = logistics::naval_supply_speed(state, target_nation);
 	float cur_naval_throughput = fat_nation.get_modifier_values(sys::national_mod_offsets::national_naval_supply_throughput_add);
-	fat_nation.set_modifier_values(sys::national_mod_offsets::national_naval_supply_throughput_add, cur_naval_throughput + naval_supply_speed * supply_routes::supply_throughput_per_km_naval_supply_speed);
+	fat_nation.set_modifier_values(sys::national_mod_offsets::national_naval_supply_throughput_add, cur_naval_throughput + naval_supply_speed * logistics::supply_throughput_per_km_naval_supply_speed);
 }
 template<concepts::dcon_id_ve_type<dcon::nation_id> nation_ids>
 void ve_apply_hardcoded_modifier_values_to_nation(sys::state& state, nation_ids target_nations, ve::mask_vector apply_mask) {
-	auto land_supply_speed = supply_routes::land_supply_speed(state, target_nations);
+	auto land_supply_speed = logistics::land_supply_speed(state, target_nations);
 	auto cur_land_throughput = state.world.nation_get_modifier_values(target_nations, sys::national_mod_offsets::national_land_supply_throughput_add);
-	state.world.nation_set_modifier_values(target_nations, sys::national_mod_offsets::national_land_supply_throughput_add, ve::select(apply_mask, cur_land_throughput + land_supply_speed * supply_routes::supply_throughput_per_km_land_supply_speed, cur_land_throughput));
+	state.world.nation_set_modifier_values(target_nations, sys::national_mod_offsets::national_land_supply_throughput_add, ve::select(apply_mask, cur_land_throughput + land_supply_speed * logistics::supply_throughput_per_km_land_supply_speed, cur_land_throughput));
 
-	auto naval_supply_speed = supply_routes::naval_supply_speed(state, target_nations);
+	auto naval_supply_speed = logistics::naval_supply_speed(state, target_nations);
 	auto cur_naval_throughput = state.world.nation_get_modifier_values(target_nations, sys::national_mod_offsets::national_naval_supply_throughput_add);
-	state.world.nation_set_modifier_values(target_nations, sys::national_mod_offsets::national_naval_supply_throughput_add, ve::select(apply_mask, cur_naval_throughput + naval_supply_speed * supply_routes::supply_throughput_per_km_naval_supply_speed, cur_naval_throughput));
+	state.world.nation_set_modifier_values(target_nations, sys::national_mod_offsets::national_naval_supply_throughput_add, ve::select(apply_mask, cur_naval_throughput + naval_supply_speed * logistics::supply_throughput_per_km_naval_supply_speed, cur_naval_throughput));
 }
 
 void apply_hardcoded_modifier_values_to_province(sys::state& state, dcon::province_id prov) {
@@ -40,7 +40,7 @@ void apply_hardcoded_modifier_values_to_province(sys::state& state, dcon::provin
 	// Apply supply throughput modifiers from movement cost
 	auto movement_cost = province::movement_cost(state, prov);
 	float current = fat_prov.get_modifier_values(sys::provincial_mod_offsets::supply_throughput_percent);
-	float percent_add = std::max( (1.0f - movement_cost) * supply_routes::supply_throughput_from_movement_cost_mult, supply_routes::supply_throughput_from_movement_cost_max_penalty);
+	float percent_add = std::max( (1.0f - movement_cost) * logistics::supply_throughput_from_movement_cost_mult, logistics::supply_throughput_from_movement_cost_max_penalty);
 	fat_prov.set_modifier_values(sys::provincial_mod_offsets::supply_throughput_percent, current + percent_add);
 }
 template<concepts::dcon_id_ve_type<dcon::province_id> province_ids>
@@ -48,7 +48,7 @@ void ve_apply_hardcoded_modifier_values_to_province(sys::state& state, province_
 	// Apply supply throughput modifiers from movement cost
 	auto movement_cost = province::movement_cost(state, provs);
 	auto current = state.world.province_get_modifier_values(provs, sys::provincial_mod_offsets::supply_throughput_percent);
-	auto percent_add = ve::max((1.0f - movement_cost) * supply_routes::supply_throughput_from_movement_cost_mult, supply_routes::supply_throughput_from_movement_cost_max_penalty);
+	auto percent_add = ve::max((1.0f - movement_cost) * logistics::supply_throughput_from_movement_cost_mult, logistics::supply_throughput_from_movement_cost_max_penalty);
 	state.world.province_set_modifier_values(provs, sys::provincial_mod_offsets::supply_throughput_percent, ve::select(apply_mask, current + percent_add, current));
 }
 

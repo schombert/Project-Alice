@@ -37,7 +37,7 @@
 #include "alice_ui.hpp"
 #include "commands.hpp"
 #include "dcon_oos_reporter_generated.hpp"
-#include "supply_route.hpp"
+#include "logistics.hpp"
 
 namespace sys {
 
@@ -3505,7 +3505,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	// ai::update_ai_research(*this);
 	ai::update_influence_priorities(*this);
 	ai::update_focuses(*this);
-	supply_routes::update_supply_routes_daily(*this);
+	logistics::update_supply_routes_daily(*this);
 
 
 	military::reinforce_regiments(*this);
@@ -4488,7 +4488,7 @@ void state::single_game_tick() {
 		//
 
 
-		supply_routes::update_supply_routes_daily(*this);
+		logistics::update_supply_routes_daily(*this);
 
 		economy::advance_constructions_progress(*this);
 
@@ -4553,7 +4553,7 @@ void state::single_game_tick() {
 		case 1:
 			nations::update_monthly_points(*this);
 			economy::prune_factories(*this);
-			supply_routes::schedule_active_ineffective_supply_paths_update(*this); // The actual update will happen on the 2nd day of the month, this just schedules it
+			logistics::schedule_active_ineffective_supply_paths_update(*this); // The actual update will happen on the 2nd day of the month, this just schedules it
 			break;
 		case 2:
 			province::update_blockaded_cache(*this);

@@ -32,7 +32,7 @@
 #include "container_types_ui.hpp"
 
 // TODO: REMOVE TEMPORARY CONSTANTS WHEN DONE
-namespace supply_routes {
+namespace logistics {
 
 
 constexpr float base_land_supply_speed = 0.1f; // base land supply speed

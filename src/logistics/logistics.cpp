@@ -5,13 +5,13 @@
 #include "province.hpp"
 #include "military_templates.hpp"
 #include "construction.hpp"
-#include "supply_route_templates.hpp"
-#include "supply_route.hpp"
+#include "logistics_templates.hpp"
+#include "logistics.hpp"
 #include "economy_templates.hpp"
 #include "military_templates.hpp"
 #include "nations_templates.hpp"
 
-namespace supply_routes {
+namespace logistics {
 
 constexpr uint32_t supply_route_pathfinding_batches = 30; // The desired amount of batches for processing pathfinding in parallel. Less batches = better performance when under heavy load, but the pathfinding is not able to take other potentially overlapping paths into account in the pathfinding logic.
 
@@ -1005,8 +1005,8 @@ float calculate_adjacency_avg_supply_loss(const sys::state& state, dcon::provinc
 }
 
 float calculate_adjacency_avg_supply_loss(const sys::state& state, dcon::province_id prov_1, dcon::province_id prov_2, dcon::nation_id nation_as) {
-	float prov_1_loss = supply_routes::calculate_supply_loss_in_province(state, prov_1, nation_as);
-	float prov_2_loss = supply_routes::calculate_supply_loss_in_province(state, prov_2, nation_as);
+	float prov_1_loss = logistics::calculate_supply_loss_in_province(state, prov_1, nation_as);
+	float prov_2_loss = logistics::calculate_supply_loss_in_province(state, prov_2, nation_as);
 	return calculate_adjacency_avg_supply_loss(state, prov_1, prov_2, prov_1_loss, prov_2_loss, nation_as);
 }
 float calculate_adjacency_avg_supply_loss(const sys::state& state, dcon::province_adjacency_id province_adj, dcon::nation_id nation_as) {
@@ -1024,8 +1024,8 @@ float calculate_adjacency_net_supply_loss(const sys::state& state, dcon::provinc
 }
 
 float calculate_adjacency_net_supply_loss(const sys::state& state, dcon::province_adjacency_id province_adj, dcon::province_id prov_1, dcon::province_id prov_2, dcon::nation_id nation_as) {
-	float prov_1_loss = supply_routes::calculate_supply_loss_in_province(state, prov_1, nation_as);
-	float prov_2_loss = supply_routes::calculate_supply_loss_in_province(state, prov_2, nation_as);
+	float prov_1_loss = logistics::calculate_supply_loss_in_province(state, prov_1, nation_as);
+	float prov_2_loss = logistics::calculate_supply_loss_in_province(state, prov_2, nation_as);
 	return calculate_adjacency_net_supply_loss(state, province_adj, prov_1, prov_2, prov_1_loss, prov_2_loss, nation_as);
 }
 
@@ -1044,7 +1044,7 @@ float calculate_supply_route_supply_loss(const sys::state& state, std::span<cons
 	float total_attrition_mod = 0.0f;
 	// Keep track of the "last" and "next" province while iterating through the adjacencies, so that we need only compute 1+1*N supply loss computations, instead of 2*N
 	dcon::province_id last_province = start_prov;
-	float last_province_sup_loss = supply_routes::calculate_supply_loss_in_province(state, last_province, controller);
+	float last_province_sup_loss = logistics::calculate_supply_loss_in_province(state, last_province, controller);
 	for(auto adj : adj_path) {
 		auto prov_1 = state.world.province_adjacency_get_connected_provinces(adj, 0);
 		auto prov_2 = state.world.province_adjacency_get_connected_provinces(adj, 1);
@@ -1052,7 +1052,7 @@ float calculate_supply_route_supply_loss(const sys::state& state, std::span<cons
 
 		assert(adj_province_pair_valid(state, adj, last_province, next_province));
 
-		float next_province_sup_loss = supply_routes::calculate_supply_loss_in_province(state, next_province, controller);
+		float next_province_sup_loss = logistics::calculate_supply_loss_in_province(state, next_province, controller);
 		total_attrition_mod += calculate_adjacency_net_supply_loss(state, adj, last_province, next_province, last_province_sup_loss, next_province_sup_loss, controller);
 		last_province = next_province;
 		last_province_sup_loss = next_province_sup_loss;
@@ -1275,14 +1275,14 @@ template<military::unit_consumption_type consume_type, concepts::military_unit u
 static void accumulate_military_unit_supply_loss(const sys::state& state, unit_type unit, F&& accumulate_func) {
 	auto routes = military::unit_get_supply_routes(state, unit);
 	for(auto route : routes) {
-		if(supply_routes::supply_route_is_active(state, route.id)) {
-			float supply_loss = supply_routes::supply_route_get_supply_loss(state, route.id);
+		if(logistics::supply_route_is_active(state, route.id)) {
+			float supply_loss = logistics::supply_route_get_supply_loss(state, route.id);
 			if constexpr(consume_type == military::unit_consumption_type::supply) {
 				state.world.for_each_unit_supply_commodity([&](dcon::unit_supply_commodity_id com) {
 					dcon::commodity_id base_com = economy::unit_commodity_get_base_commodity(state, com);
 					float com_loss_mult = state.world.commodity_get_supply_loss_rate(base_com);
 					float commodity_loss = supply_loss_to_commodity_loss(supply_loss, com_loss_mult);
-					float buffered_amount = supply_routes::military_route_get_buffered_goods(state, route.id, com);
+					float buffered_amount = logistics::military_route_get_buffered_goods(state, route.id, com);
 					accumulate_func(base_com, buffered_amount, commodity_loss);
 				});
 			} else if constexpr(consume_type == military::unit_consumption_type::reinforcement) {
@@ -1290,7 +1290,7 @@ static void accumulate_military_unit_supply_loss(const sys::state& state, unit_t
 					dcon::commodity_id base_com = economy::unit_commodity_get_base_commodity(state, com);
 					float com_loss_mult = state.world.commodity_get_supply_loss_rate(base_com);
 					float commodity_loss = supply_loss_to_commodity_loss(supply_loss, com_loss_mult);
-					float buffered_amount = supply_routes::military_route_get_buffered_goods(state, route.id, com);
+					float buffered_amount = logistics::military_route_get_buffered_goods(state, route.id, com);
 					accumulate_func(base_com, buffered_amount, commodity_loss);
 				});
 			}
@@ -1309,8 +1309,8 @@ static void accumulate_construction_supply_loss(const sys::state& state, con_typ
 	}
 	auto routes = economy::construction_get_supply_routes(state, construction);
 	for(auto route : routes) {
-		if(supply_routes::supply_route_is_active(state, route.id)) {
-			float supply_loss = supply_routes::supply_route_get_supply_loss(state, route.id);
+		if(logistics::supply_route_is_active(state, route.id)) {
+			float supply_loss = logistics::supply_route_get_supply_loss(state, route.id);
 			const economy::commodity_set& base_cost = economy::construction_get_base_build_cost(state, construction);
 			base_cost.for_each_valid_index([&](uint32_t idx) {
 				dcon::commodity_id base_com = base_cost.commodity_type[idx];
@@ -1331,18 +1331,18 @@ template<military::unit_consumption_type consume_type, concepts::military_unit u
 static void accumulate_military_unit_supply_throughput(const sys::state& state, unit_type unit, F&& accumulate_func) {
 	auto routes = military::unit_get_supply_routes(state, unit);
 	for(auto route : routes) {
-		if(supply_routes::supply_route_is_active(state, route.id)) {
-			float supply_throughput = supply_routes::supply_route_get_throughput(state, route.id);
+		if(logistics::supply_route_is_active(state, route.id)) {
+			float supply_throughput = logistics::supply_route_get_throughput(state, route.id);
 			if constexpr(consume_type == military::unit_consumption_type::supply) {
 				state.world.for_each_unit_supply_commodity([&](dcon::unit_supply_commodity_id com) {
 					dcon::commodity_id base_com = economy::unit_commodity_get_base_commodity(state, com);
-					float buffered_amount = supply_routes::military_route_get_buffered_goods(state, route.id, com);
+					float buffered_amount = logistics::military_route_get_buffered_goods(state, route.id, com);
 					accumulate_func(base_com, buffered_amount, supply_throughput);
 				});
 			} else if constexpr(consume_type == military::unit_consumption_type::reinforcement) {
 				state.world.for_each_unit_build_commodity([&](dcon::unit_build_commodity_id com) {
 					dcon::commodity_id base_com = economy::unit_commodity_get_base_commodity(state, com);
-					float buffered_amount = supply_routes::military_route_get_buffered_goods(state, route.id, com);
+					float buffered_amount = logistics::military_route_get_buffered_goods(state, route.id, com);
 					accumulate_func(base_com, buffered_amount, supply_throughput);
 				});
 			}
@@ -1360,8 +1360,8 @@ static void accumulate_construction_supply_throughput(const sys::state& state, c
 	}
 	auto routes = economy::construction_get_supply_routes(state, construction);
 	for(auto route : routes) {
-		if(supply_routes::supply_route_is_active(state, route.id)) {
-			float supply_throughput = supply_routes::supply_route_get_throughput(state, route.id);
+		if(logistics::supply_route_is_active(state, route.id)) {
+			float supply_throughput = logistics::supply_route_get_throughput(state, route.id);
 			const economy::commodity_set& base_cost = economy::construction_get_base_build_cost(state, construction);
 			base_cost.for_each_valid_index([&](uint32_t idx) {
 				dcon::commodity_id base_com = base_cost.commodity_type[idx];
@@ -1886,8 +1886,8 @@ void update_construction_commodity_satisfaction(sys::state& state, construction_
 	const economy::commodity_set& build_costs = economy::construction_get_base_build_cost(state, c);
 	for(auto route : routes) {
 		if(supply_route_is_active(state, route.id)) {
-			float throughput = supply_routes::supply_route_get_throughput(state, route.id);
-			float supply_loss = supply_routes::supply_route_get_supply_loss(state, route.id);
+			float throughput = logistics::supply_route_get_throughput(state, route.id);
+			float supply_loss = logistics::supply_route_get_supply_loss(state, route.id);
 			const economy::commodity_amounts& route_goods = route.get_buffered_goods();
 			for(uint32_t j = 0; j < build_costs.set_size; j++) {
 				dcon::commodity_id com_id = build_costs.commodity_type[j];

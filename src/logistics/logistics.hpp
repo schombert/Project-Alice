@@ -1,6 +1,6 @@
 #pragma once
 #include "system_state_forward.hpp"
-namespace supply_routes {
+namespace logistics {
 
 
 dcon::province_id supply_route_get_destination(const sys::state& state, dcon::army_supply_route_id route);

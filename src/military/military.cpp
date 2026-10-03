@@ -22,9 +22,9 @@
 #include "economy.hpp"
 #include "economy_templates.hpp"
 #include "construction.hpp"
-#include "supply_route.hpp"
+#include "logistics.hpp"
 #include "validation.hpp"
-#include "supply_route_templates.hpp"
+#include "logistics_templates.hpp"
 #include "nations_templates.hpp"
 
 namespace military {
@@ -2842,7 +2842,7 @@ void give_military_access(sys::state& state, dcon::nation_id accessing_nation, d
 		ur = state.world.force_create_unilateral_relationship(target, accessing_nation);
 	}
 	state.world.unilateral_relationship_set_military_access(ur, true);
-	supply_routes::schedule_nation_supply_paths_update(state, accessing_nation); // Schedule supply route updates to all routes owned by the accessing nation
+	logistics::schedule_nation_supply_paths_update(state, accessing_nation); // Schedule supply route updates to all routes owned by the accessing nation
 }
 void remove_military_access(sys::state& state, dcon::nation_id accessing_nation, dcon::nation_id target) {
 	auto ur = state.world.get_unilateral_relationship_by_unilateral_pair(target, accessing_nation);
@@ -2852,7 +2852,7 @@ void remove_military_access(sys::state& state, dcon::nation_id accessing_nation,
 	// Schedule supply route updates in routes owned by the accessor, in provinces controlled by the target
 	for(auto p : state.world.nation_get_province_control(target)) {
 		auto prov = p.get_province();
-		supply_routes::schedule_prov_specific_nation_supply_paths_update(state, prov, accessing_nation);
+		logistics::schedule_prov_specific_nation_supply_paths_update(state, prov, accessing_nation);
 	}
 }
 
@@ -3036,7 +3036,7 @@ void add_to_war(sys::state& state, dcon::war_id w, dcon::nation_id n, bool as_at
 	// Schedule supply route updates in routes owned by enemies, in our controlled provinces 
 	for(auto p : state.world.nation_get_province_control(n)) {
 		auto prov = p.get_province();
-		supply_routes::schedule_prov_enemy_supply_paths_update(state, p.get_province(), n);
+		logistics::schedule_prov_enemy_supply_paths_update(state, p.get_province(), n);
 	}
 	// Schedule supply route updates in routes owned by the nation joining the war, in all provinces controlled by war participants
 	for(auto war_par : state.world.war_get_war_participant(w)) {
@@ -3044,7 +3044,7 @@ void add_to_war(sys::state& state, dcon::war_id w, dcon::nation_id n, bool as_at
 		if(nation_par != n) {
 			for(auto p : state.world.nation_get_province_control(n)) {
 				auto prov = p.get_province();
-				supply_routes::schedule_prov_specific_nation_supply_paths_update(state, prov, n);
+				logistics::schedule_prov_specific_nation_supply_paths_update(state, prov, n);
 			}
 		}
 	}
@@ -3439,10 +3439,10 @@ void remove_from_war(sys::state& state, dcon::war_id w, dcon::nation_id n, bool 
 		}
 	}
 	// Schedule supply route updates to all routes owned by all participants in the war, and the nation who left the war
-	supply_routes::schedule_nation_supply_paths_update(state, n);
+	logistics::schedule_nation_supply_paths_update(state, n);
 	for(auto war_par : state.world.war_get_war_participant(w)) {
 		auto nation_par = war_par.get_nation();
-		supply_routes::schedule_nation_supply_paths_update(state, nation_par);
+		logistics::schedule_nation_supply_paths_update(state, nation_par);
 	}
 
 	if(as_loss) {
@@ -5322,20 +5322,20 @@ void army_arrives_in_province(sys::state& state, dcon::army_id a, dcon::province
 	// Schedule a supply route paths update if the location was changed from the previous one, and updates supply routes passing through destination and previous location if they are enemies with the army owner
 	if(prev_location != p) {
 		auto army_owner = state.world.army_get_controller_from_army_control(a);
-		supply_routes::schedule_prov_enemy_supply_paths_update(state, p, army_owner);
+		logistics::schedule_prov_enemy_supply_paths_update(state, p, army_owner);
 		// Now that the army is in a diffrent province, update the connected supply routes' paths to reflect it. simply move over to a new path if one exists or create one withput pathing. Schedule a path update for the new path it will be using
 		for(auto sup_route : state.world.army_get_army_supply_route(a)) {
-			dcon::market_id origin_market = supply_routes::supply_route_get_origin_market(state, sup_route.id);
-			dcon::province_id dest = supply_routes::supply_route_get_destination(state, sup_route.id);
+			dcon::market_id origin_market = logistics::supply_route_get_origin_market(state, sup_route.id);
+			dcon::province_id dest = logistics::supply_route_get_destination(state, sup_route.id);
 			dcon::supply_route_path_id sup_path = state.world.get_supply_route_path_by_origin_destination_pair(dest, origin_market);
 			if(!sup_path) {
-				sup_path = supply_routes::create_supply_route_path_no_pathing(state, dest, origin_market, false);
+				sup_path = logistics::create_supply_route_path_no_pathing(state, dest, origin_market, false);
 			}
 			state.world.force_create_army_route_path(sup_route, sup_path );
-			supply_routes::schedule_immediate_supply_path_update(state, sup_path);
+			logistics::schedule_immediate_supply_path_update(state, sup_path);
 		}
 		if(prev_location) {
-			supply_routes::schedule_prov_enemy_supply_paths_update(state, prev_location, army_owner);
+			logistics::schedule_prov_enemy_supply_paths_update(state, prev_location, army_owner);
 		}
 
 
@@ -8913,19 +8913,19 @@ void navy_arrives_in_province(sys::state& state, dcon::navy_id n, dcon::province
 	// Schedule a supply route paths update if the location was changed from the previous one, and updates supply routes passing through destination and previous location if they are enemies with the army owner
 	if(prev_location != p) {
 		auto navy_owner = state.world.navy_get_controller_from_navy_control(n);
-		supply_routes::schedule_prov_enemy_supply_paths_update(state, p, navy_owner);
+		logistics::schedule_prov_enemy_supply_paths_update(state, p, navy_owner);
 		for(auto sup_route : state.world.navy_get_navy_supply_route(n)) {
-			dcon::market_id origin_market = supply_routes::supply_route_get_origin_market(state, sup_route.id);
-			dcon::province_id dest = supply_routes::supply_route_get_destination(state, sup_route.id);
+			dcon::market_id origin_market = logistics::supply_route_get_origin_market(state, sup_route.id);
+			dcon::province_id dest = logistics::supply_route_get_destination(state, sup_route.id);
 			dcon::supply_route_path_id sup_path = state.world.get_supply_route_path_by_origin_destination_pair(dest, origin_market);
 			if(!sup_path) {
-				sup_path = supply_routes::create_supply_route_path_no_pathing(state, dest, origin_market, false);
+				sup_path = logistics::create_supply_route_path_no_pathing(state, dest, origin_market, false);
 			}
 			state.world.force_create_navy_route_path(sup_route, sup_path);
-			supply_routes::schedule_immediate_supply_path_update(state, sup_path);
+			logistics::schedule_immediate_supply_path_update(state, sup_path);
 		}
 		if(prev_location) {
-			supply_routes::schedule_prov_enemy_supply_paths_update(state, prev_location, navy_owner);
+			logistics::schedule_prov_enemy_supply_paths_update(state, prev_location, navy_owner);
 		}
 
 	}
@@ -9780,15 +9780,15 @@ static void unit_get_last_fufilled_goods_need(const sys::state& state, unit_type
 
 	auto routes = unit_get_supply_routes(state, unit);
 	for(auto route : routes) {
-		if (supply_routes::supply_route_is_active(state, route.id)) {
-			float supply_loss = supply_routes::supply_route_get_supply_loss(state, route.id);
+		if (logistics::supply_route_is_active(state, route.id)) {
+			float supply_loss = logistics::supply_route_get_supply_loss(state, route.id);
 			if constexpr (consume_type == unit_consumption_type::supply) {
 				state.world.for_each_unit_supply_commodity([&](dcon::unit_supply_commodity_id supply_com_id) {
 					dcon::commodity_id base_commodity = economy::unit_commodity_get_base_commodity(state, supply_com_id);
 					float com_supply_loss_mod = state.world.commodity_get_supply_loss_rate(base_commodity);
 					float buffered_goods = route.get_buffered_supply_goods(supply_com_id);
-					float loss_mult = supply_routes::supply_loss_to_loss_multiplier(supply_loss, com_supply_loss_mod);
-					accumulate_func(base_commodity, buffered_goods * loss_mult * supply_routes::supply_route_get_throughput(state, route.id)); // take into account goods which will be lost to attrition and throughput
+					float loss_mult = logistics::supply_loss_to_loss_multiplier(supply_loss, com_supply_loss_mod);
+					accumulate_func(base_commodity, buffered_goods * loss_mult * logistics::supply_route_get_throughput(state, route.id)); // take into account goods which will be lost to attrition and throughput
 				});
 			}
 			else if constexpr (consume_type == unit_consumption_type::reinforcement) {
@@ -9796,8 +9796,8 @@ static void unit_get_last_fufilled_goods_need(const sys::state& state, unit_type
 					dcon::commodity_id base_commodity = economy::unit_commodity_get_base_commodity(state, reinf_com_id);
 					float com_supply_loss_mod = state.world.commodity_get_supply_loss_rate(base_commodity);
 					float buffered_goods = route.get_buffered_reinforcement_goods(reinf_com_id);
-					float loss_mult = supply_routes::supply_loss_to_loss_multiplier(supply_loss, com_supply_loss_mod);
-					accumulate_func(base_commodity, buffered_goods * loss_mult * supply_routes::supply_route_get_throughput(state, route.id)); // take into account goods which will be lost to attrition and throughput
+					float loss_mult = logistics::supply_loss_to_loss_multiplier(supply_loss, com_supply_loss_mod);
+					accumulate_func(base_commodity, buffered_goods * loss_mult * logistics::supply_route_get_throughput(state, route.id)); // take into account goods which will be lost to attrition and throughput
 				});
 			}
 		}

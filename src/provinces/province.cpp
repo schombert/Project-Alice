@@ -15,7 +15,7 @@
 #include <set>
 #include "economy.hpp"
 #include "military_templates.hpp"
-#include "supply_route.hpp"
+#include "logistics.hpp"
 #include "construction.hpp"
 
 namespace province {
@@ -595,7 +595,7 @@ void set_province_controller(sys::state& state, dcon::province_id p, dcon::natio
 		state.world.province_set_rebel_faction_from_province_rebel_control(p, dcon::rebel_faction_id{});
 		state.world.province_set_nation_from_province_control(p, n);
 		// Schedule supply route update for routes which pass through this province
-		supply_routes::schedule_prov_all_supply_paths_update(state, p);
+		logistics::schedule_prov_all_supply_paths_update(state, p);
 		state.military_definitions.pending_blackflag_update = true;
 		// Delete unit constructions in the occupied province
 		for(auto pop_loc : state.world.province_get_pop_location(p)) {
@@ -645,7 +645,7 @@ void set_province_controller(sys::state& state, dcon::province_id p, dcon::rebel
 		state.world.province_set_rebel_faction_from_province_rebel_control(p, rf);
 		state.world.province_set_nation_from_province_control(p, dcon::nation_id{});
 		// Schedule supply route update for routes which pass through this province
-		supply_routes::schedule_prov_all_supply_paths_update(state, p);
+		logistics::schedule_prov_all_supply_paths_update(state, p);
 		state.military_definitions.pending_blackflag_update = true;
 	}
 }
@@ -1150,7 +1150,7 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 	state.national_cached_values_out_of_date = true;
 
 	// Schedule an update on all routes passing through
-	supply_routes::schedule_prov_all_supply_paths_update(state, id);
+	logistics::schedule_prov_all_supply_paths_update(state, id);
 
 	bool state_is_new = false;
 	dcon::state_instance_id new_si;
@@ -3097,33 +3097,33 @@ bool make_military_supply_path(const sys::state& state, dcon::province_id origin
 
 	};
 	auto to_province_init_func = [&](dcon::province_id to, iteration_data& data) {
-		data.to_prov_supply_throughput = supply_routes::calculate_supply_throughput_in_province(state, to, nation_as);
-		data.to_prov_supply_loss = supply_routes::calculate_supply_loss_in_province(state, to, nation_as);
+		data.to_prov_supply_throughput = logistics::calculate_supply_throughput_in_province(state, to, nation_as);
+		data.to_prov_supply_loss = logistics::calculate_supply_loss_in_province(state, to, nation_as);
 		bool is_coastal = province::prov_is_coastal(state, to);
-		data.to_prov_port_capacity = (is_coastal ? supply_routes::port_supply_capacity_in_province(state, to, nation_as) : 0.0f);
+		data.to_prov_port_capacity = (is_coastal ? logistics::port_supply_capacity_in_province(state, to, nation_as) : 0.0f);
 	}; 
 	auto from_province_init_func = [&](dcon::province_id from, iteration_data& data) {
-		data.from_prov_supply_throughput = supply_routes::calculate_supply_throughput_in_province(state, from, nation_as);
-		data.from_prov_supply_loss = supply_routes::calculate_supply_loss_in_province(state, from, nation_as);
+		data.from_prov_supply_throughput = logistics::calculate_supply_throughput_in_province(state, from, nation_as);
+		data.from_prov_supply_loss = logistics::calculate_supply_loss_in_province(state, from, nation_as);
 		bool is_coastal = province::prov_is_coastal(state, from);
-		data.from_prov_port_capacity = (is_coastal ? supply_routes::port_supply_capacity_in_province(state, from, nation_as) : 0.0f);
+		data.from_prov_port_capacity = (is_coastal ? logistics::port_supply_capacity_in_province(state, from, nation_as) : 0.0f);
 	}; 
 
 	auto adj_init_func = [&](dcon::province_id to, dcon::province_id from, dcon::province_adjacency_id adj, float distance, iteration_data& data) {
-		float supply_loss = 1.0f - supply_routes::calculate_adjacency_avg_supply_loss(state, from, to, data.from_prov_supply_loss, data.to_prov_supply_loss, nation_as) / state.map_state.map_data.world_circumference; // Get the supply loss measured in loss per km
+		float supply_loss = 1.0f - logistics::calculate_adjacency_avg_supply_loss(state, from, to, data.from_prov_supply_loss, data.to_prov_supply_loss, nation_as) / state.map_state.map_data.world_circumference; // Get the supply loss measured in loss per km
 		data.adj_supply_loss = std::max(supply_loss, 0.00000001f); // Clamp so that it cannot be zero, but is allowed to be a very small value
 		float used_throughput = state.world.province_adjacency_get_used_supply_throughput(adj) + expected_volume;
 		float adj_throughput = [&]() {
 			if(province::adj_is_coastal(state, adj)) {
-				return supply_routes::calculate_supply_throughput_in_coastal_adjacency(state, adj, from, to, data.from_prov_port_capacity, data.to_prov_port_capacity, nation_as);
+				return logistics::calculate_supply_throughput_in_coastal_adjacency(state, adj, from, to, data.from_prov_port_capacity, data.to_prov_port_capacity, nation_as);
 			}
 			else {
-				return supply_routes::calculate_supply_throughput_in_noncoastal_adjacency(state, adj, from, to, data.from_prov_supply_throughput, data.to_prov_supply_throughput, nation_as);
+				return logistics::calculate_supply_throughput_in_noncoastal_adjacency(state, adj, from, to, data.from_prov_supply_throughput, data.to_prov_supply_throughput, nation_as);
 			}
 		}();
 		data.adj_supply_throughput = adj_throughput;
 		data.free_supply_throughput = data.adj_supply_throughput - used_throughput;
-		data.supply_efficiency = supply_routes::compute_efficiency(used_throughput, data.adj_supply_throughput);
+		data.supply_efficiency = logistics::compute_efficiency(used_throughput, data.adj_supply_throughput);
 
 		dcon::province_id from_port_to = state.world.province_get_port_to(from);
 		dcon::province_id to_port_to = state.world.province_get_port_to(to);
@@ -3215,7 +3215,7 @@ void move_state_capital(sys::state& state, dcon::nation_id source, dcon::provinc
 	state_inst.set_last_state_capital_change(state.current_date);
 	auto market = state_inst.get_market_from_local_market();
 	// Schedules update on all paths which have this market as their origin, so they wont be out of date
-	supply_routes::schedule_immediate_supply_path_update_on_origin_market(state, market);
+	logistics::schedule_immediate_supply_path_update_on_origin_market(state, market);
 }
 template void move_state_capital<command::actor::ai>(sys::state& state, dcon::nation_id source, dcon::province_id move_to);
 template void move_state_capital<command::actor::player>(sys::state& state, dcon::nation_id source, dcon::province_id move_to);

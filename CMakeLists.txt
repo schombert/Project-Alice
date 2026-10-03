@@ -144,7 +144,7 @@ list(APPEND ALICE_INCREMENTAL_SOURCES_LIST_GUI_OTHER
 	"${PROJECT_SOURCE_DIR}/src/gui/labour_details.cpp"
 	"${PROJECT_SOURCE_DIR}/src/map/map_modes.cpp"
 	"${PROJECT_SOURCE_DIR}/src/military/military.cpp"
-	"${PROJECT_SOURCE_DIR}/src/supply_routes/supply_route.cpp"
+	"${PROJECT_SOURCE_DIR}/src/logistics/logistics.cpp"
 	"${PROJECT_SOURCE_DIR}/src/common_types/debug_string_convertions.cpp"
 	"${PROJECT_SOURCE_DIR}/src/nations/nations.cpp"
 	"${PROJECT_SOURCE_DIR}/src/network/SHA512.cpp"
@@ -495,7 +495,7 @@ target_include_directories(AliceCommon INTERFACE
 	${PROJECT_SOURCE_DIR}/src/economy
 	${PROJECT_SOURCE_DIR}/src/culture
 	${PROJECT_SOURCE_DIR}/src/military
-	${PROJECT_SOURCE_DIR}/src/supply_routes
+	${PROJECT_SOURCE_DIR}/src/logistics
 	${PROJECT_SOURCE_DIR}/src/scripting
 	${PROJECT_SOURCE_DIR}/src/scripting/luajit
 	${PROJECT_SOURCE_DIR}/src/zstd

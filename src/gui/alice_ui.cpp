@@ -25,7 +25,7 @@
 #include "demographics.hpp"
 #include "economy_pops.hpp"
 #include "advanced_province_buildings.hpp"
-#include "supply_route.hpp"
+#include "logistics.hpp"
 #include "gamerules.cpp"
 #include "macrobuilder2.cpp"
 #include "logisticswindow.cpp"

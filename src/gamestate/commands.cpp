@@ -30,7 +30,7 @@
 #include "gui_combat.hpp"
 #include "validation.hpp"
 #include "advanced_province_buildings.hpp"
-#include "supply_route.hpp"
+#include "logistics.hpp"
 
 namespace command {
 
@@ -1169,7 +1169,7 @@ void execute_release_and_play_as(sys::state& state, dcon::nation_id source, dcon
 
 bool can_change_army_supply_consumption_setting(const sys::state& state, dcon::nation_id source, const command_data& command) {
 	const auto& data = command.get_payload<change_logistics_setting_data>();
-	return supply_routes::can_change_army_supply_consumption_setting<actor::player>(state, source, data.new_setting);
+	return logistics::can_change_army_supply_consumption_setting<actor::player>(state, source, data.new_setting);
 }
 void change_army_supply_consumption_setting(sys::state& state, int8_t new_setting) {
 	command_data p{command_type::change_army_supply_consumption_setting, state.local_player_id };
@@ -1179,13 +1179,13 @@ void change_army_supply_consumption_setting(sys::state& state, int8_t new_settin
 }
 void execute_change_army_supply_consumption_setting(sys::state& state, dcon::nation_id source, const command_data& command) {
 	const auto& data = command.get_payload< change_logistics_setting_data>();
-	supply_routes::change_army_supply_consumption_setting<actor::player>(state, source, data.new_setting);
+	logistics::change_army_supply_consumption_setting<actor::player>(state, source, data.new_setting);
 }
 
 
 bool can_change_army_reinforcement_consumption_setting(const sys::state& state, dcon::nation_id source, const command_data& command) {
 	const auto& data = command.get_payload<change_logistics_setting_data>();
-	return supply_routes::can_change_army_reinforcement_consumption_setting<actor::player>(state, source, data.new_setting);
+	return logistics::can_change_army_reinforcement_consumption_setting<actor::player>(state, source, data.new_setting);
 }
 void change_army_reinforcement_consumption_setting(sys::state& state, int8_t new_setting) {
 	command_data p{ command_type::change_army_reinforcement_consumption_setting, state.local_player_id };
@@ -1195,13 +1195,13 @@ void change_army_reinforcement_consumption_setting(sys::state& state, int8_t new
 }
 void execute_change_army_reinforcement_consumption_setting(sys::state& state, dcon::nation_id source, const command_data& command) {
 	const auto& data = command.get_payload< change_logistics_setting_data>();
-	supply_routes::change_army_reinforcement_consumption_setting<actor::player>(state, source, data.new_setting);
+	logistics::change_army_reinforcement_consumption_setting<actor::player>(state, source, data.new_setting);
 }
 
 
 bool can_change_navy_supply_consumption_setting(const sys::state& state, dcon::nation_id source, const command_data& command) {
 	const auto& data = command.get_payload<change_logistics_setting_data>();
-	return supply_routes::can_change_navy_supply_consumption_setting<actor::player>(state, source, data.new_setting);
+	return logistics::can_change_navy_supply_consumption_setting<actor::player>(state, source, data.new_setting);
 }
 void change_navy_supply_consumption_setting(sys::state& state, int8_t new_setting) {
 	command_data p{ command_type::change_navy_supply_consumption_setting, state.local_player_id };
@@ -1211,13 +1211,13 @@ void change_navy_supply_consumption_setting(sys::state& state, int8_t new_settin
 }
 void execute_change_navy_supply_consumption_setting(sys::state& state, dcon::nation_id source, const command_data& command) {
 	const auto& data = command.get_payload< change_logistics_setting_data>();
-	supply_routes::change_navy_supply_consumption_setting<actor::player>(state, source, data.new_setting);
+	logistics::change_navy_supply_consumption_setting<actor::player>(state, source, data.new_setting);
 }
 
 
 bool can_change_navy_reinforcement_consumption_setting(const sys::state& state, dcon::nation_id source, const command_data& command) {
 	const auto& data = command.get_payload<change_logistics_setting_data>();
-	return supply_routes::can_change_navy_reinforcement_consumption_setting<actor::player>(state, source, data.new_setting);
+	return logistics::can_change_navy_reinforcement_consumption_setting<actor::player>(state, source, data.new_setting);
 }
 void change_navy_reinforcement_consumption_setting(sys::state& state, int8_t new_setting) {
 	command_data p{ command_type::change_navy_reinforcement_consumption_setting, state.local_player_id };
@@ -1227,13 +1227,13 @@ void change_navy_reinforcement_consumption_setting(sys::state& state, int8_t new
 }
 void execute_change_navy_reinforcement_consumption_setting(sys::state& state, dcon::nation_id source, const command_data& command) {
 	const auto& data = command.get_payload< change_logistics_setting_data>();
-	supply_routes::change_navy_reinforcement_consumption_setting<actor::player>(state, source, data.new_setting);
+	logistics::change_navy_reinforcement_consumption_setting<actor::player>(state, source, data.new_setting);
 }
 
 
 bool can_change_army_construction_consumption_setting(const sys::state& state, dcon::nation_id source, const command_data& command) {
 	const auto& data = command.get_payload<change_logistics_setting_data>();
-	return supply_routes::can_change_army_construction_consumption_setting<actor::player>(state, source, data.new_setting);
+	return logistics::can_change_army_construction_consumption_setting<actor::player>(state, source, data.new_setting);
 }
 void change_army_construction_consumption_setting(sys::state& state, int8_t new_setting) {
 	command_data p{ command_type::change_army_construction_consumption_setting, state.local_player_id };
@@ -1243,13 +1243,13 @@ void change_army_construction_consumption_setting(sys::state& state, int8_t new_
 }
 void execute_change_army_construction_consumption_setting(sys::state& state, dcon::nation_id source, const command_data& command) {
 	const auto& data = command.get_payload< change_logistics_setting_data>();
-	supply_routes::change_army_construction_consumption_setting<actor::player>(state, source, data.new_setting);
+	logistics::change_army_construction_consumption_setting<actor::player>(state, source, data.new_setting);
 }
 
 
 bool can_change_navy_construction_consumption_setting(const sys::state& state, dcon::nation_id source, const command_data& command) {
 	const auto& data = command.get_payload<change_logistics_setting_data>();
-	return supply_routes::can_change_navy_construction_consumption_setting<actor::player>(state, source, data.new_setting);
+	return logistics::can_change_navy_construction_consumption_setting<actor::player>(state, source, data.new_setting);
 }
 void change_navy_construction_consumption_setting(sys::state& state, int8_t new_setting) {
 	command_data p{ command_type::change_navy_construction_consumption_setting, state.local_player_id };
@@ -1259,13 +1259,13 @@ void change_navy_construction_consumption_setting(sys::state& state, int8_t new_
 }
 void execute_change_navy_construction_consumption_setting(sys::state& state, dcon::nation_id source, const command_data& command) {
 	const auto& data = command.get_payload< change_logistics_setting_data>();
-	supply_routes::change_navy_construction_consumption_setting<actor::player>(state, source, data.new_setting);
+	logistics::change_navy_construction_consumption_setting<actor::player>(state, source, data.new_setting);
 }
 
 
 bool can_change_factory_construction_consumption_setting(const sys::state& state, dcon::nation_id source, const command_data& command) {
 	const auto& data = command.get_payload<change_logistics_setting_data>();
-	return supply_routes::can_change_factory_construction_consumption_setting<actor::player>(state, source, data.new_setting);
+	return logistics::can_change_factory_construction_consumption_setting<actor::player>(state, source, data.new_setting);
 }
 void change_factory_construction_consumption_setting(sys::state& state, int8_t new_setting) {
 	command_data p{ command_type::change_factory_construction_consumption_setting, state.local_player_id };
@@ -1275,13 +1275,13 @@ void change_factory_construction_consumption_setting(sys::state& state, int8_t n
 }
 void execute_change_factory_construction_consumption_setting(sys::state& state, dcon::nation_id source, const command_data& command) {
 	const auto& data = command.get_payload< change_logistics_setting_data>();
-	supply_routes::change_factory_construction_consumption_setting<actor::player>(state, source, data.new_setting);
+	logistics::change_factory_construction_consumption_setting<actor::player>(state, source, data.new_setting);
 }
 
 
 bool can_change_building_construction_consumption_setting(const sys::state& state, dcon::nation_id source, const command_data& command) {
 	const auto& data = command.get_payload<change_logistics_setting_data>();
-	return supply_routes::can_change_building_construction_consumption_setting<actor::player>(state, source, data.new_setting);
+	return logistics::can_change_building_construction_consumption_setting<actor::player>(state, source, data.new_setting);
 }
 void change_building_construction_consumption_setting(sys::state& state, int8_t new_setting) {
 	command_data p{ command_type::change_building_construction_consumption_setting, state.local_player_id };
@@ -1291,7 +1291,7 @@ void change_building_construction_consumption_setting(sys::state& state, int8_t 
 }
 void execute_change_building_construction_consumption_setting(sys::state& state, dcon::nation_id source, const command_data& command) {
 	const auto& data = command.get_payload< change_logistics_setting_data>();
-	supply_routes::change_building_construction_consumption_setting<actor::player>(state, source, data.new_setting);
+	logistics::change_building_construction_consumption_setting<actor::player>(state, source, data.new_setting);
 }
 
 

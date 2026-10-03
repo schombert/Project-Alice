@@ -1,7 +1,7 @@
 #pragma once
 #include "system_state.hpp"
 
-namespace supply_routes {
+namespace logistics {
 
 
 template<typename F>
