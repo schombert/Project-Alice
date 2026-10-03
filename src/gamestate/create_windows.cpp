@@ -214,7 +214,7 @@ void create_in_game_windows(sys::state& state) {
 	{
 		auto new_elm = ui::make_compact_chat_messages_list(state, "chat_list");
 		new_elm->base_data.position.x += 156; // nudge
-		new_elm->base_data.position.y += 24; // nudge
+		new_elm->base_data.position.y += 58; // nudge so that the message dosen't go over the logistics topbar item
 		new_elm->impl_on_update(state);
 		state.ui_state.tl_chat_list = new_elm.get();
 		state.ui_state.root->add_child_to_back(std::move(new_elm));

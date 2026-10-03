@@ -315,6 +315,9 @@ void unit_set_needs_reinforcement_goods(sys::state& state, unit_type unit, bool 
 dcon::dcon_vv_fat_id<dcon::supply_route_path_id> supply_paths_by_market_get(sys::state& state, dcon::market_id market) {
 	return state.world.market_get_supply_route_path_vector_buffer_1(market);
 }
+dcon::dcon_vv_const_fat_id<dcon::supply_route_path_id> supply_paths_by_market_get(const sys::state& state, dcon::market_id market) {
+	return state.world.market_get_supply_route_path_vector_buffer_1(market);
+}
 
 
 
@@ -1137,12 +1140,15 @@ dcon::supply_route_path_id create_supply_route_path_no_pathing(sys::state& state
 	auto state_inst = state.world.market_get_zone_from_local_market(origin);
 	auto capital = state.world.state_instance_get_capital(state_inst);
 	auto handle = state.world.force_create_supply_route_path(destination, origin);
-	schedule_immediate_supply_path_update(state, handle);
+	schedule_immediate_supply_path_update(state, handle); // Path starts out of date since no pathing was done this must be updated whenever possible
 	state.world.supply_route_path_set_attempting_to_route(handle, attempting_to_route);
+	state.world.supply_route_path_set_recently_created(handle, true);
 	state.world.supply_route_path_set_valid_path(handle, false);
 	state.world.supply_route_path_set_inactive_days(handle, 0);
 	state.world.supply_route_path_set_throughput(handle, 1.0f);
+	state.world.supply_route_path_set_expected_throughput(handle, 1.0f);
 	state.world.supply_route_path_set_supply_loss(handle, 0.0f);
+	state.world.supply_route_path_set_volume(handle, 0.0f);
 	return handle;
 }
 
@@ -1580,21 +1586,21 @@ void update_military_unit_routes_satisfaction(sys::state& state, unit_type unit,
 			route = create_supply_route(state, unit, market);
 		}
 		dcon::supply_route_path_id path = supply_route_get_path(state, route);
-		bool new_path = false;
 		if(!path) {
 			// First, try to find a path which already exists here
 			path = state.world.get_supply_route_path_by_origin_destination_pair(unit_location, market);
 			if(!path) {
 				// otherwise, create one
 				path = create_supply_route_path_no_pathing(state, unit_location, market, true);
-				new_path = true;
 			}
 			create_supply_route_path_relation(state, route, path);
 		}
 		state.world.supply_route_path_set_attempting_to_route(path, true);  // We are attempting to move goods through this path, whether its valid or not
 		bool path_is_valid = state.world.supply_route_path_get_valid_path(path);
-		// We do want to reserve goods for invalid paths ONLY if it is a new path (as it may very well be valid later). If its an old path which is invalid, don't bother and wait till if becomes valid
-		if(!new_path && !path_is_valid) {
+		bool recently_created = state.world.supply_route_path_get_recently_created(path);
+		// We do want to reserve goods for invalid paths ONLY if it is a new path (as it may very well be valid later). If its an old path which is invalid, don't bother and wait till it becomes valid
+		// The path may have been created today earlier
+		if(!recently_created && !path_is_valid) {
 			continue;
 		}
 		float remaining_goods_required = get_remaining_goods_required();
@@ -1688,21 +1694,21 @@ void update_construction_routes_satisfaction(sys::state& state, construction_typ
 			route = create_supply_route(state, conc, market);
 		}
 		dcon::supply_route_path_id path = supply_route_get_path(state, route);
-		bool new_path = false;
 		if(!path) {
 			// First, try to find a path which already exists here
 			path = state.world.get_supply_route_path_by_origin_destination_pair(con_location, market);
 			if(!path) {
 				// otherwise, create one
 				path = create_supply_route_path_no_pathing(state, con_location, market, true);
-				new_path = true;
 			}
 			create_supply_route_path_relation(state, route, path);
 		}
 		state.world.supply_route_path_set_attempting_to_route(path, true);  // We are attempting to move goods through this path, whether its valid or not
 		bool path_is_valid = state.world.supply_route_path_get_valid_path(path);
-		// We do want to reserve goods for invalid paths ONLY if it is a new path (as it may very well be valid later). If its an old path which is invalid, don't bother
-		if(!new_path && !path_is_valid) {
+		bool recently_created = state.world.supply_route_path_get_recently_created(path);
+		// We do want to reserve goods for invalid paths ONLY if it is a new path (as it may very well be valid later). If its an old path which is invalid, don't bother and wait till it becomes valid
+		// The path may have been created today earlier
+		if(!recently_created && !path_is_valid) {
 			continue;
 		}
 		float remaining_goods_required = construction_need[set_index];
@@ -1726,7 +1732,6 @@ void update_construction_routes_satisfaction(sys::state& state, construction_typ
 		state.world.supply_route_path_set_volume(path, state.world.supply_route_path_get_volume(path) + (to_consume * com_supply_weight));
 		supply_route_set_is_active(state, route, true);
 		state.world.supply_route_path_set_is_active(path, true);
-
 		if(construction_need[set_index] == 0.0f) {
 			break; // Dont need any more of this commodity
 		}
@@ -2671,7 +2676,7 @@ void update_supply_routes_daily(sys::state& state) {
 	begin = std::chrono::steady_clock::now();
 
 
-	// step 7: Increment the amount of days a route or path has been inactive, and add the volume used by some supply routes unto each adjacency.
+	// step 7: Increment the amount of days a route or path has been inactive, add the volume used by some supply routes unto each adjacency, and finally set the recently_created flag to false
 
 	concurrency::parallel_invoke(
 		[&]() {
@@ -2686,6 +2691,7 @@ void update_supply_routes_daily(sys::state& state) {
 				auto cur_inactive_days = state.world.supply_route_path_get_inactive_days(paths);
 				auto new_inactive_days = ve::select(state.world.supply_route_path_get_is_active(paths), cur_inactive_days, cur_inactive_days + uint8_t(1));
 				state.world.supply_route_path_set_inactive_days(paths, new_inactive_days);
+				state.world.supply_route_path_set_recently_created(paths, ve::vbitfield_type{ 0 });
 			});
 		},
 		[&]() {

@@ -5121,11 +5121,6 @@ relationship{
 		tag{ save }
 	}
 	property{
-		name{ inactive_days }
-		type{ uint8_t }
-		tag{ save }
-	}
-	property{
 		name{ is_active }
 		type{ bitfield }
 		tag{ save }
@@ -5133,6 +5128,16 @@ relationship{
 	property{
 		name{ attempting_to_route }
 		type{ bitfield }
+		tag{ save }
+	}
+	property{
+		name{ recently_created }
+		type{ bitfield }
+		tag{ save }
+	}
+	property{
+		name{ inactive_days }
+		type{ uint8_t }
 		tag{ save }
 	}
 	property{

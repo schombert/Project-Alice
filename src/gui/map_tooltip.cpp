@@ -920,6 +920,9 @@ void supply_route_efficiency_map_tt_box(sys::state& state, text::columnar_layout
 		country_name_box(state, contents, prov);
 		text::add_line(state, contents, "supply_efficiency_header_tooltip");
 		auto fat = dcon::fatten(state.world, prov);
+		bool supply_access = province::has_supply_access_to_province(state, state.local_player_nation, prov);
+		bool fow_enabled = gamerule::nation_has_fow_enabled(state, state.local_player_nation);
+		
 		for(auto adj : fat.get_province_adjacency()) {
 			auto indx = (adj.get_connected_provinces(0).id != prov ? 0 : 1);
 			auto adj_prov = adj.get_connected_provinces(indx);
@@ -929,7 +932,13 @@ void supply_route_efficiency_map_tt_box(sys::state& state, text::columnar_layout
 				float available_throughput = supply_routes::calculate_supply_throughput_in_adjacency(state, adj, state.local_player_nation);
 				float used_throughput = adj.get_used_supply_throughput();
 				float sup_efficiency = supply_routes::supply_throughput_efficiency(state, adj, state.local_player_nation);
-				text::add_line(state, contents, "supply_efficiency_adjacency_tooltip", text::variable_type::prov, adj_prov.get_name(), text::variable_type::value, text::fp_one_place{ available_throughput }, text::variable_type::val, text::fp_one_place{ used_throughput }, text::variable_type::x, text::fp_percentage{ sup_efficiency }, 8);
+				// Display question marks if we shouldn't be able to view it
+				if(supply_access || !fow_enabled) {
+					text::add_line(state, contents, "supply_efficiency_adjacency_tooltip", text::variable_type::prov, adj_prov.get_name(), text::variable_type::value, text::fp_one_place{ available_throughput }, text::variable_type::val, text::fp_one_place{ used_throughput }, text::variable_type::x, text::fp_percentage{ sup_efficiency }, 8);
+				}
+				else {
+					text::add_line(state, contents, "supply_efficiency_adjacency_tooltip", text::variable_type::prov, adj_prov.get_name(), text::variable_type::value, "???", text::variable_type::val, "???", text::variable_type::x, "???", 8);
+				}
 			}
 
 		}
