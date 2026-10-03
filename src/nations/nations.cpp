@@ -835,7 +835,7 @@ float admin_cost_of_province(sys::state const& state, dcon::province_id pid) {
 		population_concentration *= 0.5f;
 	}
 	auto current_control = state.world.province_get_control_ratio(pid);
-	return (population * population_concentration + area * 100.f) * (1.f / (1.01f - current_control) - 1.f) + 100.f;
+	return (population * population_concentration + area * 100.f) * std::max(0.f, 1.f / (1.01f - current_control) - 1.f) + 100.f;
 }
 template <typename T>
 ve::fp_vector ve_admin_cost_of_province(sys::state& state, T pid) {
@@ -849,7 +849,7 @@ ve::fp_vector ve_admin_cost_of_province(sys::state& state, T pid) {
 	population_concentration = ve::select(is_coastal, population_concentration * 0.5f, population_concentration);
 	population_concentration = ve::select(has_major_river, population_concentration * 0.5f, population_concentration);
 	auto current_control = state.world.province_get_control_ratio(pid);
-	return (population * population_concentration + area * 100.f) * (1.f / (1.01f - current_control) - 1.f) + 100.f;
+	return (population * population_concentration + area * 100.f) * ve::max(0.f, 1.f / (1.01f - current_control) - 1.f) + 100.f;
 }
 
 float desire_score_province(sys::state const& state, dcon::province_id pid) {
