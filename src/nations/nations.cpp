@@ -829,7 +829,7 @@ float admin_cost_of_province(sys::state const& state, dcon::province_id pid) {
 		population_concentration *= 0.5f;
 	}
 	auto current_control = state.world.province_get_control_ratio(pid);
-	return (population * population_concentration + area * 100.f) * (1.f / (1.01f - current_control) - 1.f) + 100.f;
+	return (population * population_concentration + area * 100.f) * std::max(0.f, 1.f / (1.01f - current_control) - 1.f) + 100.f;
 }
 template <typename T>
 ve::fp_vector ve_admin_cost_of_province(sys::state& state, T pid) {
@@ -843,7 +843,7 @@ ve::fp_vector ve_admin_cost_of_province(sys::state& state, T pid) {
 	population_concentration = ve::select(is_coastal, population_concentration * 0.5f, population_concentration);
 	population_concentration = ve::select(has_major_river, population_concentration * 0.5f, population_concentration);
 	auto current_control = state.world.province_get_control_ratio(pid);
-	return (population * population_concentration + area * 100.f) * (1.f / (1.01f - current_control) - 1.f) + 100.f;
+	return (population * population_concentration + area * 100.f) * ve::max(0.f, 1.f / (1.01f - current_control) - 1.f) + 100.f;
 }
 
 float desire_score_province(sys::state const& state, dcon::province_id pid) {
@@ -1112,16 +1112,13 @@ void update_administrative_efficiency(sys::state& state) {
 		auto mass = ve_admin_cost_of_province(state, pids);
 		auto prize = state.world.province_get_demographics(pids, demographics::total);
 		// Higher population relative to admin cost = more desirable to control provinces
-		// for control below 0.01 the admin cost factor is negative and mass can land on exactly 0:
-		// prize / 0 = inf, then 0 * inf = NaN, which spreads into taxes, treasuries and prices. Skip the update then.
-		auto mass_ok = mass != 0.f;
-		auto desire = ve::select(mass_ok, ve::max(0.f, (prize / mass - 0.1f)), 0.f);
+		auto desire = ve::max(0.f, (prize / mass - 0.1f));
 
 		auto control_scale = ve::max(0.f, state.world.province_get_control_scale(pids)); // Bureaucratic capacity assigned to the province
 		// as we expand control over local land, it requires much higher levels of administrative work to increase it
 		auto available_control = ve::min(control_scale * desire * 5.f, mass); // How much control can be established this tick capped at mass (can't exceed admin capacity needed)
 
-		auto speed = ve::select(mass_ok, available_control / mass - current_control, 0.f); // Difference between potential and current control. Control grows slowly at 1% per tick to avoid sudden drops in taxes
+		auto speed = (available_control / mass - current_control); // Difference between potential and current control. Control grows slowly at 1% per tick to avoid sudden drops in taxes
 
 		state.world.province_set_control_ratio(
 			pids,
