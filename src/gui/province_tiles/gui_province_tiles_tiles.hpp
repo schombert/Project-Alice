@@ -66,7 +66,7 @@ public:
 	void button_action(sys::state& state, province_tile target, ui::element_base* parent) noexcept override { }
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents, province_tile target) noexcept override {
-		
+
 	}
 };
 
@@ -298,7 +298,7 @@ public:
 class province_build_new_tile : public tile_type_logic {
 public:
 	dcon::text_key get_name(sys::state& state, province_tile target) noexcept override {
-		return state.lookup_key("new");
+		return state.lookup_key("build_factory");
 	}
 
 	bool is_available(sys::state& state, province_tile target) noexcept override {
@@ -314,14 +314,14 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents, province_tile target) noexcept override {
-		text::add_line(state, contents, state.lookup_key("new"));
+		text::add_line(state, contents, state.lookup_key("build_factory"));
 	}
 };
 
 class factory_construction_tile : public tile_type_logic {
 public:
 	dcon::text_key get_name(sys::state& state, province_tile target) noexcept override {
-		return state.lookup_key("new");
+		return state.lookup_key("build_factory");
 	}
 
 	bool is_available(sys::state& state, province_tile target) noexcept override {
@@ -460,7 +460,7 @@ public:
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents, province_tile target) noexcept override {
 		auto n = state.world.province_get_nation_from_province_ownership(target.province);
 
-		text::add_line(state, contents, "province_control_scale", text::variable_type::value, text::fp_one_place{ state.world.province_get_control_scale(target.province) });
+		text::add_line(state, contents, "province_control_scale", text::variable_type::value, text::prettify_float(state.world.province_get_control_scale(target.province)));
 
 		// Explains nations::update_administrative_efficiency
 
@@ -602,9 +602,9 @@ public:
 				control_buffer_tobe.set(pid, control_buffer_tobe.get(pid) + change * 0.01f);
 
 				if(pid == target.province) {
-					text::add_line(state, contents, "province_control_scale_from_state_capital", text::variable_type::value, text::fp_one_place{ change }, text::variable_type::prov, state.world.province_get_name(capital));
+					text::add_line(state, contents, "province_control_scale_from_state_capital", text::variable_type::value, text::prettify_float(change), text::variable_type::prov, state.world.province_get_name(capital));
 				} else if(capital == target.province) {
-					text::add_line(state, contents, "province_control_scale_to_state_capital", text::variable_type::value, text::fp_one_place{ change }, text::variable_type::prov, state.world.province_get_name(pid));
+					text::add_line(state, contents, "province_control_scale_to_state_capital", text::variable_type::value, text::prettify_float(change), text::variable_type::prov, state.world.province_get_name(pid));
 				}
 			});
 		});
@@ -629,7 +629,7 @@ public:
 
 		state.world.for_each_province([&](auto pid) {
 			auto total_weight = total_adjacency_weight.get(pid) + 0.00001f;
-			auto control_to_transfer = control_buffer_asis.get(pid) * 0.9f;
+			auto control_to_transfer = control_buffer_asis.get(pid) * 0.05f;
 			state.world.province_for_each_province_adjacency(pid, [&](auto adj) {
 				auto other = state.world.province_adjacency_get_connected_provinces(adj, 0);
 				if(other == pid) {
@@ -639,10 +639,10 @@ public:
 				auto mult = nations::control_shift_weight_mult(state, adj);
 				control_buffer_tobe.set(other, control_buffer_tobe.get(other) + control_to_transfer * score * mult / total_weight);
 				if(other == target.province) {
-					text::add_line(state, contents, "province_control_scale_adjacency_received", text::variable_type::value, text::fp_one_place{ control_to_transfer * score * mult / total_weight }, text::variable_type::prov, state.world.province_get_name(pid));
+					text::add_line(state, contents, "province_control_scale_adjacency_received", text::variable_type::value, text::prettify_float(control_to_transfer* score* mult / total_weight), text::variable_type::prov, state.world.province_get_name(pid));
 				}
 				else if(pid == target.province) {
-					text::add_line(state, contents, "province_control_scale_adjacency_sent", text::variable_type::value, text::fp_one_place{ control_to_transfer * score * mult / total_weight }, text::variable_type::prov, state.world.province_get_name(other));
+					text::add_line(state, contents, "province_control_scale_adjacency_sent", text::variable_type::value, text::prettify_float(control_to_transfer* score* mult / total_weight), text::variable_type::prov, state.world.province_get_name(other));
 				}
 			});
 			control_buffer_tobe.set(pid, control_buffer_tobe.get(pid) - control_to_transfer);
@@ -831,7 +831,7 @@ public:
 		text::add_line(state, contents, "province_market_production", text::variable_type::val, text::fp_two_places{ std::max(0.f, state.world.market_get_supply(market, target.commodity) - economy::trade_supply(state, market, target.commodity)) });
 		text::add_line(state, contents, "province_market_consumption", text::variable_type::val, text::fp_two_places{ std::max(0.f, state.world.market_get_demand(market, target.commodity) - economy::trade_demand(state, market, target.commodity)) });
 		text::add_line(state, contents, "province_market_stockpiles", text::variable_type::val, text::fp_two_places{ state.world.market_get_stockpile(market, target.commodity) });
-		text::add_line(state, contents, "province_market_stockpiles_sales", text::variable_type::val, text::fp_two_places{ state.world.market_get_stockpile_sales(market, target.commodity) });		
+		text::add_line(state, contents, "province_market_stockpiles_sales", text::variable_type::val, text::fp_two_places{ state.world.market_get_stockpile_sales(market, target.commodity) });
 		{
 			auto supply = state.world.market_get_supply(market, target.commodity);
 			auto demand = state.world.market_get_demand(market, target.commodity);

@@ -474,8 +474,8 @@ value_mod_product;$val$ 结果：
 value_mod_sum;$val$ 总计：
 value_mod_sum_factor;影响力 $val$ 是 $x$（乘积）：
 admin_explain_1;行政效率修正：$val$
-admin_explain_2;应用于本土官僚比例：$val$
-admin_explain_3;对于需要的官僚人口比例为：$val$（基础 $x$ 加上来自改革的 $y$）
+admin_explain_2;应用于本土官员比例：$val$
+admin_explain_3;对于需要的官员人口比例为：$val$（基础 $x$ 加上来自改革的 $y$）
 factory_condition_1;此国已开化
 factory_condition_2;此地区不是一个殖民地区
 factory_condition_3;执政党允许修建工厂
@@ -495,7 +495,7 @@ factory_upgrade_condition_9;工厂未处于升级过程
 factory_upgrade_condition_10;工厂不处于最大等级
 factory_delete_header;移除工厂
 factory_delete_not_allowed;执政党不允许我们移除工厂
-factory_stats_4;它在昨天获利 $val$
+factory_stats_4;昨天获利 $val$
 factory_stats_5;投入有效性
 factory_stats_6;修正后的可用投入：
 factory_stats_wage;工资：
@@ -515,7 +515,7 @@ special_rules;特殊规则：
 voting_rules;投票规则：
 hide_decision;隐藏此决议通知
 sup_point_gain;每月镇压点增加：?G+$val$
-sup_point_explain;来自：基础比例 $x$× 来自官僚的 $y$× 来自镇压点数修正的 $val$
+sup_point_explain;来自：基础比例 $x$× 来自官员的 $y$× 来自镇压点数修正的 $val$
 pop_size_1;下月人群变化预计：
 pop_size_2;来自增长：
 pop_size_3;来自升降职：
@@ -588,7 +588,7 @@ pop_lit_5;国内教育效率修正：$x$
 pop_lit_6;国内教育效率修正：$x$
 pop_lit_7;基础识字率变化率：$x$
 pop_lit_8;和 0.01
-pop_growth_topbar;下月增长速度预计： ?G$x$?W
+pop_growth_topbar;下月增长速度预计：?G$x$?W
 pop_growth_topbar_2;人口变化幅度 ?G$x$?W 在最后 ?Y30?W 天。
 pop_growth_topbar_3;我国成年男性人口：?Y$curr$?W。我们男人
 pop_growth_topbar_4;我国总人口：?Y$val$?W。
@@ -975,7 +975,7 @@ as_a_vassal;作为附庸
 change_state_name_to;地区名将变成 $text$
 alice_join_crisis_offer;$ACTOR$会给予我们如下好处如果我们在本场危机中加入他们
 alice_unit_disable_rebel_hunt;停止围剿叛军
-alice_regiment_battle_info;$m$ $name$ ?Y$type$?!\n组织度： ?Y$organisation$?W\n兵力： ?Y$strength$?W
+alice_regiment_battle_info;$m$ $name$ ?Y$type$?!\n组织度：?Y$organisation$?W\n兵力：?Y$strength$?W
 understaffed_regiment;?RT这个团人手不足并且只有 $value$ 名士兵!?W
 tech_queue_explain;按?YSHIFT?W 加入队列，?Y右键?W 移除
 alice_province_building_build;?YSHIFT?W 建造在整个 ?G地区?W。\n?YSHIFT-右键?W 建造在整个?G国家?W。
@@ -1065,7 +1065,7 @@ alice_spending_land_construction;陆军建设在 $name$：?R$cost$?W
 alice_spending_naval_construction;海军建设在 $name$：?R$cost$?W
 alice_spending_building_construction;建筑建设在 $name$：?R$cost$?W
 alice_spending_factory_construction;工厂建设在 $name$：?R$cost$?W
-alice_spending_unit;在此单位上的总花费，取决于 $name$： ?R$cost$?W
+alice_spending_unit;此单位总花费，取决于 $name$：?R$cost$?W
 alice_spending_unit_1;此单位总花费：?R$cost$?W
 alice_spending_total;?Y总费用：?W
 alice_spending_commodity;?R$cost$?W - 需要 $name$（$val$）的$need$
@@ -1203,7 +1203,7 @@ CANCEL_WARSUBSIDIES_WE_ACCEPT_LOG;$ACTOR$ 已停止给与我们战争援助
 CANCEL_WARSUBSIDIES_OTHER_ACCEPT_LOG;$ACTOR$ 已停止给与 $RECIPIENT$ 战争援助
 CANCEL_WARSUBSIDIES_DESC;取消对此国的资金援助
 ledger_standard_of_living;生活条件
-alice_ledger_header_gdp_history;购买力（通胀调整）GDP 历史
+alice_ledger_header_gdp_history;通胀后购买力 GDP 历史
 alice_countryalert_colonialgood_start;我们可以在 $region$ 开始殖民
 alice_overseas_mil_description;海外部队
 alice_armygroup_go_to_selection;添加/删除单位
@@ -1240,8 +1240,8 @@ rgo_production;RGO产出
 artisan_production;工匠产出
 factory_production;工厂产出
 artisan_distribution;工匠优先级
-produced_nation;库存
-consumed_nation;消费
+produced_nation;市场供应
+consumed_nation;实际消费
 nation_name;国家
 demanded_nation;需求
 method_name;名字
@@ -1334,8 +1334,8 @@ alice_budget_item;项目
 alice_budget_amount;数量
 alice_budget_minimum_button;设最低值
 alice_budget_maximum_button;设最大值
-alice_budget_decrease_button;值少10（shift+以精确控制）
-alice_budget_increase_button;值多10（shift+以精确控制）
+alice_budget_decrease_button;-10 (shift -1)
+alice_budget_increase_button;+10 (shift +1)
 alice_budget_max;最大 $x$
 alice_budget_min;最小 $x$
 alice_budget_overlord;宗主税
@@ -1472,9 +1472,9 @@ payment_received_per_unit;每单位卖方收到 ?Y$val$
 merchants_received_per_unit;每单位卖方利润 ?Y$val$
 disallow_naval_trade;海上禁运
 disallow_land_trade;陆上禁运
-pop_migration_bureaucracy;流动官僚管理地方：$x$
+pop_migration_bureaucracy;流动官员管理地方：$x$
 pop_migration_attraction_wage_ratio;工资差距：$x$
-pop_migration_attraction_bureaucracy;官僚基础吸引力：$x$
+pop_migration_attraction_bureaucracy;官员基础吸引力：$x$
 ask_free_trade_agreement;贸易协定
 revoke_trade_rights;取消贸易权利
 msg_trade_rights_revoked;国家 ?Y$y$?W 撤回了 ?Y$x$?! 在其国内的自由贸易权利。
@@ -1528,8 +1528,8 @@ alice_construction_cost;施工成本：
 alice_factory_construction_explain_3;购买的商品价值：?Y$x$?W
 alice_factory_construction_explain_4;总价预计：?Y$x$?W
 alice_factory_construction_explain_5;进展：?Y$x$?W
-ledger_inflation_adjusted_gdp;GDP（通胀调整）
-ledger_inflation_adjusted_gdp_per_capita;百万人平均GDP（通胀调整）
+ledger_inflation_adjusted_gdp;通胀后 GDP
+ledger_inflation_adjusted_gdp_per_capita;通胀后百万人平均GDP
 province_victory_points;胜利点，表示战时计算占领分，此省份相对于其他省份的价值。
 province_victory_points_base;?G+1 基本分?W
 province_victory_points_nb;?G+$X$ 海军基地等级分数?W
@@ -1598,11 +1598,11 @@ trade_centre_imports_volume;进口量：?Y$val$
 trade_centre_imports_value;进口价值：?Y$val$
 trade_centre_exports_volume;出口量：?Y$val$
 trade_centre_exports_value;出口价值：?Y$val$
-trade_centre_trade_routes_profit;从贸易路线中获利：?Y$val$
+trade_centre_trade_routes_profit;贸易路线获利：?Y$val$
 trade_centre_money;结余：?Y$val$
 administration_tile;当地行政
 market_tile;当地市场
-alice_sort_pops;种族
+alice_sort_pops;民族
 alice_sort_states;地区
 alice_topbar_avg_literacy_in_states;非殖民地人口 ?Y$x$?W 是平均?Y识字率?W
 employment_type_guild_education;雇佣类型：?Y行会教育?W
@@ -1690,7 +1690,7 @@ gdp_factory;二级产业（大规模）：
 gdp_artisans;二级产业（手工业）：
 gdp_selected;所选省份GDP
 gdp_rest;国内其他省份GDP
-market_report;?Y$province$?W 当地市场出口贸易
+market_report;?Y$province$?W 贸易
 market_prices_report;?Y$province$?W 市场价格
 rgo_report;?Y$province$?W 资源运营
 trade_balance;结余
@@ -1844,7 +1844,7 @@ province_market_demand;需求：?R$val$?!
 province_market_production;生产：?G$val$?!
 province_market_consumption;消费：?R$val$?!
 province_market_stockpiles;库存：?Y$val$?!
-province_market_balance;结余：?Y$val$?!
+province_market_balance;供需比倒数差：?Y$val$?!
 province_market_trade_in;进口：?G$val$?!
 province_market_trade_out;出口：?R$val$?!
 province_market_trade_balance;贸易结余：?Y$val$?!
@@ -1945,10 +1945,10 @@ alice_gamerule_command_units_opt_enabled;启用
 alice_gamerule_command_units_desc;玩家战时是否可指挥AI附庸单位
 trade_centre_estimated_money;下次采购预计：?Y$val$
 trade_centre_estimated_change;变化预计：?Y$val$
-trade_centre_import;进口商品采购：?Y$val$
+trade_centre_import;进口采购：?Y$val$
 trade_centre_export;出口盈亏：?Y$val$
 trade_centre_sold;销售收入：?Y$val$
-trade_centre_bought;当地商品采购：?Y$val$
+trade_centre_bought;当地采购：?Y$val$
 trade_centre_investments;人群贸易预算：?Y$val$
 trade_centre_dividents;投资者分红：?Y$val$
 trade_centre_factories;工厂采购：?Y$val$
@@ -1971,16 +1971,16 @@ alice_unit_dug_in;单位设防级别 ?Y$NUM$?W
 alice_unit_targeting_dug_in_modifier;单位在攻击设防单位时获得 ?Y$NUM$?W 战斗骰子修正
 pop_literacy_spending_actually_spent;当地教育满足度：?Y$val$?W.
 private_education_price;教育价 ?Y$val$?!
-port_price;当地港口价 ?Y$val$?!
+port_price;港口价 ?Y$val$?!
 housing_price;住房价 ?Y$val$?!
-housing_supply;住房供应 ?Y$val$?!
-housing_demand;住房需求 ?Y$val$?!
+housing_supply;供应 ?Y$val$?!
+housing_demand;需求 ?Y$val$?!
 rgo_bank;RGO 结余 ?Y$val$?W
-rgo_bank_in;RGOs 生产盈利 ?Y$val$?W
-rgo_bank_out;RGOs 人群分红 ?Y$val$?W
+rgo_bank_in;生产盈利 ?Y$val$?W
+rgo_bank_out;人群分红 ?Y$val$?W
 factory_bank;工厂结余 ?Y$val$?W
-factory_bank_in;工厂生产盈利 ?Y$val$?W
-factory_bank_out;工厂人群分红 ?Y$val$?W
+factory_bank_in;生产盈利 ?Y$val$?W
+factory_bank_out;人群分红 ?Y$val$?W
 colonial_crisis;殖民危机
 add_wargoal_wargoal_count;当继续时会添加 ?Y$COUNT$?W 战争目标
 artisan_bank;工匠结余 ?Y$val$?W
@@ -2018,9 +2018,24 @@ factory_investments_header;投资
 total_investments_label;总计
 investment_efficiency_tooltip;工具、效率输入和机器
 investment_expansion_tooltip;扩张
-private_education_supply_1;私立教育供应 ?Y$val$?!
-private_education_supply_2;公立教育供应 ?Y$val$?!
-private_education_demand_1;公立教育需求 ?Y$val$?!
-private_education_demand_2;私立教育需求 ?Y$val$?!
-private_education_size_public;公立教育规模 ?Y$val$?!
-private_education_size_private;私立教育规模 ?Y$val$?!
+private_education_supply_1;私立供应 ?Y$val$?!
+private_education_supply_2;公立供应 ?Y$val$?!
+private_education_demand_1;公立需求 ?Y$val$?!
+private_education_demand_2;私立需求 ?Y$val$?!
+private_education_size_public;公立规模 ?Y$val$?!
+private_education_size_private;私立规模 ?Y$val$?!
+trade_route_volume_transport_cost;运费：?Y$val$?W
+trade_route_volume_import_price;关税后进口价：?Y$val$?W
+trade_route_volume_export_price;关税后出口价：?Y$val$?W
+trade_route_volume_transport_availability;运输可用性：?Y$val$?W
+trade_route_volume_budget_availability;进口预算：?Y$val$?W
+trade_route_volume_risk;交易风险（取决于价格与可用资金之比）?Y$val$?W
+trade_route_confidence_export;出口价信心：?Y$val$
+trade_route_confidence_import;进口价信心：?Y$val$
+trade_centre_wealth;库存总成本：?Y$val$
+trade_centre_wealth_and_money;总资产：?Y$val$
+trade_centre_arbitrage;贸易中心获利：?Y$val$
+province_market_stockpiles_sales;库存销售目标：?Y$val$?!
+alice_budget_military_expense;军人工资
+alice_budget_education_expense;公共教育
+alice_budget_administration_expense;官员工资

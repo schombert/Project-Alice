@@ -49,7 +49,7 @@ glm::vec2 get_navy_location(sys::state& state, dcon::province_id prov_id) {
 		return get_port_location(state, prov_id);
 }
 
-glm::vec2 get_army_location(sys::state& state, dcon::province_id prov_id) {
+glm::vec2 get_army_location(sys::state const& state, dcon::province_id prov_id) {
 	return state.world.province_get_mid_point(prov_id);
 }
 }
@@ -1538,7 +1538,7 @@ void display_data::render(
 	}
 
 	// trade flow
-	if(state.selected_trade_good && !trade_flow_vertices.empty()) {
+	if(!trade_flow_vertices.empty()) {
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, textures[texture_arrow]);
 		glActiveTexture(GL_TEXTURE3);
@@ -1551,10 +1551,20 @@ void display_data::render(
 		glBindVertexArray(vao_array[vo_trade_flow]);
 		glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_trade_flow]);
 		glMultiDrawArrays(GL_TRIANGLE_STRIP, trade_flow_arrow_starts.data(), trade_flow_arrow_counts.data(), GLsizei(trade_flow_arrow_starts.size()));
+	}
 
+	{
 		// trade particles
 		if(state.user_settings.graphics_mode != sys::graphics_mode::ugly) {
 			load_shader(shader_map_sprite);
+			auto& flow_data = state.flow_map;
+
+			auto gfx_ships = state.ui_defs.gui[
+				state.ui_state.defs_by_name.find(
+					state.lookup_key("gfx_storage_unit_types")
+				)->second.definition
+			].data.image.gfx_object;
+			auto& gfx_def_ships = state.ui_defs.gfx[gfx_ships];
 
 			auto gfx_id =
 				state.ui_defs.gui[
@@ -1562,165 +1572,227 @@ void display_data::render(
 						state.lookup_key("gfx_storage_commodity")
 							)->second.definition
 				].data.image.gfx_object;
+
+			if(flow_data.source == flow_map::administration) {
+				gfx_id = state.ui_defs.gui[
+					state.ui_state.defs_by_name.find(
+						state.lookup_key("gfx_storage_pop_types")
+					)->second.definition
+				].data.image.gfx_object;
+			}
+
 			auto& gfx_def = state.ui_defs.gfx[gfx_id];
-			auto frame = state.world.commodity_get_icon(state.selected_trade_good);
-			auto texture_handle = ogl::get_texture_handle(state, gfx_def.primary_texture_handle, gfx_def.is_partially_transparent());
-
-
-			const float speed = 0.5f;
-
+			const float base_speed = 0.25f;
 			bool spawned_something = false;
+			int attempts_to_spawn = 50;
 
-			{
-				for(size_t i = 0; i < trade_particles_positions.size(); i++) {
-					auto& p = trade_particles_positions[i];
+			for(size_t i = 0; i < flow_data.flow_particles_positions.size(); i++) {
+				auto& p = flow_data.flow_particles_positions[i];
+				auto edge = flow_data.flow_particles_content[i];
 
-					// update movement
-					if(p.trade_graph_node_current != -1 && p.trade_graph_node_next != -1) {
-						if(p.adj_index != -1) {
-							auto time_left = 1.f;
-							while(time_left > 0.f) {
-								auto actual_target_offset = railroad_starts[p.adj_index] + p.adj_count;
-								auto actual_target = railroad_vertices[actual_target_offset].position_ * glm::vec2(float(size_x), float(size_y));
-								auto direction = actual_target - p.position_;
-								auto length = float(glm::length(direction));
-								if(length < speed * 2) {
-									p.adj_count += p.adj_direction;
-									if(p.adj_count >= railroad_counts[p.adj_index] || p.adj_count < 0) {
-										p.trade_graph_node_prev = p.trade_graph_node_current;
-										p.trade_graph_node_current = p.trade_graph_node_next;
-										p.trade_graph_node_next = -1;
-										p.adj_index = -1;
-										break;
-									}
-									time_left -= length / (speed * 2);
-								} else {
-									for(int vagon = (int)p.vagon_positions.size() - 1; vagon > 0; vagon--) {
-										p.vagon_positions[vagon] = p.vagon_positions[vagon - 1];
-									}
-									p.vagon_positions[0] = p.position_;
-									p.position_ += direction / length * speed;
-									time_left -= 1.f;
+				for(int wagon = (int)p.wagon_positions.size() - 1; wagon > 0; wagon--) {
+					p.wagon_positions[wagon] = p.wagon_positions[wagon - 1];
+				}
+				p.wagon_positions[0] = p.position_;
+
+				// update movement
+				if(p.graph_node_current != -1 && p.graph_node_next != -1) {
+					auto speed = base_speed;
+					if(
+						p.graph_node_current >= state.province_definitions.first_sea_province.index()
+						|| p.graph_node_next >= state.province_definitions.first_sea_province.index()
+					) {
+						speed = speed * 4.f;
+					}
+					if(p.adj_index != -1) {
+						auto time_left = 1.f;
+						while(time_left > 0.f) {
+							auto actual_target_offset = railroad_starts[p.adj_index] + p.adj_count;
+							auto actual_target = railroad_vertices[actual_target_offset].position_ * glm::vec2(float(size_x), float(size_y));
+							auto direction = actual_target - p.position_;
+							auto length = float(glm::length(direction));
+							if(length < speed * 2 || length > size_x + size_y) {
+								p.adj_count += p.adj_direction;
+								if(p.adj_count >= railroad_counts[p.adj_index] || p.adj_count < 0) {
+									p.graph_node_prev = p.graph_node_current;
+									p.graph_node_current = p.graph_node_next;
+									p.graph_node_next = -1;
+									p.adj_index = -1;
+									break;
 								}
-							}
+								time_left -= length / (speed * 2);
 							} else {
-								auto direction = p.target_ - p.position_;
-								auto length = float(glm::length(direction));
-								if(length < speed * 2) {
-									p.trade_graph_node_prev = p.trade_graph_node_current;
-									p.trade_graph_node_current = p.trade_graph_node_next;
-									p.trade_graph_node_next = -1;
-								} else {
-									for(int vagon = (int)p.vagon_positions.size() - 1; vagon > 0; vagon--) {
-										p.vagon_positions[vagon] = p.vagon_positions[vagon - 1];
-									}
-									p.vagon_positions[0] = p.position_;
-									p.position_ += direction / length * speed;
-								}
-						}
-					}
-
-					// choose target
-					if(p.trade_graph_node_current != -1 && p.trade_graph_node_next == -1) {
-						// choose next target according to probability
-						// use time as random engine for simplicity
-						auto random = fmod(sin(time_counter * 971641.5397643) + 1.f, 1.f);
-
-						int target = -1;
-
-						auto accumulated = 0.f;
-						for(auto const& [candidate, probability] : particle_next_node_probability[p.trade_graph_node_current]) {
-							accumulated += probability;
-							// prevent trivial loops
-							if(random < accumulated && candidate != p.trade_graph_node_prev) {
-								target = candidate;
-								break;
+								p.position_ += direction / length * speed;
+								time_left -= 1.f;
 							}
 						}
-
-						// moving to itself or having no paths to go out implies deletion
-						if(target == -1 || target == p.trade_graph_node_current) {
-							p.trade_graph_node_current = -1;
+					} else {
+						auto direction = p.target_ - p.position_;
+						auto length = float(glm::length(direction));
+						if(length < speed * 2 || length > size_x + size_y) {
+							p.graph_node_prev = p.graph_node_current;
+							p.graph_node_current = p.graph_node_next;
+							p.graph_node_next = -1;
 						} else {
-							p.trade_graph_node_next = target;
-							if(target >= (int)state.world.province_size()) {
-								target -= state.world.province_size();
-							}
-							p.target_ = put_in_local(trade_node_position[target], p.position_, (float)size_x);
+							p.position_ += direction / length * speed;
+						}
+					}
+				}
 
-							auto current = p.trade_graph_node_current;
-							if(current >= (int)state.world.province_size()) {
-								current -= state.world.province_size();
-							}
+				// choose target
+				if(p.graph_node_current != -1 && p.graph_node_next == -1 && edge != -1) {
+					// choose next target according to probability
+					// use time as random engine for simplicity
+					auto random = fmod(sin(i * time_counter * 971641.5397643) + 1.f, 1.f);
 
-							auto adj = state.world.get_province_adjacency_by_province_pair(
-								dcon::province_id{ dcon::province_id::value_base_t(target) },
-								dcon::province_id{ dcon::province_id::value_base_t(current) }
-							);
-							if(adj && railroad_counts[adj.index()] > 0) {
-								p.adj_index = adj.index();
-								p.adj_count = 0;
-								p.adj_direction = 1;
-								if(state.world.province_adjacency_get_connected_provinces(adj, 0).index() != target) {
-									p.adj_count = railroad_counts[adj.index()] - 1;
-									p.adj_direction = -1;
+					int target = -1;
+
+					auto accumulated = 0.f;
+					for(auto const& [candidate, probability] : flow_data.particle_next_node_probability[p.graph_node_current]) {
+						accumulated += probability[edge];
+						// prevent trivial loops
+						if(random < accumulated && candidate != p.graph_node_prev) {
+							target = candidate;
+							break;
+						}
+					}
+
+					// moving to itself or having no paths to go out implies deletion
+					if(target == -1 || target == p.graph_node_current) {
+						p.graph_node_current = -1;
+						p.ship_model = {};
+					} else {
+						auto current = p.graph_node_current;
+						auto current_prov = dcon::province_id{ dcon::province_id::value_base_t(current) };
+						if(
+							current < state.province_definitions.first_sea_province.index()
+							&& target >= state.province_definitions.first_sea_province.index()
+							&& !p.ship_model 
+						) {
+							auto local_state = state.world.province_get_state_membership(current_prov);
+							auto local_market = state.world.state_instance_get_market_from_local_market(local_state);
+							auto total = 0.f;
+							for(uint32_t ui = 2; ui < state.military_definitions.unit_base_definitions.size(); ++ui) {
+								dcon::unit_type_id uid = dcon::unit_type_id{ dcon::unit_type_id::value_base_t(ui) };
+								auto count = state.world.market_get_owned_ships(local_market, uid);
+								total += count;
+							}
+							auto dice = fmod(sin(i * time_counter * 791541.5347643) + 1.f, 1.f) * total;
+							auto accumulated_ship = 0.f;
+							for(uint32_t ui = 2; ui < state.military_definitions.unit_base_definitions.size(); ++ui) {
+								dcon::unit_type_id uid = dcon::unit_type_id{ dcon::unit_type_id::value_base_t(ui) };
+								auto count = state.world.market_get_owned_ships(local_market, uid);
+								accumulated_ship += count;
+								if (accumulated_ship > dice) {
+									p.ship_model = uid;
+									break;
 								}
 							}
 						}
+						p.graph_node_next = target;
+						p.target_ = put_in_local(flow_data.node_position[target], p.position_, (float)size_x);
+
+						auto adj = state.world.get_province_adjacency_by_province_pair(
+							dcon::province_id{ dcon::province_id::value_base_t(target) },
+							dcon::province_id{ dcon::province_id::value_base_t(current) }
+						);
+						if(adj && railroad_counts[adj.index()] > 0) {
+							p.adj_index = adj.index();
+							p.adj_count = 0;
+							p.adj_direction = 1;
+							if(state.world.province_adjacency_get_connected_provinces(adj, 0).index() != target) {
+								p.adj_count = railroad_counts[adj.index()] - 1;
+								p.adj_direction = -1;
+							}
+						}
 					}
+				}
 
 
 					
 
-					// spawn "new" particles
-					// don't spawn them too often
-					if(!spawned_something && p.trade_graph_node_current == -1) {
-						spawned_something = true;
+				// spawn "new" particles
+				// don't spawn them too often
+				if(attempts_to_spawn > 0 && !spawned_something && p.graph_node_current == -1) {
+					auto p_types = state.world.commodity_size();
+					if(flow_data.source == flow_map::administration) {
+						p_types = 1;
+					}
 
-						auto random = fmod(sin(time_counter * 92637.1323076) + 1.f, 1.f);
+					auto random = fmod(sin(((float)i + time_counter) * 92637.1323076) + 1.f, 1.f) * state.world.commodity_size();
+					auto next_edge_layer_dice = (float) int(random) / (float)state.world.commodity_size();
+					float accumulated_edge_dice = 0.f;
+					flow_data.flow_particles_content[i] = -1;
+					
+
+					if(p_types == 1) {
+						flow_data.flow_particles_content[i] = 0;
+					} else {
+						for(size_t candidate = 0; candidate < p_types; candidate++) {
+							accumulated_edge_dice += flow_data.edge_layer_probability[candidate];
+							if(next_edge_layer_dice < accumulated_edge_dice) {
+								flow_data.flow_particles_content[i] = (int32_t)candidate;
+								break;
+							}
+						}	
+					}
+
+					if(flow_data.flow_particles_content[i] != -1) {
+						attempts_to_spawn--;
+
+						random = random - (float)(int(random));
 
 						int target = -1;
 						float accumulated = 0.f;
-						for(auto const& [candidate, probability] : particle_creation_probability) {
-							accumulated += probability;
+
+						for(size_t candidate = 0; candidate < flow_data.node_probability_create.size(); candidate++) {
+							accumulated += flow_data.node_probability_create[candidate][flow_data.flow_particles_content[i]];
 							if(random < accumulated) {
-								target = candidate;
+								target = (int)candidate;
 								break;
 							}
 						}
 
 						if(target != -1) {
-							p.trade_graph_node_current = target;
-							p.position_ = trade_node_position[target];
-							p.target_ = trade_node_position[target];
-							p.trade_graph_node_next = -1;
-							p.trade_graph_node_prev = -1;
+							p.graph_node_current = target;
+							p.position_ = flow_data.node_position[target];
+							p.target_ = flow_data.node_position[target];
+							p.graph_node_next = -1;
+							p.graph_node_prev = -1;
+							//spawned_something = true;
 						}
 					}
 				}
 			}
+
 			// draw
 			{
-
 				glEnable(GL_BLEND);
 				glBlendEquation(GL_FUNC_ADD);
 				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+				auto texture_handle = ogl::get_texture_handle(state, gfx_def.primary_texture_handle, gfx_def.is_partially_transparent());
+
 				glActiveTexture(GL_TEXTURE0);
 				glBindTexture(GL_TEXTURE_2D, texture_handle);
-
 				glUniform1i(shader_uniforms[shader_map_sprite][uniform_texture_sampler], 0);
-				glUniform2f(shader_uniforms[shader_map_sprite][uniform_sprite_texture_start], (float)frame / gfx_def.number_of_frames, 0.f);
 				glUniform2f(shader_uniforms[shader_map_sprite][uniform_sprite_texture_size], 1.f / gfx_def.number_of_frames, 1.f);
 
 				glBindVertexArray(vao_array[vo_square]);
 				glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_square]);
 
-				for(size_t i = 0; i < trade_particles_positions.size(); i++) {
-					auto& p = trade_particles_positions[i];
-					if(p.trade_graph_node_current != -1) {
-						for(int vagon = (int)p.vagon_positions.size() - 1; vagon > 0; vagon--) {
-							glUniform2f(shader_uniforms[shader_map_sprite][uniform_sprite_offsets], trade_particles_positions[i].vagon_positions[vagon].x / float(size_x), trade_particles_positions[i].vagon_positions[vagon].y / float(size_y));
+				for(size_t i = 0; i < flow_data.flow_particles_positions.size(); i++) {
+					auto& p = flow_data.flow_particles_positions[i];
+					auto edge = flow_data.flow_particles_content[i];
+					auto frame = state.world.commodity_get_icon(dcon::commodity_id{ (dcon::commodity_id::value_base_t)edge });
+					if(flow_data.source == flow_map::administration) {
+						frame = state.world.pop_type_get_sprite(state.culture_definitions.bureaucrat) - 1;
+					}
+					glUniform2f(shader_uniforms[shader_map_sprite][uniform_sprite_texture_start], (float)frame / gfx_def.number_of_frames, 0.f);
+
+					if(p.graph_node_current != -1) {
+						for(int wagon = (int)p.wagon_positions.size() - 3; wagon > 0; wagon -= 3) {
+							glUniform2f(shader_uniforms[shader_map_sprite][uniform_sprite_offsets], p.wagon_positions[wagon].x / float(size_x), p.wagon_positions[wagon].y / float(size_y));
 							glUniform2f(shader_uniforms[shader_map_sprite][uniform_sprite_scale], 1.f / float(size_x), 1.f / float(size_y));
 							glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 						}
@@ -1738,8 +1810,8 @@ void display_data::render(
 				glBindVertexArray(vao_array[vo_square]);
 				glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_square]);
 
-				for(size_t i = 0; i < trade_particles_positions.size(); i++) {
-					auto& p = trade_particles_positions[i];
+				for(size_t i = 0; i < flow_data.flow_particles_positions.size(); i++) {
+					auto& p = flow_data.flow_particles_positions[i];
 
 					dcon::province_adjacency_id adj{ dcon::province_adjacency_id::value_base_t(p.adj_index) };
 					auto p1 = state.world.province_adjacency_get_connected_provinces(adj, 0);
@@ -1751,25 +1823,56 @@ void display_data::render(
 						continue;
 					}
 
-					if(p.trade_graph_node_current != -1) {
-						glUniform2f(shader_uniforms[shader_map_sprite][uniform_sprite_offsets], trade_particles_positions[i].position_.x / float(size_x), trade_particles_positions[i].position_.y / float(size_y));
+					if(p.graph_node_current != -1) {
+						glUniform2f(shader_uniforms[shader_map_sprite][uniform_sprite_offsets], p.position_.x / float(size_x), p.position_.y / float(size_y));
 						glUniform2f(shader_uniforms[shader_map_sprite][uniform_sprite_scale], 1.f / float(size_x), 1.f / float(size_y));
 						glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 					}
 				}
 
+
+				glBindVertexArray(vao_array[vo_square]);
+				glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_square]);
 				glActiveTexture(GL_TEXTURE0);
 				glBindTexture(GL_TEXTURE_2D, textures[texture_ship]);
-
 				glUniform1i(shader_uniforms[shader_map_sprite][uniform_texture_sampler], 0);
 				glUniform2f(shader_uniforms[shader_map_sprite][uniform_sprite_texture_start], 0.f, 0.f);
 				glUniform2f(shader_uniforms[shader_map_sprite][uniform_sprite_texture_size], 1.f, 1.f);
 
-				glBindVertexArray(vao_array[vo_square]);
-				glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_square]);
+				for(size_t i = 0; i < flow_data.flow_particles_positions.size(); i++) {
+					auto& p = flow_data.flow_particles_positions[i];
+					if(p.ship_model) {
+						continue;
+					}
+					dcon::province_adjacency_id adj{ dcon::province_adjacency_id::value_base_t(p.adj_index) };
+					auto p1 = state.world.province_adjacency_get_connected_provinces(adj, 0);
+					auto p2 = state.world.province_adjacency_get_connected_provinces(adj, 1);
+					auto p1_is_sea = p1.index() >= state.province_definitions.first_sea_province.index() && p1.index() < (int)state.world.province_size();
+					auto p2_is_sea = p2.index() >= state.province_definitions.first_sea_province.index() && p2.index() < (int)state.world.province_size();
 
-				for(size_t i = 0; i < trade_particles_positions.size(); i++) {
-					auto& p = trade_particles_positions[i];
+					if(!(p1_is_sea || p2_is_sea)) {
+						continue;
+					}
+
+					if(p.graph_node_current != -1) {
+						glUniform2f(shader_uniforms[shader_map_sprite][uniform_sprite_offsets], p.position_.x / float(size_x), p.position_.y / float(size_y));
+						glUniform2f(shader_uniforms[shader_map_sprite][uniform_sprite_scale], 1.f / float(size_x), 1.f / float(size_y));
+						glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+					}
+				}
+
+				auto texture_handle_ships = ogl::get_texture_handle(state, gfx_def_ships.primary_texture_handle, gfx_def_ships.is_partially_transparent());
+				glActiveTexture(GL_TEXTURE0);
+				glBindTexture(GL_TEXTURE_2D, texture_handle_ships);
+				glUniform1i(shader_uniforms[shader_map_sprite][uniform_texture_sampler], 0);
+				glUniform2f(shader_uniforms[shader_map_sprite][uniform_sprite_texture_size], 1.f / gfx_def_ships.number_of_frames, 1.f);
+
+				for(size_t i = 0; i < flow_data.flow_particles_positions.size(); i++) {
+					auto& p = flow_data.flow_particles_positions[i];
+					if(!p.ship_model) {
+						continue;
+					}
+
 
 					dcon::province_adjacency_id adj{ dcon::province_adjacency_id::value_base_t(p.adj_index) };
 					auto p1 = state.world.province_adjacency_get_connected_provinces(adj, 0);
@@ -1781,12 +1884,16 @@ void display_data::render(
 						continue;
 					}
 
-					if(p.trade_graph_node_current != -1) {
-						glUniform2f(shader_uniforms[shader_map_sprite][uniform_sprite_offsets], trade_particles_positions[i].position_.x / float(size_x), trade_particles_positions[i].position_.y / float(size_y));
+					auto frame = state.military_definitions.unit_base_definitions[p.ship_model].icon - 1;
+					glUniform2f(shader_uniforms[shader_map_sprite][uniform_sprite_texture_start], (float)frame / gfx_def_ships.number_of_frames, 0.f);
+
+					if(p.graph_node_current != -1) {
+						glUniform2f(shader_uniforms[shader_map_sprite][uniform_sprite_offsets], p.position_.x / float(size_x), p.position_.y / float(size_y));
 						glUniform2f(shader_uniforms[shader_map_sprite][uniform_sprite_scale], 1.f / float(size_x), 1.f / float(size_y));
 						glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 					}
 				}
+
 			}
 		}
 	}
@@ -2533,6 +2640,12 @@ void add_tl_segment_buffer(
 	end /= glm::vec2(size_x, size_y);
 	auto d = start - end;
 	distance += glm::length(d);
+
+	assert(start.y >= 0.f && start.y < 1.f);
+	assert(end.y >= 0.f && end.y < 1.f);
+	assert(std::isfinite(width_end) && width_end >= 0.f);
+	assert(std::isfinite(next_normal_dir.x) && std::isfinite(next_normal_dir.y));
+
 	buffer.emplace_back(textured_line_with_width_vertex{ end, +next_normal_dir, 0.0f, distance, width_end });//C
 	buffer.emplace_back(textured_line_with_width_vertex{ end, -next_normal_dir, 1.0f, distance, width_end });//D
 }
@@ -2655,9 +2768,18 @@ void add_bezier_to_buffer_variable_width(
 		auto point = bpoint(t_current);
 		auto point_next = bpoint(t_next);
 
+		if(point_prev == point && point == point_next) {
+			t_prev = t_current;
+			continue;
+		}
+
 		auto approximate_normal = glm::normalize(point - point_prev) + glm::normalize(point - point_next);
-		auto local_tangent = glm::normalize(point - point_prev);
-		if(glm::length(approximate_normal) < 0.00001f) {
+		auto local_tangent = glm::normalize(point_next - point_prev);
+		if(
+			glm::length(point - point_prev) < 0.00001f
+			|| glm::length(point - point_next) < 0.00001f
+			|| glm::length(approximate_normal) < 0.00001f
+		) {
 			approximate_normal = glm::normalize(glm::vec2(-local_tangent.y, local_tangent.x));
 		} else {
 			approximate_normal = glm::normalize(approximate_normal);
@@ -2665,6 +2787,7 @@ void add_bezier_to_buffer_variable_width(
 				approximate_normal = -approximate_normal;
 			}
 		}
+		assert(std::isfinite(approximate_normal.x) && std::isfinite(approximate_normal.y));
 
 		if(!request_higher_density) {
 			if(glm::dot(approximate_normal, last_normal) < 0.98f) {

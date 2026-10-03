@@ -62,3 +62,6 @@ graphics_details_1;Classic
 graphics_details_2;Modern
 graphics_details_3;Gores
 disband_confirmation_label;Unit disband confirmation
+trade_particles_section_label;Trade particles settings
+reset_trade_particles;Reset trade particles
+trade_particles_count;Particles count

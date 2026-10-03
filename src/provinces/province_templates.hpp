@@ -144,7 +144,7 @@ struct path_node_heuristic {
 // ProvFunc: Lambda which takes a province_id as parameter and returns a bool. Decides if the given province is passable from any direction
 // MovementCostFunc: Lambda which takes the following as parameters (to_prov, from_prov, adjacency, distance) and returns a float. The returned value is used as movement cost in pathfinding
 template<float HeuristicModifier, typename AdjFunc, typename ProvFunc, typename MovementCostFunc>
-std::vector<dcon::province_id> make_path_to_prov(sys::state& state, dcon::province_id start, dcon::province_id end, AdjFunc&& adj_func, ProvFunc&& prov_func, MovementCostFunc&& movementcost_func) {
+std::vector<dcon::province_id> make_path_to_prov(sys::state const& state, dcon::province_id start, dcon::province_id end, AdjFunc&& adj_func, ProvFunc&& prov_func, MovementCostFunc&& movementcost_func) {
 
 	// uses an A* implementation with direct distance as heuristic
 
@@ -262,7 +262,7 @@ std::vector<dcon::province_id> make_path_to_prov(sys::state& state, dcon::provin
 // ProvFunc: Lambda which takes a province_id as parameter and returns a bool. Decides if the given province is passable from any direction
 // MovementCostFunc: Lambda which takes the following as parameters (to_prov, from_prov, adjacency, distance) and returns a float. The returned value is used as movement cost in pathfinding
 template<typename AdjFunc, typename ProvFunc, typename MovementCostFunc>
-std::vector<dcon::province_id> make_path_to_prov_fast(sys::state& state, dcon::province_id start, dcon::province_id end, AdjFunc&& adj_func, ProvFunc&& prov_func, MovementCostFunc&& movementcost_func) {
+std::vector<dcon::province_id> make_path_to_prov_fast(sys::state const& state, dcon::province_id start, dcon::province_id end, AdjFunc&& adj_func, ProvFunc&& prov_func, MovementCostFunc&& movementcost_func) {
 
 	std::vector<province_and_distance> path_heap;
 	auto origins_vector = ve::vectorizable_buffer<dcon::province_id, dcon::province_id>(state.world.province_size());

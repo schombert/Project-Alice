@@ -157,18 +157,25 @@ guiTypes = {
 
 			
 	iconType = {
-        name = "gfx_storage_unit_types"
-        spriteType = "GFX_unit_strip"
-        position = {  -150 -150 }
-        Orientation = "UPPER_LEFT"
-    }
+		name = "gfx_storage_unit_types"
+		spriteType = "GFX_unit_strip"
+		position = {  -150 -150 }
+		Orientation = "UPPER_LEFT"
+	}
     
-    iconType = {
-        name = "gfx_storage_commodity"
-        spriteType = "GFX_resources_big"
-        position = {  -150 -150 }
-        Orientation = "UPPER_LEFT"
-    }
+	iconType = {
+		name = "gfx_storage_commodity"
+		spriteType = "GFX_resources_big"
+		position = {  -150 -150 }
+		Orientation = "UPPER_LEFT"
+	}
+
+	iconType = {
+		name = "gfx_storage_pop_types"
+		spriteType = "GFX_pops_small"
+		position = {  -150 -150 }
+		Orientation = "UPPER_LEFT"
+	}
 
 	instantTextBoxType = {
 		name = "alice_investment_text"
