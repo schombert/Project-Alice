@@ -108,6 +108,8 @@ void schedule_active_ineffective_supply_paths_update(sys::state& state);
 // Computes the efficiency of a construct with has consumed vs available. Eg supply throughput
 float compute_efficiency(float consumed, float available);
 
+void regenerate_unsaved_values(sys::state& state);
+
 float port_supply_capacity_mult_hostile_troops_modifier(const sys::state& state, dcon::province_id prov, dcon::nation_id nation_as);
 
 float port_supply_capacity_mult_blockaded_modifier(const sys::state& state, dcon::province_id port_prov, dcon::nation_id nation_as);

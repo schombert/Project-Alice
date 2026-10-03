@@ -225,7 +225,7 @@ template<concepts::construction_type construction_type, typename FAccumulate>
 void accumulate_construction_good_requirements(const sys::state& state, construction_type c, FAccumulate& acc_func) {
 	const economy::commodity_set actual_cost = construction_get_actual_build_cost(state, c);
 
-	const economy::commodity_set& currently_fufilled = get_purchased_goods(state, c);
+	const economy::commodity_set& currently_fufilled = construction_get_purchased_goods(state, c);
 	for(uint32_t i = 0; i < actual_cost.set_size; i++) {
 		dcon::commodity_id cid = actual_cost.commodity_type[i];
 		if(cid) {

@@ -768,8 +768,7 @@ void schedule_prov_specific_nation_supply_paths_update(sys::state& state, dcon::
 }
 
 void schedule_prov_all_supply_paths_update(sys::state& state, dcon::province_id to_update) {
-	state.world.province_set_supply_route_requires_daily_update(to_update, true);
-	state.world.province_set_supply_route_requires_weekly_update(to_update, true);
+	state.world.province_set_supply_routes_requires_update(to_update, true);
 }
 void schedule_prov_enemy_supply_paths_update(sys::state& state, dcon::province_id to_update, dcon::nation_id nation) {
 	// Add enemy nations to the vector of nations whose routes need to be updated
@@ -823,6 +822,15 @@ float compute_efficiency(float consumed, float available) {
 	} else {
 		return std::min(available / consumed, 1.0f);
 	}
+}
+
+void regenerate_unsaved_values(sys::state& state) {
+	// Recreate adjacency paths from the stored province paths for all paths which are longer than 1 province
+	parallel_for_each_supply_route_path_predicate(state, [&](dcon::supply_route_path_id path) { return state.world.supply_route_path_get_path(path).size() > 1; }, [&](dcon::supply_route_path_id path) {
+		auto prov_path = state.world.supply_route_path_get_path(path);
+		auto adj_path = state.world.supply_route_path_get_adjacency_path(path);
+		province::make_adjacency_path_from_prov_path(state, prov_path, adj_path);
+	});
 }
 
 float port_supply_capacity_mult_hostile_troops_modifier(const sys::state& state, dcon::province_id prov, dcon::nation_id nation_as) {
@@ -1882,7 +1890,7 @@ void update_construction_commodity_satisfaction(sys::state& state, construction_
 	dcon::province_id location = economy::construction_get_location(state, c);
 	auto routes = economy::construction_get_supply_routes(state, c);
 	dcon::nation_id nation = economy::construction_get_controller(state, c);
-	economy::commodity_set& current_fufilled = economy::get_purchased_goods(state, c);
+	economy::commodity_set& current_fufilled = economy::construction_get_purchased_goods(state, c);
 	const economy::commodity_set& build_costs = economy::construction_get_base_build_cost(state, c);
 	for(auto route : routes) {
 		if(supply_route_is_active(state, route.id)) {
@@ -2635,7 +2643,7 @@ void update_supply_routes_daily(sys::state& state) {
 			dcon::nation_id owner = supply_route_path_get_owner(state, path_handle);
 			for(dcon::province_id prov : path) {
 				// Check if the province is flagged to update ALL routes which pass through it
-				if(state.world.province_get_supply_route_requires_weekly_update(prov)) {
+				if(state.world.province_get_supply_routes_requires_update(prov)) {
 					schedule_immediate_supply_path_update(state, path_handle);
 					return; // Leave loop iteration 
 				}
@@ -2662,8 +2670,7 @@ void update_supply_routes_daily(sys::state& state) {
 		},
 		[&]() {
 			state.world.execute_serial_over_province([&](auto prov_ids) {
-				state.world.province_set_supply_route_requires_daily_update(prov_ids, ve::vbitfield_type{ 0 });
-				state.world.province_set_supply_route_requires_weekly_update(prov_ids, ve::vbitfield_type{ 0 });
+				state.world.province_set_supply_routes_requires_update(prov_ids, ve::vbitfield_type{ 0 });
 				ve::apply([&](dcon::province_id prov) {
 					state.world.province_get_nation_routes_to_be_updated(prov).clear();
 				}, prov_ids);

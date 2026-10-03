@@ -2309,7 +2309,6 @@ void create_nation_based_on_template(sys::state& state, dcon::nation_id n, dcon:
 	state.world.nation_set_navy_construction_consumption(n, int8_t(100));
 	state.world.nation_set_factory_construction_consumption(n, int8_t(100));
 	state.world.nation_set_building_construction_consumption(n, int8_t(100));
-	state.world.nation_set_effective_construction_spending(n, 1.0f);
 	state.world.nation_set_spending_level(n, 1.0f);
 	state.world.nation_set_poor_tax(n, int8_t(50));
 	state.world.nation_set_middle_tax(n, int8_t(50));

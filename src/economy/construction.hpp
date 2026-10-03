@@ -119,9 +119,9 @@ const economy::commodity_set& construction_get_base_build_cost(const sys::state&
 template<concepts::construction_type con_type>
 economy::commodity_set& construction_get_base_build_cost(sys::state& state, con_type construction);
 template<concepts::construction_type con_type>
-const economy::commodity_set& get_purchased_goods(const sys::state& state, con_type construction);
+const economy::commodity_set& construction_get_purchased_goods(const sys::state& state, con_type construction);
 template<concepts::construction_type con_type>
-economy::commodity_set& get_purchased_goods(sys::state& state, con_type construction);
+economy::commodity_set& construction_get_purchased_goods(sys::state& state, con_type construction);
 
 template<concepts::construction_type con_type>
 bool construction_is_privately_owned(const sys::state& state, con_type construction);

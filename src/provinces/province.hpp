@@ -141,6 +141,8 @@ bool has_safe_access_to_province(sys::state& state, dcon::nation_id nation_as, d
 // Determines whether the nation can have supply routes go through this province
 bool has_supply_access_to_province(const sys::state& state, dcon::nation_id nation_as, dcon::province_id prov);
 
+void make_adjacency_path_from_prov_path(const sys::state& state, std::span<const dcon::province_id> prov_path, dcon::dcon_vv_fat_id<dcon::province_adjacency_id>& adj_path_out);
+
 enum class blackflagged_state : uint8_t {
 	not_blackflagged,
 	blackflagged

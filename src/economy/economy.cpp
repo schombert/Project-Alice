@@ -2528,7 +2528,7 @@ void run_private_investment(sys::state& state) {
 						new_up.set_is_upgrade(r.is_upgrade);
 						new_up.set_type(r.type);
 						const auto& base_cost = state.world.factory_type_get_construction_costs(r.type);
-						auto& purchased_goods = economy::get_purchased_goods(state, new_up.id);
+						auto& purchased_goods = economy::construction_get_purchased_goods(state, new_up.id);
 						// init types in new set
 						base_cost.copy_types_to(purchased_goods);
 
@@ -2569,7 +2569,7 @@ void run_private_investment(sys::state& state) {
 						new_up.set_is_upgrade(r.is_upgrade);
 						new_up.set_type(r.type);
 						const auto& base_cost = state.world.factory_type_get_construction_costs(r.type);
-						auto& purchased_goods = economy::get_purchased_goods(state, new_up.id);
+						auto& purchased_goods = economy::construction_get_purchased_goods(state, new_up.id);
 						// init types in new set
 						base_cost.copy_types_to(purchased_goods);
 						est_private_const_spending += r.cost;
@@ -2590,7 +2590,7 @@ void run_private_investment(sys::state& state) {
 					const auto& base_cost = state.economy_definitions.building_definitions[uint8_t(r.type)].cost;
 					new_rr.set_is_pop_project(r.is_pop_project);
 					new_rr.set_type(uint8_t(r.type));
-					auto& purchased_goods = get_purchased_goods(state, new_rr.id);
+					auto& purchased_goods = construction_get_purchased_goods(state, new_rr.id);
 					// init types in new set
 					base_cost.copy_types_to(purchased_goods);
 					est_private_const_spending += r.cost;
@@ -5194,6 +5194,10 @@ void regenerate_unsaved_values(sys::state& state) {
 	state.world.market_resize_satisfied_ratio_of_demanded_life_needs(state.world.pop_type_size());
 	state.world.market_resize_satisfied_ratio_of_demanded_everyday_needs(state.world.pop_type_size());
 	state.world.market_resize_satisfied_ratio_of_demanded_luxury_needs(state.world.pop_type_size());
+
+	state.world.nation_resize_total_stockpiles(state.world.commodity_size());
+
+	recreate_total_government_stockpiles(state);
 }
 
 float government_consumption(sys::state& state, dcon::nation_id n, dcon::commodity_id c) {
@@ -6024,8 +6028,8 @@ bool do_resource_potentials_allow_upgrade(sys::state& state, [[maybe_unused]] dc
 	return true;
 }
 
-void update_total_government_stockpiles(sys::state& state) {
-	state.world.for_each_nation([&](dcon::nation_id nation) {
+void recreate_total_government_stockpiles(sys::state& state) {
+	nations::parallel_for_each_existing_nation(state, [&](dcon::nation_id nation) {
 		economy::for_each_commodity_no_money(state, [&](dcon::commodity_id commodity) {
 			float total_stockpile = 0;
 			state.world.nation_for_each_state_control(nation, [&](dcon::state_control_id sc) {

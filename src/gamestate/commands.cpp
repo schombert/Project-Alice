@@ -568,7 +568,7 @@ void execute_begin_province_building_construction(sys::state& state, dcon::natio
 	auto new_rr = fatten(state.world, state.world.force_create_province_building_construction(p, source));
 	new_rr.set_is_pop_project(false);
 	new_rr.set_type(uint8_t(type));
-	auto& purchased_goods = economy::get_purchased_goods(state, new_rr.id);
+	auto& purchased_goods = economy::construction_get_purchased_goods(state, new_rr.id);
 	// init types in new set
 	base_cost.copy_types_to(purchased_goods);
 }
@@ -815,7 +815,7 @@ void execute_begin_factory_building_construction(sys::state& state, dcon::nation
 	new_up.set_refit_target(refit_target);
 	const auto& base_cost = state.world.factory_type_get_construction_costs(type);
 
-	auto& purchased_goods = economy::get_purchased_goods(state, new_up.id);
+	auto& purchased_goods = economy::construction_get_purchased_goods(state, new_up.id);
 	// init types in new set
 	base_cost.copy_types_to(purchased_goods);
 

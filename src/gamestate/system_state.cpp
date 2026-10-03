@@ -38,6 +38,7 @@
 #include "commands.hpp"
 #include "dcon_oos_reporter_generated.hpp"
 #include "logistics.hpp"
+#include "logistics_templates.hpp"
 
 namespace sys {
 
@@ -4092,6 +4093,8 @@ void state::fill_unsaved_data() { // reconstructs derived values that are not di
 
 	nations::monthly_flashpoint_update(*this);
 
+	logistics::regenerate_unsaved_values(*this);
+
 	//
 	// clear any pending messages from previously loaded saves
 	//
@@ -4589,7 +4592,7 @@ void state::single_game_tick() {
 			break;
 		case 10:
 			province::update_crimes(*this);
-			economy::update_total_government_stockpiles(*this);
+			economy::recreate_total_government_stockpiles(*this);
 			break;
 		case 11:
 			province::update_nationalism(*this);

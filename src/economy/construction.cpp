@@ -19,7 +19,7 @@ void delete_unit_construction(sys::state& state, mil_construction_type c) {
 	dcon::nation_id location_controller = construction_get_controller(state, c);
 	auto state_inst = state.world.province_get_state_membership(location);
 	auto market = state_inst.get_market_from_local_market();
-	const auto& fufilled_goods = get_purchased_goods(state, c);
+	const auto& fufilled_goods = construction_get_purchased_goods(state, c);
 	const auto& base_build_cost = construction_get_base_build_cost(state, c);
 	// Give back all of the purchased goods to the local stockpile if the construction was not completed. If it was completed, only give back the extra goods above what was needed
 	if(location_controller) {
@@ -77,7 +77,7 @@ void build_land_unit_construction_tooltip(
 	auto details = explain_land_unit_construction(state, conid);
 	auto unit = state.world.province_land_construction_get_type(conid);
 	const auto& goods = construction_get_actual_build_cost(state, conid);
-	const auto& cgoods = get_purchased_goods(state, conid);
+	const auto& cgoods = construction_get_purchased_goods(state, conid);
 
 	{
 		auto name = state.military_definitions.unit_base_definitions[unit].name;
@@ -113,7 +113,7 @@ void build_naval_unit_construction_tooltip(
 	auto details = explain_naval_unit_construction(state, conid);
 	auto unit = state.world.province_naval_construction_get_type(conid);
 	const auto& goods = construction_get_actual_build_cost(state, conid);
-	const auto& cgoods = get_purchased_goods(state, conid);
+	const auto& cgoods = construction_get_purchased_goods(state, conid);
 
 	{
 		auto name = state.military_definitions.unit_base_definitions[unit].name;
@@ -374,7 +374,7 @@ template economy::commodity_set construction_get_actual_build_cost(const sys::st
 
 
 template<concepts::construction_type con_type>
-const economy::commodity_set& get_purchased_goods(const sys::state& state, con_type construction) {
+const economy::commodity_set& construction_get_purchased_goods(const sys::state& state, con_type construction) {
 	if constexpr(std::is_same_v<con_type, dcon::province_land_construction_id>) {
 		return state.world.province_land_construction_get_purchased_goods(construction);
 	} else if constexpr(std::is_same_v<con_type, dcon::province_naval_construction_id>) {
@@ -385,18 +385,18 @@ const economy::commodity_set& get_purchased_goods(const sys::state& state, con_t
 		return state.world.province_building_construction_get_purchased_goods(construction);
 	}
 }
-template const economy::commodity_set& get_purchased_goods(const sys::state& state, dcon::province_land_construction_id construction);
-template const economy::commodity_set& get_purchased_goods(const sys::state& state, dcon::province_naval_construction_id construction);
-template const economy::commodity_set& get_purchased_goods(const sys::state& state, dcon::factory_construction_id construction);
-template const economy::commodity_set& get_purchased_goods(const sys::state& state, dcon::province_building_construction_id construction);
+template const economy::commodity_set& construction_get_purchased_goods(const sys::state& state, dcon::province_land_construction_id construction);
+template const economy::commodity_set& construction_get_purchased_goods(const sys::state& state, dcon::province_naval_construction_id construction);
+template const economy::commodity_set& construction_get_purchased_goods(const sys::state& state, dcon::factory_construction_id construction);
+template const economy::commodity_set& construction_get_purchased_goods(const sys::state& state, dcon::province_building_construction_id construction);
 template<concepts::construction_type con_type>
-economy::commodity_set& get_purchased_goods(sys::state& state, con_type construction) {
-	return const_cast<economy::commodity_set&>(get_purchased_goods(static_cast<const sys::state&>(state), construction));
+economy::commodity_set& construction_get_purchased_goods(sys::state& state, con_type construction) {
+	return const_cast<economy::commodity_set&>(construction_get_purchased_goods(static_cast<const sys::state&>(state), construction));
 }
-template economy::commodity_set& get_purchased_goods(sys::state& state, dcon::province_land_construction_id construction);
-template economy::commodity_set& get_purchased_goods(sys::state& state, dcon::province_naval_construction_id construction);
-template economy::commodity_set& get_purchased_goods(sys::state& state, dcon::factory_construction_id construction);
-template economy::commodity_set& get_purchased_goods(sys::state& state, dcon::province_building_construction_id construction);
+template economy::commodity_set& construction_get_purchased_goods(sys::state& state, dcon::province_land_construction_id construction);
+template economy::commodity_set& construction_get_purchased_goods(sys::state& state, dcon::province_naval_construction_id construction);
+template economy::commodity_set& construction_get_purchased_goods(sys::state& state, dcon::factory_construction_id construction);
+template economy::commodity_set& construction_get_purchased_goods(sys::state& state, dcon::province_building_construction_id construction);
 
 
 dcon::internal::const_iterator_province_land_construction_foreach_land_construction_supply_route_as_construction_generator construction_get_supply_routes(const sys::state& state, dcon::province_land_construction_id con) {
@@ -1508,7 +1508,7 @@ void advance_constructions_progress(sys::state& state) {
 		}
 
 		const economy::commodity_set actual_build_cost = construction_get_actual_build_cost(state, c);
-		const economy::commodity_set& purchased_goods = get_purchased_goods(state, c);
+		const economy::commodity_set& purchased_goods = construction_get_purchased_goods(state, c);
 
 		float total = 0.0f;
 		float purchased = 0.0f;
@@ -1557,7 +1557,7 @@ void resolve_constructions(sys::state& state) {
 			}
 
 			economy::commodity_set actual_cost = construction_get_actual_build_cost(state, con);
-			const economy::commodity_set& current_purchased = get_purchased_goods(state, con);
+			const economy::commodity_set& current_purchased = construction_get_purchased_goods(state, con);
 
 			for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
 				if(actual_cost.commodity_type[i]) {

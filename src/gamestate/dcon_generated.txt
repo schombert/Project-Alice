@@ -1550,14 +1550,8 @@ object {
 		type{ bitfield }
 		tag{ save }
 	}
-
 	property{
-		name{ supply_route_requires_daily_update }
-		type{ bitfield }
-		tag{ save }
-	}
-	property{
-		name{ supply_route_requires_weekly_update }
+		name{ supply_routes_requires_update }
 		type{ bitfield }
 		tag{ save }
 	}
@@ -2109,12 +2103,14 @@ object {
 	storage_type{ erasable }
 	size { 50 }
 	tag { local_save }
+	tag{ keep_after_state_reload }
 	tag { mp_checksum_excluded }
 
 	property {
 		name { owner }
 		type { nation_id }
 		tag { local_save }
+		tag{ keep_after_state_reload }
 		tag { mp_checksum_excluded }
 	}
 
@@ -2122,6 +2118,7 @@ object {
 		name { hq }
 		type { province_id }
 		tag { local_save }
+		tag{ keep_after_state_reload }
 		tag { mp_checksum_excluded }
 	}
 
@@ -2129,6 +2126,7 @@ object {
 		name { provinces_defend }
 		type { vector_pool{30000}{province_id} }
 		tag { local_save }
+		tag{ keep_after_state_reload }
 		tag { mp_checksum_excluded }
 	}
 
@@ -2136,6 +2134,7 @@ object {
 		name { provinces_enforce_control }
 		type { vector_pool{30000}{province_id} }
 		tag { local_save }
+		tag{ keep_after_state_reload }
 		tag { mp_checksum_excluded }
 	}
 
@@ -2143,6 +2142,7 @@ object {
 		name { provinces_ferry_origin }
 		type { vector_pool{30000}{province_id} }
 		tag { local_save }
+		tag{ keep_after_state_reload }
 		tag { mp_checksum_excluded }
 	}
 }
@@ -2150,6 +2150,7 @@ object {
 relationship{
 	name{ automated_army_group_membership_regiment }
 	tag{ local_save }
+	tag{ keep_after_state_reload }
 	tag { mp_checksum_excluded }
 
 	link{
@@ -2168,6 +2169,7 @@ relationship{
 relationship{
 	name{ automated_army_group_membership_navy }
 	tag{ local_save }
+	tag{ keep_after_state_reload }
 	tag { mp_checksum_excluded }
 
 	link{
@@ -2188,30 +2190,35 @@ object {
 	storage_type{ erasable }
 	size { 4000 }
 	tag { local_save }
+	tag{ keep_after_state_reload }
 	tag { mp_checksum_excluded }
 
 	property {
 		name { status }
 		type { sys::army_group_regiment_status }
 		tag { local_save }
+		tag{ keep_after_state_reload }
 		tag { mp_checksum_excluded }
 	}
 	property {
 		name { task }
 		type { sys::army_group_regiment_task }
 		tag { local_save }
+		tag{ keep_after_state_reload }
 		tag { mp_checksum_excluded }
 	}
 	property {
 		name { await_command_execution_flag }
 		type { bitfield }
 		tag { local_save }
+		tag{ keep_after_state_reload }
 		tag { mp_checksum_excluded }
 	}
 	property {
 		name { target }
 		type { province_id }
 		tag { local_save }
+		tag{ keep_after_state_reload }
 		tag { mp_checksum_excluded }
 	}
 
@@ -2219,6 +2226,7 @@ object {
 		name { ferry_target }
 		type { province_id }
 		tag { local_save }
+		tag{ keep_after_state_reload }
 		tag { mp_checksum_excluded }
 	}
 
@@ -2226,6 +2234,7 @@ object {
 		name { ferry_origin }
 		type { province_id }
 		tag { local_save }
+		tag{ keep_after_state_reload }
 		tag { mp_checksum_excluded }
 	}
 }
@@ -2234,6 +2243,7 @@ object {
 relationship{
 	name{ automation }
 	tag{ local_save }
+	tag{ keep_after_state_reload }
 	tag { mp_checksum_excluded }
 
 	link{
@@ -2379,26 +2389,31 @@ object {
 	property{
 		name{ needs_supply_goods }
 		type{ bitfield }
+		tag{ keep_after_state_reload }
 		tag { mp_checksum_excluded }
 	}
 	property{
 		name{ needs_reinforcement_goods }
 		type{ bitfield }
+		tag{ keep_after_state_reload }
 		tag { mp_checksum_excluded }
 	}
 	property{
 		name{ unit_build_commodity_float_buffer_1 }
 		type{ array{unit_build_commodity_id}{float} }
+		tag{ keep_after_state_reload }
 		tag { mp_checksum_excluded }
 	}
 	property{
 		name{ unit_supply_commodity_float_buffer_1 }
 		type{ array{unit_supply_commodity_id}{float} }
+		tag{ keep_after_state_reload }
 		tag { mp_checksum_excluded }
 	}
 	property{
 		name{ state_instance_vector_buffer_1 }
 		type{ vector_pool{1000}{state_instance_id} }
+		tag{ keep_after_state_reload }
 		tag { mp_checksum_excluded }
 	}
 }
@@ -2475,26 +2490,31 @@ object {
 	property{
 		name{ needs_supply_goods }
 		type{ bitfield }
+		tag{ keep_after_state_reload }
 		tag { mp_checksum_excluded }
 	}
 	property{
 		name{ needs_reinforcement_goods }
 		type{ bitfield }
+		tag{ keep_after_state_reload }
 		tag { mp_checksum_excluded }
 	}
 	property{
 		name{ unit_build_commodity_float_buffer_1 }
 		type{ array{unit_build_commodity_id}{float} }
+		tag{ keep_after_state_reload }
 		tag { mp_checksum_excluded }
 	}
 	property{
 		name{ unit_supply_commodity_float_buffer_1 }
 		type{ array{unit_supply_commodity_id}{float} }
+		tag{ keep_after_state_reload }
 		tag { mp_checksum_excluded }
 	}
 	property{
 		name{ state_instance_vector_buffer_1 }
 		type{ vector_pool{1000}{state_instance_id} }
+		tag{ keep_after_state_reload }
 		tag { mp_checksum_excluded }
 	}
 }
@@ -4312,17 +4332,6 @@ object {
 		type{ int8_t }
 		tag{ save }
 	}
-	
-	property {
-		name{ effective_construction_spending }
-		type{ float }
-		tag{ save }
-	}
-	property {
-		name{ maximum_military_costs }
-		type{ float }
-		tag{ save }
-	}
 	property {
 		name{ subsidy_token_price }
 		type{ float }
@@ -4479,7 +4488,6 @@ object {
 	property {
 		name{ total_stockpiles }
 		type{ array{commodity_id}{float} }
-		tag{ save }
 	}
 	property {
 		name{ yesterday_total_stockpiles}
@@ -4711,36 +4719,43 @@ object {
 	property {
 		name{ commodity_float_buffer_1 } 
 		type{ array{commodity_id}{float} }
+		tag{ keep_after_state_reload }
 		tag { mp_checksum_excluded }
 	}
 	property {
 		name{ commodity_float_buffer_2 } 
 		type{ array{commodity_id}{float} }
+		tag{ keep_after_state_reload }
 		tag { mp_checksum_excluded }
 	}
 	property {
 		name{ commodity_float_buffer_3 } 
 		type{ array{commodity_id}{float} }
+		tag{ keep_after_state_reload }
 		tag { mp_checksum_excluded }
 	}
 	property {
 		name{ unit_supply_and_build_commodity_float_buffer_1 } 
 		type{ array{unit_supply_and_build_commodity_id}{float} }
+		tag{ keep_after_state_reload }
 		tag { mp_checksum_excluded }
 	}
 	property {
 		name{ unit_supply_and_build_commodity_float_buffer_2 } 
 		type{ array{unit_supply_and_build_commodity_id}{float} }
+		tag{ keep_after_state_reload }
 		tag { mp_checksum_excluded }
 	}
 	property {
 		name{ unit_supply_and_build_commodity_float_buffer_3 } 
 		type{ array{unit_supply_and_build_commodity_id}{float} }
+		tag{ keep_after_state_reload }
 		tag { mp_checksum_excluded }
 	}
 	property {
 		name{ unit_supply_and_build_commodity_float_buffer_4 } 
 		type{ array{unit_supply_and_build_commodity_id}{float} }
+		tag{ keep_after_state_reload }
 		tag { mp_checksum_excluded }
 	}
 }
@@ -4968,12 +4983,14 @@ object{
 	property {
 		name{ commodity_float_buffer_1 }
 		type{ array{commodity_id}{float} }
+		tag{ keep_after_state_reload }
 		tag { mp_checksum_excluded }
 	}
 
 	property {
 		name{ supply_route_path_vector_buffer_1 }
 		type{ vector_pool{500}{supply_route_path_id} }
+		tag{ keep_after_state_reload }
 		tag { mp_checksum_excluded }
 	}
 }
@@ -5108,7 +5125,6 @@ relationship{
 	property{
 		name{ adjacency_path }
 		type{vector_pool{5000}{province_adjacency_id}}
-		tag{ save }   
 	}
 	property{
 		name{ path_out_of_date }
@@ -5901,16 +5917,19 @@ relationship{
 	property{
 		name{ needs_construction_goods }
 		type{ bitfield }
+		tag{ keep_after_state_reload }
 		tag { mp_checksum_excluded }
 	}
 	property{
 		name{ commodity_amounts_buffer_1 }
 		type{ economy::commodity_amounts }
+		tag{ keep_after_state_reload }
 		tag { mp_checksum_excluded }
 	}
 	property{
 		name{ state_instance_vector_buffer_1 }
 		type{ vector_pool{1000}{state_instance_id} }
+		tag{ keep_after_state_reload }
 		tag { mp_checksum_excluded }
 	}
 }
@@ -5967,16 +5986,19 @@ relationship{
 	property{
 		name{ needs_construction_goods }
 		type{ bitfield }
+		tag{ keep_after_state_reload }
 		tag { mp_checksum_excluded }
 	}
 	property{
 		name{ commodity_amounts_buffer_1 }
 		type{ economy::commodity_amounts }
+		tag{ keep_after_state_reload }
 		tag { mp_checksum_excluded }
 	}
 	property{
 		name{ state_instance_vector_buffer_1 }
 		type{ vector_pool{1000}{state_instance_id} }
+		tag{ keep_after_state_reload }
 		tag { mp_checksum_excluded }
 	}
 }
@@ -6028,16 +6050,19 @@ relationship{
 	property{
 		name{ needs_construction_goods }
 		type{ bitfield }
+		tag{ keep_after_state_reload }
 		tag { mp_checksum_excluded }
 	}
 	property{
 		name{ commodity_amounts_buffer_1 }
 		type{ economy::commodity_amounts }
+		tag{ keep_after_state_reload }
 		tag { mp_checksum_excluded }
 	}
 	property{
 		name{ state_instance_vector_buffer_1 }
 		type{ vector_pool{1000}{state_instance_id} }
+		tag{ keep_after_state_reload }
 		tag { mp_checksum_excluded }
 	}
 }
@@ -6101,16 +6126,19 @@ relationship{
 	property{
 		name{ needs_construction_goods }
 		type{ bitfield }
+		tag{ keep_after_state_reload }
 		tag { mp_checksum_excluded }
 	}
 	property{
 		name{ commodity_amounts_buffer_1 }
 		type{ economy::commodity_amounts }
+		tag{ keep_after_state_reload }
 		tag { mp_checksum_excluded }
 	}
 	property{
 		name{ state_instance_vector_buffer_1 }
 		type{ vector_pool{1000}{state_instance_id} }
+		tag{ keep_after_state_reload }
 		tag { mp_checksum_excluded }
 	}
 }
@@ -6770,6 +6798,7 @@ object {
 	property{
 		name{ hide_notification }
 		type{ bitfield }
+		tag{ keep_after_state_reload }
 		tag { mp_checksum_excluded }
 	}
 }

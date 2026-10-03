@@ -287,7 +287,7 @@ inline void new_national_construction(sys::state& state, dcon::nation_id n, dcon
 	new_up.set_is_upgrade(false);
 	new_up.set_type(ftid);
 	const auto& base_cost = state.world.factory_type_get_construction_costs(ftid);
-	auto& purchased_goods = economy::get_purchased_goods(state, new_up.id);
+	auto& purchased_goods = economy::construction_get_purchased_goods(state, new_up.id);
 	// init types in new set
 	base_cost.copy_types_to(purchased_goods);
 }
@@ -298,7 +298,7 @@ inline void new_national_upgrade(sys::state& state, dcon::nation_id n, dcon::pro
 	new_up.set_is_upgrade(true);
 	new_up.set_type(ftid);
 	const auto& base_cost = state.world.factory_type_get_construction_costs(ftid);
-	auto& purchased_goods = economy::get_purchased_goods(state, new_up.id);
+	auto& purchased_goods = economy::construction_get_purchased_goods(state, new_up.id);
 	// init types in new set
 	base_cost.copy_types_to(purchased_goods);
 }
@@ -560,7 +560,7 @@ void update_ai_econ_construction(sys::state& state) {
 				auto new_rr = fatten(state.world, state.world.force_create_province_building_construction(project_provs[0], n));
 				new_rr.set_is_pop_project(false);
 				new_rr.set_type(uint8_t(economy::province_building_type::naval_base));
-				auto& purchased_goods = economy::get_purchased_goods(state, new_rr.id);
+				auto& purchased_goods = economy::construction_get_purchased_goods(state, new_rr.id);
 				// init types in new set
 				costs.copy_types_to(purchased_goods);
 				additional_expenses += expected_item_cost;
@@ -630,7 +630,7 @@ void update_ai_econ_construction(sys::state& state) {
 					auto new_proj = fatten(state.world, state.world.force_create_province_building_construction(project_provs[j], n));
 					new_proj.set_is_pop_project(false);
 					new_proj.set_type(uint8_t(econ_buildable[i].type));
-					economy::commodity_set& purchased_goods = economy::get_purchased_goods(state, new_proj.id);
+					economy::commodity_set& purchased_goods = economy::construction_get_purchased_goods(state, new_proj.id);
 					// init types in commodity set
 					costs.copy_types_to(purchased_goods);
 					additional_expenses += expected_item_cost;
@@ -705,7 +705,7 @@ void update_ai_econ_construction(sys::state& state) {
 				auto new_rr = fatten(state.world, state.world.force_create_province_building_construction(project_provs[i], n));
 				new_rr.set_is_pop_project(false);
 				new_rr.set_type(uint8_t(economy::province_building_type::fort));
-				auto& purchased_goods = economy::get_purchased_goods(state, new_rr.id);
+				auto& purchased_goods = economy::construction_get_purchased_goods(state, new_rr.id);
 				// init types in new set
 				costs.copy_types_to(purchased_goods);
 				additional_expenses += expected_item_cost;

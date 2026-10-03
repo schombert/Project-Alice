@@ -205,7 +205,7 @@ float calculate_province_factory_limit(sys::state& state, dcon::province_id pid,
 float calculate_state_factory_limit(sys::state& state, dcon::state_instance_id sid, dcon::commodity_id c);
 float calculate_nation_factory_limit(sys::state& state, dcon::nation_id nid, dcon::commodity_id c);
 
-void update_total_government_stockpiles(sys::state& state);
+void recreate_total_government_stockpiles(sys::state& state);
 
 bool do_resource_potentials_allow_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::factory_type_id type);
 bool do_resource_potentials_allow_upgrade(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::factory_type_id type);
