@@ -658,6 +658,12 @@ void generate_initial_trade_routes(sys::state& state) {
 					? adj.get_connected_provinces(0)
 					: adj.get_connected_provinces(1);
 
+				auto area = state.map_state.map_data.province_area_km2[province::to_map_id(through)];
+				// larger than the caspian sea
+				if(area > 500'000.f) {
+					continue;					
+				}
+
 				for(auto adj2 : state.world.province_get_province_adjacency(through)) {
 					auto bits2 = adj2.get_type();
 					if((bits2 & province::border::impassible_bit) == 0) {
