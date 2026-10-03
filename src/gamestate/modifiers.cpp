@@ -40,14 +40,16 @@ void apply_hardcoded_modifier_values_to_province(sys::state& state, dcon::provin
 	// Apply supply throughput modifiers from movement cost
 	auto movement_cost = province::movement_cost(state, prov);
 	float current = fat_prov.get_modifier_values(sys::provincial_mod_offsets::supply_throughput_percent);
-	fat_prov.set_modifier_values(sys::provincial_mod_offsets::supply_throughput_percent, current + ((1.0f / movement_cost) - 1.0f));
+	float percent_add = std::max( (1.0f - movement_cost) * supply_routes::supply_throughput_from_movement_cost_mult, supply_routes::supply_throughput_from_movement_cost_max_penalty);
+	fat_prov.set_modifier_values(sys::provincial_mod_offsets::supply_throughput_percent, current + percent_add);
 }
 template<concepts::dcon_id_ve_type<dcon::province_id> province_ids>
 void ve_apply_hardcoded_modifier_values_to_province(sys::state& state, province_ids provs, ve::mask_vector apply_mask) {
 	// Apply supply throughput modifiers from movement cost
 	auto movement_cost = province::movement_cost(state, provs);
 	auto current = state.world.province_get_modifier_values(provs, sys::provincial_mod_offsets::supply_throughput_percent);
-	state.world.province_set_modifier_values(provs, sys::provincial_mod_offsets::supply_throughput_percent, ve::select(apply_mask, current + ((1.0f / movement_cost) - 1.0f), current));
+	auto percent_add = ve::max((1.0f - movement_cost) * supply_routes::supply_throughput_from_movement_cost_mult, supply_routes::supply_throughput_from_movement_cost_max_penalty);
+	state.world.province_set_modifier_values(provs, sys::provincial_mod_offsets::supply_throughput_percent, ve::select(apply_mask, current + percent_add, current));
 }
 
 

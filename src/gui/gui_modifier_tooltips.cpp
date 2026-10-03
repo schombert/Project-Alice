@@ -228,7 +228,7 @@ void active_hardcoded_modifiers_description(sys::state& state, text::layout_base
 	case sys::provincial_mod_offsets::supply_throughput_percent.value:
 	{
 		auto movement_cost = province::movement_cost(state, prov);
-		auto percent_mod = (1.0f / movement_cost) - 1.0f;
+		float percent_mod = std::max((1.0f - movement_cost) * supply_routes::supply_throughput_from_movement_cost_mult, supply_routes::supply_throughput_from_movement_cost_max_penalty);
 		if(percent_mod != 0.0f) {
 			active_single_hardcoded_modifier_description(state, layout, "modifier_movement_cost", percent_mod, identation, header, sys::provincial_mod_offsets::supply_throughput_percent);
 		}

@@ -62,6 +62,10 @@ constexpr float naval_base_port_supply_capacity = 6.0f; // supply capacity per p
 constexpr float civilian_port_throughput_capacity = 0.2f; // the port supply capacity gained for each 1000 level of civilian port.
 constexpr float construction_route_transport_leeway = 0.001f; // The minimum % of the total cost a route will attempt to consume and transport per day as extra leeway. This makes it so that constructions arent "stuck" for abit due to supply loss. Should be low enough that it isn't noticable.
 
+constexpr float supply_throughput_from_movement_cost_mult = 2.5f; // Multiplier for the amount of supply throughput gained (or lost) from movement cost modifiers. Eg. a value of 1.0 means that a movement cost modifier of 1.5 will give -50% supply throughput, and a movement cost modifier of 0.5 will give +50% supply throughput. Set to 0.0 to disable
+constexpr float supply_throughput_from_movement_cost_max_penalty = -0.95f; // Max percentage penalty from "supply_throughput_from_movement_cost_mult". -0.95 means a maximum penalty of -95%. Should always be a negative number
+
+
 }
 
 namespace game_scene {
