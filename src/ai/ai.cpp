@@ -1182,10 +1182,11 @@ void move_idle_guards(sys::state& state) {
 
 		auto regs = state.world.army_get_army_membership(require_transport[i]);
 
-		auto tcap = military::transport_capacity(state, transport_fleet);
+		auto tcap = transport_fleet ? military::transport_capacity(state, transport_fleet) : 0;
 		tcap -= int32_t(regs.end() - regs.begin());
 
-		if(tcap < 0 || (state.world.nation_get_is_at_war(controller) && !naval_advantage(state, controller))) {
+		// no transport fleet at all: the army cannot be shipped (and an empty army, tcap == 0, must not path a null navy)
+		if(!transport_fleet || tcap < 0 || (state.world.nation_get_is_at_war(controller) && !naval_advantage(state, controller))) {
 			for(uint32_t j = uint32_t(require_transport.size()); j-- > i + 1;) {
 				if(state.world.army_get_controller_from_army_control(require_transport[j]) == controller) {
 					state.world.army_set_ai_province(require_transport[j], dcon::province_id{}); // stop rechecking these units
@@ -2023,10 +2024,11 @@ void move_gathered_attackers(sys::state& state) {
 
 		auto regs = state.world.army_get_army_membership(require_transport[i]);
 
-		auto tcap = military::transport_capacity(state, transport_fleet);
+		auto tcap = transport_fleet ? military::transport_capacity(state, transport_fleet) : 0;
 		tcap -= int32_t(regs.end() - regs.begin());
 
-		if(tcap < 0 || (state.world.nation_get_is_at_war(controller) && !naval_advantage(state, controller))) {
+		// no transport fleet at all: the army cannot be shipped (and an empty army, tcap == 0, must not path a null navy)
+		if(!transport_fleet || tcap < 0 || (state.world.nation_get_is_at_war(controller) && !naval_advantage(state, controller))) {
 			for(uint32_t j = uint32_t(require_transport.size()); j-- > i + 1;) {
 				if(state.world.army_get_controller_from_army_control(require_transport[j]) == controller) {
 					state.world.army_set_ai_activity(require_transport[j], uint8_t(army_activity::on_guard));
