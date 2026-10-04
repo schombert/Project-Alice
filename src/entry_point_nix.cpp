@@ -388,6 +388,9 @@ int main(int argc, char* argv[]) {
 		game_state.ui_pause.store(false, std::memory_order::release);
 		game_scene::switch_scene(game_state, game_scene::scene_id::in_game_basic);
 		game_state.local_player_nation = dcon::nation_id{};
+		// headless: network::init gave the rank-1 nation to a local player; nobody plays it, so hand it back to the AI
+		for(auto n : game_state.world.in_nation)
+			n.set_is_player_controlled(false);
 		if(run_years >= 0) {
 			headless::run(game_state, run_years, dump_dir);
 			return EXIT_SUCCESS;
