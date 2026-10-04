@@ -324,10 +324,10 @@ void collect_taxes(sys::state& state, ve::vectorizable_buffer<float, dcon::pop_i
 			auto province = po.get_province();
 
 			if(nid != state.world.province_get_nation_from_province_control(province)) {
-				return;
+				continue;
 			}
 			if(province.id.index() >= state.province_definitions.first_sea_province.index()) {
-				return;
+				continue;
 			}
 
 			auto tax_multiplier = tax_collection_rate(state, nid, province);
