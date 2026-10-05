@@ -2818,7 +2818,7 @@ TRIGGER_FUNCTION(tf_total_amount_of_divisions) {
 	return compare_values(tval[0], ws.world.nation_get_active_regiments(to_nation(primary_slot)), int32_t(tval[1]));
 }
 TRIGGER_FUNCTION(tf_money) {
-	return compare_values(tval[0], ws.world.nation_get_stockpiles(to_nation(primary_slot), economy::money),
+	return compare_values(tval[0], ws.world.nation_get_treasury(to_nation(primary_slot)),
 			read_float_from_payload(tval + 1));
 }
 TRIGGER_FUNCTION(tf_suppression_points) {
@@ -2826,7 +2826,7 @@ TRIGGER_FUNCTION(tf_suppression_points) {
 			read_float_from_payload(tval + 1));
 }
 TRIGGER_FUNCTION(tf_money_province) {
-	return compare_values(tval[0], ws.world.nation_get_stockpiles(ws.world.province_get_nation_from_province_ownership(to_prov(primary_slot)), economy::money),
+	return compare_values(tval[0], ws.world.nation_get_treasury(ws.world.province_get_nation_from_province_ownership(to_prov(primary_slot))),
 			read_float_from_payload(tval + 1));
 }
 TRIGGER_FUNCTION(tf_lost_national) {

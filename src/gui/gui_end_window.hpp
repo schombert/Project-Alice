@@ -37,7 +37,7 @@ public:
 class national_treasury_text : public simple_text_element_base {
 	void on_update(sys::state& state) noexcept override {
 		auto n = retrieve<dcon::nation_id>(state, parent);
-		auto amount = state.world.nation_get_stockpiles(n, economy::money);
+		auto amount = state.world.nation_get_treasury(n);
 		set_text(state, text::format_money(amount));
 	}
 };

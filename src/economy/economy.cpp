@@ -1412,7 +1412,7 @@ void initialize(sys::state& state) {
 	populate_government_construction_consumption(state);
 
 	state.world.for_each_nation([&](dcon::nation_id n) {
-		state.world.nation_set_stockpiles(n, money, 1000.f);
+		state.world.nation_set_treasury(n, 1000.f);
 	});
 
 
@@ -2778,7 +2778,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			break;
 		case 7:
 			state.world.execute_serial_over_nation([&](auto ids) {
-				auto treasury = state.world.nation_get_stockpiles(ids, economy::money);
+				auto treasury = state.world.nation_get_treasury(ids);
 				state.world.nation_set_last_treasury(ids, treasury);
 			});
 			break;
@@ -3601,7 +3601,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 		// handle loans
 		bool is_bankrupt = false;
 		{
-			auto current_money = state.world.nation_get_stockpiles(n, economy::money);
+			auto current_money = state.world.nation_get_treasury(n);
 			if(state.world.nation_get_is_player_controlled(n)) {
 				auto max_loan_amount = max_loan(state, n);
 				auto current_loan = state.world.nation_get_local_loan(n);
@@ -3617,12 +3617,12 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 					is_bankrupt = true;
 				} else if(current_money > current_interest) {
 					// can pay interest without new loans
-					state.world.nation_set_stockpiles(n, economy::money, current_money - current_interest);
+					state.world.nation_set_treasury(n, current_money - current_interest);
 					state.world.nation_set_national_bank(n, current_bank_money + current_interest);
 				} else {
 					// we have to take additional loan to pay interest and we are able to do it
 					state.world.nation_set_local_loan(n, current_loan + required_additional_loan);
-					state.world.nation_set_stockpiles(n, economy::money, 0);
+					state.world.nation_set_treasury(n, 0);
 				}
 			} else {
 				if(current_money < 0) {
@@ -3638,7 +3638,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 
 			// interest is paid and we are not bankrupt,
 			// now we can assume that money stockpile is equal to BASE_BUDGET
-			auto base_budget = state.world.nation_get_stockpiles(n, economy::money);
+			auto base_budget = state.world.nation_get_treasury(n);
 			auto additional_funding = 0.f;
 			auto costs = full_spending_cost(state, n, base_budget);
 			auto admin = costs.administration;
@@ -3669,8 +3669,8 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			assert(std::isfinite(spending_scale));
 
 			// spend money
-			state.world.nation_set_stockpiles(
-				n, economy::money, base_budget - std::min(base_budget, (costs.total - admin) * spending_scale + admin)
+			state.world.nation_set_treasury(
+				n, base_budget - std::min(base_budget, (costs.total - admin) * spending_scale + admin)
 			);
 			state.world.nation_set_spending_level(n, spending_scale);
 			state.world.nation_set_last_base_budget(n, base_budget);
@@ -3680,16 +3680,16 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			if (additional_funding > 0.f) {
 				// take the loan
 				state.world.nation_set_local_loan(n, current_loan + additional_funding);
-				state.world.nation_set_stockpiles(n, economy::money, 0);
+				state.world.nation_set_treasury(n, 0);
 			} else {
 				// repay the loan
-				auto money_before = state.world.nation_get_stockpiles(n, economy::money);
+				auto money_before = state.world.nation_get_treasury(n);
 				auto paid_loan = std::min(money_before, current_loan);
 				auto remaining_loan_after = std::max(0.f, current_loan - paid_loan);
 				auto money_after = std::max(0.f, money_before - paid_loan);
 
 				state.world.nation_set_local_loan(n, remaining_loan_after);
-				state.world.nation_set_stockpiles(n, economy::money, money_after);
+				state.world.nation_set_treasury(n, money_after);
 				// we do not increase national bank
 				// because it stores the sum of loaned money and money available for a loan
 			}
@@ -3841,13 +3841,14 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			);
 			auto production_and_merchants_supply = state.world.market_get_supply(ids, c);
 			// we draw from stockpile in capital
-			auto national_stockpile = ve::select(
+			// This has been disabled due to govt stockpiles work on a market-to-market basis. Drawing from stockpiles in this way has not yet been implemented
+			/*auto national_stockpile = ve::select(
 				capital_mask && draw_from_stockpile,
 				state.world.nation_get_stockpiles(nations, c),
 				0.f
-			);
-			auto total_supply = national_stockpile + production_and_merchants_supply;
-			auto supply_from_nation_ratio = ve::select(total_supply == 0.f, 0.f, national_stockpile / total_supply);
+			);*/
+			auto total_supply = production_and_merchants_supply;
+			//auto supply_from_nation_ratio = ve::select(total_supply == 0.f, 0.f, national_stockpile / total_supply);
 			auto total_demand = state.world.market_get_demand(ids, c);
 
 			auto new_actual_probability_to_buy = ve::min(1.f, ve::select(total_demand == 0.f, 0.f, total_supply / total_demand));
@@ -4037,8 +4038,8 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 		}
 
 		// finally, pay back refund:
-		assert(std::isfinite(refund) && std::isfinite(state.world.nation_get_stockpiles(n, money) + refund) && refund >= 0.0f);
-		state.world.nation_set_stockpiles(n, money, state.world.nation_get_stockpiles(n, money) + refund);
+		assert(std::isfinite(refund) && std::isfinite(state.world.nation_get_treasury(n) + refund) && refund >= 0.0f);
+		state.world.nation_set_treasury(n, state.world.nation_get_treasury(n) + refund);
 	});
 
 	set_profile_point(state, "refund_nations");
@@ -4892,8 +4893,8 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 		mid.set_tariff_collected(0.f);
 	};
 	state.world.execute_serial_over_nation([&](auto nid) {
-		auto old = state.world.nation_get_stockpiles(nid, economy::money);
-		state.world.nation_set_stockpiles(nid, economy::money, old + collected_tariff_buffer.get(nid));
+		auto old = state.world.nation_get_treasury(nid);
+		state.world.nation_set_treasury(nid, old + collected_tariff_buffer.get(nid));
 	});
 
 	set_profile_point(state, "tariffs");
@@ -5056,18 +5057,18 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 
 		if(overlord) {
 			auto transferamt = estimate_subject_payments_paid(state, n);
-			state.world.nation_set_stockpiles(n, money, state.world.nation_get_stockpiles(n, money) - transferamt);
-			state.world.nation_set_stockpiles(overlord, money, state.world.nation_get_stockpiles(overlord, money) + transferamt);
+			state.world.nation_set_treasury(n,state.world.nation_get_treasury(n) - transferamt);
+			state.world.nation_set_treasury(overlord, state.world.nation_get_treasury(overlord) + transferamt);
 		}
 
 		for(auto uni : n.get_unilateral_relationship_as_source()) {
 			if(uni.get_war_subsidies()) {
 				auto sub_size = estimate_war_subsidies(state, uni.get_target(), uni.get_source());
 
-				if(sub_size <= n.get_stockpiles(money)) {
-					n.set_stockpiles(money, n.get_stockpiles(money) - sub_size);
-					auto& current = uni.get_target().get_stockpiles(money);
-					uni.get_target().set_stockpiles(money, current + sub_size);
+				if(sub_size <= n.get_treasury()) {
+					n.set_treasury(n.get_treasury() - sub_size);
+					auto& current = uni.get_target().get_treasury();
+					uni.get_target().set_treasury(current + sub_size);
 				} else {
 					uni.set_war_subsidies(false);
 
@@ -5087,11 +5088,11 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 				auto total_tax_base = n.get_total_rich_income() + n.get_total_middle_income() + n.get_total_poor_income();
 
 				auto payout = total_tax_base * tax_eff * state.defines.reparations_tax_hit;
-				auto capped_payout = std::min(n.get_stockpiles(money), payout);
+				auto capped_payout = std::min(n.get_treasury(), payout);
 				assert(capped_payout >= 0.0f);
-				n.set_stockpiles(money, n.get_stockpiles(money) - capped_payout);
-				auto& current = uni.get_target().get_stockpiles(money);
-				uni.get_target().set_stockpiles(money, current + capped_payout);
+				n.set_treasury(n.get_treasury() - capped_payout);
+				auto& current = uni.get_target().get_treasury();
+				uni.get_target().set_treasury(current + capped_payout);
 			}
 		}
 	}
@@ -5130,7 +5131,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 		float total_savings_nations = 0.f;
 		float total_investment_pool = 0.f;
 		state.world.for_each_nation([&](auto nation) {
-			total_savings_nations += state.world.nation_get_stockpiles(nation, economy::money);
+			total_savings_nations += state.world.nation_get_treasury(nation);
 			total_investment_pool += state.world.nation_get_private_investment(nation);
 		});
 
@@ -5479,7 +5480,7 @@ float estimate_subject_payments_paid(sys::state& state, dcon::nation_id n) {
 			transferamt *= state.defines.alice_puppet_subject_money_transfer / 100.f;
 		}
 
-		return std::max(0.f, std::min(state.world.nation_get_stockpiles(n, money), transferamt));
+		return std::max(0.f, std::min(state.world.nation_get_treasury(n), transferamt));
 	}
 
 	return 0;
@@ -5927,7 +5928,7 @@ void go_bankrupt(sys::state& state, dcon::nation_id n) {
 	}
 
 	// RESET MONEY: POTENTIAL MERGE CONFLICT WITH SNEAKBUG'S FUTURE CHANGES
-	state.world.nation_set_stockpiles(n, economy::money, 0.f);
+	state.world.nation_set_treasury(n, 0.f);
 
 	sys::add_modifier_to_nation(state, n, state.national_definitions.in_bankrupcy, state.current_date + int32_t(state.defines.bankrupcy_duration * 365));
 	sys::add_modifier_to_nation(state, n, state.national_definitions.bad_debter, state.current_date + int32_t(state.defines.bankruptcy_external_loan_years * 365));

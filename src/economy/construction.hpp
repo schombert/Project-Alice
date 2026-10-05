@@ -81,11 +81,6 @@ struct construction_spending_explanation_light {
 	float factories;
 };
 
-construction_spending_explanation explain_construction_spending(
-	sys::state& state,
-	dcon::nation_id n,
-	float dedicated_budget
-);
 bool can_advance_construction(const sys::state& state, dcon::province_naval_construction_id con);
 bool can_advance_construction(const sys::state& state, dcon::province_land_construction_id con);
 bool can_advance_construction(const sys::state& state, dcon::factory_construction_id con);
@@ -139,7 +134,7 @@ template<concepts::construction_type con_type>
 void construction_set_required_construction_base_cost(sys::state& state, con_type con, float val);
 
 template<concepts::construction_type con_type>
-float construction_set_required_construction_base_cost(const sys::state& state, con_type con);
+float construction_get_required_construction_base_cost(const sys::state& state, con_type con);
 
 // Gets last days' required goods need for a specific construction.
 template<concepts::construction_type con_type>
@@ -167,13 +162,9 @@ void resolve_constructions(sys::state& state);
 void advance_constructions_progress(sys::state& state);
 
 
-construction_spending_explanation explain_construction_spending_now(sys::state& state, dcon::nation_id n);
 economy::commodity_set calculate_factory_refit_goods_cost(const sys::state& state, dcon::nation_id n, dcon::province_id pid, dcon::factory_type_id from, dcon::factory_type_id to);
 float calculate_factory_refit_money_cost(sys::state& state, dcon::nation_id n, dcon::province_id pid, dcon::factory_type_id from, dcon::factory_type_id to);
-float calculate_factory_refit_money_cost(sys::state& state, dcon::nation_id n, dcon::province_id pid, dcon::factory_type_id from, dcon::factory_type_id to);
 
-float estimate_construction_spending_from_budget(sys::state& state, dcon::nation_id n, float current_budget);
-float estimate_construction_spending(sys::state& state, dcon::nation_id n);
 
 // Check rules for factories in colonies
 bool is_colony(sys::state& state, dcon::province_id p);

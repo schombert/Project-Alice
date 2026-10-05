@@ -372,7 +372,7 @@ public:
 
 		text::add_line(state, contents, "local_admin");
 
-		auto national_budget = state.world.nation_get_stockpiles(state.local_player_nation, economy::money);
+		auto national_budget = state.world.nation_get_treasury(state.local_player_nation);
 		auto admin_budget_approx = budget_priority * national_budget;
 		auto admin_count = economy::count_active_administrations(state, state.local_player_nation);
 		auto budget_per_administration = admin_count == 0.f ? 0.f : admin_budget_approx / admin_count;
@@ -419,7 +419,7 @@ public:
 
 		text::add_line(state, contents, "capital_admin");
 
-		auto national_budget = state.world.nation_get_stockpiles(state.local_player_nation, economy::money);
+		auto national_budget = state.world.nation_get_treasury(state.local_player_nation);
 		auto admin_budget_approx = budget_priority * national_budget;
 		auto admin_count = economy::count_active_administrations(state, state.local_player_nation);
 		auto budget_per_administration = admin_count == 0.f ? 0.f : admin_budget_approx / admin_count;

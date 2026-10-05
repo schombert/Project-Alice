@@ -397,8 +397,8 @@ void update_ai_econ_construction(sys::state& state) {
 		*/
 
 		// treasury is out budget
-		float treasury = n.get_stockpiles(economy::money);
-		float estimated_construction_costs = economy::estimate_construction_spending_from_budget(state, n, std::max(treasury, 1'000'000'000'000.f));
+		float treasury = n.get_treasury();
+		float estimated_construction_costs = economy::estimate_construction_stockpile_spending(state, n, std::max(treasury, 1'000'000'000'000.f));
 
 		//if our army is too small, ignore buildings:
 		if(calculate_desired_army_size(state, n) * 0.4f > n.get_active_regiments())
@@ -742,7 +742,7 @@ void update_budget(sys::state& state, bool presim) {
 
 		// current stockpiles roughly correspond to current income
 		// and calculation of actual prediction is insanely expensive
-		float base_income = n.get_stockpiles(economy::money);
+		float base_income = n.get_treasury();
 
 		// they don't have to add up to 1.f
 		// the reason they are there is to slow down AI spendings,
@@ -881,7 +881,7 @@ void update_budget(sys::state& state, bool presim) {
 			// if we are not able to control capital, our taxes are not enough
 			bool enough_tax = n.get_capital().get_control_ratio() > 0.95f;
 
-			if(n.get_spending_level() < 1.0f || n.get_last_treasury() >= n.get_stockpiles(economy::money) || !enough_tax) { // losing money
+			if(n.get_spending_level() < 1.0f || n.get_last_treasury() >= n.get_treasury() || !enough_tax) { // losing money
 				if(!n.get_ai_is_threatened()) {
 					n.set_military_spending(int8_t(std::max(50, n.get_military_spending() - 5)));
 				}
@@ -890,7 +890,7 @@ void update_budget(sys::state& state, bool presim) {
 				n.set_poor_tax(int8_t(std::clamp(n.get_poor_tax() + 2, 10, std::max(10, max_poor_tax))));
 				n.set_middle_tax(int8_t(std::clamp(n.get_middle_tax() + 3, 10, std::max(10, max_mid_tax))));
 				n.set_rich_tax(int8_t(std::clamp(n.get_rich_tax() + 5, 10, std::max(10, max_rich_tax))));
-			} else if(n.get_last_treasury() < n.get_stockpiles(economy::money)) { // gaining money
+			} else if(n.get_last_treasury() < n.get_treasury()) { // gaining money
 				if(n.get_ai_is_threatened()) {
 					n.set_military_spending(int8_t(std::min(100, n.get_military_spending() + 10)));
 				} else {
@@ -914,7 +914,7 @@ void update_budget(sys::state& state, bool presim) {
 			bool enough_tax = n.get_capital().get_control_ratio() > 0.95f;
 
 			// Laissez faire prioritize tax free capitalists
-			if(n.get_spending_level() < 1.0f || n.get_last_treasury() >= n.get_stockpiles(economy::money) || !enough_tax) { // losing money
+			if(n.get_spending_level() < 1.0f || n.get_last_treasury() >= n.get_treasury() || !enough_tax) { // losing money
 				if(!n.get_ai_is_threatened()) {
 					n.set_military_spending(int8_t(std::max(50, n.get_military_spending() - 5)));
 				}
@@ -923,7 +923,7 @@ void update_budget(sys::state& state, bool presim) {
 				n.set_poor_tax(int8_t(std::clamp(n.get_poor_tax() + 5, 10, std::max(10, max_poor_tax))));
 				n.set_middle_tax(int8_t(std::clamp(n.get_middle_tax() + 3, 10, std::max(10, max_mid_tax))));
 				n.set_rich_tax(int8_t(std::clamp(n.get_rich_tax() + 2, 10, std::max(10, max_rich_tax))));
-			} else if(n.get_last_treasury() < n.get_stockpiles(economy::money)) { // gaining money
+			} else if(n.get_last_treasury() < n.get_treasury()) { // gaining money
 				if(n.get_ai_is_threatened()) {
 					n.set_military_spending(int8_t(std::min(100, n.get_military_spending() + 10)));
 				} else {

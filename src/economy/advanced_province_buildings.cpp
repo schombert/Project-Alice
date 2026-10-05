@@ -309,9 +309,9 @@ void update_profit_and_refund(sys::state& state) {
 				auto cost_of_input = state.world.province_get_labor_price(pids, def.throughput_labour_type);
 				auto national_size = state.world.province_get_advanced_province_building_national_size(pids, i);
 				auto actually_bought = state.world.province_get_labor_demand_satisfaction(pids, def.throughput_labour_type);
-				auto treasury = state.world.nation_get_stockpiles(local_nation, economy::money);
+				auto treasury = state.world.nation_get_treasury(local_nation);
 				assert(std::isfinite(treasury + (1.f - actually_bought) * national_size * cost_of_input));
-				state.world.nation_set_stockpiles(local_nation, economy::money, treasury + (1.f - actually_bought) * national_size * cost_of_input);
+				state.world.nation_set_treasury(local_nation, treasury + (1.f - actually_bought) * national_size * cost_of_input);
 			}
 			
 		});

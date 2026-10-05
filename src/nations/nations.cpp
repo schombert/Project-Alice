@@ -172,7 +172,7 @@ void restore_unsaved_values(sys::state& state) {
 		},
 		[&]() {
 			state.world.execute_serial_over_nation([&](auto ids) {
-				auto treasury = state.world.nation_get_stockpiles(ids, economy::money);
+				auto treasury = state.world.nation_get_treasury(ids);
 				state.world.nation_set_last_treasury(ids, treasury);
 			});
 		},
@@ -2113,7 +2113,7 @@ void update_monthly_points(sys::state& state) {
 }
 
 float get_treasury(sys::state& state, dcon::nation_id n) {
-	return state.world.nation_get_stockpiles(n, economy::money);
+	return state.world.nation_get_treasury(n);
 }
 
 float get_bank_funds(sys::state& state, dcon::nation_id n) {
@@ -2121,7 +2121,7 @@ float get_bank_funds(sys::state& state, dcon::nation_id n) {
 }
 
 float get_debt(sys::state& state, dcon::nation_id n) {
-	auto v = state.world.nation_get_stockpiles(n, economy::money);
+	auto v = state.world.nation_get_treasury(n);
 	return v < 0.0f ? -v : 0.0f;
 }
 

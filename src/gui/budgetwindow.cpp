@@ -942,30 +942,6 @@ void  budgetwindow_main_espenses_table_t::update(sys::state& state, layout_windo
 	auto navy_supplies_spending = (float)state.world.nation_get_naval_spending(state.local_player_nation) / 100.0f;
 	auto stockpile_spendings = economy::estimate_total_stockpile_spendings_by_commodity(state, state.local_player_nation, next_budget * construction_spending, next_budget * stockpile_spending, next_budget * army_supplies_spending, next_budget * navy_supplies_spending);
 	values.clear();
-	/*add_section_header(budget_categories::construction);
-	if(budget_categories::expanded[budget_categories::construction]) {
-		auto explanation = economy::explain_construction_spending_now(state, state.local_player_nation);
-		for(auto& data : explanation.factories) {
-			auto building_type = state.world.factory_construction_get_type(data.construction);
-			auto location = state.world.factory_construction_get_province(data.construction);
-			add_budget_row(
-				text::produce_simple_string(state, state.world.factory_type_get_name(building_type))
-				+ "(" + text::produce_simple_string(state, state.world.province_get_name(location)) + ")",
-				data.spending
-			);
-		}
-		for(auto& data : explanation.province_buildings) {
-			auto building_type = state.world.province_building_construction_get_type(data.construction);
-			auto location = state.world.province_building_construction_get_province(data.construction);
-			add_budget_row(
-				text::produce_simple_string(state, state.world.province_get_name(location)) ,
-				data.spending
-			);
-		}
-	} else {
-		add_neutral_spacer();
-	}*/
-
 	add_section_header(budget_categories::construction);
 	if(budget_categories::expanded[budget_categories::construction]) {
 		state.world.for_each_commodity([&](dcon::commodity_id com_id) {
@@ -1015,7 +991,7 @@ void  budgetwindow_main_espenses_table_t::update(sys::state& state, layout_windo
 	if(budget_categories::expanded[budget_categories::admin]) {
 		add_bottom_spacer();
 		auto fraction = float(state.world.nation_get_administrative_spending(state.local_player_nation)) / 100.0f;
-		auto national_budget = state.world.nation_get_stockpiles(state.local_player_nation, economy::money);
+		auto national_budget = state.world.nation_get_treasury(state.local_player_nation);
 		auto admin_budget_approx = fraction * national_budget;
 		float total = 0.f;
 		auto admin_count = economy::count_active_administrations(state, state.local_player_nation);
@@ -1061,7 +1037,7 @@ void  budgetwindow_main_espenses_table_t::update(sys::state& state, layout_windo
 		auto const unemp_level = state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::unemployment_benefit);
 		auto fraction = float(state.world.nation_get_social_spending(state.local_player_nation)) / 100.0f;
 
-		auto budget = state.world.nation_get_stockpiles(state.local_player_nation, economy::money);
+		auto budget = state.world.nation_get_treasury(state.local_player_nation);
 		auto social_budget = budget * fraction;
 
 		auto pension_ratio = p_level > 0.f ? p_level * population / (p_level * population + unemp_level * unemployed) : 0.f;
@@ -1148,7 +1124,7 @@ void  budgetwindow_main_espenses_table_t::update(sys::state& state, layout_windo
 		auto aristocrats = state.world.nation_get_demographics(state.local_player_nation, aristocracy_key);
 		auto investors = capitalists + aristocrats;
 		if(investors > 0) {
-			auto total_budget = state.world.nation_get_stockpiles(state.local_player_nation, economy::money)
+			auto total_budget = state.world.nation_get_treasury(state.local_player_nation)
 				* float(state.world.nation_get_domestic_investment_spending(state.local_player_nation)) / 100.f;
 			cap_total += capitalists / investors * total_budget;
 			aristo_total += aristocrats / investors * total_budget;

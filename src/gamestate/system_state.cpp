@@ -2875,7 +2875,6 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 
 	// misc touch ups
 	nations::generate_initial_state_instances(*this);
-	world.nation_resize_stockpiles(world.commodity_size());
 	world.nation_resize_variables(uint32_t(national_definitions.num_allocated_national_variables));
 	world.pop_resize_udemographics(pop_demographics::size(*this));
 	national_definitions.global_flag_variables.resize((national_definitions.num_allocated_global_flags + 7) / 8, dcon::bitfield_type{ 0 });

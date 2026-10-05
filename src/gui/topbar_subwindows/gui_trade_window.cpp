@@ -25,11 +25,11 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		auto com = retrieve<dcon::commodity_id>(state, parent);
 		if(state.world.nation_get_drawing_on_stockpiles(state.local_player_nation, com)) {
-			if(state.world.nation_get_stockpiles(state.local_player_nation, com) > 0)
+			if(state.world.nation_get_total_stockpiles(state.local_player_nation, com) > 0)
 				frame = 2;
 			else
 				frame = 0;
-		} else if(state.world.nation_get_stockpiles(state.local_player_nation, com) < state.world.nation_get_stockpile_targets(state.local_player_nation, com)) {
+		} else if(state.world.nation_get_total_stockpiles(state.local_player_nation, com) < state.world.nation_get_stockpile_targets(state.local_player_nation, com)) {
 			frame = 1;
 		} else {
 			frame = 0;
@@ -40,7 +40,7 @@ public:
 		auto com = retrieve<dcon::commodity_id>(state, parent);
 		if(state.world.nation_get_drawing_on_stockpiles(state.local_player_nation, com)) {
 			return tooltip_behavior::variable_tooltip;
-		} else if(state.world.nation_get_stockpiles(state.local_player_nation, com) < state.world.nation_get_stockpile_targets(state.local_player_nation, com)) {
+		} else if(state.world.nation_get_total_stockpiles(state.local_player_nation, com) < state.world.nation_get_stockpile_targets(state.local_player_nation, com)) {
 			return tooltip_behavior::variable_tooltip;
 		} else {
 			return tooltip_behavior::no_tooltip;
@@ -51,9 +51,9 @@ public:
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto com = retrieve<dcon::commodity_id>(state, parent);
 		if(state.world.nation_get_drawing_on_stockpiles(state.local_player_nation, com)) {
-			if(state.world.nation_get_stockpiles(state.local_player_nation, com) > 0)
+			if(state.world.nation_get_total_stockpiles(state.local_player_nation, com) > 0)
 				text::add_line(state, contents, "trade_setting_drawing");
-		} else if(state.world.nation_get_stockpiles(state.local_player_nation, com) < state.world.nation_get_stockpile_targets(state.local_player_nation, com)) {
+		} else if(state.world.nation_get_total_stockpiles(state.local_player_nation, com) < state.world.nation_get_stockpile_targets(state.local_player_nation, com)) {
 			text::add_line(state, contents, "trade_setting_filling");
 		} else {
 
