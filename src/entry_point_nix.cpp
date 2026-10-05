@@ -2,6 +2,9 @@
 #include "system_state.hpp"
 #include "game_scene.hpp"
 #include "parsers_declarations.hpp"
+#include "headless_run.hpp"
+#include <oneapi/tbb/global_control.h>
+#include <memory>
 
 static sys::state game_state;
 struct scenario_file {
@@ -204,6 +207,21 @@ void enforce_list_order() {
 }
 
 int main(int argc, char* argv[]) {
+	// headless batch flags: -seed N (fixed game seed), -years N (with -headless: run N game years at full speed, then exit),
+	// -dump DIR (monthly CSVs, see headless_run.hpp), -threads N (cap worker threads; 1 makes runs reproducible)
+	int run_years = -1;
+	std::string dump_dir;
+	std::unique_ptr<oneapi::tbb::global_control> thread_cap;
+	for(int i = 1; i + 1 < argc; ++i) {
+		if(std::string(argv[i]) == "-seed")
+			setenv("ALICE_SEED", argv[i + 1], 1);
+		else if(std::string(argv[i]) == "-years")
+			run_years = std::atoi(argv[i + 1]);
+		else if(std::string(argv[i]) == "-dump")
+			dump_dir = argv[i + 1];
+		else if(std::string(argv[i]) == "-threads")
+			thread_cap = std::make_unique<oneapi::tbb::global_control>(oneapi::tbb::global_control::max_allowed_parallelism, size_t(std::atoi(argv[i + 1])));
+	}
 	add_root(game_state.common_fs, NATIVE("."));
 	check_mods_folder();
 	check_scenario_folder();
@@ -370,6 +388,10 @@ int main(int argc, char* argv[]) {
 		game_state.ui_pause.store(false, std::memory_order::release);
 		game_scene::switch_scene(game_state, game_scene::scene_id::in_game_basic);
 		game_state.local_player_nation = dcon::nation_id{};
+		if(run_years >= 0) {
+			headless::run(game_state, run_years, dump_dir);
+			return EXIT_SUCCESS;
+		}
 		game_state.game_loop();
 	} else {
 		std::thread update_thread([&]() { 
