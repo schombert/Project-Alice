@@ -1108,18 +1108,8 @@ struct alignas(64) state {
 
 	dcon::trigger_key commit_trigger_data(std::vector<uint16_t> data);
 	dcon::effect_key commit_effect_data(std::vector<uint16_t> data);
-
-	state() : untrans_key_to_text_sequence(0, text::vector_backed_ci_hash(key_data), text::vector_backed_ci_eq(key_data)), locale_key_to_text_sequence(0, text::vector_backed_ci_hash(key_data), text::vector_backed_ci_eq(key_data)), current_scene(game_scene::nation_picker()), singleplayer_commands(4096), new_n_event(1024), new_f_n_event(1024), new_p_event(1024), new_f_p_event(1024), new_requests(256), new_messages(2048), naval_battle_reports(256), land_battle_reports(256), error_windows(256), pending_log_messages(256) {
-
-
-		key_data.push_back(0);
-		logger_thread = start_logger_thread(); // create logger thread to handle incoming log message asynchronously
-	}
-
-	~state() {
-		quit_signaled.store(true, std::memory_order::release);
-		logger_thread.join(); // wait for logger thread to quit after signalling
-	}
+	state();
+	~state();
 
 	void save_user_settings() const;
 	void load_user_settings();

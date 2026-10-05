@@ -27,7 +27,6 @@ economy::commodity_set calculate_factory_upgrade_goods_cost(
 );
 
 float estimate_private_construction_spendings(sys::state& state, dcon::nation_id nid);
-void populate_construction_consumption(sys::state& state);
 void populate_government_construction_consumption(sys::state& state);
 float estimate_construction_stockpile_spending(const sys::state& state, dcon::nation_id nation, float budget);
 tagged_vector<float, dcon::commodity_id> estimate_construction_stockpile_spending_by_commodity(const sys::state& state, dcon::nation_id nation, float budget);

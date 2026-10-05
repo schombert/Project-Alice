@@ -5093,465 +5093,6 @@ relationship{
 		tag{ save }
 	}
 }
-relationship{
-	name{ supply_route_path }
-	storage_type{ compactable }
-	size{ 100000 }
-	tag{ save }
-
-	link{
-		object{province}
-		name{destination}
-		type{many}
-		index_storage{array}
-	}
-	link{
-		object{market}
-		name{origin}
-		type{many}
-		index_storage{array}
-	}
-	composite_key{
-		name{origin_destination_pair}
-		index{destination}
-		index{origin}
-	}
-
-	property{
-		name{ path }
-		type{vector_pool{5000}{province_id}}
-		tag{ save }
-	}
-	property{
-		name{ adjacency_path }
-		type{vector_pool{5000}{province_adjacency_id}}
-	}
-	property{
-		name{ path_out_of_date }
-		type{ bitfield }
-		tag{ save }
-	}
-	property{
-		name{ valid_path }
-		type{ bitfield }
-		tag{ save }
-	}
-	property{
-		name{ is_active }
-		type{ bitfield }
-		tag{ save }
-	}
-	property{
-		name{ attempting_to_route }
-		type{ bitfield }
-		tag{ save }
-	}
-	property{
-		name{ recently_created }
-		type{ bitfield }
-		tag{ save }
-	}
-	property{
-		name{ inactive_days }
-		type{ uint8_t }
-		tag{ save }
-	}
-	property{
-		name{ supply_loss }
-		type{float}
-		tag{ save }
-	}
-	property{
-		name{ throughput }
-		type{float}
-		tag{ save }
-	}
-	property{
-		name{ volume }
-		type{float}
-		tag{ save }
-	}
-	property{
-		name{ expected_throughput }
-		type{float}
-		tag{ save }
-	}
-}
-
-relationship{
-	name{ army_route_path }
-	storage_type{ compactable }
-	size{ 50000 }
-	tag{ save }
-
-	link{
-		object{army_supply_route}
-		name{route}
-		type{unique}
-	}
-	link{
-		object{supply_route_path}
-		name{path}
-		type{many}
-		index_storage{array}
-	}
-}
-relationship{
-	name{ navy_route_path }
-	storage_type{ compactable }
-	size{ 50000 }
-	tag{ save }
-
-	link{
-		object{navy_supply_route}
-		name{route}
-		type{unique}
-	}
-	link{
-		object{supply_route_path}
-		name{path}
-		type{many}
-		index_storage{array}
-	}
-}
-relationship{
-	name{ land_construction_route_path }
-	storage_type{ compactable }
-	size{ 50000 }
-	tag{ save }
-
-	link{
-		object{land_construction_supply_route}
-		name{route}
-		type{unique}
-	}
-	link{
-		object{supply_route_path}
-		name{path}
-		type{many}
-		index_storage{array}
-	}
-}
-relationship{
-	name{ naval_construction_route_path }
-	storage_type{ compactable }
-	size{ 50000 }
-	tag{ save }
-
-	link{
-		object{naval_construction_supply_route}
-		name{route}
-		type{unique}
-	}
-	link{
-		object{supply_route_path}
-		name{path}
-		type{many}
-		index_storage{array}
-	}
-}
-relationship{
-	name{ factory_construction_route_path }
-	storage_type{ compactable }
-	size{ 50000 }
-	tag{ save }
-
-	link{
-		object{factory_construction_supply_route}
-		name{route}
-		type{unique}
-	}
-	link{
-		object{supply_route_path}
-		name{path}
-		type{many}
-		index_storage{array}
-	}
-}
-relationship{
-	name{ building_construction_route_path }
-	storage_type{ compactable }
-	size{ 50000 }
-	tag{ save }
-
-	link{
-		object{building_construction_supply_route}
-		name{route}
-		type{unique}
-	}
-	link{
-		object{supply_route_path}
-		name{path}
-		type{many}
-		index_storage{array}
-	}
-}
-
-
-
-relationship{
-	name{ army_supply_route }
-	storage_type{ compactable }
-	size{ 50000 }
-	tag{ save }
-
-	link{
-		object{army}
-		name{army}
-		type{many}
-		index_storage{array}
-	}
-	link{
-		object{market}
-		name{origin}
-		type{many}
-		index_storage{array}
-	}
-	composite_key{
-		name{origin_army_pair}
-		index{army}
-		index{origin}
-	}
-	property{
-		name{ inactive_days }
-		type{ uint8_t }
-		tag{ save }
-	}
-	property{
-		name{ is_active }
-		type{ bitfield }
-		tag{ save }
-	}
-	property{
-		name{ buffered_supply_goods }
-		type{ array{unit_supply_commodity_id}{float} }
-		tag{ save }
-	}
-	property{
-		name{ buffered_reinforcement_goods }
-		type{ array{unit_build_commodity_id}{float}  }
-		tag{ save }
-	}
-}
-
-
-relationship{
-	name{ navy_supply_route }
-	storage_type{ compactable }
-	size{ 50000 }
-	tag{ save }
-
-	link{
-		object{navy}
-		name{navy}
-		type{many}
-		index_storage{array}
-	}
-	link{
-		object{market}
-		name{origin}
-		type{many}
-		index_storage{array}
-	}
-	composite_key{
-		name{origin_navy_pair}
-		index{navy}
-		index{origin}
-	}
-	property{
-		name{ inactive_days }
-		type{ uint8_t }
-		tag{ save }
-	}
-	property{
-		name{ is_active }
-		type{ bitfield }
-		tag{ save }
-	}
-	property{
-		name{ buffered_supply_goods }
-		type{  array{unit_supply_commodity_id}{float} }
-		tag{ save }
-	}
-	property{
-		name{ buffered_reinforcement_goods }
-		type{ array{ unit_build_commodity_id}{float} }
-		tag{ save }
-	}
-
-}
-
-
-relationship{
-	name{ land_construction_supply_route }
-	storage_type{ compactable }
-	size{ 50000 }
-	tag{ save }
-
-	link{
-		object{province_land_construction}
-		name{construction}
-		type{many}
-		index_storage{array}
-	}
-	link{
-		object{market}
-		name{origin}
-		type{many}
-		index_storage{array}
-	}
-	composite_key{
-		name{origin_construction_pair}
-		index{construction}
-		index{origin}
-	}
-	property{
-		name{ inactive_days }
-		type{ uint8_t }
-		tag{ save }
-	}
-	property{
-		name{ is_active }
-		type{ bitfield }
-		tag{ save }
-	} 
-	property{
-		name{ buffered_goods }
-		type{ economy::commodity_amounts }
-		tag{ save }
-	}
-
-}
-
-
-
-relationship{
-	name{ naval_construction_supply_route }
-	storage_type{ compactable }
-	size{ 50000 }
-	tag{ save }
-
-	link{
-		object{province_naval_construction}
-		name{construction}
-		type{many}
-		index_storage{array}
-	}
-	link{
-		object{market}
-		name{origin}
-		type{many}
-		index_storage{array}
-	}
-	composite_key{
-		name{origin_construction_pair}
-		index{construction}
-		index{origin}
-	}
-	property{
-		name{ inactive_days }
-		type{ uint8_t }
-		tag{ save }
-	}
-	property{
-		name{ is_active }
-		type{ bitfield }
-		tag{ save }
-	}
-	property{
-		name{ buffered_goods }
-		type{ economy::commodity_amounts }
-		tag{ save }
-	}
-
-}
-
-
-
-
-relationship{
-	name{ factory_construction_supply_route }
-	storage_type{ compactable }
-	size{ 50000 }
-	tag{ save }
-
-	link{
-		object{factory_construction}
-		name{construction}
-		type{many}
-		index_storage{array}
-	}
-	link{
-		object{market}
-		name{origin}
-		type{many}
-		index_storage{array}
-	}
-	composite_key{
-		name{origin_construction_pair}
-		index{construction}
-		index{origin}
-	}
-	property{
-		name{ inactive_days }
-		type{ uint8_t }
-		tag{ save }
-	}
-	property{
-		name{ is_active }
-		type{ bitfield }
-		tag{ save }
-	}
-	property{
-		name{ buffered_goods }
-		type{ economy::commodity_amounts }
-		tag{ save }
-	}
-
-}
-
-
-relationship{
-	name{ building_construction_supply_route }
-	storage_type{ compactable }
-	size{ 50000 }
-	tag{ save }
-
-	link{
-		object{province_building_construction}
-		name{construction}
-		type{many}
-		index_storage{array}
-	}
-	link{
-		object{market}
-		name{origin}
-		type{many}
-		index_storage{array}
-	}
-	composite_key{
-		name{origin_construction_pair}
-		index{construction}
-		index{origin}
-	}
-	property{
-		name{ inactive_days }
-		type{ uint8_t }
-		tag{ save }
-	}
-	property{
-		name{ is_active }
-		type{ bitfield }
-		tag{ save }
-	}
-
-	property{
-		name{ buffered_goods }
-		type{ economy::commodity_amounts }
-		tag{ save }
-	}
-
-}
 
 
 relationship{
@@ -6802,6 +6343,473 @@ object {
 		tag { mp_checksum_excluded }
 	}
 }
+
+
+
+
+
+
+relationship{
+	name{ supply_route_path }
+	storage_type{ compactable }
+	size{ 100000 }
+	tag{ save }
+
+	link{
+		object{province}
+		name{destination}
+		type{many}
+		index_storage{array}
+	}
+	link{
+		object{market}
+		name{origin}
+		type{many}
+		index_storage{array}
+	}
+	composite_key{
+		name{origin_destination_pair}
+		index{destination}
+		index{origin}
+	}
+
+	property{
+		name{ path }
+		type{vector_pool{5000}{province_id}}
+		tag{ save }
+	}
+	property{
+		name{ adjacency_path }
+		type{vector_pool{5000}{province_adjacency_id}}
+	}
+	property{
+		name{ path_out_of_date }
+		type{ bitfield }
+		tag{ save }
+	}
+	property{
+		name{ valid_path }
+		type{ bitfield }
+		tag{ save }
+	}
+	property{
+		name{ is_active }
+		type{ bitfield }
+		tag{ save }
+	}
+	property{
+		name{ attempting_to_route }
+		type{ bitfield }
+		tag{ save }
+	}
+	property{
+		name{ recently_created }
+		type{ bitfield }
+		tag{ save }
+	}
+	property{
+		name{ inactive_days }
+		type{ uint8_t }
+		tag{ save }
+	}
+	property{
+		name{ supply_loss }
+		type{float}
+		tag{ save }
+	}
+	property{
+		name{ throughput }
+		type{float}
+		tag{ save }
+	}
+	property{
+		name{ volume }
+		type{float}
+		tag{ save }
+	}
+	property{
+		name{ expected_throughput }
+		type{float}
+		tag{ save }
+	}
+}
+
+
+
+relationship{
+	name{ army_supply_route }
+	storage_type{ compactable }
+	size{ 50000 }
+	tag{ save }
+
+	link{
+		object{army}
+		name{army}
+		type{many}
+		index_storage{array}
+	}
+	link{
+		object{market}
+		name{origin}
+		type{many}
+		index_storage{array}
+	}
+	composite_key{
+		name{origin_army_pair}
+		index{army}
+		index{origin}
+	}
+	property{
+		name{ inactive_days }
+		type{ uint8_t }
+		tag{ save }
+	}
+	property{
+		name{ is_active }
+		type{ bitfield }
+		tag{ save }
+	}
+	property{
+		name{ buffered_supply_goods }
+		type{ array{unit_supply_commodity_id}{float} }
+		tag{ save }
+	}
+	property{
+		name{ buffered_reinforcement_goods }
+		type{ array{unit_build_commodity_id}{float}  }
+		tag{ save }
+	}
+}
+
+
+relationship{
+	name{ navy_supply_route }
+	storage_type{ compactable }
+	size{ 50000 }
+	tag{ save }
+
+	link{
+		object{navy}
+		name{navy}
+		type{many}
+		index_storage{array}
+	}
+	link{
+		object{market}
+		name{origin}
+		type{many}
+		index_storage{array}
+	}
+	composite_key{
+		name{origin_navy_pair}
+		index{navy}
+		index{origin}
+	}
+	property{
+		name{ inactive_days }
+		type{ uint8_t }
+		tag{ save }
+	}
+	property{
+		name{ is_active }
+		type{ bitfield }
+		tag{ save }
+	}
+	property{
+		name{ buffered_supply_goods }
+		type{  array{unit_supply_commodity_id}{float} }
+		tag{ save }
+	}
+	property{
+		name{ buffered_reinforcement_goods }
+		type{ array{ unit_build_commodity_id}{float} }
+		tag{ save }
+	}
+
+}
+
+
+relationship{
+	name{ land_construction_supply_route }
+	storage_type{ compactable }
+	size{ 50000 }
+	tag{ save }
+
+	link{
+		object{province_land_construction}
+		name{construction}
+		type{many}
+		index_storage{array}
+	}
+	link{
+		object{market}
+		name{origin}
+		type{many}
+		index_storage{array}
+	}
+	composite_key{
+		name{origin_construction_pair}
+		index{construction}
+		index{origin}
+	}
+	property{
+		name{ inactive_days }
+		type{ uint8_t }
+		tag{ save }
+	}
+	property{
+		name{ is_active }
+		type{ bitfield }
+		tag{ save }
+	} 
+	property{
+		name{ buffered_goods }
+		type{ economy::commodity_amounts }
+		tag{ save }
+	}
+
+}
+
+
+
+relationship{
+	name{ naval_construction_supply_route }
+	storage_type{ compactable }
+	size{ 50000 }
+	tag{ save }
+
+	link{
+		object{province_naval_construction}
+		name{construction}
+		type{many}
+		index_storage{array}
+	}
+	link{
+		object{market}
+		name{origin}
+		type{many}
+		index_storage{array}
+	}
+	composite_key{
+		name{origin_construction_pair}
+		index{construction}
+		index{origin}
+	}
+	property{
+		name{ inactive_days }
+		type{ uint8_t }
+		tag{ save }
+	}
+	property{
+		name{ is_active }
+		type{ bitfield }
+		tag{ save }
+	}
+	property{
+		name{ buffered_goods }
+		type{ economy::commodity_amounts }
+		tag{ save }
+	}
+
+}
+
+
+
+
+relationship{
+	name{ factory_construction_supply_route }
+	storage_type{ compactable }
+	size{ 50000 }
+	tag{ save }
+
+	link{
+		object{factory_construction}
+		name{construction}
+		type{many}
+		index_storage{array}
+	}
+	link{
+		object{market}
+		name{origin}
+		type{many}
+		index_storage{array}
+	}
+	composite_key{
+		name{origin_construction_pair}
+		index{construction}
+		index{origin}
+	}
+	property{
+		name{ inactive_days }
+		type{ uint8_t }
+		tag{ save }
+	}
+	property{
+		name{ is_active }
+		type{ bitfield }
+		tag{ save }
+	}
+	property{
+		name{ buffered_goods }
+		type{ economy::commodity_amounts }
+		tag{ save }
+	}
+
+}
+
+
+relationship{
+	name{ building_construction_supply_route }
+	storage_type{ compactable }
+	size{ 50000 }
+	tag{ save }
+
+	link{
+		object{province_building_construction}
+		name{construction}
+		type{many}
+		index_storage{array}
+	}
+	link{
+		object{market}
+		name{origin}
+		type{many}
+		index_storage{array}
+	}
+	composite_key{
+		name{origin_construction_pair}
+		index{construction}
+		index{origin}
+	}
+	property{
+		name{ inactive_days }
+		type{ uint8_t }
+		tag{ save }
+	}
+	property{
+		name{ is_active }
+		type{ bitfield }
+		tag{ save }
+	}
+
+	property{
+		name{ buffered_goods }
+		type{ economy::commodity_amounts }
+		tag{ save }
+	}
+
+}
+
+
+relationship{
+	name{ army_route_path }
+	storage_type{ compactable }
+	size{ 50000 }
+	tag{ save }
+
+	link{
+		object{army_supply_route}
+		name{route}
+		type{unique}
+	}
+	link{
+		object{supply_route_path}
+		name{path}
+		type{many}
+		index_storage{array}
+	}
+}
+relationship{
+	name{ navy_route_path }
+	storage_type{ compactable }
+	size{ 50000 }
+	tag{ save }
+
+	link{
+		object{navy_supply_route}
+		name{route}
+		type{unique}
+	}
+	link{
+		object{supply_route_path}
+		name{path}
+		type{many}
+		index_storage{array}
+	}
+}
+relationship{
+	name{ land_construction_route_path }
+	storage_type{ compactable }
+	size{ 50000 }
+	tag{ save }
+
+	link{
+		object{land_construction_supply_route}
+		name{route}
+		type{unique}
+	}
+	link{
+		object{supply_route_path}
+		name{path}
+		type{many}
+		index_storage{array}
+	}
+}
+relationship{
+	name{ naval_construction_route_path }
+	storage_type{ compactable }
+	size{ 50000 }
+	tag{ save }
+
+	link{
+		object{naval_construction_supply_route}
+		name{route}
+		type{unique}
+	}
+	link{
+		object{supply_route_path}
+		name{path}
+		type{many}
+		index_storage{array}
+	}
+}
+relationship{
+	name{ factory_construction_route_path }
+	storage_type{ compactable }
+	size{ 50000 }
+	tag{ save }
+
+	link{
+		object{factory_construction_supply_route}
+		name{route}
+		type{unique}
+	}
+	link{
+		object{supply_route_path}
+		name{path}
+		type{many}
+		index_storage{array}
+	}
+}
+relationship{
+	name{ building_construction_route_path }
+	storage_type{ compactable }
+	size{ 50000 }
+	tag{ save }
+
+	link{
+		object{building_construction_supply_route}
+		name{route}
+		type{unique}
+	}
+	link{
+		object{supply_route_path}
+		name{path}
+		type{many}
+		index_storage{array}
+	}
+}
+
 
 object {
 	name{ locale }

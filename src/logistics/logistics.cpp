@@ -351,11 +351,24 @@ float supply_route_get_supply_loss(const sys::state& state, route_type route) {
 	dcon::supply_route_path_id path = supply_route_get_path(state, route);
 	return state.world.supply_route_path_get_supply_loss(path);
 }
+template float supply_route_get_supply_loss(const sys::state& state, dcon::army_supply_route_id route);
+template float supply_route_get_supply_loss(const sys::state& state, dcon::navy_supply_route_id route);
+template float supply_route_get_supply_loss(const sys::state& state, dcon::land_construction_supply_route_id route);
+template float supply_route_get_supply_loss(const sys::state& state, dcon::naval_construction_supply_route_id route);
+template float supply_route_get_supply_loss(const sys::state& state, dcon::factory_construction_supply_route_id route);
+template float supply_route_get_supply_loss(const sys::state& state, dcon::building_construction_supply_route_id route);
+
 template<concepts::supply_route_type route_type>
 float supply_route_get_throughput(const sys::state& state, route_type route) {
 	dcon::supply_route_path_id path = supply_route_get_path(state, route);
 	return state.world.supply_route_path_get_throughput(path);
 }
+template float supply_route_get_throughput(const sys::state& state, dcon::army_supply_route_id route);
+template float supply_route_get_throughput(const sys::state& state, dcon::navy_supply_route_id route);
+template float supply_route_get_throughput(const sys::state& state, dcon::land_construction_supply_route_id route);
+template float supply_route_get_throughput(const sys::state& state, dcon::naval_construction_supply_route_id route);
+template float supply_route_get_throughput(const sys::state& state, dcon::factory_construction_supply_route_id route);
+template float supply_route_get_throughput(const sys::state& state, dcon::building_construction_supply_route_id route);
 
 dcon::province_id supply_route_path_get_origin_prov(const sys::state& state, dcon::supply_route_path_id path) {
 	auto origin = state.world.supply_route_path_get_origin(path);

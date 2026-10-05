@@ -7,6 +7,7 @@
 #include "system_state.hpp"
 #include "serialization.hpp"
 #include "prng.hpp"
+#include "math_fns.hpp"
 
 TEST_CASE("prng_simple", "[determinism]") {
 	std::unique_ptr<sys::state> game_state = std::make_unique<sys::state>(); // too big for the stack
@@ -94,11 +95,25 @@ TEST_CASE("math_fns", "[determinism]") {
 void compare_game_states(sys::state& ws1, sys::state& ws2) {
 	auto ymd = ws1.current_date.to_ymd(ws1.start_date);
 	INFO(ymd.year << "." << ymd.month << "." << ymd.day);
-
-	// REQUIRE(std::memcmp(tmp1.get(), tmp2.get(), sizeof_save_section(ws1)) == 0);
-	if(!ws1.get_mp_state_checksum().is_equal(ws2.get_mp_state_checksum())) {
+	sys::checksum_key ws1_checksum;
+	sys::checksum_key ws2_checksum;
+	concurrency::parallel_invoke(
+		[&]() {
+			ws1_checksum = ws1.get_mp_state_checksum();
+		},
+		[&]() {
+			ws2_checksum = ws2.get_mp_state_checksum();
+		}
+	);
+	if(!ws1_checksum.is_equal(ws2_checksum)) {
 		std::string oos_report = network::generate_full_oos_report(ws1, ws2);
 		simple_fs::write_file(simple_fs::get_or_create_oos_directory(), native_string_view{NATIVE("OOS_TEST.log")}, oos_report.data(), uint32_t(oos_report.length()));
+		auto current_date1 = ws1.current_date.to_string(ws1.start_date);
+		auto current_date2 = ws2.current_date.to_string(ws2.start_date);
+		// Write a save for each seperate state to inspect
+		sys::write_save_file(ws1, sys::save_type::normal, current_date1 + "_OOS_SAVE_STATE1");
+		sys::write_save_file(ws2, sys::save_type::normal, current_date2 + "_OOS_SAVE_STATE2");
+
 		REQUIRE(false);
 	}
 }
@@ -155,7 +170,7 @@ TEST_CASE("compare_scenarios", "[determinism]") {
 
 }
 
-void do_sim_game_test(const native_string& savefile = native_string{ }) {
+void do_sim_game_test(uint32_t days_advance, const native_string& savefile = native_string{ }) {
 	std::unique_ptr<sys::state> game_state_1;
 	std::unique_ptr<sys::state> game_state_2;
 
@@ -185,11 +200,16 @@ void do_sim_game_test(const native_string& savefile = native_string{ }) {
 	game_state_2->game_seed = game_state_1->game_seed = test_game_seed;
 
 	compare_game_states(*game_state_1, *game_state_2);
-	for(int i = 0; i <= 3653; i++) {
-		game_state_1->console_log(std::to_string(i));
+	for(uint32_t i = 0; i <= days_advance; i++) {
+		if(!sys::is_playable_date(game_state_1->current_date, game_state_1->start_date, game_state_1->end_date)) {
+			break;
+		}
+		std::string idx_str = std::to_string(i);
+		game_state_1->console_log(idx_str);
 		game_state_1->single_game_tick();
 		game_state_2->single_game_tick();
 		compare_game_states(*game_state_1, *game_state_2);
+		sys::write_save_file(*game_state_1, sys::save_type::normal, "OOS_checkpoint_save", "OOS_checkpoint_save"); // Write a checkpoint save if the last OOS check passed sucessfully
 	}
 }
 
@@ -217,7 +237,7 @@ void do_sim_game_solo_test(const native_string& savefile = native_string{ }) {
 	}
 }
 
-void do_fill_unsaved_values_test(const native_string& savefile = native_string{ }) {
+void do_fill_unsaved_values_test(uint32_t days_advance, const native_string& savefile = native_string{ }) {
 	std::unique_ptr<sys::state> game_state_1;
 	if(savefile.empty()) {
 		game_state_1 = load_testing_scenario_file_with_save(sys::network_mode_type::host);
@@ -236,10 +256,13 @@ void do_fill_unsaved_values_test(const native_string& savefile = native_string{ 
 	game_state_1->game_seed = test_game_seed;
 
 
-	for(int i = 0; i <= 3653; i++) {
+	for(uint32_t i = 0; i <= days_advance; i++) {
+		if(!sys::is_playable_date(game_state_1->current_date, game_state_1->start_date, game_state_1->end_date)) {
+			break;
+		}
+		std::string idx_str = std::to_string(i);
 
-
-		game_state_1->console_log(std::to_string(i));
+		game_state_1->console_log(idx_str);
 		game_state_1->single_game_tick();
 
 		auto before_key1 = game_state_1->get_save_checksum();
@@ -252,7 +275,7 @@ void do_fill_unsaved_values_test(const native_string& savefile = native_string{ 
 	}
 }
 
-void do_save_game_with_saveload(const native_string& savefile = native_string{ }) {
+void do_save_game_with_saveload(uint32_t days_before_reload, uint32_t days_after_reload,const native_string& savefile = native_string{ }) {
 	std::unique_ptr<sys::state> game_state_1;
 	std::unique_ptr<sys::state> game_state_2;
 	if(savefile.empty()) {
@@ -286,8 +309,12 @@ void do_save_game_with_saveload(const native_string& savefile = native_string{ }
 	compare_game_states(*game_state_1, *game_state_2);
 
 	// run the first gamestate for about five years
-	for(int i = 0; i <= 1826; i++) {
-		game_state_1->console_log(std::to_string(i));
+	for(uint32_t i = 0; i <= days_before_reload; i++) {
+		if(!sys::is_playable_date(game_state_1->current_date, game_state_1->start_date, game_state_1->end_date)) {
+			break;
+		}
+		auto i_str = std::to_string(i);
+		game_state_1->console_log(i_str);
 		game_state_1->single_game_tick();
 	}
 	// serialize the save and get both gamestates to reload it
@@ -297,10 +324,15 @@ void do_save_game_with_saveload(const native_string& savefile = native_string{ }
 
 	test_load_save(*game_state_1, buffer.get(), uint32_t(length));
 	test_load_save(*game_state_2, buffer.get(), uint32_t(length));
+	compare_game_states(*game_state_1, *game_state_2);
 
 	// run both gamestates for another 5 years
-	for(int i = 0; i <= 1826; i++) {
-		game_state_1->console_log(std::to_string(i));
+	for(uint32_t i = 0; i <= days_after_reload; i++) {
+		if(!sys::is_playable_date(game_state_1->current_date, game_state_1->start_date, game_state_1->end_date)) {
+			break;
+		}
+		auto i_str = std::to_string(i);
+		game_state_1->console_log(i_str);
 		game_state_1->single_game_tick();
 		game_state_2->single_game_tick();
 		compare_game_states(*game_state_1, *game_state_2);
@@ -316,8 +348,8 @@ void do_save_game_with_saveload(const native_string& savefile = native_string{ }
 
 TEST_CASE("sim_none", "[determinism]") {
 	// Test that the game states are equal AFTER loading
-	std::unique_ptr<sys::state> game_state_1 = load_testing_scenario_file();
-	std::unique_ptr<sys::state> game_state_2 = load_testing_scenario_file();
+	std::unique_ptr<sys::state> game_state_1 = load_testing_scenario_file(sys::network_mode_type::host);
+	std::unique_ptr<sys::state> game_state_2 = load_testing_scenario_file(sys::network_mode_type::host);
 	game_state_2->game_seed = game_state_1->game_seed = test_game_seed;
 	compare_game_states(*game_state_1, *game_state_2);
 }
@@ -336,7 +368,8 @@ TEST_CASE("populate_test_saves", "[determinism]") {
 	game_state_1->game_seed = test_game_seed;
 
 	for(int i = 0; i <= 36530; i++) {
-		game_state_1->console_log(std::to_string(i));
+		auto i_str = std::to_string(i);
+		game_state_1->console_log(i_str);
 		game_state_1->single_game_tick();
 		auto current_date = game_state_1->current_date.to_ymd(game_state_1->start_date);
 		if(current_date == sys::year_month_day{ 1846, 1, 1 }) {
@@ -408,93 +441,97 @@ TEST_CASE("sim_game_solo_10", "[determinism][sim_solo_tests]") {
 
 //All of the following tests from first to tenth is running the entire game in 10 year intervals with a save for each to test for desync's.
 
+TEST_CASE("sim_game_from_last_checkpoint", "[determinism]") {
+	do_sim_game_test(36530, NATIVE("OOS_checkpoint_save.bin"));
+}
+
 TEST_CASE("sim_game_1", "[determinism][sim_game_tests]") {
-	do_sim_game_test();
+	do_sim_game_test(3653);
 }
 
 TEST_CASE("sim_game_2", "[determinism][sim_game_tests]") {
-	do_sim_game_test(NATIVE("184611_TEST_SAVE.bin"));
+	do_sim_game_test(3653, NATIVE("184611_TEST_SAVE.bin"));
 }
 
 TEST_CASE("sim_game_3", "[determinism][sim_game_tests]") {
-	do_sim_game_test(NATIVE("185611_TEST_SAVE.bin"));
+	do_sim_game_test(3653, NATIVE("185611_TEST_SAVE.bin"));
 }
 TEST_CASE("sim_game_4", "[determinism][sim_game_tests]") {
-	do_sim_game_test(NATIVE("186611_TEST_SAVE.bin"));
+	do_sim_game_test(3653, NATIVE("186611_TEST_SAVE.bin"));
 }
 TEST_CASE("sim_game_5", "[determinism][sim_game_tests]") {
-	do_sim_game_test(NATIVE("187611_TEST_SAVE.bin"));
+	do_sim_game_test(3653, NATIVE("187611_TEST_SAVE.bin"));
 }
 TEST_CASE("sim_game_6", "[determinism][sim_game_tests]") {
-	do_sim_game_test(NATIVE("188611_TEST_SAVE.bin"));
+	do_sim_game_test(3653, NATIVE("188611_TEST_SAVE.bin"));
 }
 TEST_CASE("sim_game_7", "[determinism][sim_game_tests]") {
-	do_sim_game_test(NATIVE("189611_TEST_SAVE.bin"));
+	do_sim_game_test(3653, NATIVE("189611_TEST_SAVE.bin"));
 }
 TEST_CASE("sim_game_8", "[determinism][sim_game_tests]") {
-	do_sim_game_test(NATIVE("190611_TEST_SAVE.bin"));
+	do_sim_game_test(3653, NATIVE("190611_TEST_SAVE.bin"));
 }
 TEST_CASE("sim_game_9", "[determinism][sim_game_tests]") {
-	do_sim_game_test(NATIVE("191611_TEST_SAVE.bin"));
+	do_sim_game_test(3653, NATIVE("191611_TEST_SAVE.bin"));
 }
 TEST_CASE("sim_game_10", "[determinism][sim_game_tests]") {
-	do_sim_game_test(NATIVE("192611_TEST_SAVE.bin"));
+	do_sim_game_test(3653, NATIVE("192611_TEST_SAVE.bin"));
 }
 
 //All of the following tests from first to tenth is running the entire game in 10 year intervals with a save for each to test if the save checksum changes when fill_unsaved_values is called. It should not change, or something is wrong.
 
 TEST_CASE("fill_unsaved_values_determinism_1", "[determinism][fill_unsaved_tests]") {
-	do_fill_unsaved_values_test();
+	do_fill_unsaved_values_test(3653);
 }
 
 
 TEST_CASE("fill_unsaved_values_determinism_2", "[determinism][fill_unsaved_tests]") {
-	do_fill_unsaved_values_test(NATIVE("184611_TEST_SAVE.bin"));
+	do_fill_unsaved_values_test(3653, NATIVE("184611_TEST_SAVE.bin"));
 }
 
 
 TEST_CASE("fill_unsaved_values_determinism_3", "[determinism][fill_unsaved_tests]") {
-	do_fill_unsaved_values_test(NATIVE("185611_TEST_SAVE.bin"));
+	do_fill_unsaved_values_test(3653, NATIVE("185611_TEST_SAVE.bin"));
 }
 
 TEST_CASE("fill_unsaved_values_determinism_4", "[determinism][fill_unsaved_tests]") {
-	do_fill_unsaved_values_test(NATIVE("186611_TEST_SAVE.bin"));
+	do_fill_unsaved_values_test(3653, NATIVE("186611_TEST_SAVE.bin"));
 }
 
 TEST_CASE("fill_unsaved_values_determinism_5", "[determinism][fill_unsaved_tests]") {
-	do_fill_unsaved_values_test(NATIVE("187611_TEST_SAVE.bin"));
+	do_fill_unsaved_values_test(3653, NATIVE("187611_TEST_SAVE.bin"));
 }
 
 TEST_CASE("fill_unsaved_values_determinism_6", "[determinism][fill_unsaved_tests]") {
-	do_fill_unsaved_values_test(NATIVE("188611_TEST_SAVE.bin"));
+	do_fill_unsaved_values_test(3653, NATIVE("188611_TEST_SAVE.bin"));
 }
 
 
 TEST_CASE("fill_unsaved_values_determinism_7", "[determinism][fill_unsaved_tests]") {
-	do_fill_unsaved_values_test(NATIVE("189611_TEST_SAVE.bin"));
+	do_fill_unsaved_values_test(3653, NATIVE("189611_TEST_SAVE.bin"));
 }
 
 TEST_CASE("fill_unsaved_values_determinism_8", "[determinism][fill_unsaved_tests]") {
-	do_fill_unsaved_values_test(NATIVE("190611_TEST_SAVE.bin"));
+	do_fill_unsaved_values_test(3653, NATIVE("190611_TEST_SAVE.bin"));
 }
 
 TEST_CASE("fill_unsaved_values_determinism_9", "[determinism][fill_unsaved_tests]") {
-	do_fill_unsaved_values_test(NATIVE("191611_TEST_SAVE.bin"));
+	do_fill_unsaved_values_test(3653, NATIVE("191611_TEST_SAVE.bin"));
 }
 
 TEST_CASE("fill_unsaved_values_determinism_10", "[determinism][fill_unsaved_tests]") {
-	do_fill_unsaved_values_test(NATIVE("192611_TEST_SAVE.bin"));
+	do_fill_unsaved_values_test(3653, NATIVE("192611_TEST_SAVE.bin"));
 }
 
 
 
 TEST_CASE("sim_game_with_saveload_1", "[determinism][sim_with_saveload_tests]") {
-	do_save_game_with_saveload();
+	do_save_game_with_saveload(1826, 1826);
 }
 
 
 TEST_CASE("sim_game_with_saveload_2", "[determinism][sim_with_saveload_tests]") {
-	do_save_game_with_saveload(NATIVE("184611_TEST_SAVE.bin"));
+	do_save_game_with_saveload(1826, 1826, NATIVE("184611_TEST_SAVE.bin"));
 
 
 }
@@ -502,54 +539,54 @@ TEST_CASE("sim_game_with_saveload_2", "[determinism][sim_with_saveload_tests]") 
 TEST_CASE("sim_game_with_saveload_3", "[determinism][sim_with_saveload_tests]") {
 
 
-	do_save_game_with_saveload(NATIVE("185611_TEST_SAVE.bin"));
+	do_save_game_with_saveload(1826, 1826, NATIVE("185611_TEST_SAVE.bin"));
 
 }
 
 TEST_CASE("sim_game_with_saveload_4", "[determinism][sim_with_saveload_tests]") {
 
 
-	do_save_game_with_saveload(NATIVE("186611_TEST_SAVE.bin"));
+	do_save_game_with_saveload(1826, 1826, NATIVE("186611_TEST_SAVE.bin"));
 
 }
 
 TEST_CASE("sim_game_with_saveload_5", "[determinism][sim_with_saveload_tests]") {
 
 
-	do_save_game_with_saveload(NATIVE("187611_TEST_SAVE.bin"));
+	do_save_game_with_saveload(1826, 1826, NATIVE("187611_TEST_SAVE.bin"));
 }
 
 TEST_CASE("sim_game_with_saveload_6", "[determinism][sim_with_saveload_tests]") {
 
 
-	do_save_game_with_saveload(NATIVE("188611_TEST_SAVE.bin"));
+	do_save_game_with_saveload(1826, 1826, NATIVE("188611_TEST_SAVE.bin"));
 
 }
 
 TEST_CASE("sim_game_with_saveload_7", "[determinism][sim_with_saveload_tests]") {
 
 
-	do_save_game_with_saveload(NATIVE("189611_TEST_SAVE.bin"));
+	do_save_game_with_saveload(1826, 1826, NATIVE("189611_TEST_SAVE.bin"));
 
 }
 
 TEST_CASE("sim_game_with_saveload_8", "[determinism][sim_with_saveload_tests]") {
 
 
-	do_save_game_with_saveload(NATIVE("190611_TEST_SAVE.bin"));
+	do_save_game_with_saveload(1826, 1826, NATIVE("190611_TEST_SAVE.bin"));
 
 }
 
 TEST_CASE("sim_game_with_saveload_9", "[determinism][sim_with_saveload_tests]") {
 
 
-	do_save_game_with_saveload(NATIVE("191611_TEST_SAVE.bin"));
+	do_save_game_with_saveload(1826, 1826, NATIVE("191611_TEST_SAVE.bin"));
 
 }
 
 TEST_CASE("sim_game_with_saveload_10", "[determinism][sim_with_saveload_tests]") {
 
 
-	do_save_game_with_saveload(NATIVE("192611_TEST_SAVE.bin"));
+	do_save_game_with_saveload(1826, 1826, NATIVE("192611_TEST_SAVE.bin"));
 
 }

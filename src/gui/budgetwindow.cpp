@@ -1175,8 +1175,12 @@ void  budgetwindow_main_espenses_table_t::update(sys::state& state, layout_windo
 		auto capital = state.world.nation_get_capital(state.local_player_nation);
 		auto capital_state = state.world.province_get_state_membership(capital);
 		auto market = state.world.state_instance_get_market_from_local_market(capital_state);
-
-		auto overseas_factor = state.defines.province_overseas_penalty * float(state.world.nation_get_owned_province_count(state.local_player_nation) - state.world.nation_get_central_province_count(state.local_player_nation));
+		float overseas_factor = 0.0f;
+		// ONLY attempt to consume the goods if we control the capital state. If we do not, then we get the maximum overseas penality. This isn't ideal, but the best solution until it can be reworked
+		if(state.world.state_instance_get_nation_from_state_control(capital_state) == state.local_player_nation) {
+			overseas_factor = state.defines.province_overseas_penalty * float(state.world.nation_get_owned_province_count(state.local_player_nation) - state.world.nation_get_central_province_count(state.local_player_nation));
+		}
+		
 		uint32_t total_commodities = state.world.commodity_size();
 
 		if(overseas_factor > 0) {

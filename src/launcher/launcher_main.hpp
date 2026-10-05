@@ -2,12 +2,11 @@
 
 #define ALICE_NO_ENTRY_POINT 1
 
-#include <limits.h>
 #include "common_types.cpp"
-#include "lua_alice_api.cpp"
-#include "system_state.cpp"
 #include "dcon_oos_reporter_generated.cpp"
 #ifndef INCREMENTAL
+#include "lua_alice_api.cpp"
+#include "system_state.cpp"
 #include "stateless_render.cpp"
 #include "ui_state.cpp"
 #include "create_windows.cpp"
@@ -104,12 +103,12 @@
 #include "blake2.cpp"
 #include "zstd.cpp"
 #include "pcp.cpp"
-#endif
 #include "gui_element_types.cpp"
 #include "gui_main_menu.cpp"
 #include "gui_console.cpp"
 #include "gui_event.cpp"
 #include "gui_message_settings_window.cpp"
+#endif
 
 #ifndef GLEW_STATIC
 #define GLEW_STATIC

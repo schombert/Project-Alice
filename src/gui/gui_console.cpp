@@ -11,6 +11,9 @@
 #include "gui_element_base.hpp"
 #include "gui_templates.hpp"
 #include "constants_ui.hpp"
+#include "commands.hpp"
+#include "serialization.hpp"
+#include "game_scene.hpp"
 #define STB_IMAGE_WRITE_IMPLEMENTATION 1
 #include "stb_image_write.h"
 

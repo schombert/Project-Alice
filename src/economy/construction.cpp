@@ -517,6 +517,10 @@ uint32_t construction_get_actual_construction_time(const sys::state& state, con_
 		return factory_building_construction_time(state, type, state.world.factory_construction_get_is_upgrade(con));
 	}
 }
+template uint32_t construction_get_actual_construction_time(const sys::state& state, dcon::province_land_construction_id c);
+template uint32_t construction_get_actual_construction_time(const sys::state& state, dcon::province_naval_construction_id c);
+template uint32_t construction_get_actual_construction_time(const sys::state& state, dcon::factory_construction_id c);
+template uint32_t construction_get_actual_construction_time(const sys::state& state, dcon::province_building_construction_id c);
 
 
 // govt construction demand needs to be added seperately as it is handled through national stockpiles
@@ -810,36 +814,6 @@ template tagged_vector<float, dcon::commodity_id> nation_get_last_fufilled_const
 template tagged_vector<float, dcon::commodity_id> nation_get_last_fufilled_construction_need<dcon::province_building_construction_id>(const sys::state& state, dcon::nation_id nation);
 
 
-//void populate_province_building_construction_demand(
-//	sys::state& state,
-//	dcon::province_building_construction_id construction,
-//	float& budget,
-//	float budget_limit
-//) {
-//	auto details = explain_province_building_construction(state, construction);
-//	if(!details.can_be_advanced) return;
-//	if(details.is_pop_project) return;
-//
-//	assert(0 <= int32_t(details.building_type) && int32_t(details.building_type) < int32_t(economy::max_building_types));
-//	auto& base_cost = state.economy_definitions.building_definitions[int32_t(details.building_type)].cost;
-//	auto& current_purchased = state.world.province_building_construction_get_purchased_goods(construction);
-//
-//	for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
-//		auto cid = base_cost.commodity_type[i];
-//		if(!cid) break;
-//		auto current = current_purchased.commodity_amounts[i];
-//		auto required = base_cost.commodity_amounts[i] * details.cost_multiplier;
-//		if(current >= required) continue;
-//		auto local_price = price(state, details.market, cid);
-//		auto can_purchase_budget = std::min(budget_limit, budget) / (local_price + 0.001f);
-//		auto can_purchase_construction = required / details.construction_time;
-//		auto can_purchase = std::min(can_purchase_budget, can_purchase_construction);
-//		auto satisfaction = state.world.market_get_actual_probability_to_buy(details.market, cid);
-//		budget = std::max(0.f, budget - can_purchase * local_price * satisfaction);
-//		register_construction_demand(state, details.market, cid, can_purchase);
-//	}
-//}
-
 template<concepts::construction_type con_type>
 float nation_average_construction_satisfaction_by_type(const sys::state& state, dcon::nation_id nation) {
 	float total_goods_required = 0.0f;
@@ -873,6 +847,10 @@ float construction_progress(const sys::state& state, con_type c) {
 
 	return construction_days_progress;
 }
+template float construction_progress(const sys::state& state, dcon::province_land_construction_id c);
+template float construction_progress(const sys::state& state, dcon::province_naval_construction_id c);
+template float construction_progress(const sys::state& state, dcon::factory_construction_id c);
+template float construction_progress(const sys::state& state, dcon::province_building_construction_id c);
 
 struct factory_construction_data {
 	bool can_be_advanced;
@@ -1145,65 +1123,6 @@ void populate_government_construction_consumption(sys::state& state) {
 
 }
 
-
-void populate_construction_consumption(sys::state& state) {
-	//reset_construction_demand(state);
-
-	//static auto total_budget = ve::vectorizable_buffer<float, dcon::nation_id>(uint32_t(1));
-	//static auto current_budget = ve::vectorizable_buffer<float, dcon::nation_id>(uint32_t(1));
-	//static auto going_constructions = ve::vectorizable_buffer<int32_t, dcon::nation_id>(uint32_t(1));
-	//{
-	//	static uint32_t old_count = 1;
-	//	auto new_count = state.world.nation_size();
-	//	if(new_count > old_count) {
-	//		total_budget = state.world.nation_make_vectorizable_float_buffer();
-	//		current_budget = state.world.nation_make_vectorizable_float_buffer();
-	//		going_constructions = state.world.nation_make_vectorizable_int_buffer();
-	//		old_count = new_count;
-	//	}
-	//}
-
-	////reset static data
-
-	//state.world.execute_serial_over_nation([&](auto ids) {
-	//	auto base_budget = state.world.nation_get_last_base_budget(ids);
-	//	auto construction_priority = ve::to_float(state.world.nation_get_construction_spending(ids)) / 100.f;
-	//	current_budget.set(ids, ve::max(0.f, base_budget * construction_priority));
-	//	total_budget.set(ids, ve::max(0.f, base_budget * construction_priority));
-	//	going_constructions.set(ids, 0);
-	//});
-
-	//// count ongoing constructions
-	//// we need this number to limit amount of money going into individual constructions
-
-
-	//for(auto c : state.world.in_province_building_construction) {
-	//	auto owner = c.get_nation().id;
-	//	if(owner && c.get_province().get_nation_from_province_ownership() == c.get_province().get_nation_from_province_control() && !c.get_is_pop_project()) {
-	//		going_constructions.get(owner) += 1;
-	//	}
-	//};
-	//for(auto c : state.world.in_factory_construction) {
-	//	auto owner = c.get_nation().id;
-	//	if(owner && !c.get_is_pop_project()) {
-	//		going_constructions.get(owner) += 1;
-	//	}
-	//};
-
-
-	//for(auto c : state.world.in_province_building_construction) {
-	//	auto owner = c.get_nation().id;
-	//	float& base_budget = current_budget.get(owner);
-	//	float budget_limit = total_budget.get(owner) / float(std::max(1, going_constructions.get(owner)));
-	//	populate_province_building_construction_demand(state, c, base_budget, budget_limit);
-	//}
-	//for(auto c : state.world.in_factory_construction) {
-	//	auto owner = c.get_nation().id;
-	//	float& base_budget = current_budget.get(owner);
-	//	float budget_limit = total_budget.get(owner) / float(std::max(1, going_constructions.get(owner)));
-	//	populate_state_construction_demand(state, c, base_budget, budget_limit);
-	//}
-}
 // Only non-unit constructions are counted here (factories, province buildings etc). Unit constructions are handled diffrently
 int32_t count_ongoing_constructions(sys::state& state, dcon::nation_id n) {
 	auto count = 0;

@@ -202,7 +202,6 @@ spending_cost full_spending_cost(sys::state& state, dcon::nation_id n, float bud
 void populate_army_consumption(sys::state& state);
 // Sets navy demand to be purchased to govt stockpiles.Will set the demand in states which is deemed the most likely to be able to satisfy the demand locally
 void populate_navy_consumption(sys::state& state);
-void populate_construction_consumption(sys::state& state);
 
 // Returns factory types for which commodity is an output good
 std::vector<dcon::factory_type_id> commodity_get_factory_types_as_output(sys::state const& state, dcon::commodity_id output_good) {
@@ -472,11 +471,11 @@ void get_closest_available_market_states(sys::state& state, std::vector<dcon::st
 	std::sort(out_buffer.begin(), out_buffer.end(), [&](auto state_instance_a, auto state_instance_b) {
 		auto si_a_capital = state.world.state_instance_get_capital(state_instance_a);
 		auto si_b_capital = state.world.state_instance_get_capital(state_instance_b);
-		if(state_instance_a.index() != state_instance_b.index()) {
-			return province::direct_distance(state, si_b_capital, location_from) > province::direct_distance(state, si_a_capital, location_from);
-		} else {
-			return state_instance_a.index() > state_instance_b.index();
-		}
+		float si_b_direct_dist = province::direct_distance(state, si_b_capital, location_from);
+		float si_a_direct_dist = province::direct_distance(state, si_a_capital, location_from);
+		auto st_a_idx = state_instance_a.index();
+		auto si_b_idx = state_instance_b.index();
+		return (si_b_direct_dist != si_a_direct_dist ? si_a_direct_dist > si_b_direct_dist : st_a_idx > si_b_idx);
 	});
 }
 void get_closest_available_market_states(sys::state& state, dcon::dcon_vv_fat_id<dcon::state_instance_id> out_buffer, dcon::nation_id nation_as, dcon::province_id location_from) {
@@ -487,11 +486,11 @@ void get_closest_available_market_states(sys::state& state, dcon::dcon_vv_fat_id
 	std::sort(out_buffer.begin(), out_buffer.end(), [&](auto state_instance_a, auto state_instance_b) {
 		auto si_a_capital = state.world.state_instance_get_capital(state_instance_a);
 		auto si_b_capital = state.world.state_instance_get_capital(state_instance_b);
-		if(state_instance_a.index() != state_instance_b.index()) {
-			return province::direct_distance(state, si_b_capital, location_from) > province::direct_distance(state, si_a_capital, location_from);
-		} else {
-			return state_instance_a.index() > state_instance_b.index();
-		}
+		float si_b_direct_dist = province::direct_distance(state, si_b_capital, location_from);
+		float si_a_direct_dist = province::direct_distance(state, si_a_capital, location_from);
+		auto st_a_idx = state_instance_a.index();
+		auto si_b_idx = state_instance_b.index();
+		return (si_b_direct_dist != si_a_direct_dist ? si_a_direct_dist > si_b_direct_dist : st_a_idx > si_b_idx);
 	});
 
 }
@@ -1411,7 +1410,6 @@ void initialize(sys::state& state) {
 	populate_navy_consumption(state);
 	populate_government_stockpile_demand(state);
 	populate_government_construction_consumption(state);
-	populate_construction_consumption(state);
 
 	state.world.for_each_nation([&](dcon::nation_id n) {
 		state.world.nation_set_stockpiles(n, money, 1000.f);
@@ -1980,13 +1978,15 @@ spending_cost full_spending_cost(sys::state& state, dcon::nation_id n, float bas
 	auto capital_market = state.world.state_instance_get_market_from_local_market(capital_state);
 
 	assert(std::isfinite(total) && total >= 0.0f);
-
-	auto overseas_factor = state.defines.province_overseas_penalty * float(state.world.nation_get_owned_province_count(n) - state.world.nation_get_central_province_count(n));
-	if(overseas_factor > 0) {
-		for(uint32_t i = 1; i < total_commodities; ++i) {
-			dcon::commodity_id cid{ dcon::commodity_id::value_base_t(i) };
-			if(state.world.commodity_get_overseas_penalty(cid) && (state.world.commodity_get_is_available_from_start(cid) || state.world.nation_get_unlocked_commodities(n, cid))) {
-				total += overseas_factor * price(state, capital_market, cid) * o_spending;
+	// ONLY attempt to consume the goods if we control the capital state. If we do not, then we get the maximum overseas penality. This isn't ideal, but the best solution until it can be reworked
+	if(state.world.state_instance_get_nation_from_state_control(capital_state) == n) {
+		auto overseas_factor = state.defines.province_overseas_penalty * float(state.world.nation_get_owned_province_count(n) - state.world.nation_get_central_province_count(n));
+		if(overseas_factor > 0) {
+			for(uint32_t i = 1; i < total_commodities; ++i) {
+				dcon::commodity_id cid{ dcon::commodity_id::value_base_t(i) };
+				if(state.world.commodity_get_overseas_penalty(cid) && (state.world.commodity_get_is_available_from_start(cid) || state.world.nation_get_unlocked_commodities(n, cid))) {
+					total += overseas_factor * price(state, capital_market, cid) * o_spending;
+				}
 			}
 		}
 	}
@@ -2063,19 +2063,21 @@ float estimate_overseas_penalty_spending(sys::state& state, dcon::nation_id n) {
 	auto capital = state.world.nation_get_capital(n);
 	auto capital_state = state.world.province_get_state_membership(capital);
 	auto market = state.world.state_instance_get_market_from_local_market(capital_state);
+	// ONLY attempt to consume the goods if we control the capital state. If we do not, then we get the maximum overseas penality. This isn't ideal, but the best solution until it can be reworked
+	if(state.world.state_instance_get_nation_from_state_control(capital_state) == n) {
+		auto overseas_factor = state.defines.province_overseas_penalty * float(state.world.nation_get_owned_province_count(n) - state.world.nation_get_central_province_count(n));
+		uint32_t total_commodities = state.world.commodity_size();
 
-	auto overseas_factor = state.defines.province_overseas_penalty * float(state.world.nation_get_owned_province_count(n) - state.world.nation_get_central_province_count(n));
-	uint32_t total_commodities = state.world.commodity_size();
+		if(overseas_factor > 0) {
+			for(uint32_t i = 1; i < total_commodities; ++i) {
+				dcon::commodity_id cid{ dcon::commodity_id::value_base_t(i) };
 
-	if(overseas_factor > 0) {
-		for(uint32_t i = 1; i < total_commodities; ++i) {
-			dcon::commodity_id cid{ dcon::commodity_id::value_base_t(i) };
-
-			if(state.world.commodity_get_overseas_penalty(cid) && (state.world.commodity_get_is_available_from_start(cid) || state.world.nation_get_unlocked_commodities(n, cid))) {
-				total +=
-					overseas_factor
-					* price(state, market, cid)
-					* state.world.market_get_actual_probability_to_buy(market, cid);
+				if(state.world.commodity_get_overseas_penalty(cid) && (state.world.commodity_get_is_available_from_start(cid) || state.world.nation_get_unlocked_commodities(n, cid))) {
+					total +=
+						overseas_factor
+						* price(state, market, cid)
+						* state.world.market_get_actual_probability_to_buy(market, cid);
+				}
 			}
 		}
 	}
@@ -2146,29 +2148,33 @@ void update_national_consumption(sys::state& state, dcon::nation_id n, float spe
 
 	auto capital = state.world.nation_get_capital(n);
 	auto capital_state = state.world.province_get_state_membership(capital);
-	auto market = state.world.state_instance_get_market_from_local_market(capital_state);
+	// ONLY attempt to consume the goods if we control the capital state. If we do not, then we get the maximum overseas penality. This isn't ideal, but the best solution until it can be reworked
+	if(state.world.state_instance_get_nation_from_state_control(capital_state) == n) {
+		auto market = state.world.state_instance_get_market_from_local_market(capital_state);
 
-	auto overseas_factor = state.defines.province_overseas_penalty * float(state.world.nation_get_owned_province_count(n) - state.world.nation_get_central_province_count(n));
-	if(overseas_factor > 0.f) {
-		for(uint32_t i = 1; i < total_commodities; ++i) {
-			dcon::commodity_id cid{ dcon::commodity_id::value_base_t(i) };
-			if(state.world.commodity_get_overseas_penalty(cid) && (state.world.commodity_get_is_available_from_start(cid) || state.world.nation_get_unlocked_commodities(n, cid))) {
-				auto sat = state.world.market_get_expected_probability_to_buy(market, cid);
-				auto sat_importance = std::min(1.f, 1.f / (price(state, market, cid) + 0.001f));
-				auto sat_coefficient = (sat_importance + (1.f - sat_importance) * sat);
+		auto overseas_factor = state.defines.province_overseas_penalty * float(state.world.nation_get_owned_province_count(n) - state.world.nation_get_central_province_count(n));
+		if(overseas_factor > 0.f) {
+			for(uint32_t i = 1; i < total_commodities; ++i) {
+				dcon::commodity_id cid{ dcon::commodity_id::value_base_t(i) };
+				if(state.world.commodity_get_overseas_penalty(cid) && (state.world.commodity_get_is_available_from_start(cid) || state.world.nation_get_unlocked_commodities(n, cid))) {
+					auto sat = state.world.market_get_expected_probability_to_buy(market, cid);
+					auto sat_importance = std::min(1.f, 1.f / (price(state, market, cid) + 0.001f));
+					auto sat_coefficient = (sat_importance + (1.f - sat_importance) * sat);
 
-				register_demand(
-					state,
-					market,
-					cid,
-					overseas_factor
-					* spending_scale
-					* o_spending
-					* sat_coefficient
-				);
+					register_demand(
+						state,
+						market,
+						cid,
+						overseas_factor
+						* spending_scale
+						* o_spending
+						* sat_coefficient
+					);
+				}
 			}
 		}
 	}
+	
 }
 
 // ### Private Investment ###
@@ -2728,11 +2734,10 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 	update_yesterday_govt_stockpiles_cache(state);
 
 	update_government_stockpile_market_demand_weights(state); // Functions will later will use these calculated values
-	
 
+	
 
 	/* initialization parallel block */
-	
 
 	concurrency::parallel_for(0, 10, [&](int32_t index) {
 		switch(index) {
@@ -2796,8 +2801,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 
 	set_profile_point(state, "create_buffers");
 
-
-	concurrency::parallel_for(0, 7, [&](int32_t index) {
+	concurrency::parallel_for(0, 6, [&](int32_t index) {
 		switch(index) {
 		case 0:
 			state.world.execute_serial_over_market([&](auto ids) {
@@ -2831,12 +2835,9 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			});
 			break;
 		case 4:
-			populate_construction_consumption(state);
-			break;
-		case 5:
 			populate_government_construction_consumption(state);
 			break;
-		case 6:
+		case 5:
 			decay_government_stockpiles(state);
 			break;
 		
@@ -3203,7 +3204,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 	set_profile_point(state, "trade volume");
 
 	sanity_check(state);
-
+	
 	state.world.execute_parallel_over_market([&](auto markets) {
 		// reset gdp
 		state.world.market_set_gdp(markets, 0.f);
@@ -3592,18 +3593,10 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			old_count = new_count;
 		}
 	}
-
+	
 	concurrency::combinable<std::vector<dcon::nation_id>> bankrupt_nations;
-
-	//for(auto n : state.nations_by_rank) {
-	concurrency::parallel_for(int32_t(0), int32_t(state.world.nation_size()), [&](int32_t index) {
-		auto n = dcon::nation_id{ dcon::nation_id::value_base_t(index) };
-
-		if(!n) {
-			return;
-		}
-
-		spent_on_construction_buffer.set(n, 0.f);
+	state.world.execute_serial_over_nation([&](auto nations) { spent_on_construction_buffer.set(nations, ve::fp_vector{ 0.0f }); });
+	nations::parallel_for_each_existing_nation(state, [&](dcon::nation_id n) {
 
 		// handle loans
 		bool is_bankrupt = false;
@@ -3713,22 +3706,24 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			update_national_consumption(state, n, spending_scale, base_budget);
 			update_consumption_administration(state, n, base_budget);
 		}
+	
+	});
 
-		// private budget
-		{
-			float private_spending_scale = 1.0f;
-			float pi_total = full_private_investment_cost(state, n);
-			float perceived_spending = pi_total;
-			float pi_budget = state.world.nation_get_private_investment(n) * investment_pool_investment_per_day;
-			private_spending_scale = perceived_spending <= pi_budget ? 1.0f : pi_budget / perceived_spending;
-			state.world.nation_set_private_investment_effective_fraction(n, private_spending_scale);
-			state.world.nation_set_private_investment(
-				n,
-				std::max(0.0f, state.world.nation_get_private_investment(n) - pi_total * private_spending_scale)
-			);
 
-			update_private_consumption(state, n, private_spending_scale);
-		}
+	// private budget. Must be run in a seperate loop as it iterates over nation owned states, whereas the prev national consumption loop iterates over nation controlled states
+	nations::parallel_for_each_existing_nation(state, [&](dcon::nation_id n) {
+		float private_spending_scale = 1.0f;
+		float pi_total = full_private_investment_cost(state, n);
+		float perceived_spending = pi_total;
+		float pi_budget = state.world.nation_get_private_investment(n) * investment_pool_investment_per_day;
+		private_spending_scale = perceived_spending <= pi_budget ? 1.0f : pi_budget / perceived_spending;
+		state.world.nation_set_private_investment_effective_fraction(n, private_spending_scale);
+		state.world.nation_set_private_investment(
+			n,
+			std::max(0.0f, state.world.nation_get_private_investment(n) - pi_total * private_spending_scale)
+		);
+
+		update_private_consumption(state, n, private_spending_scale);
 	});
 
 	{
@@ -3789,7 +3784,6 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 #endif
 
 	// labor
-
 	concurrency::parallel_for(int32_t(0), int32_t(labor::total), [&](int32_t j) {
 		province::ve_for_each_land_province(state, [&](auto ids) {
 			auto supply_labor = state.world.province_get_labor_supply(ids, j);
@@ -3968,9 +3962,8 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			return;
 
 		auto capital = state.world.nation_get_capital(n);
-		auto capital_market = state.world.state_instance_get_market_from_local_market(
-			state.world.province_get_state_membership(capital)
-		);
+		auto capital_state = state.world.province_get_state_membership(capital);
+		auto capital_market = state.world.state_instance_get_market_from_local_market(capital_state);
 
 		// refund national employment:
 		refund_demand_administration(state, n);
@@ -4006,10 +3999,11 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 		/*
 		calculate overseas penalty:
 		ideally these goods would be bought in colonies
-		but limit to capital for now
+		but limit to capital for now.
+		ONLY attempt to consume the goods if we control the capital state. If we do not, then we get the maximum overseas penality. This isn't ideal, but the best solution until it can be reworked
 		*/
 
-		{
+		if(state.world.state_instance_get_nation_from_state_control(capital_state) == n) {
 			auto overseas_factor = state.defines.province_overseas_penalty
 				* float(
 					state.world.nation_get_owned_province_count(n)
@@ -4037,6 +4031,9 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			} else {
 				state.world.nation_set_overseas_penalty(n, 1.0f);
 			}
+		}
+		else {
+			state.world.nation_set_overseas_penalty(n, 0.0f);
 		}
 
 		// finally, pay back refund:
@@ -4455,7 +4452,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 	);
 
 	set_profile_point(state, "set trade buffers");
-
+	
 	concurrency::parallel_for(uint32_t(1), total_commodities, [&](uint32_t k) {
 		dcon::commodity_id cid{ dcon::commodity_id::value_base_t(k) };
 		state.world.for_each_trade_route([&](auto route) {
@@ -5201,22 +5198,28 @@ void regenerate_unsaved_values(sys::state& state) {
 }
 
 float government_consumption(sys::state& state, dcon::nation_id n, dcon::commodity_id c) {
-	auto overseas_factor =
-		state.defines.province_overseas_penalty *
-		float(
-			state.world.nation_get_owned_province_count(n)
-			- state.world.nation_get_central_province_count(n)
-		);
-	auto o_adjust = 0.0f;
-	if(overseas_factor > 0) {
-		if(
-			state.world.commodity_get_overseas_penalty(c)
-			&& (
-				state.world.commodity_get_is_available_from_start(c)
-				|| state.world.nation_get_unlocked_commodities(n, c)
-				)
-		) {
-			o_adjust = overseas_factor;
+
+	auto capital = state.world.nation_get_capital(n);
+	auto capital_state = state.world.province_get_state_membership(capital);
+	float o_adjust = 0.0f;
+	// ONLY attempt to consume the goods if we control the capital state. If we do not, then we get the maximum overseas penality. This isn't ideal, but the best solution until it can be reworked
+	if(state.world.state_instance_get_nation_from_state_control(capital_state) == n) {
+		auto overseas_factor =
+			state.defines.province_overseas_penalty *
+			float(
+				state.world.nation_get_owned_province_count(n)
+				- state.world.nation_get_central_province_count(n)
+			);
+		if(overseas_factor > 0) {
+			if(
+				state.world.commodity_get_overseas_penalty(c)
+				&& (
+					state.world.commodity_get_is_available_from_start(c)
+					|| state.world.nation_get_unlocked_commodities(n, c)
+					)
+			) {
+				o_adjust = overseas_factor;
+			}
 		}
 	}
 
