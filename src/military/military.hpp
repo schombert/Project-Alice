@@ -162,17 +162,20 @@ dcon::navy_id subunit_get_membership(const sys::state& state, dcon::ship_id unit
 dcon::nation_id unit_get_controller(const sys::state& state, dcon::army_id unit);
 dcon::nation_id unit_get_controller(const sys::state& state, dcon::navy_id unit);
 
-template<concepts::military_subunit subunit_type>
-float subunit_get_required_reinforcement_base_cost(const sys::state& state, subunit_type unit);
+dcon::unit_type_id subunit_get_type(const sys::state& state, dcon::regiment_id subunit);
+dcon::unit_type_id subunit_get_type(const sys::state& state, dcon::ship_id subunit);
 
 template<concepts::military_subunit subunit_type>
-void subunit_set_required_reinforcement_base_cost(sys::state& state, subunit_type unit, float val);
+float subunit_get_last_required_reinforcement_percent_base_cost(const sys::state& state, subunit_type unit);
 
 template<concepts::military_subunit subunit_type>
-float subunit_get_required_supply_base_cost(const sys::state& state, subunit_type unit);
+void subunit_set_last_required_reinforcement_percent_base_cost(sys::state& state, subunit_type unit, float val);
 
 template<concepts::military_subunit subunit_type>
-void subunit_set_required_supply_base_cost(sys::state& state, subunit_type unit, float val);
+float subunit_get_last_required_supply_percent_base_cost(const sys::state& state, subunit_type unit);
+
+template<concepts::military_subunit subunit_type>
+void subunit_set_last_required_supply_percent_base_cost(sys::state& state, subunit_type unit, float val);
 
 template<unit_consumption_type consumption_type>
 const economy::commodity_set& unit_type_get_commodity_costs(const sys::state& state, dcon::unit_type_id type);

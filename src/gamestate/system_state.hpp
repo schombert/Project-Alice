@@ -31,43 +31,6 @@
 #include "network_containers.hpp"
 #include "container_types_ui.hpp"
 
-// TODO: REMOVE TEMPORARY CONSTANTS WHEN DONE
-namespace logistics {
-
-
-constexpr float base_land_supply_speed = 0.1f; // base land supply speed
-constexpr float base_naval_supply_speed = 0.4f; // base naval supply speed
-constexpr float fastest_land_unit_supply_speed_mult = 1.0f; // land supply speed gained from the fastest land unit (eg. if 1.0f, then if the fastest unit is 4 km/h then land supply speed is increased by 4
-constexpr float fastest_transport_unit_supply_speed_mult = 1.0f; // naval supply speed gained from the fastest transport unit (eg. if 1.0f, then if the fastest unit is 4 km/h then naval supply speed is increased by 4
-
-constexpr float sea_base_supply_thoughput = 1000.0f;
-constexpr float land_base_supply_thoughput = 0.1f;
-constexpr float supply_throughput_per_km_land_supply_speed = 1.0f; // Supply throughput in land provinces per 1 km/h land supply speed. Eg if set to 100 and a nation has a speed of 4 km/h, then the base is 400
-constexpr float supply_throughput_per_km_naval_supply_speed = 1.0f; // Supply throughput in naval provinces per 1 km/h naval supply speed. Eg if set to 100 and a nation has a speed of 4 km/h, then the base is 400
-constexpr float supply_throughput_infrastructure = 30.0f; // Extra supply throughput at 100% infrastrucure (scales linearly)
-constexpr float army_supply_throughput_blockade_threshold = 0.9f; // This amount of POP_SIZE_PER_REGIMENT army strength is required to fully block enemy throughput in a land province. Throughput scales linearly with the amount of strength present. Also includes strength in battles. Set to zero to disable
-constexpr float navy_port_supply_capacity_blockade_threshold = 10.0f; // This amount of ships at full strength is required to to fully block enemy port capacity throughput in a port province. Throughput scales linearly with the amount of strength present. Also includes strength in battles. Set to zero to disable
-constexpr float base_land_supply_loss = 2.0f; // Base supply loss for all land provinces
-constexpr float base_sea_supply_loss = 0.0f;// Base supply loss for all sea provinces
-constexpr float control_level_supply_loss = -2.0f; // the supply loss if province control is 100%. Modifier is scaled back to 0% linearly.
-constexpr float militancy_supply_loss = 2.0f; // the supply loss  when the province has 10 militancy. Scales down linearly
-constexpr float hostile_army_supply_loss = 0.0f; // the supply loss  per POP_SIZE_PER_REGIMENT enemy strength present in the land province
-constexpr float convoy_raiding_supply_loss = 0.0f; // the supply loss per effective convoy_raiding stats present in the sea province
-
-constexpr float max_supply_route_loss = 0.50f; // the maximum supply loss % a route may incur. 1.0 means a route may lose 100%, while 0.0f means no loss
-
-constexpr float base_port_supply_capacity = 0.2f; // Base supply capacity for all coastal provinces
-constexpr float naval_base_port_supply_capacity = 6.0f; // supply capacity per port level
-
-constexpr float civilian_port_throughput_capacity = 0.2f; // the port supply capacity gained for each 1000 level of civilian port.
-constexpr float construction_route_transport_leeway = 0.001f; // The minimum % of the total cost a route will attempt to consume and transport per day as extra leeway. This makes it so that constructions arent "stuck" for abit due to supply loss. Should be low enough that it isn't noticable.
-
-constexpr float supply_throughput_from_movement_cost_mult = 2.5f; // Multiplier for the amount of supply throughput gained (or lost) from movement cost modifiers. Eg. a value of 1.0 means that a movement cost modifier of 1.5 will give -50% supply throughput, and a movement cost modifier of 0.5 will give +50% supply throughput. Set to 0.0 to disable
-constexpr float supply_throughput_from_movement_cost_max_penalty = -0.95f; // Max percentage penalty from "supply_throughput_from_movement_cost_mult". -0.95 means a maximum penalty of -95%. Should always be a negative number
-
-
-}
-
 namespace game_scene {
 scene_properties nation_picker();
 }

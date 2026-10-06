@@ -36,3 +36,13 @@ Province modifiers:
 | supply_loss_percent | Adds the specified percentage effect of supply loss to the given province|
 | port_capacity_add | Adds the specified amount of port supply capacity to the given port|
 | port_capacity_percent | Adds the specified percentage effect of port supply capacity to the given port|
+
+
+New static modifiers:
+| province_control |  Adds the given scaling modifiers to all land province per 100% control|
+| province_militancy |  Adds the given scaling modifiers to all land province per 10.0 militancy|
+| nation_base | Adds the given modifiers to every nation in the game|
+| province_base | Adds the given modifiers to every province in the game|
+| civilian_port | Adds the given scaling modifiers to all provinces per 1000 level of civilian port|
+| fastest_land_unit_speed | Adds the given scaling modifiers to all nations per 1 km/h speed of their fastest land unit|
+| fastest_transport_unit_speed | Adds the given scaling modifiers to all nations per 1 km/h speed of their fastest transport unit|

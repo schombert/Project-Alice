@@ -425,44 +425,44 @@ dcon::internal::iterator_province_building_construction_foreach_building_constru
 }
 
 template<concepts::construction_type con_type>
-void construction_set_required_construction_base_cost(sys::state& state, con_type con, float val) {
+void construction_set_last_required_percent_base_cost(sys::state& state, con_type con, float val) {
 	if constexpr(std::is_same_v<con_type, dcon::province_land_construction_id>) {
-		state.world.province_land_construction_set_required_construction_base_cost(con, val);
+		state.world.province_land_construction_set_last_required_percent_base_cost(con, val);
 	}
 	else if constexpr(std::is_same_v<con_type, dcon::province_naval_construction_id>) {
-		state.world.province_naval_construction_set_required_construction_base_cost(con, val);
+		state.world.province_naval_construction_set_last_required_percent_base_cost(con, val);
 	}
 	else if constexpr(std::is_same_v<con_type, dcon::factory_construction_id>) {
-		state.world.factory_construction_set_required_construction_base_cost(con, val);
+		state.world.factory_construction_set_last_required_percent_base_cost(con, val);
 	}
 	else if constexpr(std::is_same_v<con_type, dcon::province_building_construction_id>) {
-		state.world.province_building_construction_set_required_construction_base_cost(con, val);
+		state.world.province_building_construction_set_last_required_percent_base_cost(con, val);
 	}
 	else {
 		static_assert(false, "Unknown type");
 	}
 }
-template void construction_set_required_construction_base_cost(sys::state& state, dcon::province_land_construction_id con, float val);
-template void construction_set_required_construction_base_cost(sys::state& state, dcon::province_naval_construction_id con, float val);
-template void construction_set_required_construction_base_cost(sys::state& state, dcon::factory_construction_id con, float val);
-template void construction_set_required_construction_base_cost(sys::state& state, dcon::province_building_construction_id con, float val);
+template void construction_set_last_required_percent_base_cost(sys::state& state, dcon::province_land_construction_id con, float val);
+template void construction_set_last_required_percent_base_cost(sys::state& state, dcon::province_naval_construction_id con, float val);
+template void construction_set_last_required_percent_base_cost(sys::state& state, dcon::factory_construction_id con, float val);
+template void construction_set_last_required_percent_base_cost(sys::state& state, dcon::province_building_construction_id con, float val);
 
 template<concepts::construction_type con_type>
-float construction_get_required_construction_base_cost(const sys::state& state, con_type con) {
+float construction_get_last_required_percent_base_cost(const sys::state& state, con_type con) {
 	if constexpr(std::is_same_v<con_type, dcon::province_land_construction_id>) {
-		return state.world.province_land_construction_get_required_construction_base_cost(con);
+		return state.world.province_land_construction_get_last_required_percent_base_cost(con);
 	} else if constexpr(std::is_same_v<con_type, dcon::province_naval_construction_id>) {
-		return state.world.province_naval_construction_get_required_construction_base_cost(con);
+		return state.world.province_naval_construction_get_last_required_percent_base_cost(con);
 	} else if constexpr(std::is_same_v<con_type, dcon::factory_construction_id>) {
-		return state.world.factory_construction_get_required_construction_base_cost(con);
+		return state.world.factory_construction_get_last_required_percent_base_cost(con);
 	} else if constexpr(std::is_same_v<con_type, dcon::province_building_construction_id>) {
-		return state.world.province_building_construction_get_required_construction_base_cost(con);
+		return state.world.province_building_construction_get_last_required_percent_base_cost(con);
 	} 
 }
-template float construction_get_required_construction_base_cost(const sys::state& state, dcon::province_land_construction_id con);
-template float construction_get_required_construction_base_cost(const sys::state& state, dcon::province_naval_construction_id con);
-template float construction_get_required_construction_base_cost(const sys::state& state, dcon::factory_construction_id con);
-template float construction_get_required_construction_base_cost(const sys::state& state, dcon::province_building_construction_id con);
+template float construction_get_last_required_percent_base_cost(const sys::state& state, dcon::province_land_construction_id con);
+template float construction_get_last_required_percent_base_cost(const sys::state& state, dcon::province_naval_construction_id con);
+template float construction_get_last_required_percent_base_cost(const sys::state& state, dcon::factory_construction_id con);
+template float construction_get_last_required_percent_base_cost(const sys::state& state, dcon::province_building_construction_id con);
 
 
 uint32_t land_unit_construction_time(
@@ -705,7 +705,7 @@ void get_last_required_construction_need(const sys::state& state, con_type const
 	}
 
 	const economy::commodity_set& build_cost = construction_get_base_build_cost(state, construction);
-	float required_base_cost = construction_get_required_construction_base_cost(state, construction);
+	float required_base_cost = construction_get_last_required_percent_base_cost(state, construction);
 	for(uint32_t i = 0; i < build_cost.set_size; ++i) {
 		dcon::commodity_id base_com_id = build_cost.commodity_type[i];
 		if(base_com_id) {
@@ -771,7 +771,7 @@ void get_last_fufilled_construction_need(const sys::state& state, con_type const
 			build_cost.for_each_valid_index([&](uint32_t idx) {
 				dcon::commodity_id com_id = build_cost.commodity_type[idx];
 				float com_supply_loss_mod = state.world.commodity_get_supply_loss_rate(com_id);;
-				float loss_mult = logistics::supply_loss_to_loss_multiplier(supply_loss, com_supply_loss_mod);
+				float loss_mult = logistics::supply_loss_to_loss_multiplier(state, supply_loss, com_supply_loss_mod);
 				vec_out[com_id] += (buffered_goods[idx] * loss_mult * logistics::supply_route_get_throughput(state, route.id)); // take into account goods which will be lost to attrition and throughput
 
 			});
@@ -1001,7 +1001,7 @@ tagged_vector<float, dcon::commodity_id> estimate_nation_construction_consumptio
 			consumption[com_id] += demand_amount;
 		};
 
-		accumulate_construction_good_requirements(state, construction, accumulate_func);
+		accumulate_construction_daily_goods_requirements(state, construction, accumulate_func);
 
 	});
 	return consumption;
@@ -1081,7 +1081,7 @@ void populate_government_construction_consumption(sys::state& state) {
 			float demand_amount = std::min(total_required / construction_days * construction_consumption, required_amount); // Tie the demand amount to add to the construction consumption setting of the nation. Low consumption setting -> we won't try to purchase as much
 			demand_buffer_set(conc_owner, com_id, demand_buffer_get(conc_owner, com_id) + demand_amount);
 		};
-		accumulate_construction_good_requirements(state, con, accumulate_func);
+		accumulate_construction_daily_goods_requirements(state, con, accumulate_func);
 	});
 
 	// Calculate the total expected price per nation, when taking into account demand weights in their controlled states.

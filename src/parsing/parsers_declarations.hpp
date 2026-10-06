@@ -1467,6 +1467,8 @@ void m_has_siege(token_generator& gen, error_handler& err, scenario_building_con
 void m_occupied(token_generator& gen, error_handler& err, scenario_building_context& context);
 void m_nationalism(token_generator& gen, error_handler& err, scenario_building_context& context);
 void m_infrastructure(token_generator& gen, error_handler& err, scenario_building_context& context);
+void m_province_control(token_generator& gen, error_handler& err, scenario_building_context& context);
+void m_province_militancy(token_generator& gen, error_handler& err, scenario_building_context& context);
 void m_province_base(token_generator& gen, error_handler& err, scenario_building_context& context);
 void m_civilian_port(token_generator& gen, error_handler& err, scenario_building_context& context);
 void m_base_values(token_generator& gen, error_handler& err, scenario_building_context& context);

@@ -18,21 +18,21 @@ void apply_hardcoded_modifier_values_to_nation(sys::state& state, dcon::nation_i
 	auto fat_nation = fatten(state.world, target_nation);
 	float land_supply_speed = logistics::land_supply_speed(state, target_nation);
 	float cur_land_throughput = fat_nation.get_modifier_values(sys::national_mod_offsets::national_land_supply_throughput_add);
-	fat_nation.set_modifier_values(sys::national_mod_offsets::national_land_supply_throughput_add, cur_land_throughput + land_supply_speed * logistics::supply_throughput_per_km_land_supply_speed);
+	fat_nation.set_modifier_values(sys::national_mod_offsets::national_land_supply_throughput_add, cur_land_throughput + land_supply_speed * state.defines.alice_supply_throughput_per_km_land_supply_speed);
 
 	float naval_supply_speed = logistics::naval_supply_speed(state, target_nation);
 	float cur_naval_throughput = fat_nation.get_modifier_values(sys::national_mod_offsets::national_naval_supply_throughput_add);
-	fat_nation.set_modifier_values(sys::national_mod_offsets::national_naval_supply_throughput_add, cur_naval_throughput + naval_supply_speed * logistics::supply_throughput_per_km_naval_supply_speed);
+	fat_nation.set_modifier_values(sys::national_mod_offsets::national_naval_supply_throughput_add, cur_naval_throughput + naval_supply_speed * state.defines.alice_supply_throughput_per_km_naval_supply_speed);
 }
 template<concepts::dcon_id_ve_type<dcon::nation_id> nation_ids>
 void ve_apply_hardcoded_modifier_values_to_nation(sys::state& state, nation_ids target_nations, ve::mask_vector apply_mask) {
 	auto land_supply_speed = logistics::land_supply_speed(state, target_nations);
 	auto cur_land_throughput = state.world.nation_get_modifier_values(target_nations, sys::national_mod_offsets::national_land_supply_throughput_add);
-	state.world.nation_set_modifier_values(target_nations, sys::national_mod_offsets::national_land_supply_throughput_add, ve::select(apply_mask, cur_land_throughput + land_supply_speed * logistics::supply_throughput_per_km_land_supply_speed, cur_land_throughput));
+	state.world.nation_set_modifier_values(target_nations, sys::national_mod_offsets::national_land_supply_throughput_add, ve::select(apply_mask, cur_land_throughput + land_supply_speed * state.defines.alice_supply_throughput_per_km_land_supply_speed, cur_land_throughput));
 
 	auto naval_supply_speed = logistics::naval_supply_speed(state, target_nations);
 	auto cur_naval_throughput = state.world.nation_get_modifier_values(target_nations, sys::national_mod_offsets::national_naval_supply_throughput_add);
-	state.world.nation_set_modifier_values(target_nations, sys::national_mod_offsets::national_naval_supply_throughput_add, ve::select(apply_mask, cur_naval_throughput + naval_supply_speed * logistics::supply_throughput_per_km_naval_supply_speed, cur_naval_throughput));
+	state.world.nation_set_modifier_values(target_nations, sys::national_mod_offsets::national_naval_supply_throughput_add, ve::select(apply_mask, cur_naval_throughput + naval_supply_speed * state.defines.alice_supply_throughput_per_km_naval_supply_speed, cur_naval_throughput));
 }
 
 void apply_hardcoded_modifier_values_to_province(sys::state& state, dcon::province_id prov) {
@@ -40,7 +40,7 @@ void apply_hardcoded_modifier_values_to_province(sys::state& state, dcon::provin
 	// Apply supply throughput modifiers from movement cost
 	auto movement_cost = province::movement_cost(state, prov);
 	float current = fat_prov.get_modifier_values(sys::provincial_mod_offsets::supply_throughput_percent);
-	float percent_add = std::max( (1.0f - movement_cost) * logistics::supply_throughput_from_movement_cost_mult, logistics::supply_throughput_from_movement_cost_max_penalty);
+	float percent_add = std::max( (1.0f - movement_cost) * state.defines.alice_supply_throughput_from_movement_cost_mult, state.defines.alice_supply_throughput_from_movement_cost_max_penalty);
 	fat_prov.set_modifier_values(sys::provincial_mod_offsets::supply_throughput_percent, current + percent_add);
 }
 template<concepts::dcon_id_ve_type<dcon::province_id> province_ids>
@@ -48,7 +48,7 @@ void ve_apply_hardcoded_modifier_values_to_province(sys::state& state, province_
 	// Apply supply throughput modifiers from movement cost
 	auto movement_cost = province::movement_cost(state, provs);
 	auto current = state.world.province_get_modifier_values(provs, sys::provincial_mod_offsets::supply_throughput_percent);
-	auto percent_add = ve::max((1.0f - movement_cost) * logistics::supply_throughput_from_movement_cost_mult, logistics::supply_throughput_from_movement_cost_max_penalty);
+	auto percent_add = ve::max((1.0f - movement_cost) * state.defines.alice_supply_throughput_from_movement_cost_mult, state.defines.alice_supply_throughput_from_movement_cost_max_penalty);
 	state.world.province_set_modifier_values(provs, sys::provincial_mod_offsets::supply_throughput_percent, ve::select(apply_mask, current + percent_add, current));
 }
 
@@ -923,16 +923,16 @@ void recreate_single_sea_province_modifiers(sys::state& state, dcon::province_id
 void recreate_province_modifiers(sys::state& state) {
 
 	// Reset province modifier values
-	concurrency::parallel_for(uint32_t(0), sys::provincial_mod_offsets::count, [&](uint32_t i) {
-		dcon::provincial_modifier_value mid{dcon::provincial_modifier_value::value_base_t(i)};
-		state.world.execute_serial_over_province([&](auto ids) {
-			ve::mask_vector prov_valid_mask = ve::apply([&](dcon::province_id prov) {
-				return state.world.province_is_valid(prov);
-			}, ids);
+	state.world.execute_parallel_over_province([&](auto ids) {
+		ve::mask_vector prov_valid_mask = ve::apply([&](dcon::province_id prov) {
+			return state.world.province_is_valid(prov);
+		}, ids);
+		for(uint32_t i = 0; i < sys::provincial_mod_offsets::count; i++) {
+			dcon::provincial_modifier_value mid{ dcon::provincial_modifier_value::value_base_t(i) };
 			auto current_vals = state.world.province_get_modifier_values(ids, mid);
-			float start_val = sys::province_modifier_metadata[mid.index()].start_value; 
+			float start_val = sys::province_modifier_metadata[mid.index()].start_value;
 			state.world.province_set_modifier_values(ids, mid, ve::select(prov_valid_mask, start_val, current_vals));
-		});
+		}
 	});
 
 	// First, do province modifiers. Handle the national mods on provinces later as those cannot be parallelized

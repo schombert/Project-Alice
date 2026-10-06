@@ -222,7 +222,7 @@ auto government_stockpile_desired_commodity_amount(const sys::state& state, nati
 // (uint32_t set_index, float required_amount),
 // (uint32_t set_index, float required_amount, float total_required)
 template<concepts::construction_type construction_type, typename FAccumulate>
-void accumulate_construction_good_requirements(const sys::state& state, construction_type c, FAccumulate& acc_func) {
+void accumulate_construction_daily_goods_requirements(const sys::state& state, construction_type c, FAccumulate& acc_func) {
 	const economy::commodity_set actual_cost = construction_get_actual_build_cost(state, c);
 
 	const economy::commodity_set& currently_fufilled = construction_get_purchased_goods(state, c);

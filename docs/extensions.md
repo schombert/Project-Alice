@@ -580,6 +580,32 @@ These relate to gamerules
 - `alice_auto_concession_peace_default_setting = 1.0f` - Sets the default setting for the hardcoded gamerule deciding whether a peacedeal will be force-accepted if it is conceding all wargoals (or if the peacedeal concedes 100 warscore or higher). 1.0 means forced-peaces are disabled, where 0.0 means they are enabled.
 - `alice_command_units_default_setting = 0.0f` - Decides whether AI puppets' units can be commanded by players while at war. A value of 0.0f means it is disabled, while a value of 1.0f means it is enabled
 
+These relate to logistics
+
+- `alice_base_land_supply_speed = 0.1f` - Base land supply speed. Equivalent to adding "land_supply_speed_add = 0.1" in the "nation_base" static modifier
+- `alice_base_naval_supply_speed = 0.4f` - Base naval supply speed. Equivalent to adding "naval_supply_speed_add = 0.1" in the "nation_base" static modifier
+- `alice_fastest_land_unit_supply_speed_mult = 1.0f` - Land supply speed gained from the fastest land unit (eg. if 1.0, then if the fastest unit is 4 km/h then land supply speed is increased by 4.0. Equivalent to adding "land_supply_speed_add = 1" to the "fastest_land_unit_speed" static_modifier
+- `alice_fastest_transport_unit_supply_speed_mult = 1.0f` - Naval supply speed gained from the fastest transport unit (eg. if 1.0f, then if the fastest unit is 4 km/h then naval supply speed is increased by 4.  Equivalent to adding "naval_supply_speed_add = 1" to the "fastest_transport_unit_speed" static_modifier
+- `alice_sea_base_supply_thoughput = 1000.0f` - Base sea province supply throughput. Equivalent to adding "supply_throughput_add = 0.1" in the "sea_zone" static modifier
+- `alice_land_base_supply_thoughput = 0.1f`- Base sea province supply throughput. Equivalent to adding "supply_throughput_add = 0.1" in the "land_province_" static modifier
+- `alice_supply_throughput_per_km_land_supply_speed = 1.0f` - Supply throughput in land provinces per 1 land supply speed. Eg if set to 100 and a nation has a speed of 4 km/h, then nation gains 400 land supply throughput
+- `alice_supply_throughput_per_km_naval_supply_speed = 1.0f` - Supply throughput in sea provinces per 1 naval supply speed. Eg if set to 100 and a nation has a speed of 4 km/h, then nation gains 400 naval supply throughput
+- `alice_supply_throughput_infrastructure = 30.0f` - Extra supply throughput at 100% infrastrucure (scales linearly). Equivalent to adding "supply_throughput_add = 30" in the "infrastucture" static modifier
+- `alice_army_supply_throughput_blockade_threshold = 0.9f` - This amount of POP_SIZE_PER_REGIMENT army strength is required to fully block enemy supply throughput in a land province. Throughput scales linearly with the amount of strength present. Also includes strength in battles. Set to zero to disable
+- `alice_navy_port_supply_capacity_blockade_threshold = 10.0f` - This amount of ships at full strength is required to to fully block enemy port capacity throughput in a port province (and ONLY a port province, blockades do not work on other arbitrary sea provinces). Throughput scales linearly with the amount of strength present. Also includes strength in battles. Set to zero to disable
+- `alice_base_land_supply_loss = 2.0f` - Base supply loss for all land provinces. Equivalent to adding "supply_loss_add = 2.0" in the "land_province" static modifier
+- `alice_base_sea_supply_loss = 0.0f` - Base supply loss for all sea provinces. Equivalent to adding "supply_loss_add = 0" in the "sea_zone_" static modifier
+- `alice_control_level_supply_loss = -2.0f` - the supply loss if province control is 100%. Modifier is scaled back to 0% linearly. Equivalent to adding "supply_loss_add = -2" in the "province_control" static modifier
+- `alice_militancy_supply_loss = 2.0f` - The supply loss when the province has 10 militancy. Scales down linearly. Equivalent to adding "supply_loss_add = -2" in the "province_militancy" static modifier
+- `alice_hostile_army_supply_loss = 0.0f` - The supply loss per POP_SIZE_PER_REGIMENT enemy strength present in the land province
+- `alice_max_supply_route_loss = 0.50f` - The maximum supply loss % a route may incur. 1.0 means a route may lose 100%, while 0.0f means no loss is possible
+- `alice_base_port_supply_capacity = 0.1f` - Base supply capacity for all coastal provinces. Equivalent to adding "port_supply_capacity_add = 0.1" in the "coastal" static modifier
+- `alice_naval_base_port_supply_capacity = 5.0f` - Supply capacity per port level. Equivalent to adding "port_supply_capacity_add = 5" modifier to the naval base building definition 
+- `alice_civilian_port_throughput_capacity = 0.2f` - The port supply capacity gained for each 1000 level of civilian port. Equivalent of adding "port_supply_capacity_add = 0.2" in the "civilian_port" static modifier
+- `alice_supply_throughput_from_movement_cost_mult = 2.5f` - Multiplier for the amount of supply throughput gained (or lost) from movement cost modifiers. Eg. a value of 1.0 means that a movement cost modifier of 1.5 will give -50% supply throughput, and a movement cost modifier of 0.5 will give +50% supply throughput. Set to 0.0 to disable
+- `alice_supply_throughput_from_movement_cost_max_penalty = -0.95f` // Max percentage penalty from "supply_throughput_from_movement_cost_mult". -0.95 means a maximum penalty of -95%. Should always be a negative number
+
+
 ### Support for reforms based on party issues
 
 In issues.txt you can add a `vote_modifiers = { ... }` section to any particular issue option within the party issues section. For example, one could go here:

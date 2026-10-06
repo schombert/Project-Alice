@@ -473,7 +473,7 @@ void m_province_control(token_generator& gen, error_handler& err, scenario_build
 	context.state.world.modifier_set_national_values(new_modifier, parsed_modifier.peek_national_mod());
 
 	context.map_of_modifiers.insert_or_assign(std::string("province_control"), new_modifier);
-	context.state.national_definitions.province_militancy = new_modifier;
+	context.state.national_definitions.province_control = new_modifier;
 }
 
 
@@ -827,81 +827,81 @@ void m_fastest_transport_unit_speed(token_generator& gen, error_handler& err, sc
 void static_modifiers_file::finish(scenario_building_context& context) {
 	// Add some defines as modifiers, if they are enabled ( aren't 0). This is a way to add modifiers to vanilla, while not touching the files.
 
-	if(logistics::fastest_land_unit_supply_speed_mult != 0.0f) {
+	if(context.state.defines.alice_fastest_land_unit_supply_speed_mult != 0.0f) {
 		if(!context.state.national_definitions.fastest_land_unit_speed) {
 			context.state.national_definitions.fastest_land_unit_speed = create_static_modifier(context, 0, "fastest_land_unit_speed");
 		};
 		auto& mod_def = context.state.world.modifier_get_national_values(context.state.national_definitions.fastest_land_unit_speed);
-		mod_def.add_manual_modifier(sys::national_mod_offsets::land_supply_speed_add, logistics::fastest_land_unit_supply_speed_mult);
+		mod_def.add_manual_modifier(sys::national_mod_offsets::land_supply_speed_add, context.state.defines.alice_fastest_land_unit_supply_speed_mult);
 	}
-	if(logistics::fastest_transport_unit_supply_speed_mult != 0.0f) {
+	if(context.state.defines.alice_fastest_transport_unit_supply_speed_mult != 0.0f) {
 		if(!context.state.national_definitions.fastest_transport_unit_speed) {
 			context.state.national_definitions.fastest_transport_unit_speed = create_static_modifier(context, 0, "fastest_transport_unit_speed");
 		};
 		auto& mod_def = context.state.world.modifier_get_national_values(context.state.national_definitions.fastest_transport_unit_speed);
-		mod_def.add_manual_modifier(sys::national_mod_offsets::naval_supply_speed_add, logistics::fastest_transport_unit_supply_speed_mult);
+		mod_def.add_manual_modifier(sys::national_mod_offsets::naval_supply_speed_add, context.state.defines.alice_fastest_transport_unit_supply_speed_mult);
 	}
-	if(logistics::base_land_supply_speed != 0.0f || logistics::base_naval_supply_speed != 0.0f) {
+	if(context.state.defines.alice_base_land_supply_speed != 0.0f || context.state.defines.alice_base_naval_supply_speed != 0.0f) {
 		if(!context.state.national_definitions.nation_base) {
 			context.state.national_definitions.nation_base = create_static_modifier(context, 0, "nation_base");
 		};
 		auto& mod_def = context.state.world.modifier_get_national_values(context.state.national_definitions.nation_base);
-		mod_def.add_manual_modifier(sys::national_mod_offsets::land_supply_speed_add, logistics::base_land_supply_speed);
-		mod_def.add_manual_modifier(sys::national_mod_offsets::naval_supply_speed_add, logistics::base_naval_supply_speed);
+		mod_def.add_manual_modifier(sys::national_mod_offsets::land_supply_speed_add, context.state.defines.alice_base_land_supply_speed);
+		mod_def.add_manual_modifier(sys::national_mod_offsets::naval_supply_speed_add, context.state.defines.alice_base_naval_supply_speed);
 	}
-	if(logistics::land_base_supply_thoughput != 0.0f || logistics::base_land_supply_loss != 0.0f) {
+	if(context.state.defines.alice_land_base_supply_thoughput != 0.0f || context.state.defines.alice_base_land_supply_loss != 0.0f) {
 		if(!context.state.national_definitions.land_province) {
 			context.state.national_definitions.land_province = create_static_modifier(context, 0, "land_province");
 		};
 		auto& mod_def = context.state.world.modifier_get_province_values(context.state.national_definitions.land_province);
-		mod_def.add_manual_modifier(sys::provincial_mod_offsets::supply_throughput_add, logistics::land_base_supply_thoughput);
-		mod_def.add_manual_modifier(sys::provincial_mod_offsets::supply_loss_add, logistics::base_land_supply_loss);
+		mod_def.add_manual_modifier(sys::provincial_mod_offsets::supply_throughput_add, context.state.defines.alice_land_base_supply_thoughput);
+		mod_def.add_manual_modifier(sys::provincial_mod_offsets::supply_loss_add, context.state.defines.alice_base_land_supply_loss);
 	}
-	if(logistics::sea_base_supply_thoughput != 0.0f || logistics::base_sea_supply_loss != 0.0f) {
+	if(context.state.defines.alice_sea_base_supply_thoughput != 0.0f || context.state.defines.alice_base_sea_supply_loss != 0.0f) {
 		if(!context.state.national_definitions.sea_zone) {
 			context.state.national_definitions.sea_zone = create_static_modifier(context, 0, "sea_zone");
 		};
 		auto& mod_def = context.state.world.modifier_get_province_values(context.state.national_definitions.sea_zone);
-		mod_def.add_manual_modifier(sys::provincial_mod_offsets::supply_throughput_add, logistics::sea_base_supply_thoughput);
-		mod_def.add_manual_modifier(sys::provincial_mod_offsets::supply_loss_add, logistics::base_sea_supply_loss);
+		mod_def.add_manual_modifier(sys::provincial_mod_offsets::supply_throughput_add, context.state.defines.alice_sea_base_supply_thoughput);
+		mod_def.add_manual_modifier(sys::provincial_mod_offsets::supply_loss_add, context.state.defines.alice_base_sea_supply_loss);
 	}
-	if(logistics::supply_throughput_infrastructure != 0.0f) {
+	if(context.state.defines.alice_supply_throughput_infrastructure != 0.0f) {
 		if(!context.state.national_definitions.infrastructure) {
 			context.state.national_definitions.infrastructure = create_static_modifier(context, 0, "infrastructure");
 		};
 		auto& mod_def = context.state.world.modifier_get_province_values(context.state.national_definitions.infrastructure);
-		mod_def.add_manual_modifier(sys::provincial_mod_offsets::supply_throughput_add, logistics::supply_throughput_infrastructure);
+		mod_def.add_manual_modifier(sys::provincial_mod_offsets::supply_throughput_add, context.state.defines.alice_supply_throughput_infrastructure);
 	}
-	if(logistics::militancy_supply_loss != 0.0f) {
+	if(context.state.defines.alice_militancy_supply_loss != 0.0f) {
 		if(!context.state.national_definitions.province_militancy) {
 			context.state.national_definitions.province_militancy = create_static_modifier(context, 0, "province_militancy");
 		};
 		auto& mod_def = context.state.world.modifier_get_province_values(context.state.national_definitions.province_militancy);
-		mod_def.add_manual_modifier(sys::provincial_mod_offsets::supply_loss_add, logistics::militancy_supply_loss);
+		mod_def.add_manual_modifier(sys::provincial_mod_offsets::supply_loss_add, context.state.defines.alice_militancy_supply_loss);
 	}
-	if(logistics::control_level_supply_loss != 0.0f) {
+	if(context.state.defines.alice_control_level_supply_loss != 0.0f) {
 		if(!context.state.national_definitions.province_control) {
 			context.state.national_definitions.province_control = create_static_modifier(context, 0, "province_control");
 		};
 		// Add
 		auto& mod_def = context.state.world.modifier_get_province_values(context.state.national_definitions.province_control);
-		mod_def.add_manual_modifier(sys::provincial_mod_offsets::supply_loss_add, logistics::control_level_supply_loss);
+		mod_def.add_manual_modifier(sys::provincial_mod_offsets::supply_loss_add, context.state.defines.alice_control_level_supply_loss);
 	}
-	if(logistics::base_port_supply_capacity != 0.0f) {
+	if(context.state.defines.alice_base_port_supply_capacity != 0.0f) {
 		if(!context.state.national_definitions.coastal) {
 			context.state.national_definitions.coastal = create_static_modifier(context, 0, "coastal");
 		};
 		// Add
 		auto& mod_def = context.state.world.modifier_get_province_values(context.state.national_definitions.coastal);
-		mod_def.add_manual_modifier(sys::provincial_mod_offsets::port_supply_capacity_add, logistics::base_port_supply_capacity);
+		mod_def.add_manual_modifier(sys::provincial_mod_offsets::port_supply_capacity_add, context.state.defines.alice_base_port_supply_capacity);
 	}
-	if(logistics::civilian_port_throughput_capacity != 0.0f) {
+	if(context.state.defines.alice_civilian_port_throughput_capacity != 0.0f) {
 		if(!context.state.national_definitions.civilian_port) {
 			context.state.national_definitions.civilian_port = create_static_modifier(context, 0, "civilian_port");
 		};
 		// Add
 		auto& mod_def = context.state.world.modifier_get_province_values(context.state.national_definitions.civilian_port);
-		mod_def.add_manual_modifier(sys::provincial_mod_offsets::port_supply_capacity_add, logistics::civilian_port_throughput_capacity);
+		mod_def.add_manual_modifier(sys::provincial_mod_offsets::port_supply_capacity_add, context.state.defines.alice_civilian_port_throughput_capacity);
 	}
 }
 

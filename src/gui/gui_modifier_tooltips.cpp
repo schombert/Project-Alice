@@ -212,11 +212,11 @@ void active_hardcoded_modifiers_description(sys::state& state, text::layout_base
 	auto fat_nation = fatten(state.world, n);
 	if(nmid == sys::national_mod_offsets::national_land_supply_throughput_add) {
 		float land_supply_speed = logistics::land_supply_speed(state, n);
-		active_single_hardcoded_modifier_description(state, layout, "modifier_land_supply_speed", land_supply_speed * logistics::supply_throughput_per_km_land_supply_speed, identation, header, sys::national_mod_offsets::national_land_supply_throughput_add);
+		active_single_hardcoded_modifier_description(state, layout, "modifier_land_supply_speed", land_supply_speed * state.defines.alice_supply_throughput_per_km_land_supply_speed, identation, header, sys::national_mod_offsets::national_land_supply_throughput_add);
 	}
 	else if(nmid == sys::national_mod_offsets::national_naval_supply_throughput_add) {
 		float naval_supply_speed = logistics::naval_supply_speed(state, n);
-		active_single_hardcoded_modifier_description(state, layout, "modifier_naval_supply_speed", naval_supply_speed * logistics::supply_throughput_per_km_naval_supply_speed, identation, header, sys::national_mod_offsets::national_naval_supply_throughput_add);
+		active_single_hardcoded_modifier_description(state, layout, "modifier_naval_supply_speed", naval_supply_speed * state.defines.alice_supply_throughput_per_km_naval_supply_speed, identation, header, sys::national_mod_offsets::national_naval_supply_throughput_add);
 	}
 }
 
@@ -228,7 +228,7 @@ void active_hardcoded_modifiers_description(sys::state& state, text::layout_base
 	case sys::provincial_mod_offsets::supply_throughput_percent.value:
 	{
 		auto movement_cost = province::movement_cost(state, prov);
-		float percent_mod = std::max((1.0f - movement_cost) * logistics::supply_throughput_from_movement_cost_mult, logistics::supply_throughput_from_movement_cost_max_penalty);
+		float percent_mod = std::max((1.0f - movement_cost) * state.defines.alice_supply_throughput_from_movement_cost_mult, state.defines.alice_supply_throughput_from_movement_cost_max_penalty);
 		if(percent_mod != 0.0f) {
 			active_single_hardcoded_modifier_description(state, layout, "modifier_movement_cost", percent_mod, identation, header, sys::provincial_mod_offsets::supply_throughput_percent);
 		}

@@ -2063,7 +2063,7 @@ object {
 		type{ float }
 	}
 	property{
-		name { required_supply_base_cost }
+		name { last_required_supply_percent_base_cost }
 		type{ float }
 	}
 	property{
@@ -2071,7 +2071,7 @@ object {
 		type{ float }
 	}
 	property{
-		name { required_reinforcement_base_cost }
+		name { last_required_reinforcement_percent_base_cost }
 		type{ float }
 	}
 	property{
@@ -2281,11 +2281,11 @@ object {
 		type{ float }
 	}
 	property{
-		name { required_supply_base_cost }
+		name { last_required_supply_percent_base_cost }
 		type{ float }
 	}
 	property{
-		name { required_reinforcement_base_cost }
+		name { last_required_reinforcement_percent_base_cost }
 		type{ float }
 	}
 	property{
@@ -5450,7 +5450,7 @@ relationship{
 		tag{ save }
 	}
 	property{
-		name{ required_construction_base_cost }
+		name{ last_required_percent_base_cost }
 		type{ float }
 		tag{ save }
 	}
@@ -5520,7 +5520,7 @@ relationship{
 		tag{ save }
 	}
 	property{
-		name{ required_construction_base_cost }
+		name{ last_required_percent_base_cost }
 		type{ float }
 		tag{ save }
 	}
@@ -5584,7 +5584,7 @@ relationship{
 		tag{ save }
 	}
 	property{
-		name{ required_construction_base_cost }
+		name{ last_required_percent_base_cost }
 		type{ float }
 		tag{ save }
 	}
@@ -5660,7 +5660,7 @@ relationship{
 		tag{ save }
 	}
 	property{
-		name{ required_construction_base_cost }
+		name{ last_required_percent_base_cost }
 		type{ float }
 		tag{ save }
 	}

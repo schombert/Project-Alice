@@ -15,6 +15,7 @@
 #include "money.hpp"
 #include "advanced_province_buildings.hpp"
 #include "economy_constants.hpp"
+#include "nations_templates.hpp"
 
 namespace ai {
 
@@ -398,6 +399,7 @@ void update_ai_econ_construction(sys::state& state) {
 
 		// treasury is out budget
 		float treasury = n.get_treasury();
+		//Note for later parallelization: This function may read from markets which the nation do not own (but does control)!
 		float estimated_construction_costs = economy::estimate_construction_stockpile_spending(state, n, std::max(treasury, 1'000'000'000'000.f));
 
 		//if our army is too small, ignore buildings:
@@ -718,9 +720,8 @@ void update_ai_econ_construction(sys::state& state) {
 constexpr uint32_t days_of_reserve_military_goods = 365 * 3;
 
 void update_stockpile_targets(sys::state& state) {
-	concurrency::parallel_for(uint32_t(0), state.world.nation_size(), [&](uint32_t i) {
-		dcon::nation_id nid{ dcon::nation_id::value_base_t(i) };
-		if(state.world.nation_get_is_player_controlled(nid) || !nations::exists(state, nid)) {
+	nations::parallel_for_each_existing_nation(state, [&](dcon::nation_id nid) {
+		if(state.world.nation_get_is_player_controlled(nid)) {
 			return;
 		}
 		auto army_navy_consumption = economy::estimate_nation_army_and_navy_consumption(state, nid);

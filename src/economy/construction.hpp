@@ -131,10 +131,10 @@ dcon::internal::const_iterator_province_building_construction_foreach_building_c
 dcon::internal::iterator_province_building_construction_foreach_building_construction_supply_route_as_construction_generator construction_get_supply_routes(sys::state& state, dcon::province_building_construction_id con);
 
 template<concepts::construction_type con_type>
-void construction_set_required_construction_base_cost(sys::state& state, con_type con, float val);
+void construction_set_last_required_percent_base_cost(sys::state& state, con_type con, float val);
 
 template<concepts::construction_type con_type>
-float construction_get_required_construction_base_cost(const sys::state& state, con_type con);
+float construction_get_last_required_percent_base_cost(const sys::state& state, con_type con);
 
 // Gets last days' required goods need for a specific construction.
 template<concepts::construction_type con_type>

@@ -13,6 +13,8 @@
 
 namespace logistics {
 
+constexpr float construction_route_transport_leeway = 0.001f; // The minimum % of the total cost a route will attempt to consume and transport per day as extra leeway. This makes it so that constructions arent "stuck" for abit due to supply loss. Should be low enough that it isn't noticable.
+
 constexpr uint32_t supply_route_pathfinding_batches = 30; // The desired amount of batches for processing pathfinding in parallel. Less batches = better performance when under heavy load, but the pathfinding is not able to take other potentially overlapping paths into account in the pathfinding logic.
 
 // union of either a army or navy. Used for type erasure when prioritizing supplies between military units
@@ -750,14 +752,14 @@ int8_t building_construction_setting_max(const sys::state& state, dcon::nation_i
 	return 100;
 }
 
-float supply_loss_to_commodity_loss(float base_loss_rate, float commodity_loss_mult) {
-	return std::min(base_loss_rate * commodity_loss_mult, max_supply_route_loss);
+float supply_loss_to_commodity_loss(const sys::state& state, float base_loss_rate, float commodity_loss_mult) {
+	return std::min(base_loss_rate * commodity_loss_mult, state.defines.alice_max_supply_route_loss);
 }
 
-float supply_loss_to_loss_multiplier(float base_loss_rate, float commodity_loss_mult) {
+float supply_loss_to_loss_multiplier(const sys::state& state, float base_loss_rate, float commodity_loss_mult) {
 	// The base loss rate us expressed as the percent of commodities which will be lost from 0.0 to 1.0f (the value stored in the supply paths themselves). Is multiplied with the commodity-specific loss multiplier first
 	// The resulting value is the inverse multiplier which can be used to figure out the number of goods will be able to be transported after loss
-	float loss_multiplier = 1.0f - supply_loss_to_commodity_loss(base_loss_rate, commodity_loss_mult);
+	float loss_multiplier = 1.0f - supply_loss_to_commodity_loss(state, base_loss_rate, commodity_loss_mult);
 	assert(loss_multiplier >= 0.0f);
 	return loss_multiplier;
 }
@@ -848,14 +850,14 @@ void regenerate_unsaved_values(sys::state& state) {
 
 float port_supply_capacity_mult_hostile_troops_modifier(const sys::state& state, dcon::province_id prov, dcon::nation_id nation_as) {
 	float enemy_strength_present = military::army_strength_present<military::battle_included::yes, military::retreat_included::no, military::blackflag_included::no, military::participants_included::enemies>(state, prov, nation_as);
-	return army_supply_throughput_blockade_threshold > 0.0f ? std::max((army_supply_throughput_blockade_threshold - enemy_strength_present) / army_supply_throughput_blockade_threshold, 0.f) : 1.0f;
+	return state.defines.alice_army_supply_throughput_blockade_threshold > 0.0f ? std::max((state.defines.alice_army_supply_throughput_blockade_threshold - enemy_strength_present) / state.defines.alice_army_supply_throughput_blockade_threshold, 0.f) : 1.0f;
 }
 
 float port_supply_capacity_mult_blockaded_modifier(const sys::state& state, dcon::province_id port_prov, dcon::nation_id nation_as) {
 	assert(province::prov_is_coastal(state, port_prov));
 	auto port_to_prov = state.world.province_get_port_to(port_prov);
 	auto enemy_blockade_power = military::navy_strength_present<military::battle_included::yes, military::retreat_included::no, military::participants_included::enemies>(state, port_to_prov, nation_as);
-	return navy_port_supply_capacity_blockade_threshold > 0.0f ? std::max((navy_port_supply_capacity_blockade_threshold - enemy_blockade_power) / navy_port_supply_capacity_blockade_threshold, 0.f) : 1.0f;
+	return state.defines.alice_navy_port_supply_capacity_blockade_threshold > 0.0f ? std::max((state.defines.alice_navy_port_supply_capacity_blockade_threshold - enemy_blockade_power) / state.defines.alice_navy_port_supply_capacity_blockade_threshold, 0.f) : 1.0f;
 }
 float port_supply_capacity_mult_supply_access_modifier(const sys::state& state, dcon::province_id port_prov, dcon::nation_id nation_as) {
 	assert(province::prov_is_coastal(state, port_prov));
@@ -894,7 +896,7 @@ float supply_throughput_mult_hostile_troops_modifier(const sys::state& state, dc
 		return 1.0f; // Cannot have hostile troops in sea provinces. Blockades of ports are handled with a malus to port supply capacity, convoy raiding is handled as supply attrition
 	} else {
 		float enemy_strength_present = military::army_strength_present<military::battle_included::yes, military::retreat_included::no, military::blackflag_included::no, military::participants_included::enemies>(state, prov, nation_as);
-		return army_supply_throughput_blockade_threshold > 0.0f ? std::max((army_supply_throughput_blockade_threshold - enemy_strength_present) / army_supply_throughput_blockade_threshold, 0.f) : 1.0f;
+		return state.defines.alice_army_supply_throughput_blockade_threshold > 0.0f ? std::max((state.defines.alice_army_supply_throughput_blockade_threshold - enemy_strength_present) / state.defines.alice_army_supply_throughput_blockade_threshold, 0.f) : 1.0f;
 	}
 }
 
@@ -1004,7 +1006,7 @@ float supply_throughput_efficiency(const sys::state& state, dcon::province_adjac
 
 float supply_loss_add_hostile_armies(const sys::state& state, dcon::province_id province, dcon::nation_id nation_as) {
 	assert(province::is_land(state, province));
-	return military::army_strength_present<military::battle_included::yes, military::retreat_included::no, military::blackflag_included::no, military::participants_included::enemies>(state, province, nation_as) * hostile_army_supply_loss;
+	return military::army_strength_present<military::battle_included::yes, military::retreat_included::no, military::blackflag_included::no, military::participants_included::enemies>(state, province, nation_as) * state.defines.alice_hostile_army_supply_loss;
 }
 
 float calculate_supply_loss_in_province(const sys::state& state, dcon::province_id province, dcon::nation_id nation_as) {
@@ -1079,7 +1081,7 @@ float calculate_supply_route_supply_loss(const sys::state& state, std::span<cons
 		last_province_sup_loss = next_province_sup_loss;
 		assert(std::isfinite(total_attrition_mod));
 	}
-	return std::min(total_attrition_mod, max_supply_route_loss);
+	return std::min(total_attrition_mod, state.defines.alice_max_supply_route_loss);
 	
 }
 
@@ -1302,7 +1304,7 @@ static void accumulate_military_unit_supply_loss(const sys::state& state, unit_t
 				state.world.for_each_unit_supply_commodity([&](dcon::unit_supply_commodity_id com) {
 					dcon::commodity_id base_com = economy::unit_commodity_get_base_commodity(state, com);
 					float com_loss_mult = state.world.commodity_get_supply_loss_rate(base_com);
-					float commodity_loss = supply_loss_to_commodity_loss(supply_loss, com_loss_mult);
+					float commodity_loss = supply_loss_to_commodity_loss(state, supply_loss, com_loss_mult);
 					float buffered_amount = logistics::military_route_get_buffered_goods(state, route.id, com);
 					accumulate_func(base_com, buffered_amount, commodity_loss);
 				});
@@ -1310,7 +1312,7 @@ static void accumulate_military_unit_supply_loss(const sys::state& state, unit_t
 				state.world.for_each_unit_build_commodity([&](dcon::unit_build_commodity_id com) {
 					dcon::commodity_id base_com = economy::unit_commodity_get_base_commodity(state, com);
 					float com_loss_mult = state.world.commodity_get_supply_loss_rate(base_com);
-					float commodity_loss = supply_loss_to_commodity_loss(supply_loss, com_loss_mult);
+					float commodity_loss = supply_loss_to_commodity_loss(state, supply_loss, com_loss_mult);
 					float buffered_amount = logistics::military_route_get_buffered_goods(state, route.id, com);
 					accumulate_func(base_com, buffered_amount, commodity_loss);
 				});
@@ -1336,7 +1338,7 @@ static void accumulate_construction_supply_loss(const sys::state& state, con_typ
 			base_cost.for_each_valid_index([&](uint32_t idx) {
 				dcon::commodity_id base_com = base_cost.commodity_type[idx];
 				float com_loss_mult = state.world.commodity_get_supply_loss_rate(base_com);
-				float commodity_loss = supply_loss_to_commodity_loss(supply_loss,  com_loss_mult);
+				float commodity_loss = supply_loss_to_commodity_loss(state, supply_loss,  com_loss_mult);
 				accumulate_func(base_com, base_cost.commodity_amounts[idx], commodity_loss);
 			});
 		}
@@ -1812,7 +1814,7 @@ void update_unit_commodity_satisfaction(sys::state& state, unit_type u) {
 			state.world.for_each_unit_supply_commodity([&](dcon::unit_supply_commodity_id com_id) {
 				dcon::commodity_id base_commodity = economy::unit_commodity_get_base_commodity(state, com_id);
 				float com_supply_loss_mod = state.world.commodity_get_supply_loss_rate(base_commodity);
-				float loss_mult = supply_loss_to_loss_multiplier(supply_loss, com_supply_loss_mod);
+				float loss_mult = supply_loss_to_loss_multiplier(state, supply_loss, com_supply_loss_mod);
 				float current_avail = available_supply_goods_buffer.get(com_id);
 				float buffered_amount = route.get_buffered_supply_goods(com_id);
 				available_supply_goods_buffer.set(com_id, current_avail + (buffered_amount * throughput * loss_mult));
@@ -1820,7 +1822,7 @@ void update_unit_commodity_satisfaction(sys::state& state, unit_type u) {
 			state.world.for_each_unit_build_commodity([&](dcon::unit_build_commodity_id com_id) {
 				dcon::commodity_id base_commodity = economy::unit_commodity_get_base_commodity(state, com_id);
 				float com_supply_loss_mod = state.world.commodity_get_supply_loss_rate(base_commodity);
-				float loss_mult = supply_loss_to_loss_multiplier(supply_loss, com_supply_loss_mod);
+				float loss_mult = supply_loss_to_loss_multiplier(state, supply_loss, com_supply_loss_mod);
 				float current_avail = available_reinforcement_goods_buffer.get(com_id);
 				float buffered_amount = route.get_buffered_reinforcement_goods(com_id);
 				available_reinforcement_goods_buffer.set(com_id, current_avail + (buffered_amount * throughput * loss_mult));
@@ -1841,7 +1843,7 @@ void update_unit_commodity_satisfaction(sys::state& state, unit_type u) {
 		dcon::unit_type_id type = subunit.get_type();
 		{
 			// Compute supply satisfaction
-			float supply_goods_cost_mod = military::subunit_get_required_supply_base_cost(state, subunit.id);
+			float supply_goods_cost_mod = military::subunit_get_last_required_supply_percent_base_cost(state, subunit.id);
 			float supply_consumption_setting = static_cast<float>(nations::get_nation_military_consumption_setting_by_type<decltype(u), military::unit_consumption_type::supply>(state, nation)) / 100.0f;
 			float desired_supply_mult = supply_goods_cost_mod * supply_consumption_setting;
 
@@ -1869,7 +1871,7 @@ void update_unit_commodity_satisfaction(sys::state& state, unit_type u) {
 			// And then compute reinforcement satisfaction
 			const economy::commodity_set& reinf_goods_cost = military::unit_type_get_commodity_costs<military::unit_consumption_type::reinforcement>(state, type);
 			// The reinforcement amount (ranges from 0.0-1.0) is also the cost modifier, as the faster it can reinforce, the more goods we need to fufill it at optimal speed. Here we get the reinforcement amount under perfect conditions (100% fufillment)
-			float reinf_goods_cost_mod = military::subunit_get_required_reinforcement_base_cost(state, subunit.id);
+			float reinf_goods_cost_mod = military::subunit_get_last_required_reinforcement_percent_base_cost(state, subunit.id);
 			float reinf_consumption_setting = static_cast<float>(nations::get_nation_military_consumption_setting_by_type<decltype(u), military::unit_consumption_type::reinforcement>(state, nation)) / 100.0f;
 			float desired_reinf_mult = reinf_goods_cost_mod * reinf_consumption_setting;
 
@@ -1915,7 +1917,7 @@ void update_construction_commodity_satisfaction(sys::state& state, construction_
 				assert(build_costs.commodity_type[j] == current_fufilled.commodity_type[j]);
 				if(com_id) {
 					float com_supply_loss_mult = state.world.commodity_get_supply_loss_rate(com_id);
-					float loss_mult = supply_loss_to_loss_multiplier(supply_loss, com_supply_loss_mult);
+					float loss_mult = supply_loss_to_loss_multiplier(state, supply_loss, com_supply_loss_mult);
 					float& current_amount = current_fufilled.commodity_amounts[j];
 					float route_amount = route_goods[j] * throughput * loss_mult;
 					current_amount += route_amount;
@@ -2279,8 +2281,8 @@ void update_supply_routes_daily(sys::state& state) {
 			// Only armies can have rebels. 
 			if(!nation) {
 				military::unit_for_each_subunit(state, unit, [&](auto subunit) {
-					military::subunit_set_required_supply_base_cost(state, subunit, 0.0f);
-					military::subunit_set_required_reinforcement_base_cost(state, subunit, 0.0f);
+					military::subunit_set_last_required_supply_percent_base_cost(state, subunit, 0.0f);
+					military::subunit_set_last_required_reinforcement_percent_base_cost(state, subunit, 0.0f);
 				});
 				return;
 			}
@@ -2312,11 +2314,12 @@ void update_supply_routes_daily(sys::state& state) {
 		military::unit_for_each_subunit(state, unit, [&](auto subunit) {
 			// Compute the "required_x_of_base_cost" meaning how much of the base cost is required to reach 100% satisfaction for supply and reinforcement need respectively. These are used later
 			float required_supply_goods_of_base_cost = military::get_supply_cost_modifiers(state, subunit);
-			military::subunit_set_required_supply_base_cost(state, subunit, required_supply_goods_of_base_cost);
+			military::subunit_set_last_required_supply_percent_base_cost(state, subunit, required_supply_goods_of_base_cost);
 			float required_reinf_goods_of_base_cost = military::estimate_reinforcement<military::interval_estimation::daily, military::supply_estimation::full_supply_always, military::reinforcement_cap::capped_at_max_strength>(state, subunit); // The reinforcement available (from 0.0-1.0f) requires that % of the base build cost to fufill
-			military::subunit_set_required_reinforcement_base_cost(state, subunit, required_reinf_goods_of_base_cost);
+			military::subunit_set_last_required_reinforcement_percent_base_cost(state, subunit, required_reinf_goods_of_base_cost);
 			// Then accumulate each commodity required, which will call the prev. lambdas with the commodity and amount required
-			military::accumulate_subunit_daily_consumption(state, nation, subunit, accumulate_supply, accumulate_reinf);
+			military::accumulate_subunit_daily_goods_requirements<military::unit_consumption_type::supply>(state, nation, subunit, accumulate_supply);
+			military::accumulate_subunit_daily_goods_requirements<military::unit_consumption_type::reinforcement>(state, nation, subunit, accumulate_reinf);
 		});
 	});
 	economy::parallel_for_each_construction(state, [&](auto construction) {
@@ -2348,8 +2351,8 @@ void update_supply_routes_daily(sys::state& state) {
 		};
 		// Compute the "required_x_of_base_cost" meaning how much of the base cost is required to reach 100% satisfaction for construction requirements. These are used later
 		float required_construction_goods_of_base_cost = economy::construction_build_cost_multiplier(state, construction) / construction_days;
-		economy::construction_set_required_construction_base_cost(state, construction, required_construction_goods_of_base_cost);
-		economy::accumulate_construction_good_requirements(state, construction, accumulate_func);
+		economy::construction_set_last_required_percent_base_cost(state, construction, required_construction_goods_of_base_cost);
+		economy::accumulate_construction_daily_goods_requirements(state, construction, accumulate_func);
 	});
 
 	end = std::chrono::steady_clock::now();

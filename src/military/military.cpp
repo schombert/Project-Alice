@@ -86,55 +86,55 @@ dcon::unit_type_id subunit_get_type(const sys::state& state, dcon::ship_id subun
 
 
 template<concepts::military_subunit subunit_type>
-void subunit_set_required_supply_base_cost(sys::state& state, subunit_type unit, float val) {
+void subunit_set_last_required_supply_percent_base_cost(sys::state& state, subunit_type unit, float val) {
 	if constexpr(std::is_same_v<subunit_type, dcon::regiment_id>) {
-		state.world.regiment_set_required_supply_base_cost(unit, val);
+		state.world.regiment_set_last_required_supply_percent_base_cost(unit, val);
 	}
 	else if constexpr(std::is_same_v<subunit_type, dcon::ship_id>) {
-		state.world.ship_set_required_supply_base_cost(unit, val);
+		state.world.ship_set_last_required_supply_percent_base_cost(unit, val);
 	}
 	else {
 		static_assert(false, "Unknown type");
 	}
 }
-template void subunit_set_required_supply_base_cost(sys::state& state, dcon::regiment_id unit, float val);
-template void subunit_set_required_supply_base_cost(sys::state& state, dcon::ship_id unit, float val);
+template void subunit_set_last_required_supply_percent_base_cost(sys::state& state, dcon::regiment_id unit, float val);
+template void subunit_set_last_required_supply_percent_base_cost(sys::state& state, dcon::ship_id unit, float val);
 
 template<concepts::military_subunit subunit_type>
-float subunit_get_required_supply_base_cost(const sys::state& state, subunit_type unit) {
+float subunit_get_last_required_supply_percent_base_cost(const sys::state& state, subunit_type unit) {
 	if constexpr(std::is_same_v<subunit_type, dcon::regiment_id>) {
-		return state.world.regiment_get_required_supply_base_cost(unit);
+		return state.world.regiment_get_last_required_supply_percent_base_cost(unit);
 	} else if constexpr(std::is_same_v<subunit_type, dcon::ship_id>) {
-		return state.world.ship_get_required_supply_base_cost(unit);
+		return state.world.ship_get_last_required_supply_percent_base_cost(unit);
 	} 
 }
-template float subunit_get_required_supply_base_cost(const sys::state& state, dcon::regiment_id unit);
-template float subunit_get_required_supply_base_cost(const sys::state& state, dcon::ship_id unit);
+template float subunit_get_last_required_supply_percent_base_cost(const sys::state& state, dcon::regiment_id unit);
+template float subunit_get_last_required_supply_percent_base_cost(const sys::state& state, dcon::ship_id unit);
 
 
 template<concepts::military_subunit subunit_type>
-void subunit_set_required_reinforcement_base_cost(sys::state& state, subunit_type unit, float val) {
+void subunit_set_last_required_reinforcement_percent_base_cost(sys::state& state, subunit_type unit, float val) {
 	if constexpr(std::is_same_v<subunit_type, dcon::regiment_id>) {
-		state.world.regiment_set_required_reinforcement_base_cost(unit, val);
+		state.world.regiment_set_last_required_reinforcement_percent_base_cost(unit, val);
 	} else if constexpr(std::is_same_v<subunit_type, dcon::ship_id>) {
-		state.world.ship_set_required_reinforcement_base_cost(unit, val);
+		state.world.ship_set_last_required_reinforcement_percent_base_cost(unit, val);
 	} else {
 		static_assert(false, "Unknown type");
 	}
 }
-template void subunit_set_required_reinforcement_base_cost(sys::state& state, dcon::regiment_id unit, float val);
-template void subunit_set_required_reinforcement_base_cost(sys::state& state, dcon::ship_id unit, float val);
+template void subunit_set_last_required_reinforcement_percent_base_cost(sys::state& state, dcon::regiment_id unit, float val);
+template void subunit_set_last_required_reinforcement_percent_base_cost(sys::state& state, dcon::ship_id unit, float val);
 
 template<concepts::military_subunit subunit_type>
-float subunit_get_required_reinforcement_base_cost(const sys::state& state, subunit_type unit) {
+float subunit_get_last_required_reinforcement_percent_base_cost(const sys::state& state, subunit_type unit) {
 	if constexpr(std::is_same_v<subunit_type, dcon::regiment_id>) {
-		return state.world.regiment_get_required_reinforcement_base_cost(unit);
+		return state.world.regiment_get_last_required_reinforcement_percent_base_cost(unit);
 	} else if constexpr(std::is_same_v<subunit_type, dcon::ship_id>) {
-		return state.world.ship_get_required_reinforcement_base_cost(unit);
+		return state.world.ship_get_last_required_reinforcement_percent_base_cost(unit);
 	}
 }
-template float subunit_get_required_reinforcement_base_cost(const sys::state& state, dcon::regiment_id unit);
-template float subunit_get_required_reinforcement_base_cost(const sys::state& state, dcon::ship_id unit);
+template float subunit_get_last_required_reinforcement_percent_base_cost(const sys::state& state, dcon::regiment_id unit);
+template float subunit_get_last_required_reinforcement_percent_base_cost(const sys::state& state, dcon::ship_id unit);
 
 
 template<unit_consumption_type consumption_type>
@@ -9731,10 +9731,10 @@ void unit_get_last_required_goods_need(const sys::state& state, unit_type unit, 
 
 		float required_base_cost = [&]() -> float {
 			if constexpr(consume_type == unit_consumption_type::supply) {
-				return military::subunit_get_required_supply_base_cost(state, subunit);
+				return military::subunit_get_last_required_supply_percent_base_cost(state, subunit);
 			}
 			else if constexpr(consume_type == unit_consumption_type::reinforcement) {
-				return military::subunit_get_required_reinforcement_base_cost(state, subunit);
+				return military::subunit_get_last_required_reinforcement_percent_base_cost(state, subunit);
 			}
 		}();
 		base_cost.for_each_valid_index([&](uint32_t idx) {
@@ -9787,7 +9787,7 @@ static void unit_get_last_fufilled_goods_need(const sys::state& state, unit_type
 					dcon::commodity_id base_commodity = economy::unit_commodity_get_base_commodity(state, supply_com_id);
 					float com_supply_loss_mod = state.world.commodity_get_supply_loss_rate(base_commodity);
 					float buffered_goods = route.get_buffered_supply_goods(supply_com_id);
-					float loss_mult = logistics::supply_loss_to_loss_multiplier(supply_loss, com_supply_loss_mod);
+					float loss_mult = logistics::supply_loss_to_loss_multiplier(state, supply_loss, com_supply_loss_mod);
 					accumulate_func(base_commodity, buffered_goods * loss_mult * logistics::supply_route_get_throughput(state, route.id)); // take into account goods which will be lost to attrition and throughput
 				});
 			}
@@ -9796,7 +9796,7 @@ static void unit_get_last_fufilled_goods_need(const sys::state& state, unit_type
 					dcon::commodity_id base_commodity = economy::unit_commodity_get_base_commodity(state, reinf_com_id);
 					float com_supply_loss_mod = state.world.commodity_get_supply_loss_rate(base_commodity);
 					float buffered_goods = route.get_buffered_reinforcement_goods(reinf_com_id);
-					float loss_mult = logistics::supply_loss_to_loss_multiplier(supply_loss, com_supply_loss_mod);
+					float loss_mult = logistics::supply_loss_to_loss_multiplier(state, supply_loss, com_supply_loss_mod);
 					accumulate_func(base_commodity, buffered_goods * loss_mult * logistics::supply_route_get_throughput(state, route.id)); // take into account goods which will be lost to attrition and throughput
 				});
 			}

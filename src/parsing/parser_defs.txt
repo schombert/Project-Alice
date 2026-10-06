@@ -421,6 +421,8 @@ static_modifiers_file
 	occupied                 extern   m_occupied                 discard
 	nationalism              extern   m_nationalism              discard
 	infrastructure           extern   m_infrastructure           discard
+	province_control         extern   m_province_control         discard
+	province_militancy       extern   m_province_militancy        discard
 	base_values              extern   m_base_values              discard
 	war                      extern   m_war                      discard
 	peace                    extern   m_peace                    discard

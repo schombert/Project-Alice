@@ -454,26 +454,27 @@ float estimate_reinforcement(const sys::state& state, dcon::navy_id navy) {
 	return total_reinforcement;
 
 }
-// Accumulates the daily consumption required for a subunit (regiment or ship) for full goods fufillment using the functors for supply consumption and reinforcement consumption respectively
+// Accumulates the daily goods consumption required for a subunit (regiment or ship) for full goods fufillment using the functor for supply consumption or reinforcement consumption depending on the enum
 // Functor signature is: (dcon::commodity_id, float)
-template<concepts::military_subunit subunit_type, typename FSupply, typename FReinf>
-void accumulate_subunit_daily_consumption(const sys::state& state, dcon::nation_id owner, subunit_type u, FSupply&& supply_acc_func, FReinf&& reinf_acc_func) {
+template<unit_consumption_type consume_type, concepts::military_subunit subunit_type, typename FAccumulate>
+void accumulate_subunit_daily_goods_requirements(const sys::state& state, dcon::nation_id owner, subunit_type subunit, FAccumulate&& acc_func) {
 	assert(owner);
-	auto subunit = fatten(state.world, u);
-	dcon::unit_type_id type = subunit.get_type();
+	dcon::unit_type_id type = subunit_get_type(state, subunit);
 
 	float supply_mod = military::get_supply_cost_modifiers(state, subunit);
 
-	const auto& supply_cost = state.military_definitions.unit_base_definitions[type].supply_cost;
-	supply_cost.for_each_commodity([&](dcon::commodity_id com_id, float required_amounts) {
-		supply_acc_func(com_id, required_amounts * supply_mod);
-	});
+	float cost_mod = [&]() {
+		if constexpr(consume_type == unit_consumption_type::supply) {
+			return military::get_supply_cost_modifiers(state, subunit);
+		}
+		else if constexpr(consume_type == unit_consumption_type::reinforcement) {
+			return military::estimate_reinforcement<military::interval_estimation::daily, military::supply_estimation::full_supply_always, reinforcement_cap::capped_at_max_strength>(state, subunit);
+		}
+	}();
 
-	const auto& build_cost = state.military_definitions.unit_base_definitions[type].build_cost;
-	float reinforcement = military::estimate_reinforcement<military::interval_estimation::daily, military::supply_estimation::full_supply_always, reinforcement_cap::capped_at_max_strength>(state, subunit);
-
-	build_cost.for_each_commodity([&](dcon::commodity_id com_id, float required_amounts) {
-		reinf_acc_func(com_id, required_amounts * reinforcement);
+	const economy::commodity_set& base_cost = unit_type_get_commodity_costs<consume_type>(state, type);
+	base_cost.for_each_commodity([&](dcon::commodity_id com_id, float required_amounts) {
+		acc_func(com_id, required_amounts * cost_mod);
 	});
 }
 
@@ -533,7 +534,7 @@ template<concepts::military_unit unit_type, typename FSupply, typename FReinf>
 void accumulate_unit_daily_consumption(sys::state& state, unit_type unit, FSupply&& acc_supply_func, FReinf&& acc_reinf_func) {
 	dcon::nation_id nation = military::unit_get_controller(state, unit);
 	unit_for_each_subunit(state, unit, [&](auto subunit) {
-		accumulate_subunit_daily_consumption(state, nation, subunit, acc_supply_func, acc_reinf_func);
+		accumulate_subunit_daily_goods_requirements(state, nation, subunit, acc_supply_func, acc_reinf_func);
 	});
 }
 
