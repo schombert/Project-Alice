@@ -963,7 +963,16 @@ void state::render() { // called to render the frame may (and should) delay retu
 					if(command::can_start_research(*this, local_player_nation, *it)) {
 						// can research, so research it
 						command::start_research(*this, local_player_nation, *it);
-						ui_state.tech_queue.erase(it);
+						/*
+						It's possible that the command is not executed immediately.
+						In this case this loop could run again BEFORE the nation gets the current research set.
+						If we remove the tech here from the queue, then the game will see that the next tech
+						can be researched and will send a command to start research of the next tech.
+						But it means that the tech research from the last command would be overwritten and skipped.
+						So no, we do not remove tech from the queue here, it will be removed eventually in the condition above,
+						when it will be actually researched.
+						OLD CODE here: ui_state.tech_queue.erase(it);
+						*/
 						break;
 					}
 				}
