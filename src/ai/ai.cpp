@@ -2145,7 +2145,7 @@ void update_land_constructions(sys::state& state) {
 			auto& def  = state.military_definitions.unit_base_definitions[fat_plc.get_type()];
 			for(uint8_t i = 0; i < purchased.set_size; i++) {
 				auto cid = purchased.commodity_type[i];
-				if (!cid) continue;
+				if (!cid) break;
 				auto cost = def.build_cost.commodity_amounts[i];
 				auto bought = purchased.commodity_amounts[i];
 				progress = std::min(progress, bought / cost);
