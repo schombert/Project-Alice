@@ -3040,7 +3040,7 @@ constexpr float lacking_supply_throughput_path_factor = 100.0f;
 constexpr float lacking_navalbase_path_factor = 5.0f; // penalty to pathfind weight if the adjacency is sea->land or vice verca, and the land province does not have atleast a lvl 1 naval base
 
 // Creates a military supply path, but will actively try to find the path with good supply thoughput and supply attrition. Path is inserted into the passed-in buffer. Buffer must be cleared first
-bool make_military_supply_path(const sys::state& state, dcon::province_id origin_prov, dcon::province_id destination, dcon::nation_id nation_as, float expected_volume, std::vector<dcon::province_id>& path_result, std::vector<dcon::province_adjacency_id>& adjacency_path_result) {
+bool make_logistics_path(const sys::state& state, dcon::province_id origin_prov, dcon::province_id destination, dcon::nation_id nation_as, float expected_volume, std::vector<dcon::province_id>& path_result, std::vector<dcon::province_adjacency_id>& adjacency_path_result) {
 
 	// Will store data relavent to each pathfind iteration, and initalized when a new iteration begins. Saves some duplicate computations
 	struct iteration_data {

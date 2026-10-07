@@ -595,7 +595,7 @@ TEST_CASE("make_logistics_path_profiling", "[pathfinding_profiling]") {
 			static thread_local std::vector<dcon::province_adjacency_id> adj_path;
 			prov_path.clear();
 			adj_path.clear();
-			province::make_military_supply_path(*gamestate_ptr, start, dest, tag, 0, prov_path, adj_path);
+			province::make_logistics_path(*gamestate_ptr, start, dest, tag, 0, prov_path, adj_path);
 		}
 		auto end = std::chrono::steady_clock::now();
 		gamestate_ptr->console_log(std::string("PATH SERIAL time: " + std::to_string(std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count())));
@@ -605,7 +605,7 @@ TEST_CASE("make_logistics_path_profiling", "[pathfinding_profiling]") {
 			static thread_local std::vector<dcon::province_adjacency_id> adj_path;
 			prov_path.clear();
 			adj_path.clear();
-			province::make_military_supply_path(*gamestate_ptr, start, dest, tag, 0, prov_path, adj_path);
+			province::make_logistics_path(*gamestate_ptr, start, dest, tag, 0, prov_path, adj_path);
 		});
 		end = std::chrono::steady_clock::now();
 		gamestate_ptr->console_log(std::string("PATH PARALLEL time: " + std::to_string(std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count())));

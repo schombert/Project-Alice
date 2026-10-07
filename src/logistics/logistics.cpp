@@ -1127,7 +1127,7 @@ void update_supply_route_path(sys::state& state, dcon::supply_route_path_id supp
 	auto state_inst = state.world.market_get_zone_from_local_market(origin);
 	auto capital = state.world.state_instance_get_capital(state_inst);
 	dcon::nation_id controller = state.world.state_instance_get_nation_from_state_control(state_inst);
-	bool valid = province::make_military_supply_path(state, capital, destiation, controller, expected_volume, path, adj_path);
+	bool valid = province::make_logistics_path(state, capital, destiation, controller, expected_volume, path, adj_path);
 	state.world.supply_route_path_get_path(supply_path).load_range(path.data(), path.data() + path.size());
 	state.world.supply_route_path_get_adjacency_path(supply_path).load_range(adj_path.data(), adj_path.data() + adj_path.size());
 	state.world.supply_route_path_set_path_out_of_date(supply_path, false); // Whether or not the pathing suceeded, it is no longer out of date
