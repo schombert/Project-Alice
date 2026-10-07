@@ -1317,7 +1317,13 @@ spending_cost full_spending_cost(sys::state& state, dcon::nation_id n, float bas
 
 		for(uint32_t i = 1; i < total_commodities; ++i) {
 			dcon::commodity_id cid{ dcon::commodity_id::value_base_t(i) };
+
+			auto local_price = price(state, local_market, cid);
+			auto median_price = state.world.commodity_get_median_price(cid);
+			auto overprice = std::max(0.f, 1.f - (local_price + 1.f) / (median_price + 1.f) / 5.f);
+
 			auto v = state.world.market_get_army_demand(local_market, cid)
+				* overprice
 				* l_spending
 				* price(state, local_market, cid);
 			assert(std::isfinite(v) && v >= 0.0f);
@@ -1326,8 +1332,15 @@ spending_cost full_spending_cost(sys::state& state, dcon::nation_id n, float bas
 		}
 		for(uint32_t i = 1; i < total_commodities; ++i) {
 			dcon::commodity_id cid{ dcon::commodity_id::value_base_t(i) };
+
+			auto local_price = price(state, local_market, cid);
+			auto median_price = state.world.commodity_get_median_price(cid);
+			auto overprice = std::max(0.f, 1.f - (local_price + 1.f) / (median_price + 1.f) / 5.f);
+
 			auto v = state.world.market_get_navy_demand(local_market, cid)
-				* n_spending * price(state, local_market, cid);
+				* overprice
+				* n_spending
+				* price(state, local_market, cid);
 			assert(std::isfinite(v) && v >= 0.0f);
 			total += v;
 			military_total += v;
@@ -1337,7 +1350,13 @@ spending_cost full_spending_cost(sys::state& state, dcon::nation_id n, float bas
 
 		for(uint32_t i = 1; i < total_commodities; ++i) {
 			dcon::commodity_id cid{ dcon::commodity_id::value_base_t(i) };
-			auto demand_const = state.world.market_get_construction_demand(local_market, cid);
+
+			auto local_price = price(state, local_market, cid);
+			auto median_price = state.world.commodity_get_median_price(cid);
+			auto overprice = std::max(0.f, 1.f - (local_price + 1.f) / (median_price + 1.f) / 5.f);
+
+			auto demand_const = state.world.market_get_construction_demand(local_market, cid) * overprice;
+
 			auto c_price = price(state, local_market, cid);
 
 			total_construction_costs += demand_const * c_price;
@@ -1532,9 +1551,9 @@ void update_national_consumption(sys::state& state, dcon::nation_id n, float spe
 
 		for(uint32_t i = 1; i < total_commodities; ++i) {
 			dcon::commodity_id cid{ dcon::commodity_id::value_base_t(i) };
-			auto sat = state.world.market_get_expected_probability_to_buy(market, cid);
-			auto sat_importance = std::min(1.f, 1.f / (price(state, market, cid) + 0.001f));
-			auto sat_coefficient = (sat_importance + (1.f - sat_importance) * sat);
+			auto local_price = price(state, market, cid);
+			auto median_price = state.world.commodity_get_median_price(cid);
+			auto overprice = std::max(0.f, 1.f - (local_price + 1.f) / (median_price + 1.f) / 5.f);
 
 			register_demand(
 				state,
@@ -1543,7 +1562,7 @@ void update_national_consumption(sys::state& state, dcon::nation_id n, float spe
 				state.world.market_get_army_demand(market, cid)
 				* l_spending
 				* spending_scale
-				* sat_coefficient
+				* overprice
 			);
 			register_demand(
 				state,
@@ -1552,17 +1571,15 @@ void update_national_consumption(sys::state& state, dcon::nation_id n, float spe
 				state.world.market_get_navy_demand(market, cid)
 				* n_spending
 				* spending_scale
-				* sat_coefficient
+				* overprice
 			);
-		}
-		for(uint32_t i = 1; i < total_commodities; ++i) {
-			dcon::commodity_id cid{ dcon::commodity_id::value_base_t(i) };
 			register_demand(
 				state,
 				market,
 				cid,
 				state.world.market_get_construction_demand(market, cid)
 				* spending_scale
+				* overprice
 			);
 		}
 	});
@@ -3660,7 +3677,13 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 					dcon::commodity_id c{ dcon::commodity_id::value_base_t(k) };
 
 					auto sat = state.world.market_get_actual_probability_to_buy(local_market, c);
-					auto val = state.world.market_get_navy_demand(local_market, c);
+
+					auto local_price = price(state, local_market, c);
+					auto median_price = state.world.commodity_get_median_price(c);
+					auto overprice = std::max(0.f, 1.f - (local_price + 1.f) / (median_price + 1.f) / 5.f);
+
+					auto val = state.world.market_get_navy_demand(local_market, c) * overprice;
+
 					auto delta =
 						val
 						* (1.0f - sat)
@@ -3694,7 +3717,12 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 					dcon::commodity_id c{ dcon::commodity_id::value_base_t(k) };
 
 					auto sat = state.world.market_get_actual_probability_to_buy(local_market, c);
-					auto val = state.world.market_get_army_demand(local_market, c);
+
+					auto local_price = price(state, local_market, c);
+					auto median_price = state.world.commodity_get_median_price(c);
+					auto overprice = std::max(0.f, 1.f - (local_price + 1.f) / (median_price + 1.f) / 5.f);
+					auto val = state.world.market_get_army_demand(local_market, c) * overprice;
+
 					auto delta =
 						val
 						* (1.0f - sat)

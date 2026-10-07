@@ -1590,6 +1590,10 @@ void display_data::render(
 				auto& p = flow_data.flow_particles_positions[i];
 				auto edge = flow_data.flow_particles_content[i];
 
+				if(edge >= (int)flow_data.edge_layer_probability.size()) {
+					continue;
+				}
+
 				for(int wagon = (int)p.wagon_positions.size() - 1; wagon > 0; wagon--) {
 					p.wagon_positions[wagon] = p.wagon_positions[wagon - 1];
 				}

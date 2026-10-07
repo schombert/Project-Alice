@@ -873,11 +873,7 @@ void set_map_mode(sys::state& state, mode mode) {
 	}
 
 	if(state.flow_map.source == flow_map::data_source::administration && mode != mode::admin) {
-		if(state.selected_trade_good) {
-			state.flow_map.request_update(flow_map::data_source::commodity);
-		} else {
-			state.flow_map.request_update(flow_map::data_source::none);
-		}
+		state.flow_map.request_update(flow_map::data_source::commodity);
 	}
 
 	switch(mode) {

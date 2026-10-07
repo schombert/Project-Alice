@@ -28,6 +28,7 @@ struct flow_particle {
 struct flow_map_data {
 	std::atomic<bool> update_requested = true;
 	data_source source = data_source::commodity;
+	data_source requested_source = data_source::commodity;
 
 	float cutoff = 0.f;
 
@@ -46,7 +47,7 @@ struct flow_map_data {
 	std::vector<glm::vec2> node_position{};
 
 	void request_update(data_source s) {
-		source = s;
+		requested_source = s;
 		update_requested.store(true, std::memory_order::release);
 	}
 };
