@@ -264,12 +264,6 @@ float utility_of_state(
 
 	auto total = state.world.state_instance_get_demographics(target, demographics::total);
 	auto primary = state.world.state_instance_get_demographics(target, primary_key);
-	state.world.for_each_culture([&](auto cid){
-		if(state.world.nation_get_accepted_cultures(potential_owner, cid)) {
-			auto key = demographics::to_key(state, cid);
-			primary = primary + state.world.state_instance_get_demographics(target, key);
-		}
-	});
 
 	auto base_utility = total * BASE_EFFICIENCY + primary * PRIMARY_EFFICIENCY;
 
