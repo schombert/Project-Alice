@@ -188,9 +188,6 @@ struct national_modifier_definition {
 				values[i] = value;
 				return true;
 			}
-			else {
-				break;
-			}
 		}
 		return false;
 	}
