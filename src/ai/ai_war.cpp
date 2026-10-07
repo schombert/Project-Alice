@@ -190,8 +190,8 @@ float probability_of_winning(
 
 // measure utility in effective taxpayers?
 
-inline constexpr float PRIMARY_EFFICIENCY = 0.6f;
-inline constexpr float BASE_EFFICIENCY = 0.4f;
+inline constexpr float PRIMARY_EFFICIENCY = 1.5f;
+inline constexpr float BASE_EFFICIENCY = 0.5f;
 
 // tries to estimate utility of starting a war
 // negative as currently there is no way to profit from wars directly

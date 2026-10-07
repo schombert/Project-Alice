@@ -1981,7 +1981,9 @@ void map_state::update(sys::state& state) {
 
 	if(unhandled_province_selection) {
 		map_mode::update_map_mode(state);
-		state.flow_map.request_update(state.flow_map.source);
+		if(state.flow_map.source == flow_map::data_source::administration) {
+			state.flow_map.request_update(state.flow_map.source);
+		}
 		map_data.update_highlight(state);
 		unhandled_province_selection = false;
 	}

@@ -369,14 +369,6 @@ public:
 	message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
 };
 
-class prov_map_br_overlay : public image_element_base {
-public:
-	void on_create(sys::state& state) noexcept override {
-		image_element_base::on_create(state);
-		frame = 1;
-	}
- };
-
 constexpr int casualties_shift_big_y = -80;
 constexpr int casualties_shift_small_y = -38;
 constexpr int casualties_attacker_shift_x = -14;
@@ -386,7 +378,8 @@ constexpr int battle_progress_shift_small_y = -22;
 class map_battle : public window_element_base {
 public:
 	progress_bar progress;
-	prov_map_br_overlay overlay_right;
+	image_element_base overlay_right;
+	image_element_base overlay_left;
 	remote_text_element_base defender_casualties;
 	remote_text_element_base attacker_casualties;
 
@@ -405,6 +398,15 @@ public:
 			make_size_from_graphics(state, item.base_data);
 			item.on_create(state);
 			item.parent = this;
+			item.frame = 1;
+		} else if(name == "overlay_left") {
+			auto& item = overlay_left;
+			auto& def = ui::get_element_data(state, id);
+			std::memcpy(&(item.base_data), &def, sizeof(ui::element_data));
+			make_size_from_graphics(state, item.base_data);
+			item.on_create(state);
+			item.parent = this;
+			item.frame = 0;
 		} else if(name == "defender_casualties") {
 			auto& item = defender_casualties;
 			auto& def = ui::get_element_data(state, id);
@@ -443,6 +445,11 @@ public:
 		}
 		{
 			auto& item = overlay_right;
+			auto shift = child_relative_location(state, *this, item);
+			item.impl_render(state, x + shift.x, y + shift.y + shift_bar);
+		}
+		{
+			auto& item = overlay_left;
 			auto shift = child_relative_location(state, *this, item);
 			item.impl_render(state, x + shift.x, y + shift.y + shift_bar);
 		}
@@ -835,6 +842,8 @@ public:
 
 		top_icon.frame.frame = int32_t(params.colors[0]);
 		top_right_icon.frame.frame = int32_t(params.top_right_color);
+		small_top_icon.frame.frame = int32_t(params.colors[0]);
+		small_top_right_icon.frame.frame = int32_t(params.top_right_color);
 
 		for(int i = 0; i < 4; i++) {
 			if ((i + 1) >= params.colors_used) {
@@ -892,17 +901,11 @@ public:
 
 		if(params.top_left_status >= 0) {
 			top_icon.status.frame = params.top_left_status;
+			top_right_icon.status.frame = params.top_left_status;
 		} else {
 			top_icon.status.frame = 0;
-		}
-
-		/*
-		if(params.top_right_status >= 0) {
-			top_right_icon.status.frame = params.top_right_status;
-		} else {
 			top_right_icon.status.frame = 0;
 		}
-		*/
 
 		if(params.top_dig_in >= 0) {
 			top_icon.dig_in.frame = params.top_dig_in;

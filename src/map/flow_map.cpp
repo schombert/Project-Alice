@@ -929,6 +929,8 @@ void update(sys::state& state) {
 	map::display_data& map_data = state.map_state.map_data;
 
 	if(data.update_requested.load(std::memory_order::acquire)) {
+		data.source = data.requested_source;
+
 		data.flow_graph.clear();
 		data.particle_next_node_probability.clear();
 		data.node_probability_create.clear();
@@ -943,15 +945,22 @@ void update(sys::state& state) {
 			data.node_probability_create.resize(state.world.province_size());
 			state.world.for_each_province([&](auto pid) {
 				data.node_position[pid.index()] = map::get_army_location(state, pid);
+
 				data.node_total_out[pid.index()].resize(state.world.commodity_size());
 				data.node_total_in[pid.index()].resize(state.world.commodity_size());
 				data.node_probability_create[pid.index()].resize(state.world.commodity_size());
+				state.world.for_each_commodity([&](auto item) {
+					data.node_probability_create[pid.index()][item.index()] = 0.f;
+					data.node_total_in[pid.index()][item.index()] = 0.f;
+					data.node_total_out[pid.index()][item.index()] = 0.f;
+				});
 			});
 
 			state.world.for_each_commodity([&](auto item) {
 				build_graph_commodity(state, data, item);
 				//convert_graph_to_vertices(state);
 			});
+
 			convert_balance_to_probabilities(data, state.province_definitions.first_sea_province.index(), state.world.commodity_size());
 
 			if(state.user_settings.trade_particles_count == 0) {
@@ -970,6 +979,8 @@ void update(sys::state& state) {
 
 			if(state.selected_trade_good) {
 				convert_graph_to_vertices(state, state.selected_trade_good.index());
+			} else {
+				clear_vertices(state);
 			}
 
 			reset_particles(data);
@@ -986,7 +997,12 @@ void update(sys::state& state) {
 				data.node_total_out[pid.index()].resize(1);
 				data.node_total_in[pid.index()].resize(1);
 				data.node_probability_create[pid.index()].resize(1);
+
+				data.node_total_out[pid.index()][0] = 0.f;
+				data.node_total_in[pid.index()][0] = 0.f;
+				data.node_probability_create[pid.index()][0] = 0.f;
 			});
+
 			build_graph_administration(state, data);
 			convert_balance_to_probabilities(data, state.province_definitions.first_sea_province.index(), 1);
 			convert_graph_to_vertices(state, 0);
@@ -999,6 +1015,8 @@ void update(sys::state& state) {
 			data.node_total_in.clear();
 			data.node_total_out.clear();
 			clear_vertices(state);
+
+			reset_particles(data);
 		}
 		data.update_requested.store(false, std::memory_order_release);
 	}
