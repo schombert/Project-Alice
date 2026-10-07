@@ -369,14 +369,13 @@ trade_route_volume_change_reasons predict_trade_route_volume_change(
 
 	auto price_sold = owner == A ? price_import : price_export;
 
-	auto budget_factor = std::min(1.f, std::max(0.f, budget / 1000.f * (0.8f - import_budget_scale) / (economy::price_properties::commodity::min + price_sold)));
-	auto budget_scale = 1.f - import_budget_scale;
+	auto budget_scale = std::max(0.f, 1.f - import_budget_scale);
+	auto budget_factor = std::min(1.f, std::max(0.f, budget / 100.f / (1.f + 5.f * import_budget_scale) / (economy::price_properties::commodity::min + price_sold)));
 
 	auto hard_limit = transport_availability;
 	auto soft_limit = expected_to_sell * expected_to_buy;
 	auto change_multiplier =
-		std::max(0.f, (budget_scale - 0.1f) / 0.9f)
-		* std::max(0.f, (hard_limit - 0.9f) / 0.1f)
+		std::max(0.f, (hard_limit - 0.9f) / 0.1f)
 		* std::max(0.f, (soft_limit - 0.8f) / 0.2f)
 		* budget_factor * budget_factor;
 	auto decay = std::max(0.999f, std::min(1.f, 0.5f + budget_scale * soft_limit * hard_limit));
@@ -535,15 +534,14 @@ void update_trade_routes_volume(
 
 			auto price_sold = ve::select(owner == origin, price_import, price_export);
 			//auto risk = ve::min(1.f, budget * 0.01f / (economy::price_properties::commodity::min + price_export));
-			auto budget_factor = ve::min(ve::fp_vector{ 1.f }, ve::max(ve::fp_vector{ 0.f }, budget / 1000.f * (0.8f - import_budget_scale) / (economy::price_properties::commodity::min + price_sold)));
-			auto budget_scale = 1.f - import_budget_scale;
+			auto budget_scale = ve::max(ve::fp_vector{ 0.f }, 1.f - import_budget_scale);
+			auto budget_factor = ve::min(ve::fp_vector{ 1.f }, ve::max(ve::fp_vector{ 0.f }, budget / (1.f + import_budget_scale * 5.f) / 100.f * budget_scale / (economy::price_properties::commodity::min + price_sold)));
 
 			auto hard_limit = transport_availability;
 			auto soft_limit = expected_to_sell * expected_to_buy;
 
 			auto change_multiplier =
-				ve::max(ve::fp_vector{ 0.f }, (budget_scale - 0.1f) / 0.9f)
-				* ve::max(ve::fp_vector{ 0.f }, (hard_limit - 0.9f) / 0.1f)
+				ve::max(ve::fp_vector{ 0.f }, (hard_limit - 0.9f) / 0.1f)
 				* ve::max(ve::fp_vector{ 0.f }, (soft_limit - 0.8f) / 0.2f)
 				* budget_factor * budget_factor;
 			auto decay = ve::max(0.999f, ve::min(1.f, 0.5f + hard_limit * soft_limit * budget_scale));
