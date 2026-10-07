@@ -705,4 +705,14 @@ spriteTypes = {
         texturefile = "assets\\markettiles.png"
         noOfFrames = 4
 	}
+	spriteType = {
+        name = "GFX_supply_loss_icon"
+        texturefile = "assets\\supply_loss_icon.dds"
+        noOfFrames = 1
+	}
+	spriteType = {
+        name = "GFX_supply_throughput_icon"
+        texturefile = "assets\\supply_throughput_icon.dds"
+        noOfFrames = 1
+	}
 }

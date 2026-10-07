@@ -80,8 +80,8 @@ guiTypes = {
 	iconType = {
 		name ="topbar_supply_loss_logistics"
 		extends = "topbar"
-		spriteType = "GFX_topbar_navy"
-		position = { x = 426 y = 124 }
+		spriteType = "GFX_supply_loss_icon"
+		position = { x = 432 y = 132 }
 		Orientation = "UPPER_LEFT"
 	}
 	instantTextBoxType = {
@@ -100,8 +100,8 @@ guiTypes = {
 	iconType = {
 		name ="topbar_supply_throughput_logistics"
 		extends = "topbar"
-		spriteType = "GFX_topbar_navy"
-		position = { x = 496 y = 123 }
+		spriteType = "GFX_supply_throughput_icon"
+		position = { x = 500 y = 131 }
 		Orientation = "UPPER_LEFT"
 	}
 	instantTextBoxType = {

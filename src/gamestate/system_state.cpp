@@ -3518,7 +3518,8 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	// ai::update_ai_research(*this);
 	ai::update_influence_priorities(*this);
 	ai::update_focuses(*this);
-	logistics::update_supply_routes_daily(*this);
+	// Right now we dont need to do any military or logistics related updates on scenario creation, since it won't do anything anyway
+	/*logistics::update_supply_routes_daily(*this);
 
 
 	military::reinforce_regiments(*this);
@@ -3533,7 +3534,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 		[&]() {
 			military::repair_ships(*this);
 		}
-	);
+	);*/
 
 	military::set_initial_leaders(*this);
 
@@ -4983,6 +4984,8 @@ std::thread state::start_logger_thread() {
 			this->flush_pending_log_messages();
 			std::this_thread::sleep_for(std::chrono::milliseconds(50));
 		}
+		// Do one last flush to flush any remaining messages before exit
+		this->flush_pending_log_messages();
 	});
 	return thread;
 }

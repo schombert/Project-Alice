@@ -1114,42 +1114,44 @@ void update_supply_route_arrows(sys::state& state, display_data& map_data) {
 	map_data.strategy_unit_arrow_vertices.clear();
 	map_data.strategy_unit_arrow_counts.clear();
 	map_data.strategy_unit_arrow_starts.clear();
-	for(auto selected_army : state.selected_armies) {
-		for(auto route : state.world.army_get_army_supply_route(selected_army)) {
-			if(!logistics::supply_route_is_active(state, route.id)) {
-				continue;
-			}
-			// make a copy of the path so that there arent the possibilty of the path being modified while the renderer reads from it
-			auto path = state.world.supply_route_path_get_path( logistics::supply_route_get_path(state, route.id));
-			if(path.size() > 0) {
-				auto path_copy = std::vector<dcon::province_id>(path.begin(), path.end());
-				auto old_size = map_data.strategy_unit_arrow_vertices.size();
-				map_data.strategy_unit_arrow_starts.push_back(GLint(old_size));
-				map::make_supply_route_path(state, map_data.strategy_unit_arrow_vertices, route.id, path_copy, float(map_data.size_x), float(map_data.size_y));
-				map_data.strategy_unit_arrow_counts.push_back(GLsizei(map_data.strategy_unit_arrow_vertices.size() - old_size));
+	if(state.cheat_data.show_mil_routes) {
+		for(auto selected_army : state.selected_armies) {
+			for(auto route : state.world.army_get_army_supply_route(selected_army)) {
+				if(!logistics::supply_route_is_active(state, route.id)) {
+					continue;
+				}
+				// make a copy of the path so that there arent the possibilty of the path being modified while the renderer reads from it
+				auto path = state.world.supply_route_path_get_path(logistics::supply_route_get_path(state, route.id));
+				if(path.size() > 0) {
+					auto path_copy = std::vector<dcon::province_id>(path.begin(), path.end());
+					auto old_size = map_data.strategy_unit_arrow_vertices.size();
+					map_data.strategy_unit_arrow_starts.push_back(GLint(old_size));
+					map::make_supply_route_path(state, map_data.strategy_unit_arrow_vertices, route.id, path_copy, float(map_data.size_x), float(map_data.size_y));
+					map_data.strategy_unit_arrow_counts.push_back(GLsizei(map_data.strategy_unit_arrow_vertices.size() - old_size));
+				}
 			}
 		}
-	}
-	for(auto selected_navy : state.selected_navies) {
-		for(auto route : state.world.navy_get_navy_supply_route(selected_navy)) {
-			if(!logistics::supply_route_is_active(state, route.id)) {
-				continue;
-			}
-			// make a copy of the path so that there arent the possibilty of the path being modified while the renderer reads from it
-			auto path = state.world.supply_route_path_get_path(logistics::supply_route_get_path(state, route.id));
-			if(path.size() > 0) {
-				auto path_copy = std::vector<dcon::province_id>(path.begin(), path.end());
-				auto old_size = map_data.strategy_unit_arrow_vertices.size();
-				map_data.strategy_unit_arrow_starts.push_back(GLint(old_size));
-				map::make_supply_route_path(state, map_data.strategy_unit_arrow_vertices, route.id, path_copy, float(map_data.size_x), float(map_data.size_y));
-				map_data.strategy_unit_arrow_counts.push_back(GLsizei(map_data.strategy_unit_arrow_vertices.size() - old_size));
+		for(auto selected_navy : state.selected_navies) {
+			for(auto route : state.world.navy_get_navy_supply_route(selected_navy)) {
+				if(!logistics::supply_route_is_active(state, route.id)) {
+					continue;
+				}
+				// make a copy of the path so that there arent the possibilty of the path being modified while the renderer reads from it
+				auto path = state.world.supply_route_path_get_path(logistics::supply_route_get_path(state, route.id));
+				if(path.size() > 0) {
+					auto path_copy = std::vector<dcon::province_id>(path.begin(), path.end());
+					auto old_size = map_data.strategy_unit_arrow_vertices.size();
+					map_data.strategy_unit_arrow_starts.push_back(GLint(old_size));
+					map::make_supply_route_path(state, map_data.strategy_unit_arrow_vertices, route.id, path_copy, float(map_data.size_x), float(map_data.size_y));
+					map_data.strategy_unit_arrow_counts.push_back(GLsizei(map_data.strategy_unit_arrow_vertices.size() - old_size));
+				}
 			}
 		}
 	}
 	if(!map_data.strategy_unit_arrow_vertices.empty()) {
 		glBindBuffer(GL_ARRAY_BUFFER, map_data.vbo_array[map_data.vo_strategy_unit_arrow]);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(curved_line_vertex) * map_data.strategy_unit_arrow_vertices.size(), map_data.strategy_unit_arrow_vertices.data(), GL_STATIC_DRAW);
-	}
+	}	
 }
 
 void update_unit_arrows(sys::state& state, display_data& map_data) {
@@ -2586,9 +2588,9 @@ void map_state::update(sys::state& state) {
 		state.update_trade_flow.store(false, std::memory_order_release);
 	}
 	update_unit_arrows(state, map_data);
-	// Only renders arrows of selected units or navies for now
+	// Only renders arrows of selected units or navies, and only when debugging it
 	update_supply_route_arrows(state, map_data);
-
+	
 	// Update railroads, only if railroads are being built and we have 'em enabled
 	if(state.user_settings.railroads_enabled && state.sprawl_update_requested.load(std::memory_order::acquire)) {
 		state.map_state.map_data.update_sprawl(state);

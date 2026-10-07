@@ -3920,11 +3920,11 @@ void update_crisis(sys::state& state) {
 }
 
 void get_existing_nations(const sys::state& state, std::vector<dcon::nation_id>& vec_out) {
-	state.world.for_each_nation([&](dcon::nation_id n) {
+	for(dcon::nation_id n : state.world.in_nation) {
 		if(exists(state, n)) {
 			vec_out.push_back(n);
 		}
-	});
+	}
 }
 std::vector<dcon::nation_id> get_existing_nations(const sys::state& state) {
 	std::vector<dcon::nation_id> nations{ };

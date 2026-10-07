@@ -425,6 +425,7 @@ struct cheat_data_s {
 	bool province_names = false;
 
 	bool ecodump = false;
+	bool show_mil_routes = false;
 
 	std::string national_economy_dump_buffer;
 	std::string savings_buffer;

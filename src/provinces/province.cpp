@@ -2534,21 +2534,16 @@ bool has_safe_access_to_province(sys::state& state, dcon::nation_id nation_as, d
 bool has_supply_access_to_province(const sys::state& state, dcon::nation_id nation_as, dcon::province_id prov) {
 	assert(nation_as);
 
-	if(province::is_sea(state, prov)) {
-		return true; // Sea provinces are always accessible. Blockades are resolved elsewhere
-	}
-
+	bool is_sea = province::is_sea(state, prov);// Sea provinces are always accessible. Blockades are resolved elsewhere
 	auto controller = state.world.province_get_nation_from_province_control(prov);
-
-	if(controller == nation_as)
-		return true;
-
-	if(state.world.nation_get_in_sphere_of(controller) == nation_as)
-		return true;
-
 	auto coverl = state.world.nation_get_overlord_as_subject(controller);
-	if(state.world.overlord_get_ruler(coverl) == nation_as)
+	bool is_controller = (controller == nation_as);
+	bool is_spherelord = (state.world.nation_get_in_sphere_of(controller) == nation_as);
+	bool is_overlord = (state.world.overlord_get_ruler(coverl) == nation_as);
+
+	if(is_sea || is_controller || is_spherelord || is_overlord) {
 		return true;
+	}
 
 	auto url = state.world.get_unilateral_relationship_by_unilateral_pair(controller, nation_as);
 	if(state.world.unilateral_relationship_get_military_access(url))

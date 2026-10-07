@@ -161,10 +161,12 @@ void nation_for_each_unit_by_type(const sys::state& state, dcon::nation_id natio
 }
 template<typename F>
 void parallel_for_each_existing_nation(const sys::state& state, F&& func) {
-	static std::vector<dcon::nation_id> existing_nations{ };
-	existing_nations.clear();
-	get_existing_nations(state, existing_nations);
-	concurrency::parallel_for_each(existing_nations.begin(), existing_nations.end(), func);
+	concurrency::parallel_for(uint32_t(0), state.world.nation_size(), [&](uint32_t i) {
+		dcon::nation_id nation{ dcon::nation_id::value_base_t(i) };
+		if(exists(state, nation)) {
+			func(nation);
+		}
+	});
 }
 
 } // namespace nations

@@ -2699,7 +2699,10 @@ void update_supply_routes_daily(sys::state& state) {
 	begin = std::chrono::steady_clock::now();
 
 
-	// step 7: Increment the amount of days a route or path has been inactive, add the volume used by some supply routes unto each adjacency, and finally set the recently_created flag to false
+	// step 7: Increment the amount of days a route or path has been inactive, add the volume used by some supply routes unto each adjacency, and finally set the recently_created flag to false.
+	// Also setup the path batch container in the meantime as it can also run in parallel with these things
+
+	static std::vector<std::vector<dcon::supply_route_path_id>> path_batches;
 
 	concurrency::parallel_invoke(
 		[&]() {
@@ -2730,6 +2733,10 @@ void update_supply_routes_daily(sys::state& state) {
 					add_used_supply_throughput(state, adj_path, volume);
 				}
 			});
+		},
+		[&]() {
+			// Setup the batch container
+			setup_spread_supply_path_batches(state, supply_route_pathfinding_batches, path_batches);
 		}
 	);
 
@@ -2737,11 +2744,7 @@ void update_supply_routes_daily(sys::state& state) {
 	state.console_log(std::string("STEP 7 time: " + std::to_string(std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count())));
 	begin = std::chrono::steady_clock::now();
 
-	// STEP 8: Update paths requiring an update by dividing the work into batches. The total amount of paths requiring an update will be divided into x batches (currently 50). The logic will attempt to keep paths with the same origin point in diffrent batches to lessen the impact on patching quality
-	// 
-	// Setup the batch container
-	static std::vector<std::vector<dcon::supply_route_path_id>> path_batches;
-	setup_spread_supply_path_batches(state, supply_route_pathfinding_batches, path_batches);
+	// STEP 8: Update paths requiring an update by processing it in batches. The total amount of paths requiring an update will be divided into x batches, done by the previous loop. The logic will attempt to keep paths with the same origin point in diffrent batches to lessen the impact on patching quality
 
 
 	// Process the batches. The application of used supply throughput is done once per batch, and has to be done serially as it modifies arbitrary province adjacency data
