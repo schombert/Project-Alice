@@ -2706,14 +2706,6 @@ void budgetwindow_section_header_label_t::on_update(sys::state& state) noexcept 
 	case budget_categories::navy_upkeep: set_text(state, text::produce_simple_string(state, "alice_budget_navy_upkeep")); break;
 	case budget_categories::debt_payment: set_text(state, text::produce_simple_string(state, "alice_budget_debt_service")); break;
 	case budget_categories::stockpile: set_text(state, text::produce_simple_string(state, "national_stockpile")); break;
-	case budget_categories::land_reinforcement: set_text(state, text::produce_simple_string(state, "land_reinforcement_consumption")); break;
-	case budget_categories::land_supply: set_text(state, text::produce_simple_string(state, "land_supply_consumption")); break;
-	case budget_categories::naval_reinforcement: set_text(state, text::produce_simple_string(state, "naval_reinforcement_consumption")); break;
-	case budget_categories::naval_supply: set_text(state, text::produce_simple_string(state, "naval_supply_consumption")); break;
-	case budget_categories::army_construction: set_text(state, text::produce_simple_string(state, "army_construction_consumption")); break;
-	case budget_categories::naval_construction: set_text(state, text::produce_simple_string(state, "navy_construction_consumption")); break;
-	case budget_categories::factory_construction: set_text(state, text::produce_simple_string(state, "factory_construction_consumption")); break;
-	case budget_categories::building_construction: set_text(state, text::produce_simple_string(state, "building_construction_consumption")); break;
 	default: set_text(state, ""); break;
 	}
 // END
@@ -2743,14 +2735,6 @@ void budgetwindow_section_header_llbutton_t::on_update(sys::state& state) noexce
 	case budget_categories::navy_upkeep: set_visible(state, true); break;
 	case budget_categories::debt_payment: set_visible(state, false); break;
 	case budget_categories::stockpile: set_visible(state, true);  break;
-	case budget_categories::land_reinforcement: set_visible(state, true);  break;
-	case budget_categories::land_supply: set_visible(state, true);  break;
-	case budget_categories::naval_reinforcement: set_visible(state, true);  break;
-	case budget_categories::naval_supply: set_visible(state, true);  break;
-	case budget_categories::army_construction: set_visible(state, true);  break;
-	case budget_categories::naval_construction: set_visible(state, true);  break;
-	case budget_categories::factory_construction: set_visible(state, true);  break;
-	case budget_categories::building_construction: set_visible(state, true);  break;
 	default: set_visible(state, false); break;
 	}
 // END
@@ -2781,14 +2765,6 @@ bool budgetwindow_section_header_llbutton_t::button_action(sys::state& state) no
 	case budget_categories::navy_upkeep: vals.naval_spending = economy::budget_minimums(state, state.local_player_nation).naval_spending; break;
 	case budget_categories::debt_payment: break;
 	case budget_categories::stockpile: vals.stockpile_spending = economy::budget_minimums(state, state.local_player_nation).stockpile_spending; break;
-	case budget_categories::land_reinforcement: command::change_army_reinforcement_consumption_setting(state, logistics::army_reinforcement_setting_min(state, state.local_player_nation)); break;
-	case budget_categories::land_supply: command::change_army_supply_consumption_setting(state, logistics::army_supply_setting_min(state, state.local_player_nation)); break;
-	case budget_categories::naval_reinforcement: command::change_navy_reinforcement_consumption_setting(state, logistics::navy_reinforcement_setting_min(state, state.local_player_nation)); break;
-	case budget_categories::naval_supply: command::change_navy_supply_consumption_setting(state, logistics::navy_supply_setting_min(state, state.local_player_nation)); break;
-	case budget_categories::army_construction: command::change_army_construction_consumption_setting(state, logistics::army_construction_setting_min(state, state.local_player_nation)); break;
-	case budget_categories::naval_construction: command::change_navy_construction_consumption_setting(state, logistics::navy_construction_setting_min(state, state.local_player_nation)); break;
-	case budget_categories::factory_construction: command::change_factory_construction_consumption_setting(state, logistics::factory_construction_setting_min(state, state.local_player_nation)); break;
-	case budget_categories::building_construction: command::change_building_construction_consumption_setting(state, logistics::building_construction_setting_min(state, state.local_player_nation)); break;
 	default:  break;
 	}
 	command::change_budget_settings(state, state.local_player_nation, vals);
@@ -2820,14 +2796,6 @@ void budgetwindow_section_header_lbutton_t::on_update(sys::state& state) noexcep
 	case budget_categories::navy_upkeep: set_visible(state, true); break;
 	case budget_categories::debt_payment: set_visible(state, false); break;
 	case budget_categories::stockpile: set_visible(state, true);  break;
-	case budget_categories::land_reinforcement: set_visible(state, true);  break;
-	case budget_categories::land_supply: set_visible(state, true);  break;
-	case budget_categories::naval_reinforcement: set_visible(state, true);  break;
-	case budget_categories::naval_supply: set_visible(state, true);  break;
-	case budget_categories::army_construction: set_visible(state, true);  break;
-	case budget_categories::naval_construction: set_visible(state, true);  break;
-	case budget_categories::factory_construction: set_visible(state, true);  break;
-	case budget_categories::building_construction: set_visible(state, true);  break;
 	default: set_visible(state, false); break;
 	}
 // END
@@ -2858,14 +2826,6 @@ bool budgetwindow_section_header_lbutton_t::button_action(sys::state& state) noe
 	case budget_categories::navy_upkeep: vals.naval_spending = int8_t(std::clamp(state.world.nation_get_naval_spending(state.local_player_nation) - 10, 0, 100)); break;
 	case budget_categories::debt_payment: break;
 	case budget_categories::stockpile:  vals.stockpile_spending = int8_t(std::clamp(state.world.nation_get_stockpile_spending(state.local_player_nation) - 10, 0, 100)); break;
-	case budget_categories::land_reinforcement: command::change_army_reinforcement_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_land_reinforcement_consumption(state.local_player_nation) - 10), logistics::army_reinforcement_setting_min(state, state.local_player_nation), logistics::army_reinforcement_setting_max(state, state.local_player_nation))); break;
-	case budget_categories::land_supply: command::change_army_supply_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_land_supply_consumption(state.local_player_nation) - 10), logistics::army_supply_setting_min(state, state.local_player_nation), logistics::army_supply_setting_max(state, state.local_player_nation))); break;
-	case budget_categories::naval_reinforcement: command::change_navy_reinforcement_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_naval_reinforcement_consumption(state.local_player_nation) - 10), logistics::navy_reinforcement_setting_min(state, state.local_player_nation), logistics::navy_reinforcement_setting_max(state, state.local_player_nation))); break;
-	case budget_categories::naval_supply: command::change_navy_supply_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_naval_supply_consumption(state.local_player_nation) - 10), logistics::navy_supply_setting_min(state, state.local_player_nation), logistics::navy_supply_setting_max(state, state.local_player_nation))); break;
-	case budget_categories::army_construction: command::change_army_construction_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_army_construction_consumption(state.local_player_nation) - 10), logistics::army_construction_setting_min(state, state.local_player_nation), logistics::army_construction_setting_max(state, state.local_player_nation))); break;
-	case budget_categories::naval_construction: command::change_navy_construction_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_navy_construction_consumption(state.local_player_nation) - 10), logistics::navy_construction_setting_min(state, state.local_player_nation), logistics::navy_construction_setting_max(state, state.local_player_nation))); break;
-	case budget_categories::factory_construction: command::change_factory_construction_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_factory_construction_consumption(state.local_player_nation) - 10), logistics::factory_construction_setting_min(state, state.local_player_nation), logistics::factory_construction_setting_max(state, state.local_player_nation))); break;
-	case budget_categories::building_construction: command::change_building_construction_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_building_construction_consumption(state.local_player_nation) - 10), logistics::building_construction_setting_min(state, state.local_player_nation), logistics::building_construction_setting_max(state, state.local_player_nation))); break;
 	default:  break;
 	}
 	command::change_budget_settings(state, state.local_player_nation, vals);
@@ -2898,14 +2858,6 @@ bool budgetwindow_section_header_lbutton_t::button_shift_action(sys::state& stat
 		case budget_categories::navy_upkeep: vals.naval_spending = int8_t(std::clamp(state.world.nation_get_naval_spending(state.local_player_nation) - 1, 0, 100)); break;
 		case budget_categories::debt_payment: break;
 		case budget_categories::stockpile:  vals.stockpile_spending = int8_t(std::clamp(state.world.nation_get_stockpile_spending(state.local_player_nation) - 1, 0, 100)); break;
-		case budget_categories::land_reinforcement: command::change_army_reinforcement_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_land_reinforcement_consumption(state.local_player_nation) - 1), logistics::army_reinforcement_setting_min(state, state.local_player_nation), logistics::army_reinforcement_setting_max(state, state.local_player_nation))); break;
-		case budget_categories::land_supply: command::change_army_supply_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_land_supply_consumption(state.local_player_nation) - 1), logistics::army_supply_setting_min(state, state.local_player_nation), logistics::army_supply_setting_max(state, state.local_player_nation))); break;
-		case budget_categories::naval_reinforcement: command::change_navy_reinforcement_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_naval_reinforcement_consumption(state.local_player_nation) - 1), logistics::navy_reinforcement_setting_min(state, state.local_player_nation), logistics::navy_reinforcement_setting_max(state, state.local_player_nation))); break;
-		case budget_categories::naval_supply: command::change_navy_supply_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_naval_supply_consumption(state.local_player_nation) - 1), logistics::navy_supply_setting_min(state, state.local_player_nation), logistics::navy_supply_setting_max(state, state.local_player_nation))); break;
-		case budget_categories::army_construction: command::change_army_construction_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_army_construction_consumption(state.local_player_nation) - 1), logistics::army_construction_setting_min(state, state.local_player_nation), logistics::army_construction_setting_max(state, state.local_player_nation))); break;
-		case budget_categories::naval_construction: command::change_navy_construction_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_navy_construction_consumption(state.local_player_nation) - 1), logistics::navy_construction_setting_min(state, state.local_player_nation), logistics::navy_construction_setting_max(state, state.local_player_nation))); break;
-		case budget_categories::factory_construction: command::change_factory_construction_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_factory_construction_consumption(state.local_player_nation) - 1), logistics::factory_construction_setting_min(state, state.local_player_nation), logistics::factory_construction_setting_max(state, state.local_player_nation))); break;
-		case budget_categories::building_construction: command::change_building_construction_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_building_construction_consumption(state.local_player_nation) - 1), logistics::building_construction_setting_min(state, state.local_player_nation), logistics::building_construction_setting_max(state, state.local_player_nation))); break;
 		default:  break;
 		}
 		command::change_budget_settings(state, state.local_player_nation, vals);
@@ -2937,14 +2889,6 @@ void budgetwindow_section_header_rbutton_t::on_update(sys::state& state) noexcep
 	case budget_categories::navy_upkeep: set_visible(state, true); break;
 	case budget_categories::debt_payment: set_visible(state, false); break;
 	case budget_categories::stockpile: set_visible(state, true);  break;
-	case budget_categories::land_reinforcement: set_visible(state, true);  break;
-	case budget_categories::land_supply: set_visible(state, true);  break;
-	case budget_categories::naval_reinforcement: set_visible(state, true);  break;
-	case budget_categories::naval_supply: set_visible(state, true);  break;
-	case budget_categories::army_construction: set_visible(state, true);  break;
-	case budget_categories::naval_construction: set_visible(state, true);  break;
-	case budget_categories::factory_construction: set_visible(state, true);  break;
-	case budget_categories::building_construction: set_visible(state, true);  break;
 	default: set_visible(state, false); break;
 	}
 // END
@@ -2975,14 +2919,6 @@ bool budgetwindow_section_header_rbutton_t::button_action(sys::state& state) noe
 	case budget_categories::navy_upkeep: vals.naval_spending = int8_t(std::clamp(state.world.nation_get_naval_spending(state.local_player_nation) + 10, 0, 100)); break;
 	case budget_categories::debt_payment: break;
 	case budget_categories::stockpile: vals.stockpile_spending = int8_t(std::clamp(state.world.nation_get_stockpile_spending(state.local_player_nation) + 10, 0, 100)); break;
-	case budget_categories::land_reinforcement: command::change_army_reinforcement_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_land_reinforcement_consumption(state.local_player_nation) + 10), logistics::army_reinforcement_setting_min(state, state.local_player_nation), logistics::army_reinforcement_setting_max(state, state.local_player_nation))); break;
-	case budget_categories::land_supply: command::change_army_supply_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_land_supply_consumption(state.local_player_nation) + 10), logistics::army_supply_setting_min(state, state.local_player_nation), logistics::army_supply_setting_max(state, state.local_player_nation))); break;
-	case budget_categories::naval_reinforcement: command::change_navy_reinforcement_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_naval_reinforcement_consumption(state.local_player_nation) + 10), logistics::navy_reinforcement_setting_min(state, state.local_player_nation), logistics::navy_reinforcement_setting_max(state, state.local_player_nation))); break;
-	case budget_categories::naval_supply: command::change_navy_supply_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_naval_supply_consumption(state.local_player_nation) + 10), logistics::navy_supply_setting_min(state, state.local_player_nation), logistics::navy_supply_setting_max(state, state.local_player_nation))); break;
-	case budget_categories::army_construction: command::change_army_construction_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_army_construction_consumption(state.local_player_nation) + 10), logistics::army_construction_setting_min(state, state.local_player_nation), logistics::army_construction_setting_max(state, state.local_player_nation))); break;
-	case budget_categories::naval_construction: command::change_navy_construction_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_navy_construction_consumption(state.local_player_nation) + 10), logistics::navy_construction_setting_min(state, state.local_player_nation), logistics::navy_construction_setting_max(state, state.local_player_nation))); break;
-	case budget_categories::factory_construction: command::change_factory_construction_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_factory_construction_consumption(state.local_player_nation) + 10), logistics::factory_construction_setting_min(state, state.local_player_nation), logistics::factory_construction_setting_max(state, state.local_player_nation))); break;
-	case budget_categories::building_construction: command::change_building_construction_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_building_construction_consumption(state.local_player_nation) + 10), logistics::building_construction_setting_min(state, state.local_player_nation), logistics::building_construction_setting_max(state, state.local_player_nation))); break;
 	default:  break;
 	}
 	command::change_budget_settings(state, state.local_player_nation, vals);
@@ -3015,14 +2951,6 @@ bool budgetwindow_section_header_rbutton_t::button_shift_action(sys::state& stat
 		case budget_categories::navy_upkeep: vals.naval_spending = int8_t(std::clamp(state.world.nation_get_naval_spending(state.local_player_nation) + 1, 0, 100)); break;
 		case budget_categories::debt_payment: break;
 		case budget_categories::stockpile: vals.stockpile_spending = int8_t(std::clamp(state.world.nation_get_stockpile_spending(state.local_player_nation) + 1, 0, 100)); break;
-		case budget_categories::land_reinforcement: command::change_army_reinforcement_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_land_reinforcement_consumption(state.local_player_nation) + 1), logistics::army_reinforcement_setting_min(state, state.local_player_nation), logistics::army_reinforcement_setting_max(state, state.local_player_nation))); break;
-		case budget_categories::land_supply: command::change_army_supply_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_land_supply_consumption(state.local_player_nation) + 1), logistics::army_supply_setting_min(state, state.local_player_nation), logistics::army_supply_setting_max(state, state.local_player_nation))); break;
-		case budget_categories::naval_reinforcement: command::change_navy_reinforcement_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_naval_reinforcement_consumption(state.local_player_nation) + 1), logistics::navy_reinforcement_setting_min(state, state.local_player_nation), logistics::navy_reinforcement_setting_max(state, state.local_player_nation))); break;
-		case budget_categories::naval_supply: command::change_navy_supply_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_naval_supply_consumption(state.local_player_nation) + 1), logistics::navy_supply_setting_min(state, state.local_player_nation), logistics::navy_supply_setting_max(state, state.local_player_nation))); break;
-		case budget_categories::army_construction: command::change_army_construction_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_army_construction_consumption(state.local_player_nation) + 1), logistics::army_construction_setting_min(state, state.local_player_nation), logistics::army_construction_setting_max(state, state.local_player_nation))); break;
-		case budget_categories::naval_construction: command::change_navy_construction_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_navy_construction_consumption(state.local_player_nation) + 1), logistics::navy_construction_setting_min(state, state.local_player_nation), logistics::navy_construction_setting_max(state, state.local_player_nation))); break;
-		case budget_categories::factory_construction: command::change_factory_construction_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_factory_construction_consumption(state.local_player_nation) + 1), logistics::factory_construction_setting_min(state, state.local_player_nation), logistics::factory_construction_setting_max(state, state.local_player_nation))); break;
-		case budget_categories::building_construction: command::change_building_construction_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_building_construction_consumption(state.local_player_nation) + 1), logistics::building_construction_setting_min(state, state.local_player_nation), logistics::building_construction_setting_max(state, state.local_player_nation))); break;
 		default:  break;
 		}
 		command::change_budget_settings(state, state.local_player_nation, vals);
@@ -3054,14 +2982,6 @@ void budgetwindow_section_header_rrbutton_t::on_update(sys::state& state) noexce
 	case budget_categories::navy_upkeep: set_visible(state, true); break;
 	case budget_categories::debt_payment: set_visible(state, false); break;
 	case budget_categories::stockpile: set_visible(state, true);  break;
-	case budget_categories::land_reinforcement: set_visible(state, true);  break;
-	case budget_categories::land_supply: set_visible(state, true);  break;
-	case budget_categories::naval_reinforcement: set_visible(state, true);  break;
-	case budget_categories::naval_supply: set_visible(state, true);  break;
-	case budget_categories::army_construction: set_visible(state, true);  break;
-	case budget_categories::naval_construction: set_visible(state, true);  break;
-	case budget_categories::factory_construction: set_visible(state, true);  break;
-	case budget_categories::building_construction: set_visible(state, true);  break;
 	default: set_visible(state, false); break;
 	}
 // END
@@ -3092,14 +3012,6 @@ bool budgetwindow_section_header_rrbutton_t::button_action(sys::state& state) no
 	case budget_categories::navy_upkeep: vals.naval_spending = economy::budget_maximums(state, state.local_player_nation).naval_spending; break;
 	case budget_categories::debt_payment: break;
 	case budget_categories::stockpile: vals.stockpile_spending = economy::budget_maximums(state, state.local_player_nation).stockpile_spending;
-	case budget_categories::land_reinforcement: command::change_army_reinforcement_consumption_setting(state, logistics::army_reinforcement_setting_max(state, state.local_player_nation)); break;
-	case budget_categories::land_supply: command::change_army_supply_consumption_setting(state, logistics::army_supply_setting_max(state, state.local_player_nation)); break;
-	case budget_categories::naval_reinforcement: command::change_navy_reinforcement_consumption_setting(state, logistics::navy_reinforcement_setting_max(state, state.local_player_nation)); break;
-	case budget_categories::naval_supply: command::change_navy_supply_consumption_setting(state, logistics::navy_supply_setting_max(state, state.local_player_nation)); break;
-	case budget_categories::army_construction: command::change_army_construction_consumption_setting(state, logistics::army_construction_setting_max(state, state.local_player_nation)); break;
-	case budget_categories::naval_construction: command::change_navy_construction_consumption_setting(state, logistics::navy_construction_setting_max(state, state.local_player_nation)); break;
-	case budget_categories::factory_construction: command::change_factory_construction_consumption_setting(state, logistics::factory_construction_setting_max(state, state.local_player_nation)); break;
-	case budget_categories::building_construction: command::change_building_construction_consumption_setting(state, logistics::building_construction_setting_max(state, state.local_player_nation)); break;
 	default:  break;
 	}
 	command::change_budget_settings(state, state.local_player_nation, vals);
@@ -3131,14 +3043,6 @@ void budgetwindow_section_header_setting_amount_t::on_update(sys::state& state) 
 	case budget_categories::navy_upkeep: set_text(state, std::to_string(state.world.nation_get_naval_spending(state.local_player_nation))); break;
 	case budget_categories::debt_payment: set_text(state, ""); break;
 	case budget_categories::stockpile: set_text(state, std::to_string(state.world.nation_get_stockpile_spending(state.local_player_nation)));  break;
-	case budget_categories::land_reinforcement: set_text(state, std::to_string(state.world.nation_get_land_reinforcement_consumption(state.local_player_nation)));  break;
-	case budget_categories::land_supply: set_text(state, std::to_string(state.world.nation_get_land_supply_consumption(state.local_player_nation)));  break;
-	case budget_categories::naval_reinforcement: set_text(state, std::to_string(state.world.nation_get_naval_reinforcement_consumption(state.local_player_nation)));  break;
-	case budget_categories::naval_supply: set_text(state, std::to_string(state.world.nation_get_naval_supply_consumption(state.local_player_nation)));  break;
-	case budget_categories::army_construction: set_text(state, std::to_string(state.world.nation_get_army_construction_consumption(state.local_player_nation)));  break;
-	case budget_categories::naval_construction: set_text(state, std::to_string(state.world.nation_get_navy_construction_consumption(state.local_player_nation)));  break;
-	case budget_categories::factory_construction: set_text(state, std::to_string(state.world.nation_get_factory_construction_consumption(state.local_player_nation)));  break;
-	case budget_categories::building_construction: set_text(state, std::to_string(state.world.nation_get_building_construction_consumption(state.local_player_nation)));  break;
 	default: set_text(state, ""); break;
 	}
 // END
@@ -3186,14 +3090,6 @@ void budgetwindow_section_header_expand_button_t::on_update(sys::state& state) n
 	case budget_categories::navy_upkeep:disabled = (spending_details.military_supplies_navy.actual_spending <= 0); break;
 	case budget_categories::debt_payment: disabled = (spending_details.interest.actual_spending <= 0); break;
 	case budget_categories::stockpile: disabled = (spending_details.stockpile.actual_spending <= 0);  break;
-	case budget_categories::land_reinforcement: disabled = (total_armies == 0); break;
-	case budget_categories::land_supply: disabled = (total_armies == 0); break;
-	case budget_categories::naval_reinforcement: disabled = (total_navies == 0); break;
-	case budget_categories::naval_supply: disabled = (total_navies == 0); break;
-	case budget_categories::army_construction: disabled = false; break;
-	case budget_categories::naval_construction: disabled = false; break;
-	case budget_categories::factory_construction: disabled = false; break;
-	case budget_categories::building_construction: disabled = false; break;
 	default: disabled = false; break;
 	}
 
@@ -3250,14 +3146,6 @@ void budgetwindow_section_header_total_amount_t::on_update(sys::state& state) no
 	case budget_categories::navy_upkeep: set_text(state, adjust_spending_value(spending_details.military_supplies_navy.actual_spending)); break;
 	case budget_categories::debt_payment: set_text(state, adjust_spending_value(spending_details.interest.actual_spending)); break;
 	case budget_categories::stockpile: set_text(state, adjust_spending_value(spending_details.stockpile.actual_spending)); break;
-	case budget_categories::land_reinforcement: set_text(state, ""); break;
-	case budget_categories::land_supply: set_text(state, ""); break;
-	case budget_categories::naval_reinforcement: set_text(state, ""); break;
-	case budget_categories::naval_supply: set_text(state, ""); break;
-	case budget_categories::army_construction: break;
-	case budget_categories::naval_construction:  break;
-	case budget_categories::factory_construction: break;
-	case budget_categories::building_construction: break;
 	default: set_text(state, ""); break;
 	}
 // END
@@ -3288,14 +3176,6 @@ void budgetwindow_section_header_min_setting_t::update_tooltip(sys::state& state
 	case budget_categories::navy_upkeep: value = economy::budget_minimums(state, state.local_player_nation).naval_spending; break;
 	case budget_categories::debt_payment: break;
 	case budget_categories::stockpile: value = economy::budget_minimums(state, state.local_player_nation).stockpile_spending; break;
-	case budget_categories::land_reinforcement: value = logistics::army_reinforcement_setting_min(state, state.local_player_nation);  break;
-	case budget_categories::land_supply: value = logistics::army_supply_setting_min(state, state.local_player_nation);  break;
-	case budget_categories::naval_reinforcement: value = logistics::navy_reinforcement_setting_min(state, state.local_player_nation);  break;
-	case budget_categories::naval_supply: value = logistics::navy_supply_setting_min(state, state.local_player_nation);  break;
-	case budget_categories::army_construction: value = logistics::army_construction_setting_min(state, state.local_player_nation);  break;
-	case budget_categories::naval_construction: value = logistics::navy_construction_setting_min(state, state.local_player_nation);  break;
-	case budget_categories::factory_construction: value = logistics::factory_construction_setting_min(state, state.local_player_nation);  break;
-	case budget_categories::building_construction: value = logistics::building_construction_setting_min(state, state.local_player_nation);  break;
 	default:  break;
 	}
 	if(value == 0) {
@@ -3322,14 +3202,6 @@ void budgetwindow_section_header_min_setting_t::update_tooltip(sys::state& state
 		case budget_categories::navy_upkeep: break;
 		case budget_categories::debt_payment: break;
 		case budget_categories::stockpile: break;
-		case budget_categories::land_reinforcement: break;
-		case budget_categories::land_supply: break;
-		case budget_categories::naval_reinforcement: break;
-		case budget_categories::naval_supply: break;
-		case budget_categories::army_construction: break;
-		case budget_categories::naval_construction:  break;
-		case budget_categories::factory_construction: break;
-		case budget_categories::building_construction: break;
 		default:  break;
 		}
 	}
@@ -3361,14 +3233,6 @@ void budgetwindow_section_header_min_setting_t::on_update(sys::state& state) noe
 	case budget_categories::navy_upkeep: value = economy::budget_minimums(state, state.local_player_nation).naval_spending; break;
 	case budget_categories::debt_payment: break;
 	case budget_categories::stockpile: value = economy::budget_minimums(state, state.local_player_nation).stockpile_spending;  break;
-	case budget_categories::land_reinforcement: value = logistics::army_reinforcement_setting_min(state, state.local_player_nation);  break;
-	case budget_categories::land_supply: value = logistics::army_supply_setting_min(state, state.local_player_nation);  break;
-	case budget_categories::naval_reinforcement: value = logistics::navy_reinforcement_setting_min(state, state.local_player_nation);  break;
-	case budget_categories::naval_supply: value = logistics::navy_supply_setting_min(state, state.local_player_nation);  break;
-	case budget_categories::army_construction: value = logistics::army_construction_setting_min(state, state.local_player_nation);  break;
-	case budget_categories::naval_construction: value = logistics::navy_construction_setting_min(state, state.local_player_nation);  break;
-	case budget_categories::factory_construction: value = logistics::factory_construction_setting_min(state, state.local_player_nation);  break;
-	case budget_categories::building_construction: value = logistics::building_construction_setting_min(state, state.local_player_nation);  break;
 	default:  break;
 	}
 	if(value == 0) {
@@ -3406,14 +3270,6 @@ void budgetwindow_section_header_max_setting_t::update_tooltip(sys::state& state
 	case budget_categories::navy_upkeep: value = economy::budget_maximums(state, state.local_player_nation).naval_spending; break;
 	case budget_categories::debt_payment: break;
 	case budget_categories::stockpile: value = economy::budget_maximums(state, state.local_player_nation).stockpile_spending; break;
-	case budget_categories::land_reinforcement: value = logistics::army_reinforcement_setting_max(state, state.local_player_nation);  break;
-	case budget_categories::land_supply: value = logistics::army_supply_setting_max(state, state.local_player_nation);  break;
-	case budget_categories::naval_reinforcement: value = logistics::navy_reinforcement_setting_max(state, state.local_player_nation);  break;
-	case budget_categories::naval_supply: value = logistics::navy_supply_setting_max(state, state.local_player_nation);  break;
-	case budget_categories::army_construction: value = logistics::army_construction_setting_max(state, state.local_player_nation);  break;
-	case budget_categories::naval_construction: value = logistics::navy_construction_setting_max(state, state.local_player_nation);  break;
-	case budget_categories::factory_construction: value = logistics::factory_construction_setting_max(state, state.local_player_nation);  break;
-	case budget_categories::building_construction: value = logistics::building_construction_setting_max(state, state.local_player_nation);  break;
 	default:  break;
 	}
 	if(value == 100) {
@@ -3440,14 +3296,6 @@ void budgetwindow_section_header_max_setting_t::update_tooltip(sys::state& state
 		case budget_categories::navy_upkeep: break;
 		case budget_categories::debt_payment: break;
 		case budget_categories::stockpile: break;
-		case budget_categories::land_reinforcement: break;
-		case budget_categories::land_supply: break;
-		case budget_categories::naval_reinforcement: break;
-		case budget_categories::naval_supply: break;
-		case budget_categories::army_construction: break;
-		case budget_categories::naval_construction:  break;
-		case budget_categories::factory_construction: break;
-		case budget_categories::building_construction: break;
 		default:  break;
 		}
 	}
@@ -3479,14 +3327,6 @@ void budgetwindow_section_header_max_setting_t::on_update(sys::state& state) noe
 	case budget_categories::navy_upkeep: value = economy::budget_maximums(state, state.local_player_nation).naval_spending; break;
 	case budget_categories::debt_payment: break;
 	case budget_categories::stockpile: value = economy::budget_maximums(state, state.local_player_nation).stockpile_spending; break;
-	case budget_categories::land_reinforcement: value = logistics::army_reinforcement_setting_max(state, state.local_player_nation);  break;
-	case budget_categories::land_supply: value = logistics::army_supply_setting_max(state, state.local_player_nation);  break;
-	case budget_categories::naval_reinforcement: value = logistics::navy_reinforcement_setting_max(state, state.local_player_nation);  break;
-	case budget_categories::naval_supply: value = logistics::navy_supply_setting_max(state, state.local_player_nation);  break;
-	case budget_categories::army_construction: value = logistics::army_construction_setting_max(state, state.local_player_nation);  break;
-	case budget_categories::naval_construction: value = logistics::navy_construction_setting_max(state, state.local_player_nation);  break;
-	case budget_categories::factory_construction: value = logistics::factory_construction_setting_max(state, state.local_player_nation);  break;
-	case budget_categories::building_construction: value = logistics::building_construction_setting_max(state, state.local_player_nation);  break;
 	default:  break;
 	}
 	if(value == 100) {

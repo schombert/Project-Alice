@@ -25,6 +25,8 @@ However, even if there is a valid path, the amount which can actually be deliver
 Therefore, the percentage of its commodities it can sucessfully transport per day is province-connection`supply throughput` divided by province-connection `volume`. The transport percentage (reffered to as `supply efficiency`) is then the smallest percentage calculated after walking the whole path.
 Eg. if a route has a supply efficiency of 90%, then the project will only receive 90% of the goods transported, while the remaining 10% will still remain in the stockpile for later use.
 
+Routes may also autonomously draw less from a specific stockpile if the path so said stockpile has an existing bottleneck.
+
 `Supply loss` is another factor. A route may have a loss rate depending on the loss modifier on each province the path goes through aswell as the length. The loss % affects how much of the transported goods are lost en-route.
 Eg. a loss rate of 10% will mean that the project will only receive 90% of the goods transported, and the remaining 10% is lost.
 

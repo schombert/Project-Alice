@@ -488,7 +488,7 @@ void get_closest_available_market_states(sys::state& state, std::vector<dcon::st
 		float si_a_direct_dist = province::direct_distance(state, si_a_capital, location_from);
 		auto st_a_idx = state_instance_a.index();
 		auto si_b_idx = state_instance_b.index();
-		return (si_b_direct_dist != si_a_direct_dist ? si_a_direct_dist > si_b_direct_dist : st_a_idx > si_b_idx);
+		return (si_b_direct_dist != si_a_direct_dist ? si_a_direct_dist < si_b_direct_dist : st_a_idx < si_b_idx);
 	});
 }
 void get_closest_available_market_states(sys::state& state, dcon::dcon_vv_fat_id<dcon::state_instance_id> out_buffer, dcon::nation_id nation_as, dcon::province_id location_from) {
@@ -503,7 +503,7 @@ void get_closest_available_market_states(sys::state& state, dcon::dcon_vv_fat_id
 		float si_a_direct_dist = province::direct_distance(state, si_a_capital, location_from);
 		auto st_a_idx = state_instance_a.index();
 		auto si_b_idx = state_instance_b.index();
-		return (si_b_direct_dist != si_a_direct_dist ? si_a_direct_dist > si_b_direct_dist : st_a_idx > si_b_idx);
+		return (si_b_direct_dist != si_a_direct_dist ? si_a_direct_dist < si_b_direct_dist : st_a_idx < si_b_idx);
 	});
 
 }

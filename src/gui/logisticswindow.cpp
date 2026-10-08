@@ -740,8 +740,8 @@ void  logisticswindow_main_military_table_t::update(sys::state& state, layout_wi
 	logisticswindow_main_t& main = *((logisticswindow_main_t*)(parent)); 
 // BEGIN main::military_table::update
 	values.clear();
-	add_section_header(consumption_categories::land_supply);
-	if(consumption_categories::expanded[consumption_categories::land_supply]) {
+	add_section_header(logistic_categories::land_supply);
+	if(logistic_categories::expanded[logistic_categories::land_supply]) {
 		add_bottom_spacer();
 		tagged_vector<float, dcon::commodity_id> fufilled_amounts = military::nation_get_last_fufilled_goods_need<military::unit_consumption_type::supply, dcon::army_id>(state, state.local_player_nation);
 		tagged_vector<float, dcon::commodity_id> required_amounts = military::nation_get_last_required_goods_need<military::unit_consumption_type::supply, dcon::army_id>(state, state.local_player_nation);
@@ -755,8 +755,8 @@ void  logisticswindow_main_military_table_t::update(sys::state& state, layout_wi
 		});
 	}
 	add_neutral_spacer();
-	add_section_header(consumption_categories::land_reinforcement);
-	if(consumption_categories::expanded[consumption_categories::land_reinforcement]) {
+	add_section_header(logistic_categories::land_reinforcement);
+	if(logistic_categories::expanded[logistic_categories::land_reinforcement]) {
 		add_bottom_spacer();
 		tagged_vector<float, dcon::commodity_id> fufilled_amounts = military::nation_get_last_fufilled_goods_need<military::unit_consumption_type::reinforcement, dcon::army_id>(state, state.local_player_nation);
 		tagged_vector<float, dcon::commodity_id> required_amounts = military::nation_get_last_required_goods_need<military::unit_consumption_type::reinforcement, dcon::army_id>(state, state.local_player_nation);
@@ -770,8 +770,8 @@ void  logisticswindow_main_military_table_t::update(sys::state& state, layout_wi
 		});
 	}
 	add_neutral_spacer();
-	add_section_header(consumption_categories::naval_supply);
-	if(consumption_categories::expanded[consumption_categories::naval_supply]) {
+	add_section_header(logistic_categories::naval_supply);
+	if(logistic_categories::expanded[logistic_categories::naval_supply]) {
 		add_bottom_spacer();
 		tagged_vector<float, dcon::commodity_id> fufilled_amounts = military::nation_get_last_fufilled_goods_need<military::unit_consumption_type::supply, dcon::navy_id>(state, state.local_player_nation);
 		tagged_vector<float, dcon::commodity_id> required_amounts = military::nation_get_last_required_goods_need<military::unit_consumption_type::supply, dcon::navy_id>(state, state.local_player_nation);
@@ -785,8 +785,8 @@ void  logisticswindow_main_military_table_t::update(sys::state& state, layout_wi
 		});
 	}
 	add_neutral_spacer();
-	add_section_header(consumption_categories::naval_reinforcement);
-	if(consumption_categories::expanded[consumption_categories::naval_reinforcement]) {
+	add_section_header(logistic_categories::naval_reinforcement);
+	if(logistic_categories::expanded[logistic_categories::naval_reinforcement]) {
 		add_bottom_spacer();
 		tagged_vector<float, dcon::commodity_id> fufilled_amounts = military::nation_get_last_fufilled_goods_need<military::unit_consumption_type::reinforcement, dcon::navy_id>(state, state.local_player_nation);
 		tagged_vector<float, dcon::commodity_id> required_amounts = military::nation_get_last_required_goods_need<military::unit_consumption_type::reinforcement, dcon::navy_id>(state, state.local_player_nation);
@@ -983,8 +983,8 @@ void  logisticswindow_main_consumption_table_t::update(sys::state& state, layout
 	logisticswindow_main_t& main = *((logisticswindow_main_t*)(parent)); 
 // BEGIN main::consumption_table::update
 	values.clear();
-	add_section_header(consumption_categories::army_construction);
-	if(consumption_categories::expanded[consumption_categories::army_construction]) {
+	add_section_header(logistic_categories::army_construction);
+	if(logistic_categories::expanded[logistic_categories::army_construction]) {
 		add_bottom_spacer();
 		tagged_vector<float, dcon::commodity_id> fufilled_amounts = economy::nation_get_last_fufilled_construction_need<dcon::province_land_construction_id>(state, state.local_player_nation);
 		tagged_vector<float, dcon::commodity_id> required_amounts = economy::nation_get_last_required_construction_need<dcon::province_land_construction_id>(state, state.local_player_nation);
@@ -998,8 +998,8 @@ void  logisticswindow_main_consumption_table_t::update(sys::state& state, layout
 		});
 	}
 	add_neutral_spacer();
-	add_section_header(consumption_categories::naval_construction);
-	if(consumption_categories::expanded[consumption_categories::naval_construction]) {
+	add_section_header(logistic_categories::naval_construction);
+	if(logistic_categories::expanded[logistic_categories::naval_construction]) {
 		add_bottom_spacer();
 		tagged_vector<float, dcon::commodity_id> fufilled_amounts = economy::nation_get_last_fufilled_construction_need<dcon::province_naval_construction_id>(state, state.local_player_nation);
 		tagged_vector<float, dcon::commodity_id> required_amounts = economy::nation_get_last_required_construction_need<dcon::province_naval_construction_id>(state, state.local_player_nation);
@@ -1013,8 +1013,8 @@ void  logisticswindow_main_consumption_table_t::update(sys::state& state, layout
 		});
 	}
 	add_neutral_spacer();
-	add_section_header(consumption_categories::factory_construction);
-	if(consumption_categories::expanded[consumption_categories::factory_construction]) {
+	add_section_header(logistic_categories::factory_construction);
+	if(logistic_categories::expanded[logistic_categories::factory_construction]) {
 		add_bottom_spacer();
 		tagged_vector<float, dcon::commodity_id> fufilled_amounts = economy::nation_get_last_fufilled_construction_need<dcon::factory_construction_id>(state, state.local_player_nation);
 		tagged_vector<float, dcon::commodity_id> required_amounts = economy::nation_get_last_required_construction_need<dcon::factory_construction_id>(state, state.local_player_nation);
@@ -1028,8 +1028,8 @@ void  logisticswindow_main_consumption_table_t::update(sys::state& state, layout
 		});
 	}
 	add_neutral_spacer();
-	add_section_header(consumption_categories::building_construction);
-	if(consumption_categories::expanded[consumption_categories::building_construction]) {
+	add_section_header(logistic_categories::building_construction);
+	if(logistic_categories::expanded[logistic_categories::building_construction]) {
 		add_bottom_spacer();
 		tagged_vector<float, dcon::commodity_id> fufilled_amounts = economy::nation_get_last_fufilled_construction_need<dcon::province_building_construction_id>(state, state.local_player_nation);
 		tagged_vector<float, dcon::commodity_id> required_amounts = economy::nation_get_last_required_construction_need<dcon::province_building_construction_id>(state, state.local_player_nation);
@@ -1935,14 +1935,14 @@ void logisticswindow_section_header_label_t::on_update(sys::state& state) noexce
 	logisticswindow_main_t& main = *((logisticswindow_main_t*)(parent->parent)); 
 // BEGIN section_header::label::update
 	switch(section_header.section_type) {
-	case consumption_categories::land_reinforcement: set_text(state, text::produce_simple_string(state, "land_reinforcement_consumption")); break;
-	case consumption_categories::land_supply: set_text(state, text::produce_simple_string(state, "land_supply_consumption")); break;
-	case consumption_categories::naval_reinforcement: set_text(state, text::produce_simple_string(state, "naval_reinforcement_consumption")); break;
-	case consumption_categories::naval_supply: set_text(state, text::produce_simple_string(state, "naval_supply_consumption")); break;
-	case consumption_categories::army_construction: set_text(state, text::produce_simple_string(state, "army_construction_consumption")); break;
-	case consumption_categories::naval_construction: set_text(state, text::produce_simple_string(state, "navy_construction_consumption")); break;
-	case consumption_categories::factory_construction: set_text(state, text::produce_simple_string(state, "factory_construction_consumption")); break;
-	case consumption_categories::building_construction: set_text(state, text::produce_simple_string(state, "building_construction_consumption")); break;
+	case logistic_categories::land_reinforcement: set_text(state, text::produce_simple_string(state, "land_reinforcement_consumption")); break;
+	case logistic_categories::land_supply: set_text(state, text::produce_simple_string(state, "land_supply_consumption")); break;
+	case logistic_categories::naval_reinforcement: set_text(state, text::produce_simple_string(state, "naval_reinforcement_consumption")); break;
+	case logistic_categories::naval_supply: set_text(state, text::produce_simple_string(state, "naval_supply_consumption")); break;
+	case logistic_categories::army_construction: set_text(state, text::produce_simple_string(state, "army_construction_consumption")); break;
+	case logistic_categories::naval_construction: set_text(state, text::produce_simple_string(state, "navy_construction_consumption")); break;
+	case logistic_categories::factory_construction: set_text(state, text::produce_simple_string(state, "factory_construction_consumption")); break;
+	case logistic_categories::building_construction: set_text(state, text::produce_simple_string(state, "building_construction_consumption")); break;
 	default: set_text(state, ""); break;
 	}
 // END
@@ -1952,14 +1952,14 @@ void logisticswindow_section_header_llbutton_t::on_update(sys::state& state) noe
 	logisticswindow_main_t& main = *((logisticswindow_main_t*)(parent->parent)); 
 // BEGIN section_header::llbutton::update
 	switch(section_header.section_type) {
-	case consumption_categories::land_reinforcement: set_visible(state, true);  break;
-	case consumption_categories::land_supply: set_visible(state, true);  break;
-	case consumption_categories::naval_reinforcement: set_visible(state, true);  break;
-	case consumption_categories::naval_supply: set_visible(state, true);  break;
-	case consumption_categories::army_construction: set_visible(state, true);  break;
-	case consumption_categories::naval_construction: set_visible(state, true);  break;
-	case consumption_categories::factory_construction: set_visible(state, true);  break;
-	case consumption_categories::building_construction: set_visible(state, true);  break;
+	case logistic_categories::land_reinforcement: set_visible(state, true);  break;
+	case logistic_categories::land_supply: set_visible(state, true);  break;
+	case logistic_categories::naval_reinforcement: set_visible(state, true);  break;
+	case logistic_categories::naval_supply: set_visible(state, true);  break;
+	case logistic_categories::army_construction: set_visible(state, true);  break;
+	case logistic_categories::naval_construction: set_visible(state, true);  break;
+	case logistic_categories::factory_construction: set_visible(state, true);  break;
+	case logistic_categories::building_construction: set_visible(state, true);  break;
 	default: set_visible(state, false); break;
 	}
 // END
@@ -1969,14 +1969,14 @@ bool logisticswindow_section_header_llbutton_t::button_action(sys::state& state)
 	logisticswindow_main_t& main = *((logisticswindow_main_t*)(parent->parent)); 
 // BEGIN section_header::llbutton::lbutton_action
 	switch(section_header.section_type) {
-	case consumption_categories::land_reinforcement: command::change_army_reinforcement_consumption_setting(state, logistics::army_reinforcement_setting_min(state, state.local_player_nation)); break;
-	case consumption_categories::land_supply: command::change_army_supply_consumption_setting(state, logistics::army_supply_setting_min(state, state.local_player_nation)); break;
-	case consumption_categories::naval_reinforcement: command::change_navy_reinforcement_consumption_setting(state, logistics::navy_reinforcement_setting_min(state, state.local_player_nation)); break;
-	case consumption_categories::naval_supply: command::change_navy_supply_consumption_setting(state, logistics::navy_supply_setting_min(state, state.local_player_nation)); break;
-	case consumption_categories::army_construction: command::change_army_construction_consumption_setting(state, logistics::army_construction_setting_min(state, state.local_player_nation)); break;
-	case consumption_categories::naval_construction: command::change_navy_construction_consumption_setting(state, logistics::navy_construction_setting_min(state, state.local_player_nation)); break;
-	case consumption_categories::factory_construction: command::change_factory_construction_consumption_setting(state, logistics::factory_construction_setting_min(state, state.local_player_nation)); break;
-	case consumption_categories::building_construction: command::change_building_construction_consumption_setting(state, logistics::building_construction_setting_min(state, state.local_player_nation)); break;
+	case logistic_categories::land_reinforcement: command::change_army_reinforcement_consumption_setting(state, logistics::army_reinforcement_setting_min(state, state.local_player_nation)); break;
+	case logistic_categories::land_supply: command::change_army_supply_consumption_setting(state, logistics::army_supply_setting_min(state, state.local_player_nation)); break;
+	case logistic_categories::naval_reinforcement: command::change_navy_reinforcement_consumption_setting(state, logistics::navy_reinforcement_setting_min(state, state.local_player_nation)); break;
+	case logistic_categories::naval_supply: command::change_navy_supply_consumption_setting(state, logistics::navy_supply_setting_min(state, state.local_player_nation)); break;
+	case logistic_categories::army_construction: command::change_army_construction_consumption_setting(state, logistics::army_construction_setting_min(state, state.local_player_nation)); break;
+	case logistic_categories::naval_construction: command::change_navy_construction_consumption_setting(state, logistics::navy_construction_setting_min(state, state.local_player_nation)); break;
+	case logistic_categories::factory_construction: command::change_factory_construction_consumption_setting(state, logistics::factory_construction_setting_min(state, state.local_player_nation)); break;
+	case logistic_categories::building_construction: command::change_building_construction_consumption_setting(state, logistics::building_construction_setting_min(state, state.local_player_nation)); break;
 	default:  break;
 	}
 // END
@@ -1987,14 +1987,14 @@ void logisticswindow_section_header_lbutton_t::on_update(sys::state& state) noex
 	logisticswindow_main_t& main = *((logisticswindow_main_t*)(parent->parent)); 
 // BEGIN section_header::lbutton::update
 	switch(section_header.section_type) {
-	case consumption_categories::land_reinforcement: set_visible(state, true);  break;
-	case consumption_categories::land_supply: set_visible(state, true);  break;
-	case consumption_categories::naval_reinforcement: set_visible(state, true);  break;
-	case consumption_categories::naval_supply: set_visible(state, true);  break;
-	case consumption_categories::army_construction: set_visible(state, true);  break;
-	case consumption_categories::naval_construction: set_visible(state, true);  break;
-	case consumption_categories::factory_construction: set_visible(state, true);  break;
-	case consumption_categories::building_construction: set_visible(state, true);  break;
+	case logistic_categories::land_reinforcement: set_visible(state, true);  break;
+	case logistic_categories::land_supply: set_visible(state, true);  break;
+	case logistic_categories::naval_reinforcement: set_visible(state, true);  break;
+	case logistic_categories::naval_supply: set_visible(state, true);  break;
+	case logistic_categories::army_construction: set_visible(state, true);  break;
+	case logistic_categories::naval_construction: set_visible(state, true);  break;
+	case logistic_categories::factory_construction: set_visible(state, true);  break;
+	case logistic_categories::building_construction: set_visible(state, true);  break;
 	default: set_visible(state, false); break;
 	}
 // END
@@ -2004,14 +2004,14 @@ bool logisticswindow_section_header_lbutton_t::button_action(sys::state& state) 
 	logisticswindow_main_t& main = *((logisticswindow_main_t*)(parent->parent)); 
 // BEGIN section_header::lbutton::lbutton_action
 	switch(section_header.section_type) {
-	case consumption_categories::land_reinforcement: command::change_army_reinforcement_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_land_reinforcement_consumption(state.local_player_nation) - 10), logistics::army_reinforcement_setting_min(state, state.local_player_nation), logistics::army_reinforcement_setting_max(state, state.local_player_nation))); break;
-	case consumption_categories::land_supply: command::change_army_supply_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_land_supply_consumption(state.local_player_nation) - 10), logistics::army_supply_setting_min(state, state.local_player_nation), logistics::army_supply_setting_max(state, state.local_player_nation))); break;
-	case consumption_categories::naval_reinforcement: command::change_navy_reinforcement_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_naval_reinforcement_consumption(state.local_player_nation) - 10), logistics::navy_reinforcement_setting_min(state, state.local_player_nation), logistics::navy_reinforcement_setting_max(state, state.local_player_nation))); break;
-	case consumption_categories::naval_supply: command::change_navy_supply_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_naval_supply_consumption(state.local_player_nation) - 10), logistics::navy_supply_setting_min(state, state.local_player_nation), logistics::navy_supply_setting_max(state, state.local_player_nation))); break;
-	case consumption_categories::army_construction: command::change_army_construction_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_army_construction_consumption(state.local_player_nation) - 10), logistics::army_construction_setting_min(state, state.local_player_nation), logistics::army_construction_setting_max(state, state.local_player_nation))); break;
-	case consumption_categories::naval_construction: command::change_navy_construction_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_navy_construction_consumption(state.local_player_nation) - 10), logistics::navy_construction_setting_min(state, state.local_player_nation), logistics::navy_construction_setting_max(state, state.local_player_nation))); break;
-	case consumption_categories::factory_construction: command::change_factory_construction_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_factory_construction_consumption(state.local_player_nation) - 10), logistics::factory_construction_setting_min(state, state.local_player_nation), logistics::factory_construction_setting_max(state, state.local_player_nation))); break;
-	case consumption_categories::building_construction: command::change_building_construction_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_building_construction_consumption(state.local_player_nation) - 10), logistics::building_construction_setting_min(state, state.local_player_nation), logistics::building_construction_setting_max(state, state.local_player_nation))); break;
+	case logistic_categories::land_reinforcement: command::change_army_reinforcement_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_land_reinforcement_consumption(state.local_player_nation) - 10), logistics::army_reinforcement_setting_min(state, state.local_player_nation), logistics::army_reinforcement_setting_max(state, state.local_player_nation))); break;
+	case logistic_categories::land_supply: command::change_army_supply_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_land_supply_consumption(state.local_player_nation) - 10), logistics::army_supply_setting_min(state, state.local_player_nation), logistics::army_supply_setting_max(state, state.local_player_nation))); break;
+	case logistic_categories::naval_reinforcement: command::change_navy_reinforcement_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_naval_reinforcement_consumption(state.local_player_nation) - 10), logistics::navy_reinforcement_setting_min(state, state.local_player_nation), logistics::navy_reinforcement_setting_max(state, state.local_player_nation))); break;
+	case logistic_categories::naval_supply: command::change_navy_supply_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_naval_supply_consumption(state.local_player_nation) - 10), logistics::navy_supply_setting_min(state, state.local_player_nation), logistics::navy_supply_setting_max(state, state.local_player_nation))); break;
+	case logistic_categories::army_construction: command::change_army_construction_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_army_construction_consumption(state.local_player_nation) - 10), logistics::army_construction_setting_min(state, state.local_player_nation), logistics::army_construction_setting_max(state, state.local_player_nation))); break;
+	case logistic_categories::naval_construction: command::change_navy_construction_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_navy_construction_consumption(state.local_player_nation) - 10), logistics::navy_construction_setting_min(state, state.local_player_nation), logistics::navy_construction_setting_max(state, state.local_player_nation))); break;
+	case logistic_categories::factory_construction: command::change_factory_construction_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_factory_construction_consumption(state.local_player_nation) - 10), logistics::factory_construction_setting_min(state, state.local_player_nation), logistics::factory_construction_setting_max(state, state.local_player_nation))); break;
+	case logistic_categories::building_construction: command::change_building_construction_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_building_construction_consumption(state.local_player_nation) - 10), logistics::building_construction_setting_min(state, state.local_player_nation), logistics::building_construction_setting_max(state, state.local_player_nation))); break;
 	default:  break;
 	}
 // END
@@ -2022,14 +2022,14 @@ bool logisticswindow_section_header_lbutton_t::button_shift_action(sys::state& s
 	logisticswindow_main_t& main = *((logisticswindow_main_t*)(parent->parent)); 
 // BEGIN section_header::lbutton::lbutton_shift_action
 	switch(section_header.section_type) {
-	case consumption_categories::land_reinforcement: command::change_army_reinforcement_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_land_reinforcement_consumption(state.local_player_nation) - 1), logistics::army_reinforcement_setting_min(state, state.local_player_nation), logistics::army_reinforcement_setting_max(state, state.local_player_nation))); break;
-	case consumption_categories::land_supply: command::change_army_supply_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_land_supply_consumption(state.local_player_nation) - 1), logistics::army_supply_setting_min(state, state.local_player_nation), logistics::army_supply_setting_max(state, state.local_player_nation))); break;
-	case consumption_categories::naval_reinforcement: command::change_navy_reinforcement_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_naval_reinforcement_consumption(state.local_player_nation) - 1), logistics::navy_reinforcement_setting_min(state, state.local_player_nation), logistics::navy_reinforcement_setting_max(state, state.local_player_nation))); break;
-	case consumption_categories::naval_supply: command::change_navy_supply_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_naval_supply_consumption(state.local_player_nation) - 1), logistics::navy_supply_setting_min(state, state.local_player_nation), logistics::navy_supply_setting_max(state, state.local_player_nation))); break;
-	case consumption_categories::army_construction: command::change_army_construction_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_army_construction_consumption(state.local_player_nation) - 1), logistics::army_construction_setting_min(state, state.local_player_nation), logistics::army_construction_setting_max(state, state.local_player_nation))); break;
-	case consumption_categories::naval_construction: command::change_navy_construction_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_navy_construction_consumption(state.local_player_nation) - 1), logistics::navy_construction_setting_min(state, state.local_player_nation), logistics::navy_construction_setting_max(state, state.local_player_nation))); break;
-	case consumption_categories::factory_construction: command::change_factory_construction_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_factory_construction_consumption(state.local_player_nation) - 1), logistics::factory_construction_setting_min(state, state.local_player_nation), logistics::factory_construction_setting_max(state, state.local_player_nation))); break;
-	case consumption_categories::building_construction: command::change_building_construction_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_building_construction_consumption(state.local_player_nation) - 1), logistics::building_construction_setting_min(state, state.local_player_nation), logistics::building_construction_setting_max(state, state.local_player_nation))); break;
+	case logistic_categories::land_reinforcement: command::change_army_reinforcement_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_land_reinforcement_consumption(state.local_player_nation) - 1), logistics::army_reinforcement_setting_min(state, state.local_player_nation), logistics::army_reinforcement_setting_max(state, state.local_player_nation))); break;
+	case logistic_categories::land_supply: command::change_army_supply_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_land_supply_consumption(state.local_player_nation) - 1), logistics::army_supply_setting_min(state, state.local_player_nation), logistics::army_supply_setting_max(state, state.local_player_nation))); break;
+	case logistic_categories::naval_reinforcement: command::change_navy_reinforcement_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_naval_reinforcement_consumption(state.local_player_nation) - 1), logistics::navy_reinforcement_setting_min(state, state.local_player_nation), logistics::navy_reinforcement_setting_max(state, state.local_player_nation))); break;
+	case logistic_categories::naval_supply: command::change_navy_supply_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_naval_supply_consumption(state.local_player_nation) - 1), logistics::navy_supply_setting_min(state, state.local_player_nation), logistics::navy_supply_setting_max(state, state.local_player_nation))); break;
+	case logistic_categories::army_construction: command::change_army_construction_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_army_construction_consumption(state.local_player_nation) - 1), logistics::army_construction_setting_min(state, state.local_player_nation), logistics::army_construction_setting_max(state, state.local_player_nation))); break;
+	case logistic_categories::naval_construction: command::change_navy_construction_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_navy_construction_consumption(state.local_player_nation) - 1), logistics::navy_construction_setting_min(state, state.local_player_nation), logistics::navy_construction_setting_max(state, state.local_player_nation))); break;
+	case logistic_categories::factory_construction: command::change_factory_construction_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_factory_construction_consumption(state.local_player_nation) - 1), logistics::factory_construction_setting_min(state, state.local_player_nation), logistics::factory_construction_setting_max(state, state.local_player_nation))); break;
+	case logistic_categories::building_construction: command::change_building_construction_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_building_construction_consumption(state.local_player_nation) - 1), logistics::building_construction_setting_min(state, state.local_player_nation), logistics::building_construction_setting_max(state, state.local_player_nation))); break;
 	default:  break;
 	}
 // END
@@ -2040,14 +2040,14 @@ void logisticswindow_section_header_rbutton_t::on_update(sys::state& state) noex
 	logisticswindow_main_t& main = *((logisticswindow_main_t*)(parent->parent)); 
 // BEGIN section_header::rbutton::update
 	switch(section_header.section_type) {
-	case consumption_categories::land_reinforcement: set_visible(state, true);  break;
-	case consumption_categories::land_supply: set_visible(state, true);  break;
-	case consumption_categories::naval_reinforcement: set_visible(state, true);  break;
-	case consumption_categories::naval_supply: set_visible(state, true);  break;
-	case consumption_categories::army_construction: set_visible(state, true);  break;
-	case consumption_categories::naval_construction: set_visible(state, true);  break;
-	case consumption_categories::factory_construction: set_visible(state, true);  break;
-	case consumption_categories::building_construction: set_visible(state, true);  break;
+	case logistic_categories::land_reinforcement: set_visible(state, true);  break;
+	case logistic_categories::land_supply: set_visible(state, true);  break;
+	case logistic_categories::naval_reinforcement: set_visible(state, true);  break;
+	case logistic_categories::naval_supply: set_visible(state, true);  break;
+	case logistic_categories::army_construction: set_visible(state, true);  break;
+	case logistic_categories::naval_construction: set_visible(state, true);  break;
+	case logistic_categories::factory_construction: set_visible(state, true);  break;
+	case logistic_categories::building_construction: set_visible(state, true);  break;
 	default: set_visible(state, false); break;
 	}
 // END
@@ -2057,14 +2057,14 @@ bool logisticswindow_section_header_rbutton_t::button_action(sys::state& state) 
 	logisticswindow_main_t& main = *((logisticswindow_main_t*)(parent->parent)); 
 // BEGIN section_header::rbutton::lbutton_action
 	switch(section_header.section_type) {
-	case consumption_categories::land_reinforcement: command::change_army_reinforcement_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_land_reinforcement_consumption(state.local_player_nation) + 10), logistics::army_reinforcement_setting_min(state, state.local_player_nation), logistics::army_reinforcement_setting_max(state, state.local_player_nation))); break;
-	case consumption_categories::land_supply: command::change_army_supply_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_land_supply_consumption(state.local_player_nation) + 10), logistics::army_supply_setting_min(state, state.local_player_nation), logistics::army_supply_setting_max(state, state.local_player_nation))); break;
-	case consumption_categories::naval_reinforcement: command::change_navy_reinforcement_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_naval_reinforcement_consumption(state.local_player_nation) + 10), logistics::navy_reinforcement_setting_min(state, state.local_player_nation), logistics::navy_reinforcement_setting_max(state, state.local_player_nation))); break;
-	case consumption_categories::naval_supply: command::change_navy_supply_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_naval_supply_consumption(state.local_player_nation) + 10), logistics::navy_supply_setting_min(state, state.local_player_nation), logistics::navy_supply_setting_max(state, state.local_player_nation))); break;
-	case consumption_categories::army_construction: command::change_army_construction_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_army_construction_consumption(state.local_player_nation) + 10), logistics::army_construction_setting_min(state, state.local_player_nation), logistics::army_construction_setting_max(state, state.local_player_nation))); break;
-	case consumption_categories::naval_construction: command::change_navy_construction_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_navy_construction_consumption(state.local_player_nation) + 10), logistics::navy_construction_setting_min(state, state.local_player_nation), logistics::navy_construction_setting_max(state, state.local_player_nation))); break;
-	case consumption_categories::factory_construction: command::change_factory_construction_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_factory_construction_consumption(state.local_player_nation) + 10), logistics::factory_construction_setting_min(state, state.local_player_nation), logistics::factory_construction_setting_max(state, state.local_player_nation))); break;
-	case consumption_categories::building_construction: command::change_building_construction_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_building_construction_consumption(state.local_player_nation) + 10), logistics::building_construction_setting_min(state, state.local_player_nation), logistics::building_construction_setting_max(state, state.local_player_nation))); break;
+	case logistic_categories::land_reinforcement: command::change_army_reinforcement_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_land_reinforcement_consumption(state.local_player_nation) + 10), logistics::army_reinforcement_setting_min(state, state.local_player_nation), logistics::army_reinforcement_setting_max(state, state.local_player_nation))); break;
+	case logistic_categories::land_supply: command::change_army_supply_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_land_supply_consumption(state.local_player_nation) + 10), logistics::army_supply_setting_min(state, state.local_player_nation), logistics::army_supply_setting_max(state, state.local_player_nation))); break;
+	case logistic_categories::naval_reinforcement: command::change_navy_reinforcement_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_naval_reinforcement_consumption(state.local_player_nation) + 10), logistics::navy_reinforcement_setting_min(state, state.local_player_nation), logistics::navy_reinforcement_setting_max(state, state.local_player_nation))); break;
+	case logistic_categories::naval_supply: command::change_navy_supply_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_naval_supply_consumption(state.local_player_nation) + 10), logistics::navy_supply_setting_min(state, state.local_player_nation), logistics::navy_supply_setting_max(state, state.local_player_nation))); break;
+	case logistic_categories::army_construction: command::change_army_construction_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_army_construction_consumption(state.local_player_nation) + 10), logistics::army_construction_setting_min(state, state.local_player_nation), logistics::army_construction_setting_max(state, state.local_player_nation))); break;
+	case logistic_categories::naval_construction: command::change_navy_construction_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_navy_construction_consumption(state.local_player_nation) + 10), logistics::navy_construction_setting_min(state, state.local_player_nation), logistics::navy_construction_setting_max(state, state.local_player_nation))); break;
+	case logistic_categories::factory_construction: command::change_factory_construction_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_factory_construction_consumption(state.local_player_nation) + 10), logistics::factory_construction_setting_min(state, state.local_player_nation), logistics::factory_construction_setting_max(state, state.local_player_nation))); break;
+	case logistic_categories::building_construction: command::change_building_construction_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_building_construction_consumption(state.local_player_nation) + 10), logistics::building_construction_setting_min(state, state.local_player_nation), logistics::building_construction_setting_max(state, state.local_player_nation))); break;
 	default:  break;
 	}
 // END
@@ -2075,14 +2075,14 @@ bool logisticswindow_section_header_rbutton_t::button_shift_action(sys::state& s
 	logisticswindow_main_t& main = *((logisticswindow_main_t*)(parent->parent)); 
 // BEGIN section_header::rbutton::lbutton_shift_action
 	switch(section_header.section_type) {
-	case consumption_categories::land_reinforcement: command::change_army_reinforcement_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_land_reinforcement_consumption(state.local_player_nation) + 1), logistics::army_reinforcement_setting_min(state, state.local_player_nation), logistics::army_reinforcement_setting_max(state, state.local_player_nation))); break;
-	case consumption_categories::land_supply: command::change_army_supply_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_land_supply_consumption(state.local_player_nation) + 1), logistics::army_supply_setting_min(state, state.local_player_nation), logistics::army_supply_setting_max(state, state.local_player_nation))); break;
-	case consumption_categories::naval_reinforcement: command::change_navy_reinforcement_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_naval_reinforcement_consumption(state.local_player_nation) + 1), logistics::navy_reinforcement_setting_min(state, state.local_player_nation), logistics::navy_reinforcement_setting_max(state, state.local_player_nation))); break;
-	case consumption_categories::naval_supply: command::change_navy_supply_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_naval_supply_consumption(state.local_player_nation) + 1), logistics::navy_supply_setting_min(state, state.local_player_nation), logistics::navy_supply_setting_max(state, state.local_player_nation))); break;
-	case consumption_categories::army_construction: command::change_army_construction_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_army_construction_consumption(state.local_player_nation) + 1), logistics::army_construction_setting_min(state, state.local_player_nation), logistics::army_construction_setting_max(state, state.local_player_nation))); break;
-	case consumption_categories::naval_construction: command::change_navy_construction_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_navy_construction_consumption(state.local_player_nation) + 1), logistics::navy_construction_setting_min(state, state.local_player_nation), logistics::navy_construction_setting_max(state, state.local_player_nation))); break;
-	case consumption_categories::factory_construction: command::change_factory_construction_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_factory_construction_consumption(state.local_player_nation) + 1), logistics::factory_construction_setting_min(state, state.local_player_nation), logistics::factory_construction_setting_max(state, state.local_player_nation))); break;
-	case consumption_categories::building_construction: command::change_building_construction_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_building_construction_consumption(state.local_player_nation) + 1), logistics::building_construction_setting_min(state, state.local_player_nation), logistics::building_construction_setting_max(state, state.local_player_nation))); break;
+	case logistic_categories::land_reinforcement: command::change_army_reinforcement_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_land_reinforcement_consumption(state.local_player_nation) + 1), logistics::army_reinforcement_setting_min(state, state.local_player_nation), logistics::army_reinforcement_setting_max(state, state.local_player_nation))); break;
+	case logistic_categories::land_supply: command::change_army_supply_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_land_supply_consumption(state.local_player_nation) + 1), logistics::army_supply_setting_min(state, state.local_player_nation), logistics::army_supply_setting_max(state, state.local_player_nation))); break;
+	case logistic_categories::naval_reinforcement: command::change_navy_reinforcement_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_naval_reinforcement_consumption(state.local_player_nation) + 1), logistics::navy_reinforcement_setting_min(state, state.local_player_nation), logistics::navy_reinforcement_setting_max(state, state.local_player_nation))); break;
+	case logistic_categories::naval_supply: command::change_navy_supply_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_naval_supply_consumption(state.local_player_nation) + 1), logistics::navy_supply_setting_min(state, state.local_player_nation), logistics::navy_supply_setting_max(state, state.local_player_nation))); break;
+	case logistic_categories::army_construction: command::change_army_construction_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_army_construction_consumption(state.local_player_nation) + 1), logistics::army_construction_setting_min(state, state.local_player_nation), logistics::army_construction_setting_max(state, state.local_player_nation))); break;
+	case logistic_categories::naval_construction: command::change_navy_construction_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_navy_construction_consumption(state.local_player_nation) + 1), logistics::navy_construction_setting_min(state, state.local_player_nation), logistics::navy_construction_setting_max(state, state.local_player_nation))); break;
+	case logistic_categories::factory_construction: command::change_factory_construction_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_factory_construction_consumption(state.local_player_nation) + 1), logistics::factory_construction_setting_min(state, state.local_player_nation), logistics::factory_construction_setting_max(state, state.local_player_nation))); break;
+	case logistic_categories::building_construction: command::change_building_construction_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_building_construction_consumption(state.local_player_nation) + 1), logistics::building_construction_setting_min(state, state.local_player_nation), logistics::building_construction_setting_max(state, state.local_player_nation))); break;
 	default:  break;
 	}
 // END
@@ -2093,14 +2093,14 @@ void logisticswindow_section_header_rrbutton_t::on_update(sys::state& state) noe
 	logisticswindow_main_t& main = *((logisticswindow_main_t*)(parent->parent)); 
 // BEGIN section_header::rrbutton::update
 	switch(section_header.section_type) {
-	case consumption_categories::land_reinforcement: set_visible(state, true);  break;
-	case consumption_categories::land_supply: set_visible(state, true);  break;
-	case consumption_categories::naval_reinforcement: set_visible(state, true);  break;
-	case consumption_categories::naval_supply: set_visible(state, true);  break;
-	case consumption_categories::army_construction: set_visible(state, true);  break;
-	case consumption_categories::naval_construction: set_visible(state, true);  break;
-	case consumption_categories::factory_construction: set_visible(state, true);  break;
-	case consumption_categories::building_construction: set_visible(state, true);  break;
+	case logistic_categories::land_reinforcement: set_visible(state, true);  break;
+	case logistic_categories::land_supply: set_visible(state, true);  break;
+	case logistic_categories::naval_reinforcement: set_visible(state, true);  break;
+	case logistic_categories::naval_supply: set_visible(state, true);  break;
+	case logistic_categories::army_construction: set_visible(state, true);  break;
+	case logistic_categories::naval_construction: set_visible(state, true);  break;
+	case logistic_categories::factory_construction: set_visible(state, true);  break;
+	case logistic_categories::building_construction: set_visible(state, true);  break;
 	default: set_visible(state, false); break;
 	}
 // END
@@ -2110,14 +2110,14 @@ bool logisticswindow_section_header_rrbutton_t::button_action(sys::state& state)
 	logisticswindow_main_t& main = *((logisticswindow_main_t*)(parent->parent)); 
 // BEGIN section_header::rrbutton::lbutton_action
 	switch(section_header.section_type) {
-	case consumption_categories::land_reinforcement: command::change_army_reinforcement_consumption_setting(state, logistics::army_reinforcement_setting_max(state, state.local_player_nation)); break;
-	case consumption_categories::land_supply: command::change_army_supply_consumption_setting(state, logistics::army_supply_setting_max(state, state.local_player_nation)); break;
-	case consumption_categories::naval_reinforcement: command::change_navy_reinforcement_consumption_setting(state, logistics::navy_reinforcement_setting_max(state, state.local_player_nation)); break;
-	case consumption_categories::naval_supply: command::change_navy_supply_consumption_setting(state, logistics::navy_supply_setting_max(state, state.local_player_nation)); break;
-	case consumption_categories::army_construction: command::change_army_construction_consumption_setting(state, logistics::army_construction_setting_max(state, state.local_player_nation)); break;
-	case consumption_categories::naval_construction: command::change_navy_construction_consumption_setting(state, logistics::navy_construction_setting_max(state, state.local_player_nation)); break;
-	case consumption_categories::factory_construction: command::change_factory_construction_consumption_setting(state, logistics::factory_construction_setting_max(state, state.local_player_nation)); break;
-	case consumption_categories::building_construction: command::change_building_construction_consumption_setting(state, logistics::building_construction_setting_max(state, state.local_player_nation)); break;
+	case logistic_categories::land_reinforcement: command::change_army_reinforcement_consumption_setting(state, logistics::army_reinforcement_setting_max(state, state.local_player_nation)); break;
+	case logistic_categories::land_supply: command::change_army_supply_consumption_setting(state, logistics::army_supply_setting_max(state, state.local_player_nation)); break;
+	case logistic_categories::naval_reinforcement: command::change_navy_reinforcement_consumption_setting(state, logistics::navy_reinforcement_setting_max(state, state.local_player_nation)); break;
+	case logistic_categories::naval_supply: command::change_navy_supply_consumption_setting(state, logistics::navy_supply_setting_max(state, state.local_player_nation)); break;
+	case logistic_categories::army_construction: command::change_army_construction_consumption_setting(state, logistics::army_construction_setting_max(state, state.local_player_nation)); break;
+	case logistic_categories::naval_construction: command::change_navy_construction_consumption_setting(state, logistics::navy_construction_setting_max(state, state.local_player_nation)); break;
+	case logistic_categories::factory_construction: command::change_factory_construction_consumption_setting(state, logistics::factory_construction_setting_max(state, state.local_player_nation)); break;
+	case logistic_categories::building_construction: command::change_building_construction_consumption_setting(state, logistics::building_construction_setting_max(state, state.local_player_nation)); break;
 	default:  break;
 	}
 // END
@@ -2128,14 +2128,14 @@ void logisticswindow_section_header_setting_amount_t::on_update(sys::state& stat
 	logisticswindow_main_t& main = *((logisticswindow_main_t*)(parent->parent)); 
 // BEGIN section_header::setting_amount::update
 	switch(section_header.section_type) {
-	case consumption_categories::land_reinforcement: set_text(state, std::to_string(state.world.nation_get_land_reinforcement_consumption(state.local_player_nation)));  break;
-	case consumption_categories::land_supply: set_text(state, std::to_string(state.world.nation_get_land_supply_consumption(state.local_player_nation)));  break;
-	case consumption_categories::naval_reinforcement: set_text(state, std::to_string(state.world.nation_get_naval_reinforcement_consumption(state.local_player_nation)));  break;
-	case consumption_categories::naval_supply: set_text(state, std::to_string(state.world.nation_get_naval_supply_consumption(state.local_player_nation)));  break;
-	case consumption_categories::army_construction: set_text(state, std::to_string(state.world.nation_get_army_construction_consumption(state.local_player_nation)));  break;
-	case consumption_categories::naval_construction: set_text(state, std::to_string(state.world.nation_get_navy_construction_consumption(state.local_player_nation)));  break;
-	case consumption_categories::factory_construction: set_text(state, std::to_string(state.world.nation_get_factory_construction_consumption(state.local_player_nation)));  break;
-	case consumption_categories::building_construction: set_text(state, std::to_string(state.world.nation_get_building_construction_consumption(state.local_player_nation)));  break;
+	case logistic_categories::land_reinforcement: set_text(state, std::to_string(state.world.nation_get_land_reinforcement_consumption(state.local_player_nation)));  break;
+	case logistic_categories::land_supply: set_text(state, std::to_string(state.world.nation_get_land_supply_consumption(state.local_player_nation)));  break;
+	case logistic_categories::naval_reinforcement: set_text(state, std::to_string(state.world.nation_get_naval_reinforcement_consumption(state.local_player_nation)));  break;
+	case logistic_categories::naval_supply: set_text(state, std::to_string(state.world.nation_get_naval_supply_consumption(state.local_player_nation)));  break;
+	case logistic_categories::army_construction: set_text(state, std::to_string(state.world.nation_get_army_construction_consumption(state.local_player_nation)));  break;
+	case logistic_categories::naval_construction: set_text(state, std::to_string(state.world.nation_get_navy_construction_consumption(state.local_player_nation)));  break;
+	case logistic_categories::factory_construction: set_text(state, std::to_string(state.world.nation_get_factory_construction_consumption(state.local_player_nation)));  break;
+	case logistic_categories::building_construction: set_text(state, std::to_string(state.world.nation_get_building_construction_consumption(state.local_player_nation)));  break;
 	default: set_text(state, ""); break;
 	}
 // END
@@ -2144,7 +2144,7 @@ void logisticswindow_section_header_expand_button_t::update_tooltip(sys::state& 
 	logisticswindow_section_header_t& section_header = *((logisticswindow_section_header_t*)(parent)); 
 	logisticswindow_main_t& main = *((logisticswindow_main_t*)(parent->parent)); 
 // BEGIN section_header::expand_button::tooltip
-	if(!consumption_categories::expanded[section_header.section_type])
+	if(!logistic_categories::expanded[section_header.section_type])
 		text::add_line(state, contents, "alice_budget_expand_tt");
 	else
 		text::add_line(state, contents, "alice_budget_contract_tt");
@@ -2162,25 +2162,25 @@ void logisticswindow_section_header_expand_button_t::on_update(sys::state& state
 	uint32_t total_navies = uint32_t(state.world.nation_get_navy_control(state.local_player_nation).end() - state.world.nation_get_navy_control(state.local_player_nation).begin());
 
 	switch(section_header.section_type) {
-	case consumption_categories::land_reinforcement: disabled = (total_armies == 0); break;
-	case consumption_categories::land_supply: disabled = (total_armies == 0); break;
-	case consumption_categories::naval_reinforcement: disabled = (total_navies == 0); break;
-	case consumption_categories::naval_supply: disabled = (total_navies == 0); break;
-	case consumption_categories::army_construction: disabled = false; break;
-	case consumption_categories::naval_construction: disabled = false; break;
-	case consumption_categories::factory_construction: disabled = false; break;
-	case consumption_categories::building_construction: disabled = false; break;
+	case logistic_categories::land_reinforcement: disabled = (total_armies == 0); break;
+	case logistic_categories::land_supply: disabled = (total_armies == 0); break;
+	case logistic_categories::naval_reinforcement: disabled = (total_navies == 0); break;
+	case logistic_categories::naval_supply: disabled = (total_navies == 0); break;
+	case logistic_categories::army_construction: disabled = false; break;
+	case logistic_categories::naval_construction: disabled = false; break;
+	case logistic_categories::factory_construction: disabled = false; break;
+	case logistic_categories::building_construction: disabled = false; break;
 	default: disabled = false; break;
 	}
 
-	icon = (!disabled && consumption_categories::expanded[section_header.section_type]) ? open_icon : closed_icon;
+	icon = (!disabled && logistic_categories::expanded[section_header.section_type]) ? open_icon : closed_icon;
 // END
 }
 bool logisticswindow_section_header_expand_button_t::button_action(sys::state& state) noexcept {
 	logisticswindow_section_header_t& section_header = *((logisticswindow_section_header_t*)(parent)); 
 	logisticswindow_main_t& main = *((logisticswindow_main_t*)(parent->parent)); 
 // BEGIN section_header::expand_button::lbutton_action
-	consumption_categories::expanded[section_header.section_type] = !consumption_categories::expanded[section_header.section_type];
+	logistic_categories::expanded[section_header.section_type] = !logistic_categories::expanded[section_header.section_type];
 	state.game_state_updated.store(true, std::memory_order::release);
 // END
 	return true;
@@ -2192,14 +2192,14 @@ void logisticswindow_section_header_satisfaction_t::update_tooltip(sys::state& s
 	std::string_view tooltip_key = "logistics_satisfaction_tooltip";
 
 	switch(section_header.section_type) {
-	case consumption_categories::land_reinforcement: text::add_line(state, contents, tooltip_key, text::variable_type::val, text::fp_percentage_two_places{ military::nation_average_military_satisfaction_by_type<military::unit_consumption_type::reinforcement, dcon::army_id>(state, state.local_player_nation) }); break;
-	case consumption_categories::land_supply:  text::add_line(state, contents, tooltip_key, text::variable_type::val, text::fp_percentage_two_places{ military::nation_average_military_satisfaction_by_type<military::unit_consumption_type::supply, dcon::army_id>(state, state.local_player_nation) }); break;
-	case consumption_categories::naval_reinforcement: text::add_line(state, contents, tooltip_key, text::variable_type::val, text::fp_percentage_two_places{ military::nation_average_military_satisfaction_by_type<military::unit_consumption_type::reinforcement, dcon::navy_id>(state, state.local_player_nation) }); break;
-	case consumption_categories::naval_supply: text::add_line(state, contents, tooltip_key, text::variable_type::val, text::fp_percentage_two_places{ military::nation_average_military_satisfaction_by_type<military::unit_consumption_type::supply, dcon::navy_id>(state, state.local_player_nation) }); break;
-	case consumption_categories::army_construction:  text::add_line(state, contents, tooltip_key, text::variable_type::val, text::fp_percentage_two_places{ economy::nation_average_construction_satisfaction_by_type<dcon::province_land_construction_id>(state, state.local_player_nation) }); break;
-	case consumption_categories::naval_construction:  text::add_line(state, contents, tooltip_key, text::variable_type::val, text::fp_percentage_two_places{ economy::nation_average_construction_satisfaction_by_type<dcon::province_naval_construction_id>(state, state.local_player_nation) }); break;
-	case consumption_categories::factory_construction: text::add_line(state, contents, tooltip_key, text::variable_type::val, text::fp_percentage_two_places{ economy::nation_average_construction_satisfaction_by_type<dcon::factory_construction_id>(state, state.local_player_nation) }); break;
-	case consumption_categories::building_construction: text::add_line(state, contents, tooltip_key, text::variable_type::val, text::fp_percentage_two_places{ economy::nation_average_construction_satisfaction_by_type<dcon::province_building_construction_id>(state, state.local_player_nation) }); break;
+	case logistic_categories::land_reinforcement: text::add_line(state, contents, tooltip_key, text::variable_type::val, text::fp_percentage_two_places{ military::nation_average_military_satisfaction_by_type<military::unit_consumption_type::reinforcement, dcon::army_id>(state, state.local_player_nation) }); break;
+	case logistic_categories::land_supply:  text::add_line(state, contents, tooltip_key, text::variable_type::val, text::fp_percentage_two_places{ military::nation_average_military_satisfaction_by_type<military::unit_consumption_type::supply, dcon::army_id>(state, state.local_player_nation) }); break;
+	case logistic_categories::naval_reinforcement: text::add_line(state, contents, tooltip_key, text::variable_type::val, text::fp_percentage_two_places{ military::nation_average_military_satisfaction_by_type<military::unit_consumption_type::reinforcement, dcon::navy_id>(state, state.local_player_nation) }); break;
+	case logistic_categories::naval_supply: text::add_line(state, contents, tooltip_key, text::variable_type::val, text::fp_percentage_two_places{ military::nation_average_military_satisfaction_by_type<military::unit_consumption_type::supply, dcon::navy_id>(state, state.local_player_nation) }); break;
+	case logistic_categories::army_construction:  text::add_line(state, contents, tooltip_key, text::variable_type::val, text::fp_percentage_two_places{ economy::nation_average_construction_satisfaction_by_type<dcon::province_land_construction_id>(state, state.local_player_nation) }); break;
+	case logistic_categories::naval_construction:  text::add_line(state, contents, tooltip_key, text::variable_type::val, text::fp_percentage_two_places{ economy::nation_average_construction_satisfaction_by_type<dcon::province_naval_construction_id>(state, state.local_player_nation) }); break;
+	case logistic_categories::factory_construction: text::add_line(state, contents, tooltip_key, text::variable_type::val, text::fp_percentage_two_places{ economy::nation_average_construction_satisfaction_by_type<dcon::factory_construction_id>(state, state.local_player_nation) }); break;
+	case logistic_categories::building_construction: text::add_line(state, contents, tooltip_key, text::variable_type::val, text::fp_percentage_two_places{ economy::nation_average_construction_satisfaction_by_type<dcon::province_building_construction_id>(state, state.local_player_nation) }); break;
 	default: set_text(state, ""); break;
 	}
 
@@ -2213,14 +2213,14 @@ void logisticswindow_section_header_satisfaction_t::on_update(sys::state& state)
 		return text::format_percentage(value, 2);
 	};
 	switch(section_header.section_type) {
-	case consumption_categories::land_reinforcement:  set_text(state, adjust_percent_value(military::nation_average_military_satisfaction_by_type<military::unit_consumption_type::reinforcement, dcon::army_id>(state, state.local_player_nation))); break;
-	case consumption_categories::land_supply:  set_text(state, adjust_percent_value(military::nation_average_military_satisfaction_by_type<military::unit_consumption_type::supply, dcon::army_id>(state, state.local_player_nation))); break;
-	case consumption_categories::naval_reinforcement:  set_text(state, adjust_percent_value(military::nation_average_military_satisfaction_by_type<military::unit_consumption_type::reinforcement, dcon::navy_id>(state, state.local_player_nation))); break;
-	case consumption_categories::naval_supply: set_text(state, adjust_percent_value(military::nation_average_military_satisfaction_by_type<military::unit_consumption_type::supply, dcon::navy_id>(state, state.local_player_nation))); break;
-	case consumption_categories::army_construction:  set_text(state, adjust_percent_value(economy::nation_average_construction_satisfaction_by_type<dcon::province_land_construction_id>(state, state.local_player_nation))); break;
-	case consumption_categories::naval_construction:  set_text(state, adjust_percent_value(economy::nation_average_construction_satisfaction_by_type<dcon::province_naval_construction_id>(state, state.local_player_nation))); break;
-	case consumption_categories::factory_construction:set_text(state, adjust_percent_value(economy::nation_average_construction_satisfaction_by_type<dcon::factory_construction_id>(state, state.local_player_nation))); break;
-	case consumption_categories::building_construction: set_text(state, adjust_percent_value(economy::nation_average_construction_satisfaction_by_type<dcon::province_building_construction_id>(state, state.local_player_nation))); break;
+	case logistic_categories::land_reinforcement:  set_text(state, adjust_percent_value(military::nation_average_military_satisfaction_by_type<military::unit_consumption_type::reinforcement, dcon::army_id>(state, state.local_player_nation))); break;
+	case logistic_categories::land_supply:  set_text(state, adjust_percent_value(military::nation_average_military_satisfaction_by_type<military::unit_consumption_type::supply, dcon::army_id>(state, state.local_player_nation))); break;
+	case logistic_categories::naval_reinforcement:  set_text(state, adjust_percent_value(military::nation_average_military_satisfaction_by_type<military::unit_consumption_type::reinforcement, dcon::navy_id>(state, state.local_player_nation))); break;
+	case logistic_categories::naval_supply: set_text(state, adjust_percent_value(military::nation_average_military_satisfaction_by_type<military::unit_consumption_type::supply, dcon::navy_id>(state, state.local_player_nation))); break;
+	case logistic_categories::army_construction:  set_text(state, adjust_percent_value(economy::nation_average_construction_satisfaction_by_type<dcon::province_land_construction_id>(state, state.local_player_nation))); break;
+	case logistic_categories::naval_construction:  set_text(state, adjust_percent_value(economy::nation_average_construction_satisfaction_by_type<dcon::province_naval_construction_id>(state, state.local_player_nation))); break;
+	case logistic_categories::factory_construction:set_text(state, adjust_percent_value(economy::nation_average_construction_satisfaction_by_type<dcon::factory_construction_id>(state, state.local_player_nation))); break;
+	case logistic_categories::building_construction: set_text(state, adjust_percent_value(economy::nation_average_construction_satisfaction_by_type<dcon::province_building_construction_id>(state, state.local_player_nation))); break;
 	default: set_text(state, ""); break;
 	}
 // END
@@ -2231,28 +2231,28 @@ void logisticswindow_section_header_min_setting_t::update_tooltip(sys::state& st
 // BEGIN section_header::min_setting::tooltip
 	auto value = 0;
 	switch(section_header.section_type) {
-	case consumption_categories::land_reinforcement: value = logistics::army_reinforcement_setting_min(state, state.local_player_nation);  break;
-	case consumption_categories::land_supply: value = logistics::army_supply_setting_min(state, state.local_player_nation);  break;
-	case consumption_categories::naval_reinforcement: value = logistics::navy_reinforcement_setting_min(state, state.local_player_nation);  break;
-	case consumption_categories::naval_supply: value = logistics::navy_supply_setting_min(state, state.local_player_nation);  break;
-	case consumption_categories::army_construction: value = logistics::army_construction_setting_min(state, state.local_player_nation);  break;
-	case consumption_categories::naval_construction: value = logistics::navy_construction_setting_min(state, state.local_player_nation);  break;
-	case consumption_categories::factory_construction: value = logistics::factory_construction_setting_min(state, state.local_player_nation);  break;
-	case consumption_categories::building_construction: value = logistics::building_construction_setting_min(state, state.local_player_nation);  break;
+	case logistic_categories::land_reinforcement: value = logistics::army_reinforcement_setting_min(state, state.local_player_nation);  break;
+	case logistic_categories::land_supply: value = logistics::army_supply_setting_min(state, state.local_player_nation);  break;
+	case logistic_categories::naval_reinforcement: value = logistics::navy_reinforcement_setting_min(state, state.local_player_nation);  break;
+	case logistic_categories::naval_supply: value = logistics::navy_supply_setting_min(state, state.local_player_nation);  break;
+	case logistic_categories::army_construction: value = logistics::army_construction_setting_min(state, state.local_player_nation);  break;
+	case logistic_categories::naval_construction: value = logistics::navy_construction_setting_min(state, state.local_player_nation);  break;
+	case logistic_categories::factory_construction: value = logistics::factory_construction_setting_min(state, state.local_player_nation);  break;
+	case logistic_categories::building_construction: value = logistics::building_construction_setting_min(state, state.local_player_nation);  break;
 	default:  break;
 	}
 	if(value == 0) {
 
 	} else {
 		switch(section_header.section_type) {
-		case consumption_categories::land_reinforcement: break;
-		case consumption_categories::land_supply: break;
-		case consumption_categories::naval_reinforcement: break;
-		case consumption_categories::naval_supply: break;
-		case consumption_categories::army_construction: break;
-		case consumption_categories::naval_construction:  break;
-		case consumption_categories::factory_construction: break;
-		case consumption_categories::building_construction: break;
+		case logistic_categories::land_reinforcement: break;
+		case logistic_categories::land_supply: break;
+		case logistic_categories::naval_reinforcement: break;
+		case logistic_categories::naval_supply: break;
+		case logistic_categories::army_construction: break;
+		case logistic_categories::naval_construction:  break;
+		case logistic_categories::factory_construction: break;
+		case logistic_categories::building_construction: break;
 		default:  break;
 		}
 	}
@@ -2264,14 +2264,14 @@ void logisticswindow_section_header_min_setting_t::on_update(sys::state& state) 
 // BEGIN section_header::min_setting::update
 	auto value = 0;
 	switch(section_header.section_type) {
-	case consumption_categories::land_reinforcement: value = logistics::army_reinforcement_setting_min(state, state.local_player_nation);  break;
-	case consumption_categories::land_supply: value = logistics::army_supply_setting_min(state, state.local_player_nation);  break;
-	case consumption_categories::naval_reinforcement: value = logistics::navy_reinforcement_setting_min(state, state.local_player_nation);  break;
-	case consumption_categories::naval_supply: value = logistics::navy_supply_setting_min(state, state.local_player_nation);  break;
-	case consumption_categories::army_construction: value = logistics::army_construction_setting_min(state, state.local_player_nation);  break;
-	case consumption_categories::naval_construction: value = logistics::navy_construction_setting_min(state, state.local_player_nation);  break;
-	case consumption_categories::factory_construction: value = logistics::factory_construction_setting_min(state, state.local_player_nation);  break;
-	case consumption_categories::building_construction: value = logistics::building_construction_setting_min(state, state.local_player_nation);  break;
+	case logistic_categories::land_reinforcement: value = logistics::army_reinforcement_setting_min(state, state.local_player_nation);  break;
+	case logistic_categories::land_supply: value = logistics::army_supply_setting_min(state, state.local_player_nation);  break;
+	case logistic_categories::naval_reinforcement: value = logistics::navy_reinforcement_setting_min(state, state.local_player_nation);  break;
+	case logistic_categories::naval_supply: value = logistics::navy_supply_setting_min(state, state.local_player_nation);  break;
+	case logistic_categories::army_construction: value = logistics::army_construction_setting_min(state, state.local_player_nation);  break;
+	case logistic_categories::naval_construction: value = logistics::navy_construction_setting_min(state, state.local_player_nation);  break;
+	case logistic_categories::factory_construction: value = logistics::factory_construction_setting_min(state, state.local_player_nation);  break;
+	case logistic_categories::building_construction: value = logistics::building_construction_setting_min(state, state.local_player_nation);  break;
 	default:  break;
 	}
 	if(value == 0) {
@@ -2289,28 +2289,28 @@ void logisticswindow_section_header_max_setting_t::update_tooltip(sys::state& st
 // BEGIN section_header::max_setting::tooltip
 	auto value = 100;
 	switch(section_header.section_type) {
-	case consumption_categories::land_reinforcement: value = logistics::army_reinforcement_setting_max(state, state.local_player_nation);  break;
-	case consumption_categories::land_supply: value = logistics::army_supply_setting_max(state, state.local_player_nation);  break;
-	case consumption_categories::naval_reinforcement: value = logistics::navy_reinforcement_setting_max(state, state.local_player_nation);  break;
-	case consumption_categories::naval_supply: value = logistics::navy_supply_setting_max(state, state.local_player_nation);  break;
-	case consumption_categories::army_construction: value = logistics::army_construction_setting_max(state, state.local_player_nation);  break;
-	case consumption_categories::naval_construction: value = logistics::navy_construction_setting_max(state, state.local_player_nation);  break;
-	case consumption_categories::factory_construction: value = logistics::factory_construction_setting_max(state, state.local_player_nation);  break;
-	case consumption_categories::building_construction: value = logistics::building_construction_setting_max(state, state.local_player_nation);  break;
+	case logistic_categories::land_reinforcement: value = logistics::army_reinforcement_setting_max(state, state.local_player_nation);  break;
+	case logistic_categories::land_supply: value = logistics::army_supply_setting_max(state, state.local_player_nation);  break;
+	case logistic_categories::naval_reinforcement: value = logistics::navy_reinforcement_setting_max(state, state.local_player_nation);  break;
+	case logistic_categories::naval_supply: value = logistics::navy_supply_setting_max(state, state.local_player_nation);  break;
+	case logistic_categories::army_construction: value = logistics::army_construction_setting_max(state, state.local_player_nation);  break;
+	case logistic_categories::naval_construction: value = logistics::navy_construction_setting_max(state, state.local_player_nation);  break;
+	case logistic_categories::factory_construction: value = logistics::factory_construction_setting_max(state, state.local_player_nation);  break;
+	case logistic_categories::building_construction: value = logistics::building_construction_setting_max(state, state.local_player_nation);  break;
 	default:  break;
 	}
 	if(value == 100) {
 
 	} else {
 		switch(section_header.section_type) {
-		case consumption_categories::land_reinforcement: break;
-		case consumption_categories::land_supply: break;
-		case consumption_categories::naval_reinforcement: break;
-		case consumption_categories::naval_supply: break;
-		case consumption_categories::army_construction: break;
-		case consumption_categories::naval_construction:  break;
-		case consumption_categories::factory_construction: break;
-		case consumption_categories::building_construction: break;
+		case logistic_categories::land_reinforcement: break;
+		case logistic_categories::land_supply: break;
+		case logistic_categories::naval_reinforcement: break;
+		case logistic_categories::naval_supply: break;
+		case logistic_categories::army_construction: break;
+		case logistic_categories::naval_construction:  break;
+		case logistic_categories::factory_construction: break;
+		case logistic_categories::building_construction: break;
 		default:  break;
 		}
 	}
@@ -2322,14 +2322,14 @@ void logisticswindow_section_header_max_setting_t::on_update(sys::state& state) 
 // BEGIN section_header::max_setting::update
 	auto value = 100;
 	switch(section_header.section_type) {
-	case consumption_categories::land_reinforcement: value = logistics::army_reinforcement_setting_max(state, state.local_player_nation);  break;
-	case consumption_categories::land_supply: value = logistics::army_supply_setting_max(state, state.local_player_nation);  break;
-	case consumption_categories::naval_reinforcement: value = logistics::navy_reinforcement_setting_max(state, state.local_player_nation);  break;
-	case consumption_categories::naval_supply: value = logistics::navy_supply_setting_max(state, state.local_player_nation);  break;
-	case consumption_categories::army_construction: value = logistics::army_construction_setting_max(state, state.local_player_nation);  break;
-	case consumption_categories::naval_construction: value = logistics::navy_construction_setting_max(state, state.local_player_nation);  break;
-	case consumption_categories::factory_construction: value = logistics::factory_construction_setting_max(state, state.local_player_nation);  break;
-	case consumption_categories::building_construction: value = logistics::building_construction_setting_max(state, state.local_player_nation);  break;
+	case logistic_categories::land_reinforcement: value = logistics::army_reinforcement_setting_max(state, state.local_player_nation);  break;
+	case logistic_categories::land_supply: value = logistics::army_supply_setting_max(state, state.local_player_nation);  break;
+	case logistic_categories::naval_reinforcement: value = logistics::navy_reinforcement_setting_max(state, state.local_player_nation);  break;
+	case logistic_categories::naval_supply: value = logistics::navy_supply_setting_max(state, state.local_player_nation);  break;
+	case logistic_categories::army_construction: value = logistics::army_construction_setting_max(state, state.local_player_nation);  break;
+	case logistic_categories::naval_construction: value = logistics::navy_construction_setting_max(state, state.local_player_nation);  break;
+	case logistic_categories::factory_construction: value = logistics::factory_construction_setting_max(state, state.local_player_nation);  break;
+	case logistic_categories::building_construction: value = logistics::building_construction_setting_max(state, state.local_player_nation);  break;
 	default:  break;
 	}
 	if(value == 100) {
@@ -2347,14 +2347,14 @@ void logisticswindow_section_header_info_section_header_t::update_tooltip(sys::s
 // BEGIN section_header::info_section_header::tooltip
 	std::string_view tooltip_key = [&]() {
 		switch(section_header.section_type) {
-		case consumption_categories::land_reinforcement: return "consumption_section_army_reinforcement_info_tooltip";
-		case consumption_categories::land_supply: return "consumption_section_army_supply_info_tooltip";
-		case consumption_categories::naval_reinforcement: return "consumption_section_navy_reinforcement_info_tooltip";
-		case consumption_categories::naval_supply: return "consumption_section_navy_supply_info_tooltip";
-		case consumption_categories::army_construction: return "consumption_section_army_construction_info_tooltip";
-		case consumption_categories::naval_construction: return "consumption_section_navy_construction_info_tooltip";
-		case consumption_categories::factory_construction: return "consumption_section_factory_construction_info_tooltip";
-		case consumption_categories::building_construction: return "consumption_section_building_construction_info_tooltip";
+		case logistic_categories::land_reinforcement: return "consumption_section_army_reinforcement_info_tooltip";
+		case logistic_categories::land_supply: return "consumption_section_army_supply_info_tooltip";
+		case logistic_categories::naval_reinforcement: return "consumption_section_navy_reinforcement_info_tooltip";
+		case logistic_categories::naval_supply: return "consumption_section_navy_supply_info_tooltip";
+		case logistic_categories::army_construction: return "consumption_section_army_construction_info_tooltip";
+		case logistic_categories::naval_construction: return "consumption_section_navy_construction_info_tooltip";
+		case logistic_categories::factory_construction: return "consumption_section_factory_construction_info_tooltip";
+		case logistic_categories::building_construction: return "consumption_section_building_construction_info_tooltip";
 		default: return "";
 		}
 	}();
@@ -2374,14 +2374,14 @@ void logisticswindow_section_header_supply_loss_t::update_tooltip(sys::state& st
 	std::string_view tooltip_key = "logistics_supply_loss_tooltip";
 
 	switch(section_header.section_type) {
-	case consumption_categories::land_reinforcement: text::add_line(state, contents, tooltip_key, text::variable_type::val, text::fp_percentage_two_places{ logistics::nation_get_avg_military_supply_loss_by_type<military::unit_consumption_type::reinforcement, dcon::army_id>(state, state.local_player_nation) }); break;
-	case consumption_categories::land_supply:  text::add_line(state, contents, tooltip_key, text::variable_type::val, text::fp_percentage_two_places{ logistics::nation_get_avg_military_supply_loss_by_type<military::unit_consumption_type::supply, dcon::army_id>(state, state.local_player_nation) }); break;
-	case consumption_categories::naval_reinforcement: text::add_line(state, contents, tooltip_key, text::variable_type::val, text::fp_percentage_two_places{ logistics::nation_get_avg_military_supply_loss_by_type<military::unit_consumption_type::reinforcement, dcon::navy_id>(state, state.local_player_nation) }); break;
-	case consumption_categories::naval_supply: text::add_line(state, contents, tooltip_key, text::variable_type::val, text::fp_percentage_two_places{ logistics::nation_get_avg_military_supply_loss_by_type<military::unit_consumption_type::supply, dcon::navy_id>(state, state.local_player_nation) }); break;
-	case consumption_categories::army_construction:  text::add_line(state, contents, tooltip_key, text::variable_type::val, text::fp_percentage_two_places{ logistics::nation_get_avg_construction_supply_loss_by_type<dcon::province_land_construction_id>(state, state.local_player_nation) }); break;
-	case consumption_categories::naval_construction:  text::add_line(state, contents, tooltip_key, text::variable_type::val, text::fp_percentage_two_places{ logistics::nation_get_avg_construction_supply_loss_by_type<dcon::province_naval_construction_id>(state, state.local_player_nation) }); break;
-	case consumption_categories::factory_construction: text::add_line(state, contents, tooltip_key, text::variable_type::val, text::fp_percentage_two_places{ logistics::nation_get_avg_construction_supply_loss_by_type<dcon::factory_construction_id>(state, state.local_player_nation) }); break;
-	case consumption_categories::building_construction: text::add_line(state, contents, tooltip_key, text::variable_type::val, text::fp_percentage_two_places{ logistics::nation_get_avg_construction_supply_loss_by_type<dcon::province_building_construction_id>(state, state.local_player_nation) }); break;
+	case logistic_categories::land_reinforcement: text::add_line(state, contents, tooltip_key, text::variable_type::val, text::fp_percentage_two_places{ logistics::nation_get_avg_military_supply_loss_by_type<military::unit_consumption_type::reinforcement, dcon::army_id>(state, state.local_player_nation) }); break;
+	case logistic_categories::land_supply:  text::add_line(state, contents, tooltip_key, text::variable_type::val, text::fp_percentage_two_places{ logistics::nation_get_avg_military_supply_loss_by_type<military::unit_consumption_type::supply, dcon::army_id>(state, state.local_player_nation) }); break;
+	case logistic_categories::naval_reinforcement: text::add_line(state, contents, tooltip_key, text::variable_type::val, text::fp_percentage_two_places{ logistics::nation_get_avg_military_supply_loss_by_type<military::unit_consumption_type::reinforcement, dcon::navy_id>(state, state.local_player_nation) }); break;
+	case logistic_categories::naval_supply: text::add_line(state, contents, tooltip_key, text::variable_type::val, text::fp_percentage_two_places{ logistics::nation_get_avg_military_supply_loss_by_type<military::unit_consumption_type::supply, dcon::navy_id>(state, state.local_player_nation) }); break;
+	case logistic_categories::army_construction:  text::add_line(state, contents, tooltip_key, text::variable_type::val, text::fp_percentage_two_places{ logistics::nation_get_avg_construction_supply_loss_by_type<dcon::province_land_construction_id>(state, state.local_player_nation) }); break;
+	case logistic_categories::naval_construction:  text::add_line(state, contents, tooltip_key, text::variable_type::val, text::fp_percentage_two_places{ logistics::nation_get_avg_construction_supply_loss_by_type<dcon::province_naval_construction_id>(state, state.local_player_nation) }); break;
+	case logistic_categories::factory_construction: text::add_line(state, contents, tooltip_key, text::variable_type::val, text::fp_percentage_two_places{ logistics::nation_get_avg_construction_supply_loss_by_type<dcon::factory_construction_id>(state, state.local_player_nation) }); break;
+	case logistic_categories::building_construction: text::add_line(state, contents, tooltip_key, text::variable_type::val, text::fp_percentage_two_places{ logistics::nation_get_avg_construction_supply_loss_by_type<dcon::province_building_construction_id>(state, state.local_player_nation) }); break;
 	default: set_text(state, ""); break;
 	}
 // END
@@ -2394,14 +2394,14 @@ void logisticswindow_section_header_supply_loss_t::on_update(sys::state& state) 
 		return text::format_percentage(value, 2);
 	};
 	switch(section_header.section_type) {
-	case consumption_categories::land_reinforcement:  set_text(state, adjust_percent_value(logistics::nation_get_avg_military_supply_loss_by_type<military::unit_consumption_type::reinforcement, dcon::army_id>(state, state.local_player_nation))); break;
-	case consumption_categories::land_supply:  set_text(state, adjust_percent_value(logistics::nation_get_avg_military_supply_loss_by_type<military::unit_consumption_type::supply, dcon::army_id>(state, state.local_player_nation))); break;
-	case consumption_categories::naval_reinforcement:  set_text(state, adjust_percent_value(logistics::nation_get_avg_military_supply_loss_by_type<military::unit_consumption_type::reinforcement, dcon::navy_id>(state, state.local_player_nation))); break;
-	case consumption_categories::naval_supply: set_text(state, adjust_percent_value(logistics::nation_get_avg_military_supply_loss_by_type<military::unit_consumption_type::supply, dcon::navy_id>(state, state.local_player_nation))); break;
-	case consumption_categories::army_construction:  set_text(state, adjust_percent_value(logistics::nation_get_avg_construction_supply_loss_by_type<dcon::province_land_construction_id>(state, state.local_player_nation))); break;
-	case consumption_categories::naval_construction:  set_text(state, adjust_percent_value(logistics::nation_get_avg_construction_supply_loss_by_type<dcon::province_naval_construction_id>(state, state.local_player_nation))); break;
-	case consumption_categories::factory_construction: set_text(state, adjust_percent_value(logistics::nation_get_avg_construction_supply_loss_by_type<dcon::factory_construction_id>(state, state.local_player_nation))); break;
-	case consumption_categories::building_construction: set_text(state, adjust_percent_value(logistics::nation_get_avg_construction_supply_loss_by_type<dcon::province_building_construction_id>(state, state.local_player_nation))); break;
+	case logistic_categories::land_reinforcement:  set_text(state, adjust_percent_value(logistics::nation_get_avg_military_supply_loss_by_type<military::unit_consumption_type::reinforcement, dcon::army_id>(state, state.local_player_nation))); break;
+	case logistic_categories::land_supply:  set_text(state, adjust_percent_value(logistics::nation_get_avg_military_supply_loss_by_type<military::unit_consumption_type::supply, dcon::army_id>(state, state.local_player_nation))); break;
+	case logistic_categories::naval_reinforcement:  set_text(state, adjust_percent_value(logistics::nation_get_avg_military_supply_loss_by_type<military::unit_consumption_type::reinforcement, dcon::navy_id>(state, state.local_player_nation))); break;
+	case logistic_categories::naval_supply: set_text(state, adjust_percent_value(logistics::nation_get_avg_military_supply_loss_by_type<military::unit_consumption_type::supply, dcon::navy_id>(state, state.local_player_nation))); break;
+	case logistic_categories::army_construction:  set_text(state, adjust_percent_value(logistics::nation_get_avg_construction_supply_loss_by_type<dcon::province_land_construction_id>(state, state.local_player_nation))); break;
+	case logistic_categories::naval_construction:  set_text(state, adjust_percent_value(logistics::nation_get_avg_construction_supply_loss_by_type<dcon::province_naval_construction_id>(state, state.local_player_nation))); break;
+	case logistic_categories::factory_construction: set_text(state, adjust_percent_value(logistics::nation_get_avg_construction_supply_loss_by_type<dcon::factory_construction_id>(state, state.local_player_nation))); break;
+	case logistic_categories::building_construction: set_text(state, adjust_percent_value(logistics::nation_get_avg_construction_supply_loss_by_type<dcon::province_building_construction_id>(state, state.local_player_nation))); break;
 	default: set_text(state, ""); break;
 	}
 // END
@@ -2413,14 +2413,14 @@ void logisticswindow_section_header_supply_throughput_t::update_tooltip(sys::sta
 	std::string_view tooltip_key = "logistics_supply_throughput_tooltip";
 
 	switch(section_header.section_type) {
-	case consumption_categories::land_reinforcement: text::add_line(state, contents, tooltip_key, text::variable_type::val, text::fp_percentage_two_places{ logistics::nation_get_avg_military_supply_throughput_by_type<military::unit_consumption_type::reinforcement, dcon::army_id>(state, state.local_player_nation) }); break;
-	case consumption_categories::land_supply:  text::add_line(state, contents, tooltip_key, text::variable_type::val, text::fp_percentage_two_places{ logistics::nation_get_avg_military_supply_throughput_by_type<military::unit_consumption_type::supply, dcon::army_id>(state, state.local_player_nation) }); break;
-	case consumption_categories::naval_reinforcement: text::add_line(state, contents, tooltip_key, text::variable_type::val, text::fp_percentage_two_places{ logistics::nation_get_avg_military_supply_throughput_by_type<military::unit_consumption_type::reinforcement, dcon::navy_id>(state, state.local_player_nation) }); break;
-	case consumption_categories::naval_supply: text::add_line(state, contents, tooltip_key, text::variable_type::val, text::fp_percentage_two_places{ logistics::nation_get_avg_military_supply_throughput_by_type<military::unit_consumption_type::supply, dcon::navy_id>(state, state.local_player_nation) }); break;
-	case consumption_categories::army_construction:  text::add_line(state, contents, tooltip_key, text::variable_type::val, text::fp_percentage_two_places{ logistics::nation_get_avg_construction_supply_throughput_by_type<dcon::province_land_construction_id>(state, state.local_player_nation) }); break;
-	case consumption_categories::naval_construction:  text::add_line(state, contents, tooltip_key, text::variable_type::val, text::fp_percentage_two_places{ logistics::nation_get_avg_construction_supply_throughput_by_type<dcon::province_naval_construction_id>(state, state.local_player_nation) }); break;
-	case consumption_categories::factory_construction: text::add_line(state, contents, tooltip_key, text::variable_type::val, text::fp_percentage_two_places{ logistics::nation_get_avg_construction_supply_throughput_by_type<dcon::factory_construction_id>(state, state.local_player_nation) }); break;
-	case consumption_categories::building_construction: text::add_line(state, contents, tooltip_key, text::variable_type::val, text::fp_percentage_two_places{ logistics::nation_get_avg_construction_supply_throughput_by_type<dcon::province_building_construction_id>(state, state.local_player_nation) }); break;
+	case logistic_categories::land_reinforcement: text::add_line(state, contents, tooltip_key, text::variable_type::val, text::fp_percentage_two_places{ logistics::nation_get_avg_military_supply_throughput_by_type<military::unit_consumption_type::reinforcement, dcon::army_id>(state, state.local_player_nation) }); break;
+	case logistic_categories::land_supply:  text::add_line(state, contents, tooltip_key, text::variable_type::val, text::fp_percentage_two_places{ logistics::nation_get_avg_military_supply_throughput_by_type<military::unit_consumption_type::supply, dcon::army_id>(state, state.local_player_nation) }); break;
+	case logistic_categories::naval_reinforcement: text::add_line(state, contents, tooltip_key, text::variable_type::val, text::fp_percentage_two_places{ logistics::nation_get_avg_military_supply_throughput_by_type<military::unit_consumption_type::reinforcement, dcon::navy_id>(state, state.local_player_nation) }); break;
+	case logistic_categories::naval_supply: text::add_line(state, contents, tooltip_key, text::variable_type::val, text::fp_percentage_two_places{ logistics::nation_get_avg_military_supply_throughput_by_type<military::unit_consumption_type::supply, dcon::navy_id>(state, state.local_player_nation) }); break;
+	case logistic_categories::army_construction:  text::add_line(state, contents, tooltip_key, text::variable_type::val, text::fp_percentage_two_places{ logistics::nation_get_avg_construction_supply_throughput_by_type<dcon::province_land_construction_id>(state, state.local_player_nation) }); break;
+	case logistic_categories::naval_construction:  text::add_line(state, contents, tooltip_key, text::variable_type::val, text::fp_percentage_two_places{ logistics::nation_get_avg_construction_supply_throughput_by_type<dcon::province_naval_construction_id>(state, state.local_player_nation) }); break;
+	case logistic_categories::factory_construction: text::add_line(state, contents, tooltip_key, text::variable_type::val, text::fp_percentage_two_places{ logistics::nation_get_avg_construction_supply_throughput_by_type<dcon::factory_construction_id>(state, state.local_player_nation) }); break;
+	case logistic_categories::building_construction: text::add_line(state, contents, tooltip_key, text::variable_type::val, text::fp_percentage_two_places{ logistics::nation_get_avg_construction_supply_throughput_by_type<dcon::province_building_construction_id>(state, state.local_player_nation) }); break;
 	default: set_text(state, ""); break;
 	}
 // END
@@ -2433,14 +2433,14 @@ void logisticswindow_section_header_supply_throughput_t::on_update(sys::state& s
 		return text::format_percentage(value, 2);
 	};
 	switch(section_header.section_type) {
-	case consumption_categories::land_reinforcement:  set_text(state, adjust_percent_value(logistics::nation_get_avg_military_supply_throughput_by_type<military::unit_consumption_type::reinforcement, dcon::army_id>(state, state.local_player_nation))); break;
-	case consumption_categories::land_supply:  set_text(state, adjust_percent_value(logistics::nation_get_avg_military_supply_throughput_by_type<military::unit_consumption_type::supply, dcon::army_id>(state, state.local_player_nation))); break;
-	case consumption_categories::naval_reinforcement:  set_text(state, adjust_percent_value(logistics::nation_get_avg_military_supply_throughput_by_type<military::unit_consumption_type::reinforcement, dcon::navy_id>(state, state.local_player_nation))); break;
-	case consumption_categories::naval_supply: set_text(state, adjust_percent_value(logistics::nation_get_avg_military_supply_throughput_by_type<military::unit_consumption_type::supply, dcon::navy_id>(state, state.local_player_nation))); break;
-	case consumption_categories::army_construction:  set_text(state, adjust_percent_value(logistics::nation_get_avg_construction_supply_throughput_by_type<dcon::province_land_construction_id>(state, state.local_player_nation))); break;
-	case consumption_categories::naval_construction:  set_text(state, adjust_percent_value(logistics::nation_get_avg_construction_supply_throughput_by_type<dcon::province_naval_construction_id>(state, state.local_player_nation))); break;
-	case consumption_categories::factory_construction: set_text(state, adjust_percent_value(logistics::nation_get_avg_construction_supply_throughput_by_type<dcon::factory_construction_id>(state, state.local_player_nation))); break;
-	case consumption_categories::building_construction: set_text(state, adjust_percent_value(logistics::nation_get_avg_construction_supply_throughput_by_type<dcon::province_building_construction_id>(state, state.local_player_nation))); break;
+	case logistic_categories::land_reinforcement:  set_text(state, adjust_percent_value(logistics::nation_get_avg_military_supply_throughput_by_type<military::unit_consumption_type::reinforcement, dcon::army_id>(state, state.local_player_nation))); break;
+	case logistic_categories::land_supply:  set_text(state, adjust_percent_value(logistics::nation_get_avg_military_supply_throughput_by_type<military::unit_consumption_type::supply, dcon::army_id>(state, state.local_player_nation))); break;
+	case logistic_categories::naval_reinforcement:  set_text(state, adjust_percent_value(logistics::nation_get_avg_military_supply_throughput_by_type<military::unit_consumption_type::reinforcement, dcon::navy_id>(state, state.local_player_nation))); break;
+	case logistic_categories::naval_supply: set_text(state, adjust_percent_value(logistics::nation_get_avg_military_supply_throughput_by_type<military::unit_consumption_type::supply, dcon::navy_id>(state, state.local_player_nation))); break;
+	case logistic_categories::army_construction:  set_text(state, adjust_percent_value(logistics::nation_get_avg_construction_supply_throughput_by_type<dcon::province_land_construction_id>(state, state.local_player_nation))); break;
+	case logistic_categories::naval_construction:  set_text(state, adjust_percent_value(logistics::nation_get_avg_construction_supply_throughput_by_type<dcon::province_naval_construction_id>(state, state.local_player_nation))); break;
+	case logistic_categories::factory_construction: set_text(state, adjust_percent_value(logistics::nation_get_avg_construction_supply_throughput_by_type<dcon::factory_construction_id>(state, state.local_player_nation))); break;
+	case logistic_categories::building_construction: set_text(state, adjust_percent_value(logistics::nation_get_avg_construction_supply_throughput_by_type<dcon::province_building_construction_id>(state, state.local_player_nation))); break;
 	default: set_text(state, ""); break;
 	}
 // END

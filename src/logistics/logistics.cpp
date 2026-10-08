@@ -1105,7 +1105,8 @@ void update_supply_path_throughput_attrition(sys::state& state, dcon::supply_rou
 		supply_loss = 0.0f;
 		new_throughput = 1.0f; 
 	}
-	state.world.supply_route_path_set_expected_throughput(path_handle, (new_throughput + old_throughput) / 2.0f);
+	//std::clamp(exp_throughput * new_throughput * 1.1f, 0.01f, 1.0f);
+	state.world.supply_route_path_set_expected_throughput(path_handle, (new_throughput + old_throughput) / 2.0f); // Set the percentage of commodities routes should try to draw from this path and draw form other paths instead, to reduce bottlenecks. Maybe there is a better formula for this
 	state.world.supply_route_path_set_throughput(path_handle, new_throughput);
 	state.world.supply_route_path_set_supply_loss(path_handle, supply_loss);
 }
