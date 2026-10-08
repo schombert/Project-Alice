@@ -642,8 +642,8 @@ struct good_context {
 };
 
 struct good {
-	float supply_weight = 1.0f;
-	float supply_loss_rate = 1.0f;
+	float good_supply_weight = 1.0f;
+	float good_supply_loss_rate = 1.0f;
 	void money(association_type, bool v, error_handler& err, int32_t line, good_context& context);
 	void color(color_from_3i v, error_handler& err, int32_t line, good_context& context);
 	void cost(association_type, float v, error_handler& err, int32_t line, good_context& context);
@@ -651,6 +651,8 @@ struct good {
 	void is_local(association_type, bool b, error_handler& err, int32_t line, good_context& context);
 	void overseas_penalty(association_type, bool b, error_handler& err, int32_t line, good_context& context);
 	void uses_potentials(association_type, bool b, error_handler& err, int32_t line, good_context& context);
+	void supply_weight(association_type, float val, error_handler& err, int32_t line, good_context& context);
+	void supply_loss_rate(association_type, float val, error_handler& err, int32_t line, good_context& context);
 
 	void finish(good_context& context);
 };

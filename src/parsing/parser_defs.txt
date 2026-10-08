@@ -37,8 +37,8 @@ good
 	overseas_penalty  value   bool             member_fn
 	money          value      bool             member_fn
 	uses_potentials value     bool             member_fn
-	supply_weight value		   float           member
-	supply_loss_rate value     float           member
+	supply_weight value		   float           member_fn
+	supply_loss_rate value     float           member_fn
 
 goods_group
 	#any           extern     make_good             discard

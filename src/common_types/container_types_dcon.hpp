@@ -322,8 +322,6 @@ static_assert(sizeof(player_password_raw) == sizeof(player_password_raw::data));
 
 
 
-
-struct default_tag {};
 // A fixed-size array wrapper which implements a vector-like interface for keeping track of size.
 template<typename data_type, uint32_t capacity>
 class fixed_size_vector {
@@ -526,21 +524,21 @@ namespace economy {
 
 
 
-template<uint32_t sz>
-struct commodity_set_base {
-	static constexpr uint32_t set_size = sz;
+constexpr uint32_t small_set_size = 6;
+constexpr uint32_t normal_set_size = 8;
 
-	float commodity_amounts[set_size];
-	dcon::commodity_id commodity_type[set_size];
 
-	bool operator==(const commodity_set_base& other) const {
+struct commodity_set {
+	static constexpr uint32_t set_size = normal_set_size;
+
+	float commodity_amounts[set_size] = {};
+	dcon::commodity_id commodity_type[set_size] = {};
+
+	bool operator==(const commodity_set& other) const {
 		return std::memcmp(this->commodity_amounts, other.commodity_amounts, sizeof(commodity_amounts)) == 0 && std::memcmp(this->commodity_type, other.commodity_type, sizeof(commodity_type)) == 0;
 	}
-	bool operator!=(const commodity_set_base& other) const {
+	bool operator!=(const commodity_set& other) const {
 		return !(other == *this);
-	}
-	constexpr commodity_set_base() {
-		std::memset(this, 0, sizeof(commodity_set_base)); // Clears any potential padding, too
 	}
 	template<typename F>
 	void for_each_commodity(const F&& function) const {
@@ -580,22 +578,21 @@ struct commodity_set_base {
 				commodity_type[i] = cid;
 				commodity_amounts[i] = amount;
 				return i;
-			}
-			else if(commodity_type[i] == cid) {
+			} else if(commodity_type[i] == cid) {
 				return -1;
 			}
 		}
 		return -1;
 	}
 
-	void copy_all_to(commodity_set_base& dest) const {
-		std::memcpy(&dest, this, sizeof(commodity_set_base));
+	void copy_all_to(commodity_set& dest) const {
+		std::memcpy(&dest, this, sizeof(commodity_set));
 	}
-	void copy_types_to(commodity_set_base& dest) const {
-		std::memcpy(&dest.commodity_type, this->commodity_type, sizeof(commodity_set_base::commodity_type));
+	void copy_types_to(commodity_set& dest) const {
+		std::memcpy(&dest.commodity_type, this->commodity_type, sizeof(commodity_set::commodity_type));
 	}
-	void copy_amounts_to(commodity_set_base& dest) const {
-		std::memcpy(&dest.commodity_amounts, this->commodity_amounts, sizeof(commodity_set_base::commodity_amounts));
+	void copy_amounts_to(commodity_set& dest) const {
+		std::memcpy(&dest.commodity_amounts, this->commodity_amounts, sizeof(commodity_set::commodity_amounts));
 	}
 
 	void clear_types() {
@@ -605,15 +602,14 @@ struct commodity_set_base {
 		std::memset(&commodity_amounts, 0, sizeof(commodity_amounts));
 	}
 	void clear_all() {
-		std::memset(this, 0, sizeof(commodity_set_base));
+		std::memset(this, 0, sizeof(commodity_set));
 	}
 	uint32_t size_used() const {
 		uint32_t count = 0;
 		for(uint32_t i = 0; i < set_size; i++) {
 			if(commodity_type[i]) {
 				count++;
-			}
-			else {
+			} else {
 				break;
 			}
 		}
@@ -622,33 +618,109 @@ struct commodity_set_base {
 
 };
 
-constexpr uint32_t small_set_size = 6;
-constexpr uint32_t set_size = 8;
-constexpr uint32_t huge_set_size = 32;
+struct small_commodity_set {
+	static constexpr uint32_t set_size = small_set_size;
 
-using huge_commodity_set = commodity_set_base<huge_set_size>;
-static_assert(sizeof(huge_commodity_set) ==
-	sizeof(huge_commodity_set::commodity_amounts) +
-	+ sizeof(huge_commodity_set::commodity_type));
+	float commodity_amounts[set_size] = {};
+	dcon::commodity_id commodity_type[set_size] = {};
+	uint16_t padding = { };
 
+	bool operator==(const small_commodity_set& other) const {
+		return std::memcmp(this->commodity_amounts, other.commodity_amounts, sizeof(commodity_amounts)) == 0 && std::memcmp(this->commodity_type, other.commodity_type, sizeof(commodity_type)) == 0;
+	}
+	bool operator!=(const small_commodity_set& other) const {
+		return !(other == *this);
+	}
+	template<typename F>
+	void for_each_commodity(const F&& function) const {
+		for(uint32_t i = 0; i < set_size; ++i) {
+			if(commodity_type[i]) {
+				function(commodity_type[i], commodity_amounts[i]);
+			} else {
+				break;
+			}
+		}
+	}
+	template<typename F>
+	void for_each_commodity(F&& function) {
+		for(uint32_t i = 0; i < set_size; ++i) {
+			if(commodity_type[i]) {
+				function(commodity_type[i], commodity_amounts[i]);
+			} else {
+				break;
+			}
+		}
+	}
+	template<typename F>
+	void for_each_valid_index(F&& function) const {
+		for(uint32_t i = 0; i < set_size; ++i) {
+			if(commodity_type[i]) {
+				function(i);
+			} else {
+				break;
+			}
+		}
+	}
+	// Tries to add a commodity to the first free slot. Returns the index it was added to if sucessful, or -1 if no slot available or if the commodity is already added
+	int16_t try_add(dcon::commodity_id cid, float amount) {
+		assert(cid);
+		for(uint32_t i = 0; i < set_size; ++i) {
+			if(!commodity_type[i]) {
+				commodity_type[i] = cid;
+				commodity_amounts[i] = amount;
+				return i;
+			} else if(commodity_type[i] == cid) {
+				return -1;
+			}
+		}
+		return -1;
+	}
 
-using commodity_set = commodity_set_base<set_size>;
+	void copy_all_to(small_commodity_set& dest) const {
+		std::memcpy(&dest, this, sizeof(small_commodity_set));
+	}
+	void copy_types_to(small_commodity_set& dest) const {
+		std::memcpy(&dest.commodity_type, this->commodity_type, sizeof(small_commodity_set::commodity_type));
+	}
+	void copy_amounts_to(small_commodity_set& dest) const {
+		std::memcpy(&dest.commodity_amounts, this->commodity_amounts, sizeof(small_commodity_set::commodity_amounts));
+	}
+
+	void clear_types() {
+		std::memset(&commodity_type, 0, sizeof(commodity_type));
+	}
+	void clear_amounts() {
+		std::memset(&commodity_amounts, 0, sizeof(commodity_amounts));
+	}
+	void clear_all() {
+		std::memset(this, 0, sizeof(small_commodity_set));
+	}
+	uint32_t size_used() const {
+		uint32_t count = 0;
+		for(uint32_t i = 0; i < set_size; i++) {
+			if(commodity_type[i]) {
+				count++;
+			} else {
+				break;
+			}
+		}
+		return count;
+	}
+
+};
 static_assert(sizeof(commodity_set) ==
 	sizeof(commodity_set::commodity_amounts) +
 	+ sizeof(commodity_set::commodity_type));
 
 
-using small_commodity_set = commodity_set_base<small_set_size>;
 static_assert(sizeof(small_commodity_set) ==
 	sizeof(small_commodity_set::commodity_amounts) +
-	+ sizeof(small_commodity_set::commodity_type) + 2); // take into account two padding bytes
+	+ sizeof(small_commodity_set::commodity_type) +
+	sizeof(small_commodity_set::padding)); // take into account two padding bytes
 
 
-using commodity_amounts = std::array<float, set_size>;
-static_assert(sizeof(commodity_amounts) == set_size * sizeof(float));
-
-using commodity_amounts_u64 = std::array<uint64_t, set_size>;
-static_assert(sizeof(commodity_amounts_u64) == set_size * sizeof(uint64_t));
+using commodity_amounts = std::array<float, normal_set_size>;
+static_assert(sizeof(commodity_amounts) == normal_set_size * sizeof(float));
 
 struct production_type_bonus {
 	float amount = 0.0f;

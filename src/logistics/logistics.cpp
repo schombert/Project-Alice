@@ -682,11 +682,6 @@ economy::commodity_amounts& construction_supply_route_get_buffered_goods(sys::st
 	return const_cast<economy::commodity_amounts&>(construction_supply_route_get_buffered_goods(static_cast<const sys::state&>(state), route));
 }
 
-template<concepts::construction_supply_route_type route_type>
-economy::commodity_amounts_u64& construction_supply_route_get_buffered_goods_temp_buffer(sys::state& state, route_type route) {
-	return const_cast<economy::commodity_amounts_u64&>(construction_supply_route_get_buffered_goods_temp_buffer(static_cast<const sys::state&>(state), route));
-}
-
 dcon::province_land_construction_id construction_supply_route_get_construction(const sys::state& state, dcon::land_construction_supply_route_id route) {
 	return state.world.land_construction_supply_route_get_construction(route);
 }

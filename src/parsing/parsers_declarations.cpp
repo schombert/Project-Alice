@@ -236,12 +236,26 @@ void good::overseas_penalty(association_type, bool b, error_handler& err, int32_
 void good::uses_potentials(association_type, bool b, error_handler& err, int32_t line, good_context& context) {
 	context.outer_context.state.world.commodity_set_uses_potentials(context.id, b);
 }
+void good::supply_weight(association_type, float val, error_handler& err, int32_t line, good_context& context) {
+	if(val < 0.0f) {
+		err.accumulated_errors += "Good supply weight cannot be below 0. (file " + err.file_name + ", line " + std::to_string(line) + ")\n";
+		return;
+	}
+	good_supply_weight = val;
+}
+void good::supply_loss_rate(association_type, float val, error_handler& err, int32_t line, good_context& context) {
+	if(val < 0.0f) {
+		err.accumulated_errors += "Good supply loss rate cannot be below 0. (file " + err.file_name + ", line " + std::to_string(line) + ")\n";
+		return;
+	}
+	good_supply_loss_rate = val;
+}
 
 void good::finish(good_context& context) {
 	++context.outer_context.number_of_commodities_seen;
 	context.outer_context.state.world.commodity_set_icon(context.id, uint8_t(context.outer_context.number_of_commodities_seen));
-	context.outer_context.state.world.commodity_set_supply_weight(context.id, supply_weight);
-	context.outer_context.state.world.commodity_set_supply_loss_rate(context.id, supply_loss_rate);
+	context.outer_context.state.world.commodity_set_supply_weight(context.id, good_supply_weight);
+	context.outer_context.state.world.commodity_set_supply_loss_rate(context.id, good_supply_loss_rate);
 }
 
 void issue::next_step_only(association_type, bool value, error_handler& err, int32_t line, issue_context& context) {
