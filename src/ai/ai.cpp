@@ -2148,7 +2148,7 @@ void update_land_constructions(sys::state& state) {
 			auto today = state.current_date;
 			auto days_passed = float(1 + today.value - date.value);
 			auto progress = economy::construction_progress(state, plcid);
-			auto build_time = economy::construction_get_actual_build_time(state, plcid);
+			uint32_t build_time = economy::construction_get_actual_construction_time(state, plcid);
 			auto estimated_progress = days_passed / float(build_time);
 			if(estimated_progress > 5.f * progress && estimated_progress >= 1.f) {
 				hopeless_construction.push_back(plcid);

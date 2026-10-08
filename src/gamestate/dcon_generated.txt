@@ -5221,9 +5221,6 @@ object{
 		type{ array{int32_t}{float} }
 		tag{ save }
 	}
-
-}
-
 	property {
 		name{ demand_per_consumption_category }
 		type{ array{consumption_category_id}{float} }
