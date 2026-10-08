@@ -3802,10 +3802,14 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	auto step_count_hint = 10.f;
 
 	world.for_each_province_adjacency([&](auto adj) {
-		if((world.province_adjacency_get_type(adj) & province::border::impassible_bit) == province::border::impassible_bit) {
-			map_state.map_data.railroad_starts.push_back(GLint(map_state.map_data.railroad_vertices.size()));
-			map_state.map_data.railroad_counts.push_back(0);
-			return;
+		auto ignore_sea_land_province = world.province_adjacency_get_canal_or_blockade_province(adj);
+
+		if(!ignore_sea_land_province) {
+			if((world.province_adjacency_get_type(adj) & province::border::impassible_bit) == province::border::impassible_bit) {
+				map_state.map_data.railroad_starts.push_back(GLint(map_state.map_data.railroad_vertices.size()));
+				map_state.map_data.railroad_counts.push_back(0);
+				return;
+			}
 		}
 
 		auto p1 = world.province_adjacency_get_connected_provinces(adj, 0);
@@ -3829,7 +3833,6 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 			sea_route = true;
 		}
 
-		auto ignore_sea_land_province = world.province_adjacency_get_canal_or_blockade_province(adj);
 
 		auto mid_point_1 = world.province_get_mid_point(p1);
 		auto mid_point_2 = world.province_get_mid_point(p2);
@@ -3892,6 +3895,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 				if(ignore_sea_land_province) {
 					apply_malus = (ignore_sea_land_province != local_province) && (ignore_sea_land_province != next_province);
 				}
+
 				if(sea_route) {
 					if(local_terrain != 255 && apply_malus) {
 						move_cost_mod = 100.f;
@@ -3899,6 +3903,15 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 						move_cost_mod = 1.f;
 					}
 				}
+				if(apply_malus) {
+					if(local_province != p1 && local_province != p2) {
+						move_cost_mod = move_cost_mod * 2.f;
+					}
+					if(next_province != p1 && next_province != p2) {
+						move_cost_mod = move_cost_mod * 2.f;
+					}
+				}
+
 				auto next_distance = prev_dist + base_distance * std::max(0.05f, (move_cost_mod * 20.f));
 				auto scaled_x = (float)next_x / (float)map_state.map_data.size_x;
 				auto scaled_y = (float)next_y / (float)map_state.map_data.size_y;
