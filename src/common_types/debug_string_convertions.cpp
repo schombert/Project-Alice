@@ -80,5 +80,5 @@ std::string to_debug_string(const military::available_cb& obj) {
 	return "(expiration;target;cb_type;target_state) => " + std::to_string(obj.expiration.value) + ";" + std::to_string(obj.target.value) + ";" + std::to_string(obj.cb_type.value) + ";" + std::to_string(obj.target_state.value);
 }
 
-}
 
+}

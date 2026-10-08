@@ -9,7 +9,7 @@
 
 void parsing::defines::assign_define(sys::state& state, int32_t line, std::string_view text, float v,
 		parsers::error_handler& err) {
-	if(text.empty())
+	/*if(text.empty())
 		return;
 	if(parsers::is_fixed_token_ci(text.data(), text.data() + text.length(), "ai")
 	|| parsers::is_fixed_token_ci(text.data(), text.data() + text.length(), "economy")
@@ -23,7 +23,7 @@ void parsing::defines::assign_define(sys::state& state, int32_t line, std::strin
 	|| parsers::is_fixed_token_ci(text.data(), text.data() + text.length(), "{")
 	|| parsers::is_fixed_token_ci(text.data(), text.data() + text.length(), "}")
 	|| parsers::is_fixed_token_ci(text.data(), text.data() + text.length(), "},"))
-		return;
+		return;*/
 	
 #define LUA_DEFINES_LIST_ELEMENT(key, const_value) \
 	if(parsers::is_fixed_token_ci(text.data(), text.data() + text.length(), #key)) { key = v; return; }
@@ -57,6 +57,24 @@ void parsing::defines::parse_line(sys::state& state, int32_t line, std::string_v
 		;
 
 	auto value_end = position;
+
+	if(data.empty() || value_start == value_end) {
+		return;
+	}
+	if(parsers::is_fixed_token_ci(value_start, value_end, "ai")
+	|| parsers::is_fixed_token_ci(value_start, value_end, "economy")
+	|| parsers::is_fixed_token_ci(value_start, value_end, "military")
+	|| parsers::is_fixed_token_ci(value_start, value_end, "diplomacy")
+	|| parsers::is_fixed_token_ci(value_start, value_end, "defines")
+	|| parsers::is_fixed_token_ci(value_start, value_end, "alice")
+	|| parsers::is_fixed_token_ci(value_start, value_end, "pops")
+	|| parsers::is_fixed_token_ci(value_start, value_end, "country")
+	|| parsers::is_fixed_token_ci(value_start, value_end, "graphics")
+	|| parsers::is_fixed_token_ci(value_start, value_end, "{")
+	|| parsers::is_fixed_token_ci(value_start, value_end, "}")
+	|| parsers::is_fixed_token_ci(value_start, value_end, "},")) {
+		return;
+	}
 
 	if(parsers::is_fixed_token_ci(first_non_ws, identifier_end, "start_date")) {
 		position = value_start;

@@ -3,9 +3,9 @@
 #endif
 
 #include "common_types.cpp"
+#ifndef INCREMENTAL
 #include "lua_alice_api.cpp"
 #include "system_state.cpp"
-#ifndef INCREMENTAL
 #include "dcon_oos_reporter_generated.cpp"
 #include "ui_state.cpp"
 #include "create_windows.cpp"
@@ -21,6 +21,7 @@
 #include "nations.cpp"
 #include "culture.cpp"
 #include "military.cpp"
+#include "logistics.cpp"
 #include "debug_string_convertions.cpp"
 #include "modifiers.cpp"
 #include "province.cpp"
@@ -105,9 +106,11 @@
 #include "pcp.cpp"
 #include "asvg.cpp"
 #include "uitemplate_serialization.cpp"
-#endif
+
 #include "gui_element_types.cpp"
 #include "gui_main_menu.cpp"
 #include "gui_console.cpp"
 #include "gui_event.cpp"
 #include "gui_message_settings_window.cpp"
+#endif
+

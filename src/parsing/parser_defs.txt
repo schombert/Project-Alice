@@ -37,6 +37,8 @@ good
 	overseas_penalty  value   bool             member_fn
 	money          value      bool             member_fn
 	uses_potentials value     bool             member_fn
+	supply_weight value		   float           member_fn
+	supply_loss_rate value     float           member_fn
 
 goods_group
 	#any           extern     make_good             discard
@@ -72,13 +74,13 @@ modifier_base
 	max_tax                                   value      float            member_fn
 	min_military_spending                     value      float            member_fn
 	max_military_spending                     value      float            member_fn
-	min_land_upkeep                     value      float            member_fn
+	min_land_upkeep                           value      float            member_fn
 	min_social_spending                       value      float            member_fn
 	max_social_spending                       value      float            member_fn
-	min_domestic_investment              value      float            member_fn
-	max_domestic_investment              value      float            member_fn
+	min_domestic_investment					  value      float            member_fn
+	max_domestic_investment                   value      float            member_fn
 	factory_owner_cost                        value      float            member_fn
-	local_factory_owner_cost          value     float          discard
+	local_factory_owner_cost                  value      float            discard
 	min_tariff                                value      float            member_fn
 	max_tariff                                value      float            member_fn
 	trade_routes_attraction                   value      float            member_fn
@@ -132,7 +134,7 @@ modifier_base
 	mine_rgo_eff                              value      float            member_fn
 	farm_rgo_size                             value      float            member_fn
 	mine_rgo_size                             value      float            member_fn
-	rgo_size                             value      float            member_fn (m_rgo_size)
+	rgo_size                                  value      float            member_fn (m_rgo_size)
 	issue_change_speed                        value      float            member_fn
 	social_reform_desire                      value      float            member_fn
 	political_reform_desire                   value      float            member_fn
@@ -142,7 +144,7 @@ modifier_base
 	rich_income_modifier                      value      float            member_fn
 	middle_income_modifier                    value      float            member_fn
 	poor_income_modifier                      value      float            member_fn
-	low_income_modifier                  value      float            member_fn  (poor_income_modifier)
+	low_income_modifier                       value      float            member_fn  (poor_income_modifier)
 	boost_strongest_party                     value      float            member_fn
 	global_immigrant_attract                  value      float            member_fn
 	immigration                               value      float            member_fn
@@ -151,10 +153,10 @@ modifier_base
 	local_repair                              value      float            member_fn
 	local_ship_build                          value      float            member_fn
 	poor_savings_modifier                     value      float            member_fn
-	middle_savings_modifier                     value      float            discard
+	middle_savings_modifier                   value      float            discard
 	rich_savings_modifier                     value      float            discard
 	influence_modifier                        value      float            member_fn
-	diplomatic_influence                  value      float            member_fn (influence_modifier)
+	diplomatic_influence                      value      float            member_fn (influence_modifier)
 	diplomatic_points_modifier                value      float            member_fn
 	mobilisation_size                         value      float            member_fn (mobilization_size)
 	mobilisation_economy_impact               value      float            member_fn (mobilization_impact)
@@ -172,7 +174,7 @@ modifier_base
 	suppression_points_modifier               value      float            member_fn
 	education_efficiency_modifier             value      float            member_fn
 	education_efficiency                      value      float            member_fn
-	education             value      float            member_fn (education_efficiency_modifier)
+	education							      value      float            member_fn (education_efficiency_modifier)
 	civilization_progress_modifier            value      float            member_fn
 	administrative_efficiency_modifier        value      float            member_fn
 	land_unit_start_experience                value      float            member_fn
@@ -213,7 +215,7 @@ modifier_base
 	reinforce_rate                            value      float            member_fn
 	tax_eff                                   value      float            member_fn
 	administrative_efficiency                 value      float            member_fn (administrative_efficiency_modifier)
-	admin_efficiency                 value      float            member_fn (administrative_efficiency_modifier)
+	admin_efficiency                          value      float            member_fn (administrative_efficiency_modifier)
 	influence                                 value      float            member_fn
 	dig_in_cap                                value      float            member_fn
 	morale                                    value      float            member_fn (org_regain)
@@ -226,29 +228,57 @@ modifier_base
 	naval_attrition                           value      float            member_fn
 	land_attrition                            value      float            member_fn
 	pop_growth                                value      float            member_fn
-	global_pop_growth                                value      float            member_fn (pop_growth)
+	global_pop_growth                         value      float            member_fn (pop_growth)
 	colonial_life_rating                      value      float            member_fn
 	seperatism                                value      float            member_fn
 	colonial_prestige                         value      float            member_fn
 	unit_start_experience                     value      float            member_fn
-	unit_recruitment_time        value        float        discard
+	unit_recruitment_time                     value      float            discard
 	conversion_rate                     	  value      float            member_fn
 	global_conversion_rate                    value      float            member_fn
-	military_theory_tech_research_bonus              value      float            member_fn
-	diplomacy_tech_research_bonus              value      float            member_fn
-	population_tech_research_bonus              value      float            member_fn
-	flavor_tech_research_bonus              value      float            member_fn
-	aristocrat_reinvestment              value      float            member_fn
-	capitalist_reinvestment              value      float            member_fn
-	middle_class_reinvestment              value      float            member_fn
-	farmers_reinvestment              value      float            member_fn
-	aristocrat_savings              value      float            member_fn
-	capitalist_savings              value      float            member_fn
-	middle_class_savings              value      float            member_fn
-	farmers_savings              value      float            member_fn
-	disallow_naval_trade              value      float            member_fn
-	disallow_land_trade              value      float            member_fn
-	fort_level 						value       float 			 member_fn
+	military_theory_tech_research_bonus       value      float            member_fn
+	diplomacy_tech_research_bonus             value      float            member_fn
+	population_tech_research_bonus            value      float            member_fn
+	flavor_tech_research_bonus                value      float            member_fn
+	aristocrat_reinvestment					  value      float            member_fn
+	capitalist_reinvestment                   value      float            member_fn
+	middle_class_reinvestment                 value      float            member_fn
+	farmers_reinvestment                      value      float            member_fn
+	aristocrat_savings                        value      float            member_fn
+	capitalist_savings						  value      float            member_fn
+	middle_class_savings					  value      float            member_fn
+	farmers_savings							  value      float            member_fn
+	disallow_naval_trade					  value      float            member_fn
+	disallow_land_trade						  value      float            member_fn
+	fort_level 								  value      float 			  member_fn
+	supply_throughput_add 					  value      float 			  member_fn
+	supply_throughput_percent 				  value      float 			  member_fn
+	supply_throughput_mul				      value      float 			  member_fn
+	supply_loss_add 						  value      float 			  member_fn
+	supply_loss_percent 					  value      float 			  member_fn
+	supply_loss_mul 					      value      float 			  member_fn
+	port_supply_capacity_add 				  value      float 			  member_fn
+	port_supply_capacity_percent 			  value      float 		      member_fn
+	port_supply_capacity_mul 			      value      float 		      member_fn
+	land_supply_speed_add 					  value      float 		      member_fn
+	land_supply_speed_percent 				  value      float 		      member_fn
+	land_supply_speed_mul 				      value      float 		      member_fn
+	naval_supply_speed_add 					  value      float 			  member_fn
+	naval_supply_speed_percent 				  value      float 			  member_fn
+	naval_supply_speed_mul 				      value      float 			  member_fn
+	national_land_supply_throughput_add 	  value      float 			  member_fn
+	national_land_supply_throughput_percent   value      float 			  member_fn
+	national_land_supply_throughput_mul       value      float 			  member_fn
+	national_land_supply_loss_add 			  value      float 			  member_fn
+	national_land_supply_loss_percent 		  value      float 			  member_fn
+	national_land_supply_loss_mul 		      value      float 			  member_fn
+	national_naval_supply_throughput_add 	  value      float 			  member_fn
+	national_naval_supply_throughput_percent  value      float 			  member_fn
+	national_naval_supply_throughput_mul      value      float 			  member_fn
+	national_naval_supply_loss_add 			  value      float 			  member_fn
+	national_naval_supply_loss_percent 		  value      float 			  member_fn
+	national_naval_supply_loss_mul		      value      float 			  member_fn
+
 
 religion_def
 	nation_modifier group     modifier_base    member_fn
@@ -391,6 +421,8 @@ static_modifiers_file
 	occupied                 extern   m_occupied                 discard
 	nationalism              extern   m_nationalism              discard
 	infrastructure           extern   m_infrastructure           discard
+	province_control         extern   m_province_control         discard
+	province_militancy       extern   m_province_militancy        discard
 	base_values              extern   m_base_values              discard
 	war                      extern   m_war                      discard
 	peace                    extern   m_peace                    discard
@@ -409,6 +441,12 @@ static_modifiers_file
 	total_occupation         extern   m_total_occupation         discard
 	total_blockaded          extern   m_total_blockaded          discard
 	in_bankrupcy             extern   m_in_bankrupcy             discard
+	nation_base             extern   m_nation_base            discard
+	province_base             extern   m_province_base            discard
+	civilian_port            extern   m_civilian_port            discard
+	fastest_land_unit_speed             extern   m_fastest_land_unit_speed           discard
+	fastest_transport_unit_speed             extern   m_fastest_transport_unit_speed           discard
+
 
 event_modifiers_file
 	#any           extern      make_event_modifier      discard
@@ -509,6 +547,12 @@ inventions_file
 commodity_set
 	#any           value      float            member_fn
 
+military_build_commodity_set
+	#any           value      float            member_fn
+
+military_supply_commodity_set
+	#any           value      float            member_fn
+
 unit_definition
 	icon           value      int              member
 	type           value      text             member_fn   (type_text)
@@ -519,8 +563,8 @@ unit_definition
 	maximum_speed  value      float            member
 	build_time     value      int              member
 	supply_consumption  value float            member
-	build_cost     group      commodity_set    member
-	supply_cost    group      commodity_set    member
+	build_cost     group      military_build_commodity_set    member
+	supply_cost    group      military_supply_commodity_set    member
 	reconnaissance value      float            member  (reconnaissance_or_fire_range)
 	attack         value      float            member  (attack_or_gun_power)
 	defence        value      float            member  (defence_or_hull)

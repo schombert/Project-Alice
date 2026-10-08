@@ -425,6 +425,9 @@ void update(sys::state& state) {
 					state.iui_state.per_nation_data[n.index()] = economy::stockpile(state, n, state.selected_trade_good);
 					break;
 
+				case iui::commodity_info_mode::government_stockpiles:
+					state.iui_state.per_nation_data[n.index()] = state.world.nation_get_total_stockpiles(n, state.selected_trade_good);
+					break;
 				case iui::commodity_info_mode::potentials:
 				{
 					state.iui_state.per_nation_data[n.index()] = (float) economy::calculate_nation_factory_limit(state, n, state.selected_trade_good);
@@ -500,6 +503,9 @@ void update(sys::state& state) {
 
 					case iui::commodity_info_mode::stockpiles:
 						state.iui_state.per_market_data[market.index()] = state.world.market_get_stockpile(market, state.selected_trade_good);
+						break;
+					case iui::commodity_info_mode::government_stockpiles:
+						state.iui_state.per_market_data[market.index()] = state.world.market_get_government_stockpile(market, state.selected_trade_good);
 						break;
 
 					case iui::commodity_info_mode::potentials:

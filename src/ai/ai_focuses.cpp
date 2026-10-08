@@ -3,6 +3,7 @@
 #include "demographics.hpp"
 #include "triggers.hpp"
 #include "commands.hpp"
+#include "culture_constants.hpp"
 
 
 namespace ai {

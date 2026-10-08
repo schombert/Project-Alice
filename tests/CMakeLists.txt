@@ -1,40 +1,10 @@
 #94723 <-- DO NOT REMOVE ... the file system tests are looking for this
 
-add_executable(tests_project "${PROJECT_SOURCE_DIR}/tests/test_main.cpp"
-	"${PROJECT_SOURCE_DIR}/src/gui/alice_ui.cpp"
-	"${PROJECT_SOURCE_DIR}/src/map/map_state.cpp"
-	"${PROJECT_SOURCE_DIR}/src/map/map_data_loading.cpp"
-	"${PROJECT_SOURCE_DIR}/src/map/map_borders.cpp"
-	"${PROJECT_SOURCE_DIR}/src/lunasvg/lunasvg.cpp"
-	"${PROJECT_SOURCE_DIR}/src/map/projections.cpp"
-	"${PROJECT_SOURCE_DIR}/src/map/map.cpp"
-	"${PROJECT_SOURCE_DIR}/src/graphics/xac.cpp"
-	"${PROJECT_SOURCE_DIR}/src/graphics/stateless_render.cpp"
-	"${PROJECT_SOURCE_DIR}/src/lunasvg/graphics.cpp"
-	"${PROJECT_SOURCE_DIR}/src/lunasvg/lunasvg.cpp"
-	"${PROJECT_SOURCE_DIR}/src/lunasvg/svgelement.cpp"
-	"${PROJECT_SOURCE_DIR}/src/lunasvg/svggeometryelement.cpp"
-	"${PROJECT_SOURCE_DIR}/src/lunasvg/svglayoutstate.cpp"
-	"${PROJECT_SOURCE_DIR}/src/lunasvg/svgpaintelement.cpp"
-	"${PROJECT_SOURCE_DIR}/src/lunasvg/svgparser.cpp"
-	"${PROJECT_SOURCE_DIR}/src/lunasvg/svgproperty.cpp"
-	"${PROJECT_SOURCE_DIR}/src/lunasvg/svgrenderstate.cpp"
-	"${PROJECT_SOURCE_DIR}/src/lunasvg/svgtextelement.cpp"
-	"${PROJECT_SOURCE_DIR}/src/lunasvg/plutovg-blend.c"
-	"${PROJECT_SOURCE_DIR}/src/lunasvg/plutovg-canvas.c"
-	"${PROJECT_SOURCE_DIR}/src/lunasvg/plutovg-font.c"
-	"${PROJECT_SOURCE_DIR}/src/lunasvg/plutovg-ft-math.c"
-	"${PROJECT_SOURCE_DIR}/src/lunasvg/plutovg-ft-raster.c"
-	"${PROJECT_SOURCE_DIR}/src/lunasvg/plutovg-ft-stroker.c"
-	"${PROJECT_SOURCE_DIR}/src/lunasvg/plutovg-matrix.c"
-	"${PROJECT_SOURCE_DIR}/src/lunasvg/plutovg-paint.c"
-	"${PROJECT_SOURCE_DIR}/src/lunasvg/plutovg-path.c"
-	"${PROJECT_SOURCE_DIR}/src/lunasvg/plutovg-rasterize.c"
-	"${PROJECT_SOURCE_DIR}/src/lunasvg/plutovg-surface.c"
-	"${PROJECT_SOURCE_DIR}/src/gui/production.cpp"
-	"${PROJECT_SOURCE_DIR}/src/gui/province_factories.cpp"
-	"${PROJECT_SOURCE_DIR}/src/gui/factory_details.cpp"
-	"${PROJECT_SOURCE_DIR}/src/alice.rc")
+add_executable(tests_project
+	"${PROJECT_SOURCE_DIR}/tests/test_main.cpp"
+	${ALICE_INCREMENTAL_SOURCES_LIST}
+	${ASSET_FILES}
+)
 
 
 set_source_files_properties(${PROJECT_SOURCE_DIR}/src/lunasvg/plutovg-blend.c PROPERTIES SKIP_PRECOMPILE_HEADERS ON)

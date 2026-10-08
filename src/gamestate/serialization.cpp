@@ -263,6 +263,9 @@ uint8_t const* read_handwritten_scenario_section(uint8_t const* ptr_in, uint8_t 
 		ptr_in = memcpy_deserialize(ptr_in, state.national_definitions.occupied);
 		ptr_in = memcpy_deserialize(ptr_in, state.national_definitions.nationalism);
 		ptr_in = memcpy_deserialize(ptr_in, state.national_definitions.infrastructure);
+		ptr_in = memcpy_deserialize(ptr_in, state.national_definitions.province_militancy);
+		ptr_in = memcpy_deserialize(ptr_in, state.national_definitions.province_control);
+		ptr_in = memcpy_deserialize(ptr_in, state.national_definitions.civilian_port);
 		ptr_in = memcpy_deserialize(ptr_in, state.national_definitions.base_values);
 		ptr_in = memcpy_deserialize(ptr_in, state.national_definitions.war);
 		ptr_in = memcpy_deserialize(ptr_in, state.national_definitions.peace);
@@ -281,6 +284,10 @@ uint8_t const* read_handwritten_scenario_section(uint8_t const* ptr_in, uint8_t 
 		ptr_in = memcpy_deserialize(ptr_in, state.national_definitions.total_occupation);
 		ptr_in = memcpy_deserialize(ptr_in, state.national_definitions.total_blockaded);
 		ptr_in = memcpy_deserialize(ptr_in, state.national_definitions.in_bankrupcy);
+		ptr_in = memcpy_deserialize(ptr_in, state.national_definitions.fastest_land_unit_speed);
+		ptr_in = memcpy_deserialize(ptr_in, state.national_definitions.fastest_transport_unit_speed);
+		ptr_in = memcpy_deserialize(ptr_in, state.national_definitions.province_base);
+		ptr_in = memcpy_deserialize(ptr_in, state.national_definitions.nation_base);
 		ptr_in = memcpy_deserialize(ptr_in, state.national_definitions.num_allocated_national_variables);
 		ptr_in = memcpy_deserialize(ptr_in, state.national_definitions.num_allocated_national_flags);
 		ptr_in = memcpy_deserialize(ptr_in, state.national_definitions.num_allocated_global_flags);
@@ -478,6 +485,9 @@ uint8_t* write_handwritten_scenario_section(uint8_t* ptr_in, sys::state& state, 
 		ptr_in = memcpy_serialize(ptr_in, state.national_definitions.occupied);
 		ptr_in = memcpy_serialize(ptr_in, state.national_definitions.nationalism);
 		ptr_in = memcpy_serialize(ptr_in, state.national_definitions.infrastructure);
+		ptr_in = memcpy_serialize(ptr_in, state.national_definitions.province_militancy);
+		ptr_in = memcpy_serialize(ptr_in, state.national_definitions.province_control);
+		ptr_in = memcpy_serialize(ptr_in, state.national_definitions.civilian_port);
 		ptr_in = memcpy_serialize(ptr_in, state.national_definitions.base_values);
 		ptr_in = memcpy_serialize(ptr_in, state.national_definitions.war);
 		ptr_in = memcpy_serialize(ptr_in, state.national_definitions.peace);
@@ -496,6 +506,10 @@ uint8_t* write_handwritten_scenario_section(uint8_t* ptr_in, sys::state& state, 
 		ptr_in = memcpy_serialize(ptr_in, state.national_definitions.total_occupation);
 		ptr_in = memcpy_serialize(ptr_in, state.national_definitions.total_blockaded);
 		ptr_in = memcpy_serialize(ptr_in, state.national_definitions.in_bankrupcy);
+		ptr_in = memcpy_serialize(ptr_in, state.national_definitions.fastest_land_unit_speed);
+		ptr_in = memcpy_serialize(ptr_in, state.national_definitions.fastest_transport_unit_speed);
+		ptr_in = memcpy_serialize(ptr_in, state.national_definitions.province_base);
+		ptr_in = memcpy_serialize(ptr_in, state.national_definitions.nation_base);
 		ptr_in = memcpy_serialize(ptr_in, state.national_definitions.num_allocated_national_variables);
 		ptr_in = memcpy_serialize(ptr_in, state.national_definitions.num_allocated_national_flags);
 		ptr_in = memcpy_serialize(ptr_in, state.national_definitions.num_allocated_global_flags);
@@ -691,6 +705,9 @@ size_t sizeof_handwritten_scenario_section(sys::state& state, bool exclude_local
 		sz += sizeof(state.national_definitions.occupied);
 		sz += sizeof(state.national_definitions.nationalism);
 		sz += sizeof(state.national_definitions.infrastructure);
+		sz += sizeof(state.national_definitions.province_militancy);
+		sz += sizeof(state.national_definitions.province_control);
+		sz += sizeof(state.national_definitions.civilian_port);
 		sz += sizeof(state.national_definitions.base_values);
 		sz += sizeof(state.national_definitions.war);
 		sz += sizeof(state.national_definitions.peace);
@@ -709,6 +726,10 @@ size_t sizeof_handwritten_scenario_section(sys::state& state, bool exclude_local
 		sz += sizeof(state.national_definitions.total_occupation);
 		sz += sizeof(state.national_definitions.total_blockaded);
 		sz += sizeof(state.national_definitions.in_bankrupcy);
+		sz += sizeof(state.national_definitions.fastest_land_unit_speed);
+		sz += sizeof(state.national_definitions.fastest_transport_unit_speed);
+		sz += sizeof(state.national_definitions.province_base);
+		sz += sizeof(state.national_definitions.nation_base);
 		sz += sizeof(state.national_definitions.num_allocated_national_variables);
 		sz += sizeof(state.national_definitions.num_allocated_national_flags);
 		sz += sizeof(state.national_definitions.num_allocated_global_flags);

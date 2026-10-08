@@ -54,8 +54,6 @@ class unit_details_window : public window_element_base {
 	simple_text_element_base* unitrecon_text = nullptr;
 	image_element_base* unitengineer_icon = nullptr;
 	simple_text_element_base* unitengineer_text = nullptr;
-	progress_bar* unitsupply_bar = nullptr;
-	dug_in_icon* unitdugin_icon = nullptr;
 	unit_selection_panel<T>* unit_selection_win = nullptr;
 	unit_upgrade_window<T>* unit_upgrade_win = nullptr;
 public:

@@ -3,6 +3,8 @@
 #include "gui_politics_window.hpp"
 #include "gui_templates.hpp"
 #include "triggers.hpp"
+#include "gui_province_window.hpp"
+#include "economy_stats.hpp"
 
 namespace ui {
 

@@ -66,6 +66,8 @@ std::string inline localize_commodity_info_mode(commodity_info_mode mode) {
 		return "consumption";
 	case commodity_info_mode::stockpiles:
 		return "stockpiles";
+	case commodity_info_mode::government_stockpiles:
+		return "government_stockpiles";
 	case commodity_info_mode::balance:
 		return "balance";
 	case commodity_info_mode::trade_in:

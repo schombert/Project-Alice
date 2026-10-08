@@ -100,6 +100,21 @@ void make_national_value(std::string_view name, token_generator& gen, error_hand
 	++context.number_of_national_values_seen;
 }
 
+
+
+dcon::modifier_id create_static_modifier(scenario_building_context& context, uint8_t icon, std::string_view name) {
+	auto name_id = text::find_or_add_key(context.state, name, true);
+
+	auto new_modifier = context.state.world.create_modifier();
+
+	context.state.world.modifier_set_icon(new_modifier, icon);
+	context.state.world.modifier_set_name(new_modifier, name_id);
+
+	context.map_of_modifiers.insert_or_assign(std::string(name), new_modifier);
+	return new_modifier;
+}
+
+
 void m_very_easy_player(token_generator& gen, error_handler& err, scenario_building_context& context) {
 	auto name_id = text::find_or_add_key(context.state, "very_easy_player", true);
 
@@ -428,6 +443,72 @@ void m_infrastructure(token_generator& gen, error_handler& err, scenario_buildin
 	context.state.national_definitions.infrastructure = new_modifier;
 }
 
+void m_province_militancy(token_generator& gen, error_handler& err, scenario_building_context& context) {
+	auto name_id = text::find_or_add_key(context.state, "province_militancy", true);
+
+	auto parsed_modifier = parse_modifier_base(gen, err, context);
+
+	auto new_modifier = context.state.world.create_modifier();
+
+	context.state.world.modifier_set_icon(new_modifier, uint8_t(parsed_modifier.icon_index));
+	context.state.world.modifier_set_name(new_modifier, name_id);
+	context.state.world.modifier_set_province_values(new_modifier, parsed_modifier.peek_province_mod());
+	context.state.world.modifier_set_national_values(new_modifier, parsed_modifier.peek_national_mod());
+
+	context.map_of_modifiers.insert_or_assign(std::string("province_militancy"), new_modifier);
+	context.state.national_definitions.province_militancy = new_modifier;
+}
+
+
+void m_province_control(token_generator& gen, error_handler& err, scenario_building_context& context) {
+	auto name_id = text::find_or_add_key(context.state, "province_control", true);
+
+	auto parsed_modifier = parse_modifier_base(gen, err, context);
+
+	auto new_modifier = context.state.world.create_modifier();
+
+	context.state.world.modifier_set_icon(new_modifier, uint8_t(parsed_modifier.icon_index));
+	context.state.world.modifier_set_name(new_modifier, name_id);
+	context.state.world.modifier_set_province_values(new_modifier, parsed_modifier.peek_province_mod());
+	context.state.world.modifier_set_national_values(new_modifier, parsed_modifier.peek_national_mod());
+
+	context.map_of_modifiers.insert_or_assign(std::string("province_control"), new_modifier);
+	context.state.national_definitions.province_control = new_modifier;
+}
+
+
+void m_province_base(token_generator& gen, error_handler& err, scenario_building_context& context) {
+	auto name_id = text::find_or_add_key(context.state, "province_base", true);
+
+	auto parsed_modifier = parse_modifier_base(gen, err, context);
+
+	auto new_modifier = context.state.world.create_modifier();
+
+	context.state.world.modifier_set_icon(new_modifier, uint8_t(parsed_modifier.icon_index));
+	context.state.world.modifier_set_name(new_modifier, name_id);
+	context.state.world.modifier_set_province_values(new_modifier, parsed_modifier.peek_province_mod());
+	context.state.world.modifier_set_national_values(new_modifier, parsed_modifier.peek_national_mod());
+
+	context.map_of_modifiers.insert_or_assign(std::string("province_base"), new_modifier);
+	context.state.national_definitions.province_base = new_modifier;
+}
+
+void m_civilian_port(token_generator& gen, error_handler& err, scenario_building_context& context) {
+	auto name_id = text::find_or_add_key(context.state, "civilian_port", true);
+
+	auto parsed_modifier = parse_modifier_base(gen, err, context);
+
+	auto new_modifier = context.state.world.create_modifier();
+
+	context.state.world.modifier_set_icon(new_modifier, uint8_t(parsed_modifier.icon_index));
+	context.state.world.modifier_set_name(new_modifier, name_id);
+	context.state.world.modifier_set_province_values(new_modifier, parsed_modifier.peek_province_mod());
+	context.state.world.modifier_set_national_values(new_modifier, parsed_modifier.peek_national_mod());
+
+	context.map_of_modifiers.insert_or_assign(std::string("civilian_port"), new_modifier);
+	context.state.national_definitions.civilian_port = new_modifier;
+}
+
 void m_base_values(token_generator& gen, error_handler& err, scenario_building_context& context) {
 	auto name_id = text::find_or_add_key(context.state, "base_values", true);
 
@@ -697,6 +778,133 @@ void m_in_bankrupcy(token_generator& gen, error_handler& err, scenario_building_
 	context.map_of_modifiers.insert_or_assign(std::string("in_bankrupcy"), new_modifier);
 	context.state.national_definitions.in_bankrupcy = new_modifier;
 }
+
+void m_nation_base(token_generator& gen, error_handler& err, scenario_building_context& context) {
+	auto name_id = text::find_or_add_key(context.state, "nation_base", true);
+
+	auto parsed_modifier = parse_modifier_base(gen, err, context);
+
+	auto new_modifier = context.state.world.create_modifier();
+
+	context.state.world.modifier_set_icon(new_modifier, uint8_t(parsed_modifier.icon_index));
+	context.state.world.modifier_set_name(new_modifier, name_id);
+	context.state.world.modifier_set_national_values(new_modifier, parsed_modifier.force_national_mod());
+
+	context.map_of_modifiers.insert_or_assign(std::string("nation_base"), new_modifier);
+	context.state.national_definitions.nation_base = new_modifier;
+}
+void m_fastest_land_unit_speed(token_generator& gen, error_handler& err, scenario_building_context& context) {
+	auto name_id = text::find_or_add_key(context.state, "fastest_land_unit_speed", true);
+
+	auto parsed_modifier = parse_modifier_base(gen, err, context);
+
+	auto new_modifier = context.state.world.create_modifier();
+
+	context.state.world.modifier_set_icon(new_modifier, uint8_t(parsed_modifier.icon_index));
+	context.state.world.modifier_set_name(new_modifier, name_id);
+	context.state.world.modifier_set_national_values(new_modifier, parsed_modifier.force_national_mod());
+
+	context.map_of_modifiers.insert_or_assign(std::string("fastest_land_unit_speed"), new_modifier);
+	context.state.national_definitions.fastest_land_unit_speed = new_modifier;
+}
+
+void m_fastest_transport_unit_speed(token_generator& gen, error_handler& err, scenario_building_context& context) {
+	auto name_id = text::find_or_add_key(context.state, "fastest_transport_unit_speed", true);
+
+	auto parsed_modifier = parse_modifier_base(gen, err, context);
+
+	auto new_modifier = context.state.world.create_modifier();
+
+	context.state.world.modifier_set_icon(new_modifier, uint8_t(parsed_modifier.icon_index));
+	context.state.world.modifier_set_name(new_modifier, name_id);
+	context.state.world.modifier_set_national_values(new_modifier, parsed_modifier.force_national_mod());
+
+	context.map_of_modifiers.insert_or_assign(std::string("fastest_transport_unit_speed"), new_modifier);
+	context.state.national_definitions.fastest_transport_unit_speed = new_modifier;
+}
+
+
+void static_modifiers_file::finish(scenario_building_context& context) {
+	// Add some defines as modifiers, if they are enabled ( aren't 0). This is a way to add modifiers to vanilla, while not touching the files.
+
+	if(context.state.defines.alice_fastest_land_unit_supply_speed_mult != 0.0f) {
+		if(!context.state.national_definitions.fastest_land_unit_speed) {
+			context.state.national_definitions.fastest_land_unit_speed = create_static_modifier(context, 0, "fastest_land_unit_speed");
+		};
+		auto& mod_def = context.state.world.modifier_get_national_values(context.state.national_definitions.fastest_land_unit_speed);
+		mod_def.add_manual_modifier(sys::national_mod_offsets::land_supply_speed_add, context.state.defines.alice_fastest_land_unit_supply_speed_mult);
+	}
+	if(context.state.defines.alice_fastest_transport_unit_supply_speed_mult != 0.0f) {
+		if(!context.state.national_definitions.fastest_transport_unit_speed) {
+			context.state.national_definitions.fastest_transport_unit_speed = create_static_modifier(context, 0, "fastest_transport_unit_speed");
+		};
+		auto& mod_def = context.state.world.modifier_get_national_values(context.state.national_definitions.fastest_transport_unit_speed);
+		mod_def.add_manual_modifier(sys::national_mod_offsets::naval_supply_speed_add, context.state.defines.alice_fastest_transport_unit_supply_speed_mult);
+	}
+	if(context.state.defines.alice_base_land_supply_speed != 0.0f || context.state.defines.alice_base_naval_supply_speed != 0.0f) {
+		if(!context.state.national_definitions.nation_base) {
+			context.state.national_definitions.nation_base = create_static_modifier(context, 0, "nation_base");
+		};
+		auto& mod_def = context.state.world.modifier_get_national_values(context.state.national_definitions.nation_base);
+		mod_def.add_manual_modifier(sys::national_mod_offsets::land_supply_speed_add, context.state.defines.alice_base_land_supply_speed);
+		mod_def.add_manual_modifier(sys::national_mod_offsets::naval_supply_speed_add, context.state.defines.alice_base_naval_supply_speed);
+	}
+	if(context.state.defines.alice_land_base_supply_thoughput != 0.0f || context.state.defines.alice_base_land_supply_loss != 0.0f) {
+		if(!context.state.national_definitions.land_province) {
+			context.state.national_definitions.land_province = create_static_modifier(context, 0, "land_province");
+		};
+		auto& mod_def = context.state.world.modifier_get_province_values(context.state.national_definitions.land_province);
+		mod_def.add_manual_modifier(sys::provincial_mod_offsets::supply_throughput_add, context.state.defines.alice_land_base_supply_thoughput);
+		mod_def.add_manual_modifier(sys::provincial_mod_offsets::supply_loss_add, context.state.defines.alice_base_land_supply_loss);
+	}
+	if(context.state.defines.alice_sea_base_supply_thoughput != 0.0f || context.state.defines.alice_base_sea_supply_loss != 0.0f) {
+		if(!context.state.national_definitions.sea_zone) {
+			context.state.national_definitions.sea_zone = create_static_modifier(context, 0, "sea_zone");
+		};
+		auto& mod_def = context.state.world.modifier_get_province_values(context.state.national_definitions.sea_zone);
+		mod_def.add_manual_modifier(sys::provincial_mod_offsets::supply_throughput_add, context.state.defines.alice_sea_base_supply_thoughput);
+		mod_def.add_manual_modifier(sys::provincial_mod_offsets::supply_loss_add, context.state.defines.alice_base_sea_supply_loss);
+	}
+	if(context.state.defines.alice_supply_throughput_infrastructure != 0.0f) {
+		if(!context.state.national_definitions.infrastructure) {
+			context.state.national_definitions.infrastructure = create_static_modifier(context, 0, "infrastructure");
+		};
+		auto& mod_def = context.state.world.modifier_get_province_values(context.state.national_definitions.infrastructure);
+		mod_def.add_manual_modifier(sys::provincial_mod_offsets::supply_throughput_add, context.state.defines.alice_supply_throughput_infrastructure);
+	}
+	if(context.state.defines.alice_militancy_supply_loss != 0.0f) {
+		if(!context.state.national_definitions.province_militancy) {
+			context.state.national_definitions.province_militancy = create_static_modifier(context, 0, "province_militancy");
+		};
+		auto& mod_def = context.state.world.modifier_get_province_values(context.state.national_definitions.province_militancy);
+		mod_def.add_manual_modifier(sys::provincial_mod_offsets::supply_loss_add, context.state.defines.alice_militancy_supply_loss);
+	}
+	if(context.state.defines.alice_control_level_supply_loss != 0.0f) {
+		if(!context.state.national_definitions.province_control) {
+			context.state.national_definitions.province_control = create_static_modifier(context, 0, "province_control");
+		};
+		// Add
+		auto& mod_def = context.state.world.modifier_get_province_values(context.state.national_definitions.province_control);
+		mod_def.add_manual_modifier(sys::provincial_mod_offsets::supply_loss_add, context.state.defines.alice_control_level_supply_loss);
+	}
+	if(context.state.defines.alice_base_port_supply_capacity != 0.0f) {
+		if(!context.state.national_definitions.coastal) {
+			context.state.national_definitions.coastal = create_static_modifier(context, 0, "coastal");
+		};
+		// Add
+		auto& mod_def = context.state.world.modifier_get_province_values(context.state.national_definitions.coastal);
+		mod_def.add_manual_modifier(sys::provincial_mod_offsets::port_supply_capacity_add, context.state.defines.alice_base_port_supply_capacity);
+	}
+	if(context.state.defines.alice_civilian_port_throughput_capacity != 0.0f) {
+		if(!context.state.national_definitions.civilian_port) {
+			context.state.national_definitions.civilian_port = create_static_modifier(context, 0, "civilian_port");
+		};
+		// Add
+		auto& mod_def = context.state.world.modifier_get_province_values(context.state.national_definitions.civilian_port);
+		mod_def.add_manual_modifier(sys::provincial_mod_offsets::port_supply_capacity_add, context.state.defines.alice_civilian_port_throughput_capacity);
+	}
+}
+
 
 void make_event_modifier(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context) {
 	auto name_id = text::find_or_add_key(context.state, name, true);

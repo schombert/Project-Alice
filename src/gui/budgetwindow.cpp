@@ -1,8 +1,7 @@
+// BEGIN prelude
+// END
+
 namespace alice_ui {
-#ifdef __clang__
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wswitch"
-#endif
 struct budgetwindow_main_income_amount_t;
 struct budgetwindow_main_expenses_amount_t;
 struct budgetwindow_main_admin_eff_amount_t;
@@ -17,6 +16,7 @@ struct budgetwindow_main_total_debt_amount_t;
 struct budgetwindow_main_max_debt_amount_t;
 struct budgetwindow_main_debt_chart_t;
 struct budgetwindow_main_chart_bg_t;
+struct budgetwindow_main_satisfaction_percent_t;
 struct budgetwindow_main_t;
 struct budgetwindow_section_header_label_t;
 struct budgetwindow_section_header_llbutton_t;
@@ -221,6 +221,11 @@ struct budgetwindow_main_chart_bg_t : public ui::element_base {
 	}
 	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
 	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
+	void on_update(sys::state& state) noexcept override;
+};
+struct budgetwindow_main_satisfaction_percent_t : public alice_ui::template_label {
+// BEGIN main::satisfaction_percent::variables
+// END
 	void on_update(sys::state& state) noexcept override;
 };
 struct budgetwindow_main_income_table_t : public layout_generator {
@@ -437,6 +442,8 @@ struct budgetwindow_main_t : public layout_window_element {
 	std::unique_ptr<budgetwindow_main_max_debt_amount_t> max_debt_amount;
 	std::unique_ptr<budgetwindow_main_debt_chart_t> debt_chart;
 	std::unique_ptr<budgetwindow_main_chart_bg_t> chart_bg;
+	std::unique_ptr<template_label> military_settings_label;
+	std::unique_ptr<budgetwindow_main_satisfaction_percent_t> satisfaction_percent;
 	budgetwindow_main_income_table_t income_table;
 	budgetwindow_main_espenses_table_t espenses_table;
 	std::vector<std::unique_ptr<ui::element_base>> gui_inserts;
@@ -547,6 +554,26 @@ struct budgetwindow_budget_row_t : public layout_window_element {
 	ankerl::unordered_dense::map<std::string, std::unique_ptr<ui::lua_scripted_element>> scripted_elements;
 	std::unique_ptr<budgetwindow_budget_row_contents_t> contents;
 	std::vector<std::unique_ptr<ui::element_base>> gui_inserts;
+	int16_t income_table_lead_space_column_start = 0;
+	int16_t income_table_lead_space_column_width = 0;
+	std::string_view income_table_item_name_header_text_key;
+	uint8_t income_table_item_name_header_text_color = 1;
+	uint8_t income_table_item_name_column_text_color = 1;
+	text::alignment income_table_item_name_text_alignment = text::alignment::right;
+	int8_t income_table_item_name_sort_direction = 0;
+	int16_t income_table_item_name_column_start = 0;
+	int16_t income_table_item_name_column_width = 0;
+	std::string_view income_table_item_value_header_text_key;
+	uint8_t income_table_item_value_header_text_color = 1;
+	uint8_t income_table_item_value_column_text_color = 1;
+	text::alignment income_table_item_value_text_alignment = text::alignment::right;
+	int8_t income_table_item_value_sort_direction = 0;
+	int16_t income_table_item_value_column_start = 0;
+	int16_t income_table_item_value_column_width = 0;
+	std::string_view income_table_ascending_icon_key;
+	dcon::texture_id income_table_ascending_icon;
+	std::string_view income_table_descending_icon_key;
+	dcon::texture_id income_table_descending_icon;
 	void create_layout_level(sys::state& state, layout_level& lvl, char const* ldata, size_t sz);
 	void on_create(sys::state& state) noexcept override;
 	void set_alternate(bool alt) noexcept;
@@ -570,6 +597,26 @@ struct budgetwindow_budget_header_t : public layout_window_element {
 	ankerl::unordered_dense::map<std::string, std::unique_ptr<ui::lua_scripted_element>> scripted_elements;
 	std::unique_ptr<budgetwindow_budget_header_contents_t> contents;
 	std::vector<std::unique_ptr<ui::element_base>> gui_inserts;
+	int16_t income_table_lead_space_column_start = 0;
+	int16_t income_table_lead_space_column_width = 0;
+	std::string_view income_table_item_name_header_text_key;
+	uint8_t income_table_item_name_header_text_color = 1;
+	uint8_t income_table_item_name_column_text_color = 1;
+	text::alignment income_table_item_name_text_alignment = text::alignment::right;
+	int8_t income_table_item_name_sort_direction = 0;
+	int16_t income_table_item_name_column_start = 0;
+	int16_t income_table_item_name_column_width = 0;
+	std::string_view income_table_item_value_header_text_key;
+	uint8_t income_table_item_value_header_text_color = 1;
+	uint8_t income_table_item_value_column_text_color = 1;
+	text::alignment income_table_item_value_text_alignment = text::alignment::right;
+	int8_t income_table_item_value_sort_direction = 0;
+	int16_t income_table_item_value_column_start = 0;
+	int16_t income_table_item_value_column_width = 0;
+	std::string_view income_table_ascending_icon_key;
+	dcon::texture_id income_table_ascending_icon;
+	std::string_view income_table_descending_icon_key;
+	dcon::texture_id income_table_descending_icon;
 	void create_layout_level(sys::state& state, layout_level& lvl, char const* ldata, size_t sz);
 	void on_create(sys::state& state) noexcept override;
 	void set_alternate(bool alt) noexcept;
@@ -780,7 +827,8 @@ measure_result  budgetwindow_main_income_table_t::place_item(sys::state& state, 
 			section_header_pool_used++;
 		}
 		alternate = true;
-		return measure_result{ section_header_pool[0]->base_data.size.x, section_header_pool[0]->base_data.size.y + 0, measure_result::special::none};
+	 	 	bool stick_to_next = false;
+		return measure_result{ section_header_pool[0]->base_data.size.x, section_header_pool[0]->base_data.size.y + 0, stick_to_next ? measure_result::special::no_break : measure_result::special::none};
 	}
 	if(std::holds_alternative<neutral_spacer_option>(values[index])) {
 		if(neutral_spacer_pool.empty()) neutral_spacer_pool.emplace_back(make_budgetwindow_neutral_spacer(state));
@@ -794,7 +842,8 @@ measure_result  budgetwindow_main_income_table_t::place_item(sys::state& state, 
 			neutral_spacer_pool_used++;
 		}
 		alternate = true;
-		return measure_result{ neutral_spacer_pool[0]->base_data.size.x, neutral_spacer_pool[0]->base_data.size.y + 0, measure_result::special::none};
+	 	 	bool stick_to_next = false;
+		return measure_result{ neutral_spacer_pool[0]->base_data.size.x, neutral_spacer_pool[0]->base_data.size.y + 0, stick_to_next ? measure_result::special::no_break : measure_result::special::none};
 	}
 	if(std::holds_alternative<bottom_spacer_option>(values[index])) {
 		if(bottom_spacer_pool.empty()) bottom_spacer_pool.emplace_back(make_budgetwindow_bottom_spacer(state));
@@ -808,7 +857,8 @@ measure_result  budgetwindow_main_income_table_t::place_item(sys::state& state, 
 			bottom_spacer_pool_used++;
 		}
 		alternate = true;
-		return measure_result{ bottom_spacer_pool[0]->base_data.size.x, bottom_spacer_pool[0]->base_data.size.y + 0, measure_result::special::none};
+	 	 	bool stick_to_next = false;
+		return measure_result{ bottom_spacer_pool[0]->base_data.size.x, bottom_spacer_pool[0]->base_data.size.y + 0, stick_to_next ? measure_result::special::no_break : measure_result::special::none};
 	}
 	if(std::holds_alternative<budget_row_option>(values[index])) {
 		if(budget_header_pool.empty()) budget_header_pool.emplace_back(make_budgetwindow_budget_header(state));
@@ -827,7 +877,7 @@ measure_result  budgetwindow_main_income_table_t::place_item(sys::state& state, 
 				destination->children.push_back(budget_header_pool[budget_header_pool_used].get());
 			((budgetwindow_budget_header_t*)(budget_header_pool[budget_header_pool_used].get()))->set_alternate(alternate);
 				budget_row_pool[budget_row_pool_used]->base_data.position.x = int16_t(x);
-				budget_row_pool[budget_row_pool_used]->base_data.position.y = int16_t(y +  budget_row_pool[0]->base_data.size.y + 0);
+				budget_row_pool[budget_row_pool_used]->base_data.position.y = int16_t(y +  budget_header_pool[0]->base_data.size.y + 0);
 				budget_row_pool[budget_row_pool_used]->parent = destination;
 				destination->children.push_back(budget_row_pool[budget_row_pool_used].get());
 				((budgetwindow_budget_row_t*)(budget_row_pool[budget_row_pool_used].get()))->name = std::get<budget_row_option>(values[index]).name;
@@ -837,7 +887,8 @@ measure_result  budgetwindow_main_income_table_t::place_item(sys::state& state, 
 				budget_header_pool_used++;
 				budget_row_pool_used++;
 			}
-			return measure_result{std::max(budget_header_pool[0]->base_data.size.x, budget_row_pool[0]->base_data.size.x), budget_header_pool[0]->base_data.size.y + budget_row_pool[0]->base_data.size.y + 0, measure_result::special::none};
+	 	 	bool stick_to_next = false;
+			return measure_result{std::max(budget_header_pool[0]->base_data.size.x, budget_row_pool[0]->base_data.size.x), budget_header_pool[0]->base_data.size.y + budget_row_pool[0]->base_data.size.y + 0, stick_to_next ? measure_result::special::no_break : measure_result::special::none};
 		}
 		if(destination) {
 			if(budget_row_pool.size() <= size_t(budget_row_pool_used)) budget_row_pool.emplace_back(make_budgetwindow_budget_row(state));
@@ -852,7 +903,8 @@ measure_result  budgetwindow_main_income_table_t::place_item(sys::state& state, 
 			budget_row_pool_used++;
 		}
 		alternate = !alternate;
-		return measure_result{ budget_row_pool[0]->base_data.size.x, budget_row_pool[0]->base_data.size.y + 0, measure_result::special::none};
+	 	 	bool stick_to_next = false;
+		return measure_result{ budget_row_pool[0]->base_data.size.x, budget_row_pool[0]->base_data.size.y + 0, stick_to_next ? measure_result::special::no_break : measure_result::special::none};
 	}
 	return measure_result{0,0,measure_result::special::none};
 }
@@ -883,50 +935,25 @@ void  budgetwindow_main_espenses_table_t::on_create(sys::state& state, layout_wi
 void  budgetwindow_main_espenses_table_t::update(sys::state& state, layout_window_element* parent) {
 	budgetwindow_main_t& main = *((budgetwindow_main_t*)(parent));
 // BEGIN main::espenses_table::update
+	float next_budget = economy::estimate_next_budget(state, state.local_player_nation);
+	auto construction_spending = (float)state.world.nation_get_construction_spending(state.local_player_nation) / 100.0f;
+	auto stockpile_spending = (float)state.world.nation_get_stockpile_spending(state.local_player_nation) / 100.0f;
+	auto army_supplies_spending = (float)state.world.nation_get_land_spending(state.local_player_nation) / 100.0f;
+	auto navy_supplies_spending = (float)state.world.nation_get_naval_spending(state.local_player_nation) / 100.0f;
+	auto stockpile_spendings = economy::estimate_total_stockpile_spendings_by_commodity(state, state.local_player_nation, next_budget * construction_spending, next_budget * stockpile_spending, next_budget * army_supplies_spending, next_budget * navy_supplies_spending);
 	values.clear();
 	add_section_header(budget_categories::construction);
 	if(budget_categories::expanded[budget_categories::construction]) {
-		auto explanation = economy::explain_construction_spending_now(state, state.local_player_nation);
-		for(auto& data : explanation.factories) {
-			auto building_type = state.world.factory_construction_get_type(data.construction);
-			auto location = state.world.factory_construction_get_province(data.construction);
-			add_budget_row(
-				text::produce_simple_string(state, state.world.factory_type_get_name(building_type))
-				+ "(" + text::produce_simple_string(state, state.world.province_get_name(location)) + ")",
-				data.spending
-			);
-		}
-		for(auto& data : explanation.province_buildings) {
-			auto building_type = state.world.province_building_construction_get_type(data.construction);
-			auto location = state.world.province_building_construction_get_province(data.construction);
-			add_budget_row(
-				text::produce_simple_string(state, state.world.province_get_name(location)) ,
-				data.spending
-			);
-		}
-		for(auto& data : explanation.land_units) {
-			auto unit_type = state.world.province_land_construction_get_type(data.construction);
-			auto location = state.world.pop_get_province_from_pop_location(state.world.province_land_construction_get_pop(data.construction));
-			auto unit_name = state.military_definitions.unit_base_definitions[unit_type].name;
-			add_budget_row(
-				text::produce_simple_string(state, unit_name)
-				+ "(" + text::produce_simple_string(state, state.world.province_get_name(location)) + ")",
-				data.spending
-			);
-		}
-		for(auto& data : explanation.naval_units) {
-			auto unit_type = state.world.province_naval_construction_get_type(data.construction);
-			auto location = state.world.province_naval_construction_get_province(data.construction);
-			auto unit_name = state.military_definitions.unit_base_definitions[unit_type].name;
-			add_budget_row(
-				text::produce_simple_string(state, unit_name)
-				+ "(" + text::produce_simple_string(state, state.world.province_get_name(location)) + ")",
-				data.spending
-			);
-		}
+		state.world.for_each_commodity([&](dcon::commodity_id com_id) {
+			float spending = stockpile_spendings.construction_spendings[com_id];
+			if(spending > 0.0f) {
+				add_budget_row(text::produce_simple_string(state, state.world.commodity_get_name(com_id)), spending);
+			}
+		});
 	} else {
 		add_neutral_spacer();
 	}
+
 
 	add_section_header(budget_categories::subsidies);
 	if(budget_categories::expanded[budget_categories::subsidies]) {
@@ -936,52 +963,27 @@ void  budgetwindow_main_espenses_table_t::update(sys::state& state, layout_windo
 
 	add_section_header(budget_categories::army_upkeep);
 	if(budget_categories::expanded[budget_categories::army_upkeep]) {
-		add_bottom_spacer();
-		auto fraction = float(state.world.nation_get_land_spending(state.local_player_nation)) / 100.0f;
-		auto goods = state.world.commodity_make_vectorizable_float_buffer();
-
-		uint32_t total_commodities = state.world.commodity_size();
-		state.world.nation_for_each_state_ownership(state.local_player_nation, [&](auto soid) {
-			auto local_state = state.world.state_ownership_get_state(soid);
-			auto market = state.world.state_instance_get_market_from_local_market(local_state);
-			for(uint32_t i = 1; i < total_commodities; ++i) {
-				dcon::commodity_id cid{ dcon::commodity_id::value_base_t(i) };
-				goods.set(cid, goods.get(cid) + state.world.market_get_army_demand(market, cid)
-					* economy::price(state, market, cid)
-					* state.world.market_get_actual_probability_to_buy(market, cid));
+		state.world.for_each_unit_supply_and_build_commodity([&](dcon::unit_supply_and_build_commodity_id com_id) {
+			auto base_com_id = economy::unit_commodity_get_base_commodity(state, com_id);
+			float spending = stockpile_spendings.army_stockpile_spendings[com_id];
+			if(spending > 0.0f) {
+				add_budget_row(text::produce_simple_string(state, state.world.commodity_get_name(base_com_id)), spending);
 			}
 		});
-		for(auto c : state.world.in_commodity) {
-			if(goods.get(c) > 0.0f) {
-				add_budget_row(text::produce_simple_string(state, state.world.commodity_get_name(c)), goods.get(c) * fraction);
-			}
-		}
 	}
-	add_neutral_spacer();
+	else {
+		add_neutral_spacer();
+	}
 
 	add_section_header(budget_categories::navy_upkeep);
 	if(budget_categories::expanded[budget_categories::navy_upkeep]) {
-		add_bottom_spacer();
-		auto fraction = float(state.world.nation_get_naval_spending(state.local_player_nation)) / 100.0f;
-		auto goods = state.world.commodity_make_vectorizable_float_buffer();
-
-		uint32_t total_commodities = state.world.commodity_size();
-		state.world.nation_for_each_state_ownership(state.local_player_nation, [&](auto soid) {
-			auto local_state = state.world.state_ownership_get_state(soid);
-			auto market = state.world.state_instance_get_market_from_local_market(local_state);
-			for(uint32_t i = 1; i < total_commodities; ++i) {
-				dcon::commodity_id cid{ dcon::commodity_id::value_base_t(i) };
-				goods.set(cid, goods.get(cid) + state.world.market_get_navy_demand(market, cid)
-					* economy::price(state, market, cid)
-					* state.world.market_get_actual_probability_to_buy(market, cid));
+		state.world.for_each_unit_supply_and_build_commodity([&](dcon::unit_supply_and_build_commodity_id com_id) {
+			auto base_com_id = economy::unit_commodity_get_base_commodity(state, com_id);
+			float spending = stockpile_spendings.navy_stockpile_spendings[com_id];
+			if(spending > 0.0f) {
+				add_budget_row(text::produce_simple_string(state, state.world.commodity_get_name(base_com_id)), spending);
 			}
 		});
-		for(auto c : state.world.in_commodity) {
-			if(goods.get(c) > 0.0f) {
-				add_budget_row(text::produce_simple_string(state, state.world.commodity_get_name(c)), goods.get(c) * fraction);
-			}
-		}
-
 	}
 	add_neutral_spacer();
 
@@ -989,7 +991,7 @@ void  budgetwindow_main_espenses_table_t::update(sys::state& state, layout_windo
 	if(budget_categories::expanded[budget_categories::admin]) {
 		add_bottom_spacer();
 		auto fraction = float(state.world.nation_get_administrative_spending(state.local_player_nation)) / 100.0f;
-		auto national_budget = state.world.nation_get_stockpiles(state.local_player_nation, economy::money);
+		auto national_budget = state.world.nation_get_treasury(state.local_player_nation);
 		auto admin_budget_approx = fraction * national_budget;
 		float total = 0.f;
 		auto admin_count = economy::count_active_administrations(state, state.local_player_nation);
@@ -1035,7 +1037,7 @@ void  budgetwindow_main_espenses_table_t::update(sys::state& state, layout_windo
 		auto const unemp_level = state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::unemployment_benefit);
 		auto fraction = float(state.world.nation_get_social_spending(state.local_player_nation)) / 100.0f;
 
-		auto budget = state.world.nation_get_stockpiles(state.local_player_nation, economy::money);
+		auto budget = state.world.nation_get_treasury(state.local_player_nation);
 		auto social_budget = budget * fraction;
 
 		auto pension_ratio = p_level > 0.f ? p_level * population / (p_level * population + unemp_level * unemployed) : 0.f;
@@ -1122,7 +1124,7 @@ void  budgetwindow_main_espenses_table_t::update(sys::state& state, layout_windo
 		auto aristocrats = state.world.nation_get_demographics(state.local_player_nation, aristocracy_key);
 		auto investors = capitalists + aristocrats;
 		if(investors > 0) {
-			auto total_budget = state.world.nation_get_stockpiles(state.local_player_nation, economy::money)
+			auto total_budget = state.world.nation_get_treasury(state.local_player_nation)
 				* float(state.world.nation_get_domestic_investment_spending(state.local_player_nation)) / 100.f;
 			cap_total += capitalists / investors * total_budget;
 			aristo_total += aristocrats / investors * total_budget;
@@ -1149,8 +1151,12 @@ void  budgetwindow_main_espenses_table_t::update(sys::state& state, layout_windo
 		auto capital = state.world.nation_get_capital(state.local_player_nation);
 		auto capital_state = state.world.province_get_state_membership(capital);
 		auto market = state.world.state_instance_get_market_from_local_market(capital_state);
-
-		auto overseas_factor = state.defines.province_overseas_penalty * float(state.world.nation_get_owned_province_count(state.local_player_nation) - state.world.nation_get_central_province_count(state.local_player_nation));
+		float overseas_factor = 0.0f;
+		// ONLY attempt to consume the goods if we control the capital state. If we do not, then we get the maximum overseas penality. This isn't ideal, but the best solution until it can be reworked
+		if(state.world.state_instance_get_nation_from_state_control(capital_state) == state.local_player_nation) {
+			overseas_factor = state.defines.province_overseas_penalty * float(state.world.nation_get_owned_province_count(state.local_player_nation) - state.world.nation_get_central_province_count(state.local_player_nation));
+		}
+		
 		uint32_t total_commodities = state.world.commodity_size();
 
 		if(overseas_factor > 0) {
@@ -1185,26 +1191,12 @@ void  budgetwindow_main_espenses_table_t::update(sys::state& state, layout_windo
 
 	add_section_header(budget_categories::stockpile);
 	if(budget_categories::expanded[budget_categories::stockpile]) {
-		add_bottom_spacer();
-		uint32_t total_commodities = state.world.commodity_size();
-
-		auto capital = state.world.nation_get_capital(state.local_player_nation);
-		auto capital_state = state.world.province_get_state_membership(capital);
-		auto market = state.world.state_instance_get_market_from_local_market(capital_state);
-
-		for(uint32_t i = 1; i < total_commodities; ++i) {
-			dcon::commodity_id cid{ dcon::commodity_id::value_base_t(i) };
-			auto difference =
-				state.world.nation_get_stockpile_targets(state.local_player_nation, cid)
-				- state.world.nation_get_stockpiles(state.local_player_nation, cid);
-
-			if(difference > 0 && state.world.nation_get_drawing_on_stockpiles(state.local_player_nation, cid) == false) {
-				auto amount = difference * economy::price(state, market, cid) * state.world.market_get_actual_probability_to_buy(market, cid);
-				if(amount > 0) {
-					add_budget_row(text::produce_simple_string(state, state.world.commodity_get_name(cid)), amount);
-				}
+		economy::for_each_commodity_no_money(state, [&](dcon::commodity_id com_id) {
+			float spending = stockpile_spendings.stockpile_filling_spendings[com_id];
+			if(spending > 0.0f) {
+				add_budget_row(text::produce_simple_string(state, state.world.commodity_get_name(com_id)), spending);
 			}
-		}
+		});
 	}
 // END
 	{
@@ -1262,7 +1254,8 @@ measure_result  budgetwindow_main_espenses_table_t::place_item(sys::state& state
 			section_header_pool_used++;
 		}
 		alternate = true;
-		return measure_result{ section_header_pool[0]->base_data.size.x, section_header_pool[0]->base_data.size.y + 0, measure_result::special::none};
+	 	 	bool stick_to_next = false;
+		return measure_result{ section_header_pool[0]->base_data.size.x, section_header_pool[0]->base_data.size.y + 0, stick_to_next ? measure_result::special::no_break : measure_result::special::none};
 	}
 	if(std::holds_alternative<neutral_spacer_option>(values[index])) {
 		if(neutral_spacer_pool.empty()) neutral_spacer_pool.emplace_back(make_budgetwindow_neutral_spacer(state));
@@ -1276,7 +1269,8 @@ measure_result  budgetwindow_main_espenses_table_t::place_item(sys::state& state
 			neutral_spacer_pool_used++;
 		}
 		alternate = true;
-		return measure_result{ neutral_spacer_pool[0]->base_data.size.x, neutral_spacer_pool[0]->base_data.size.y + 0, measure_result::special::none};
+	 	 	bool stick_to_next = false;
+		return measure_result{ neutral_spacer_pool[0]->base_data.size.x, neutral_spacer_pool[0]->base_data.size.y + 0, stick_to_next ? measure_result::special::no_break : measure_result::special::none};
 	}
 	if(std::holds_alternative<bottom_spacer_option>(values[index])) {
 		if(bottom_spacer_pool.empty()) bottom_spacer_pool.emplace_back(make_budgetwindow_bottom_spacer(state));
@@ -1290,7 +1284,8 @@ measure_result  budgetwindow_main_espenses_table_t::place_item(sys::state& state
 			bottom_spacer_pool_used++;
 		}
 		alternate = true;
-		return measure_result{ bottom_spacer_pool[0]->base_data.size.x, bottom_spacer_pool[0]->base_data.size.y + 0, measure_result::special::none};
+	 	 	bool stick_to_next = false;
+		return measure_result{ bottom_spacer_pool[0]->base_data.size.x, bottom_spacer_pool[0]->base_data.size.y + 0, stick_to_next ? measure_result::special::no_break : measure_result::special::none};
 	}
 	if(std::holds_alternative<budget_row_option>(values[index])) {
 		if(budget_header_pool.empty()) budget_header_pool.emplace_back(make_budgetwindow_budget_header(state));
@@ -1309,7 +1304,7 @@ measure_result  budgetwindow_main_espenses_table_t::place_item(sys::state& state
 				destination->children.push_back(budget_header_pool[budget_header_pool_used].get());
 			((budgetwindow_budget_header_t*)(budget_header_pool[budget_header_pool_used].get()))->set_alternate(alternate);
 				budget_row_pool[budget_row_pool_used]->base_data.position.x = int16_t(x);
-				budget_row_pool[budget_row_pool_used]->base_data.position.y = int16_t(y +  budget_row_pool[0]->base_data.size.y + 0);
+				budget_row_pool[budget_row_pool_used]->base_data.position.y = int16_t(y +  budget_header_pool[0]->base_data.size.y + 0);
 				budget_row_pool[budget_row_pool_used]->parent = destination;
 				destination->children.push_back(budget_row_pool[budget_row_pool_used].get());
 				((budgetwindow_budget_row_t*)(budget_row_pool[budget_row_pool_used].get()))->name = std::get<budget_row_option>(values[index]).name;
@@ -1319,7 +1314,8 @@ measure_result  budgetwindow_main_espenses_table_t::place_item(sys::state& state
 				budget_header_pool_used++;
 				budget_row_pool_used++;
 			}
-			return measure_result{std::max(budget_header_pool[0]->base_data.size.x, budget_row_pool[0]->base_data.size.x), budget_header_pool[0]->base_data.size.y + budget_row_pool[0]->base_data.size.y + 0, measure_result::special::none};
+	 	 	bool stick_to_next = false;
+			return measure_result{std::max(budget_header_pool[0]->base_data.size.x, budget_row_pool[0]->base_data.size.x), budget_header_pool[0]->base_data.size.y + budget_row_pool[0]->base_data.size.y + 0, stick_to_next ? measure_result::special::no_break : measure_result::special::none};
 		}
 		if(destination) {
 			if(budget_row_pool.size() <= size_t(budget_row_pool_used)) budget_row_pool.emplace_back(make_budgetwindow_budget_row(state));
@@ -1334,7 +1330,8 @@ measure_result  budgetwindow_main_espenses_table_t::place_item(sys::state& state
 			budget_row_pool_used++;
 		}
 		alternate = !alternate;
-		return measure_result{ budget_row_pool[0]->base_data.size.x, budget_row_pool[0]->base_data.size.y + 0, measure_result::special::none};
+	 	 	bool stick_to_next = false;
+		return measure_result{ budget_row_pool[0]->base_data.size.x, budget_row_pool[0]->base_data.size.y + 0, stick_to_next ? measure_result::special::no_break : measure_result::special::none};
 	}
 	return measure_result{0,0,measure_result::special::none};
 }
@@ -1894,6 +1891,22 @@ void budgetwindow_main_chart_bg_t::on_create(sys::state& state) noexcept {
 // BEGIN main::chart_bg::create
 // END
 }
+void budgetwindow_main_satisfaction_percent_t::on_update(sys::state& state) noexcept {
+	budgetwindow_main_t& main = *((budgetwindow_main_t*)(parent)); 
+// BEGIN main::satisfaction_percent::update
+	// Compute the average satisfaction percentage for all military consumption
+	// TODO FOR LATER: show which goods are lacking
+	/*float avg_naval_reinf_satisfaction = military::nation_average_military_satisfaction_by_type<military::unit_consumption_type::reinforcement>(state, state.local_player_nation);
+	float avg_land_reinf_satisfaction = military::average_land_consumption_satisfaction<military::unit_consumption_type::reinforcement>(state, state.local_player_nation);
+	float avg_naval_supply_satisfaction = military::nation_average_military_satisfaction_by_type<military::unit_consumption_type::supply>(state, state.local_player_nation);
+	float avg_land_supply_satisfaction = military::average_land_consumption_satisfaction<military::unit_consumption_type::supply>(state, state.local_player_nation);
+
+	float avg_satisfaction = (avg_naval_reinf_satisfaction + avg_naval_supply_satisfaction + avg_land_reinf_satisfaction + avg_land_supply_satisfaction ) / 4.0f;*/
+	set_text(state, "");
+
+
+// END
+}
 ui::message_result budgetwindow_main_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
 	state.ui_state.drag_target = this;
 	return ui::message_result::consumed;
@@ -1945,13 +1958,15 @@ void budgetwindow_main_t::create_layout_level(sys::state& state, layout_level& l
 				buffer.read(temp.texture);
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
-			case layout_item_types::control:
+			case layout_item_types::control2:
 			{
 				layout_control temp;
 				std::string_view cname = buffer.read<std::string_view>();
 				buffer.read(temp.abs_x);
 				buffer.read(temp.abs_y);
 				buffer.read(temp.absolute_position);
+				buffer.read(temp.fill_x);
+				buffer.read(temp.fill_y);
 				temp.ptr = nullptr;
 				if(cname == "title") {
 					temp.ptr = title.get();
@@ -2037,6 +2052,12 @@ void budgetwindow_main_t::create_layout_level(sys::state& state, layout_level& l
 				if(cname == "chart_bg") {
 					temp.ptr = chart_bg.get();
 				} else
+				if(cname == "military_settings_label") {
+					temp.ptr = military_settings_label.get();
+				} else
+				if(cname == "satisfaction_percent") {
+					temp.ptr = satisfaction_percent.get();
+				} else
 				{
 					std::string str_cname {cname};
 					auto found = scripted_elements.find(str_cname);
@@ -2046,13 +2067,15 @@ void budgetwindow_main_t::create_layout_level(sys::state& state, layout_level& l
 				}
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
-			case layout_item_types::window:
+			case layout_item_types::window2:
 			{
 				layout_window temp;
 				std::string_view cname = buffer.read<std::string_view>();
 				buffer.read(temp.abs_x);
 				buffer.read(temp.abs_y);
 				buffer.read(temp.absolute_position);
+				buffer.read(temp.fill_x);
+				buffer.read(temp.fill_y);
 				if(cname == "main") {
 					temp.ptr = make_budgetwindow_main(state);
 				}
@@ -2080,7 +2103,7 @@ void budgetwindow_main_t::create_layout_level(sys::state& state, layout_level& l
 				buffer.read(temp.amount);
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
-			case layout_item_types::generator:
+			case layout_item_types::generator2:
 			{
 				generator_instance temp;
 				std::string_view cname = buffer.read<std::string_view>();
@@ -2607,7 +2630,43 @@ void budgetwindow_main_t::on_create(sys::state& state) noexcept {
 			cptr->on_create(state);
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
-		} else
+		} else 
+		if(child_data.name == "military_settings_label") {
+			military_settings_label = std::make_unique<template_label>();
+			military_settings_label->parent = this;
+			auto cptr = military_settings_label.get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->template_id = child_data.template_id;
+			if(child_data.text_key.length() > 0)
+				cptr->default_text = state.lookup_key(child_data.text_key);
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		} else 
+		if(child_data.name == "satisfaction_percent") {
+			satisfaction_percent = std::make_unique<budgetwindow_main_satisfaction_percent_t>();
+			satisfaction_percent->parent = this;
+			auto cptr = satisfaction_percent.get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->template_id = child_data.template_id;
+			if(child_data.text_key.length() > 0)
+				cptr->default_text = state.lookup_key(child_data.text_key);
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		} else 
 		if(child_data.name == ".tabincome_table") {
 			int16_t running_w_total = 0;
 			auto tbuffer = serialization::in_buffer(pending_children.back().data, pending_children.back().size);
@@ -2709,6 +2768,14 @@ void budgetwindow_section_header_label_t::on_update(sys::state& state) noexcept 
 	case budget_categories::navy_upkeep: set_text(state, text::produce_simple_string(state, "alice_budget_navy_upkeep")); break;
 	case budget_categories::debt_payment: set_text(state, text::produce_simple_string(state, "alice_budget_debt_service")); break;
 	case budget_categories::stockpile: set_text(state, text::produce_simple_string(state, "national_stockpile")); break;
+	case budget_categories::land_reinforcement: set_text(state, text::produce_simple_string(state, "land_reinforcement_consumption")); break;
+	case budget_categories::land_supply: set_text(state, text::produce_simple_string(state, "land_supply_consumption")); break;
+	case budget_categories::naval_reinforcement: set_text(state, text::produce_simple_string(state, "naval_reinforcement_consumption")); break;
+	case budget_categories::naval_supply: set_text(state, text::produce_simple_string(state, "naval_supply_consumption")); break;
+	case budget_categories::army_construction: set_text(state, text::produce_simple_string(state, "army_construction_consumption")); break;
+	case budget_categories::naval_construction: set_text(state, text::produce_simple_string(state, "navy_construction_consumption")); break;
+	case budget_categories::factory_construction: set_text(state, text::produce_simple_string(state, "factory_construction_consumption")); break;
+	case budget_categories::building_construction: set_text(state, text::produce_simple_string(state, "building_construction_consumption")); break;
 	default: set_text(state, ""); break;
 	}
 // END
@@ -2737,7 +2804,15 @@ void budgetwindow_section_header_llbutton_t::on_update(sys::state& state) noexce
 	case budget_categories::army_upkeep: set_visible(state, true); break;
 	case budget_categories::navy_upkeep: set_visible(state, true); break;
 	case budget_categories::debt_payment: set_visible(state, false); break;
-	case budget_categories::stockpile: set_visible(state, false);  break;
+	case budget_categories::stockpile: set_visible(state, true);  break;
+	case budget_categories::land_reinforcement: set_visible(state, true);  break;
+	case budget_categories::land_supply: set_visible(state, true);  break;
+	case budget_categories::naval_reinforcement: set_visible(state, true);  break;
+	case budget_categories::naval_supply: set_visible(state, true);  break;
+	case budget_categories::army_construction: set_visible(state, true);  break;
+	case budget_categories::naval_construction: set_visible(state, true);  break;
+	case budget_categories::factory_construction: set_visible(state, true);  break;
+	case budget_categories::building_construction: set_visible(state, true);  break;
 	default: set_visible(state, false); break;
 	}
 // END
@@ -2767,7 +2842,15 @@ bool budgetwindow_section_header_llbutton_t::button_action(sys::state& state) no
 	case budget_categories::army_upkeep: vals.land_spending = economy::budget_minimums(state, state.local_player_nation).land_spending; break;
 	case budget_categories::navy_upkeep: vals.naval_spending = economy::budget_minimums(state, state.local_player_nation).naval_spending; break;
 	case budget_categories::debt_payment: break;
-	case budget_categories::stockpile: break;
+	case budget_categories::stockpile: vals.stockpile_spending = economy::budget_minimums(state, state.local_player_nation).stockpile_spending; break;
+	case budget_categories::land_reinforcement: command::change_army_reinforcement_consumption_setting(state, logistics::army_reinforcement_setting_min(state, state.local_player_nation)); break;
+	case budget_categories::land_supply: command::change_army_supply_consumption_setting(state, logistics::army_supply_setting_min(state, state.local_player_nation)); break;
+	case budget_categories::naval_reinforcement: command::change_navy_reinforcement_consumption_setting(state, logistics::navy_reinforcement_setting_min(state, state.local_player_nation)); break;
+	case budget_categories::naval_supply: command::change_navy_supply_consumption_setting(state, logistics::navy_supply_setting_min(state, state.local_player_nation)); break;
+	case budget_categories::army_construction: command::change_army_construction_consumption_setting(state, logistics::army_construction_setting_min(state, state.local_player_nation)); break;
+	case budget_categories::naval_construction: command::change_navy_construction_consumption_setting(state, logistics::navy_construction_setting_min(state, state.local_player_nation)); break;
+	case budget_categories::factory_construction: command::change_factory_construction_consumption_setting(state, logistics::factory_construction_setting_min(state, state.local_player_nation)); break;
+	case budget_categories::building_construction: command::change_building_construction_consumption_setting(state, logistics::building_construction_setting_min(state, state.local_player_nation)); break;
 	default:  break;
 	}
 	command::change_budget_settings(state, state.local_player_nation, vals);
@@ -2798,7 +2881,15 @@ void budgetwindow_section_header_lbutton_t::on_update(sys::state& state) noexcep
 	case budget_categories::army_upkeep: set_visible(state, true); break;
 	case budget_categories::navy_upkeep: set_visible(state, true); break;
 	case budget_categories::debt_payment: set_visible(state, false); break;
-	case budget_categories::stockpile: set_visible(state, false);  break;
+	case budget_categories::stockpile: set_visible(state, true);  break;
+	case budget_categories::land_reinforcement: set_visible(state, true);  break;
+	case budget_categories::land_supply: set_visible(state, true);  break;
+	case budget_categories::naval_reinforcement: set_visible(state, true);  break;
+	case budget_categories::naval_supply: set_visible(state, true);  break;
+	case budget_categories::army_construction: set_visible(state, true);  break;
+	case budget_categories::naval_construction: set_visible(state, true);  break;
+	case budget_categories::factory_construction: set_visible(state, true);  break;
+	case budget_categories::building_construction: set_visible(state, true);  break;
 	default: set_visible(state, false); break;
 	}
 // END
@@ -2828,7 +2919,15 @@ bool budgetwindow_section_header_lbutton_t::button_action(sys::state& state) noe
 	case budget_categories::army_upkeep: vals.land_spending = int8_t(std::clamp(state.world.nation_get_land_spending(state.local_player_nation) - 10, 0, 100)); break;
 	case budget_categories::navy_upkeep: vals.naval_spending = int8_t(std::clamp(state.world.nation_get_naval_spending(state.local_player_nation) - 10, 0, 100)); break;
 	case budget_categories::debt_payment: break;
-	case budget_categories::stockpile:  break;
+	case budget_categories::stockpile:  vals.stockpile_spending = int8_t(std::clamp(state.world.nation_get_stockpile_spending(state.local_player_nation) - 10, 0, 100)); break;
+	case budget_categories::land_reinforcement: command::change_army_reinforcement_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_land_reinforcement_consumption(state.local_player_nation) - 10), logistics::army_reinforcement_setting_min(state, state.local_player_nation), logistics::army_reinforcement_setting_max(state, state.local_player_nation))); break;
+	case budget_categories::land_supply: command::change_army_supply_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_land_supply_consumption(state.local_player_nation) - 10), logistics::army_supply_setting_min(state, state.local_player_nation), logistics::army_supply_setting_max(state, state.local_player_nation))); break;
+	case budget_categories::naval_reinforcement: command::change_navy_reinforcement_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_naval_reinforcement_consumption(state.local_player_nation) - 10), logistics::navy_reinforcement_setting_min(state, state.local_player_nation), logistics::navy_reinforcement_setting_max(state, state.local_player_nation))); break;
+	case budget_categories::naval_supply: command::change_navy_supply_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_naval_supply_consumption(state.local_player_nation) - 10), logistics::navy_supply_setting_min(state, state.local_player_nation), logistics::navy_supply_setting_max(state, state.local_player_nation))); break;
+	case budget_categories::army_construction: command::change_army_construction_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_army_construction_consumption(state.local_player_nation) - 10), logistics::army_construction_setting_min(state, state.local_player_nation), logistics::army_construction_setting_max(state, state.local_player_nation))); break;
+	case budget_categories::naval_construction: command::change_navy_construction_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_navy_construction_consumption(state.local_player_nation) - 10), logistics::navy_construction_setting_min(state, state.local_player_nation), logistics::navy_construction_setting_max(state, state.local_player_nation))); break;
+	case budget_categories::factory_construction: command::change_factory_construction_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_factory_construction_consumption(state.local_player_nation) - 10), logistics::factory_construction_setting_min(state, state.local_player_nation), logistics::factory_construction_setting_max(state, state.local_player_nation))); break;
+	case budget_categories::building_construction: command::change_building_construction_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_building_construction_consumption(state.local_player_nation) - 10), logistics::building_construction_setting_min(state, state.local_player_nation), logistics::building_construction_setting_max(state, state.local_player_nation))); break;
 	default:  break;
 	}
 	command::change_budget_settings(state, state.local_player_nation, vals);
@@ -2860,7 +2959,15 @@ bool budgetwindow_section_header_lbutton_t::button_shift_action(sys::state& stat
 		case budget_categories::army_upkeep: vals.land_spending = int8_t(std::clamp(state.world.nation_get_land_spending(state.local_player_nation) - 1, 0, 100)); break;
 		case budget_categories::navy_upkeep: vals.naval_spending = int8_t(std::clamp(state.world.nation_get_naval_spending(state.local_player_nation) - 1, 0, 100)); break;
 		case budget_categories::debt_payment: break;
-		case budget_categories::stockpile:  break;
+		case budget_categories::stockpile:  vals.stockpile_spending = int8_t(std::clamp(state.world.nation_get_stockpile_spending(state.local_player_nation) - 1, 0, 100)); break;
+		case budget_categories::land_reinforcement: command::change_army_reinforcement_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_land_reinforcement_consumption(state.local_player_nation) - 1), logistics::army_reinforcement_setting_min(state, state.local_player_nation), logistics::army_reinforcement_setting_max(state, state.local_player_nation))); break;
+		case budget_categories::land_supply: command::change_army_supply_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_land_supply_consumption(state.local_player_nation) - 1), logistics::army_supply_setting_min(state, state.local_player_nation), logistics::army_supply_setting_max(state, state.local_player_nation))); break;
+		case budget_categories::naval_reinforcement: command::change_navy_reinforcement_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_naval_reinforcement_consumption(state.local_player_nation) - 1), logistics::navy_reinforcement_setting_min(state, state.local_player_nation), logistics::navy_reinforcement_setting_max(state, state.local_player_nation))); break;
+		case budget_categories::naval_supply: command::change_navy_supply_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_naval_supply_consumption(state.local_player_nation) - 1), logistics::navy_supply_setting_min(state, state.local_player_nation), logistics::navy_supply_setting_max(state, state.local_player_nation))); break;
+		case budget_categories::army_construction: command::change_army_construction_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_army_construction_consumption(state.local_player_nation) - 1), logistics::army_construction_setting_min(state, state.local_player_nation), logistics::army_construction_setting_max(state, state.local_player_nation))); break;
+		case budget_categories::naval_construction: command::change_navy_construction_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_navy_construction_consumption(state.local_player_nation) - 1), logistics::navy_construction_setting_min(state, state.local_player_nation), logistics::navy_construction_setting_max(state, state.local_player_nation))); break;
+		case budget_categories::factory_construction: command::change_factory_construction_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_factory_construction_consumption(state.local_player_nation) - 1), logistics::factory_construction_setting_min(state, state.local_player_nation), logistics::factory_construction_setting_max(state, state.local_player_nation))); break;
+		case budget_categories::building_construction: command::change_building_construction_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_building_construction_consumption(state.local_player_nation) - 1), logistics::building_construction_setting_min(state, state.local_player_nation), logistics::building_construction_setting_max(state, state.local_player_nation))); break;
 		default:  break;
 		}
 		command::change_budget_settings(state, state.local_player_nation, vals);
@@ -2891,7 +2998,15 @@ void budgetwindow_section_header_rbutton_t::on_update(sys::state& state) noexcep
 	case budget_categories::army_upkeep: set_visible(state, true); break;
 	case budget_categories::navy_upkeep: set_visible(state, true); break;
 	case budget_categories::debt_payment: set_visible(state, false); break;
-	case budget_categories::stockpile: set_visible(state, false);  break;
+	case budget_categories::stockpile: set_visible(state, true);  break;
+	case budget_categories::land_reinforcement: set_visible(state, true);  break;
+	case budget_categories::land_supply: set_visible(state, true);  break;
+	case budget_categories::naval_reinforcement: set_visible(state, true);  break;
+	case budget_categories::naval_supply: set_visible(state, true);  break;
+	case budget_categories::army_construction: set_visible(state, true);  break;
+	case budget_categories::naval_construction: set_visible(state, true);  break;
+	case budget_categories::factory_construction: set_visible(state, true);  break;
+	case budget_categories::building_construction: set_visible(state, true);  break;
 	default: set_visible(state, false); break;
 	}
 // END
@@ -2921,7 +3036,15 @@ bool budgetwindow_section_header_rbutton_t::button_action(sys::state& state) noe
 	case budget_categories::army_upkeep: vals.land_spending = int8_t(std::clamp(state.world.nation_get_land_spending(state.local_player_nation) + 10, 0, 100)); break;
 	case budget_categories::navy_upkeep: vals.naval_spending = int8_t(std::clamp(state.world.nation_get_naval_spending(state.local_player_nation) + 10, 0, 100)); break;
 	case budget_categories::debt_payment: break;
-	case budget_categories::stockpile: break;
+	case budget_categories::stockpile: vals.stockpile_spending = int8_t(std::clamp(state.world.nation_get_stockpile_spending(state.local_player_nation) + 10, 0, 100)); break;
+	case budget_categories::land_reinforcement: command::change_army_reinforcement_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_land_reinforcement_consumption(state.local_player_nation) + 10), logistics::army_reinforcement_setting_min(state, state.local_player_nation), logistics::army_reinforcement_setting_max(state, state.local_player_nation))); break;
+	case budget_categories::land_supply: command::change_army_supply_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_land_supply_consumption(state.local_player_nation) + 10), logistics::army_supply_setting_min(state, state.local_player_nation), logistics::army_supply_setting_max(state, state.local_player_nation))); break;
+	case budget_categories::naval_reinforcement: command::change_navy_reinforcement_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_naval_reinforcement_consumption(state.local_player_nation) + 10), logistics::navy_reinforcement_setting_min(state, state.local_player_nation), logistics::navy_reinforcement_setting_max(state, state.local_player_nation))); break;
+	case budget_categories::naval_supply: command::change_navy_supply_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_naval_supply_consumption(state.local_player_nation) + 10), logistics::navy_supply_setting_min(state, state.local_player_nation), logistics::navy_supply_setting_max(state, state.local_player_nation))); break;
+	case budget_categories::army_construction: command::change_army_construction_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_army_construction_consumption(state.local_player_nation) + 10), logistics::army_construction_setting_min(state, state.local_player_nation), logistics::army_construction_setting_max(state, state.local_player_nation))); break;
+	case budget_categories::naval_construction: command::change_navy_construction_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_navy_construction_consumption(state.local_player_nation) + 10), logistics::navy_construction_setting_min(state, state.local_player_nation), logistics::navy_construction_setting_max(state, state.local_player_nation))); break;
+	case budget_categories::factory_construction: command::change_factory_construction_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_factory_construction_consumption(state.local_player_nation) + 10), logistics::factory_construction_setting_min(state, state.local_player_nation), logistics::factory_construction_setting_max(state, state.local_player_nation))); break;
+	case budget_categories::building_construction: command::change_building_construction_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_building_construction_consumption(state.local_player_nation) + 10), logistics::building_construction_setting_min(state, state.local_player_nation), logistics::building_construction_setting_max(state, state.local_player_nation))); break;
 	default:  break;
 	}
 	command::change_budget_settings(state, state.local_player_nation, vals);
@@ -2953,7 +3076,15 @@ bool budgetwindow_section_header_rbutton_t::button_shift_action(sys::state& stat
 		case budget_categories::army_upkeep: vals.land_spending = int8_t(std::clamp(state.world.nation_get_land_spending(state.local_player_nation) + 1, 0, 100)); break;
 		case budget_categories::navy_upkeep: vals.naval_spending = int8_t(std::clamp(state.world.nation_get_naval_spending(state.local_player_nation) + 1, 0, 100)); break;
 		case budget_categories::debt_payment: break;
-		case budget_categories::stockpile: break;
+		case budget_categories::stockpile: vals.stockpile_spending = int8_t(std::clamp(state.world.nation_get_stockpile_spending(state.local_player_nation) + 1, 0, 100)); break;
+		case budget_categories::land_reinforcement: command::change_army_reinforcement_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_land_reinforcement_consumption(state.local_player_nation) + 1), logistics::army_reinforcement_setting_min(state, state.local_player_nation), logistics::army_reinforcement_setting_max(state, state.local_player_nation))); break;
+		case budget_categories::land_supply: command::change_army_supply_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_land_supply_consumption(state.local_player_nation) + 1), logistics::army_supply_setting_min(state, state.local_player_nation), logistics::army_supply_setting_max(state, state.local_player_nation))); break;
+		case budget_categories::naval_reinforcement: command::change_navy_reinforcement_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_naval_reinforcement_consumption(state.local_player_nation) + 1), logistics::navy_reinforcement_setting_min(state, state.local_player_nation), logistics::navy_reinforcement_setting_max(state, state.local_player_nation))); break;
+		case budget_categories::naval_supply: command::change_navy_supply_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_naval_supply_consumption(state.local_player_nation) + 1), logistics::navy_supply_setting_min(state, state.local_player_nation), logistics::navy_supply_setting_max(state, state.local_player_nation))); break;
+		case budget_categories::army_construction: command::change_army_construction_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_army_construction_consumption(state.local_player_nation) + 1), logistics::army_construction_setting_min(state, state.local_player_nation), logistics::army_construction_setting_max(state, state.local_player_nation))); break;
+		case budget_categories::naval_construction: command::change_navy_construction_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_navy_construction_consumption(state.local_player_nation) + 1), logistics::navy_construction_setting_min(state, state.local_player_nation), logistics::navy_construction_setting_max(state, state.local_player_nation))); break;
+		case budget_categories::factory_construction: command::change_factory_construction_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_factory_construction_consumption(state.local_player_nation) + 1), logistics::factory_construction_setting_min(state, state.local_player_nation), logistics::factory_construction_setting_max(state, state.local_player_nation))); break;
+		case budget_categories::building_construction: command::change_building_construction_consumption_setting(state, std::clamp(int8_t(state.world.nation_get_building_construction_consumption(state.local_player_nation) + 1), logistics::building_construction_setting_min(state, state.local_player_nation), logistics::building_construction_setting_max(state, state.local_player_nation))); break;
 		default:  break;
 		}
 		command::change_budget_settings(state, state.local_player_nation, vals);
@@ -2984,7 +3115,15 @@ void budgetwindow_section_header_rrbutton_t::on_update(sys::state& state) noexce
 	case budget_categories::army_upkeep: set_visible(state, true); break;
 	case budget_categories::navy_upkeep: set_visible(state, true); break;
 	case budget_categories::debt_payment: set_visible(state, false); break;
-	case budget_categories::stockpile: set_visible(state, false);  break;
+	case budget_categories::stockpile: set_visible(state, true);  break;
+	case budget_categories::land_reinforcement: set_visible(state, true);  break;
+	case budget_categories::land_supply: set_visible(state, true);  break;
+	case budget_categories::naval_reinforcement: set_visible(state, true);  break;
+	case budget_categories::naval_supply: set_visible(state, true);  break;
+	case budget_categories::army_construction: set_visible(state, true);  break;
+	case budget_categories::naval_construction: set_visible(state, true);  break;
+	case budget_categories::factory_construction: set_visible(state, true);  break;
+	case budget_categories::building_construction: set_visible(state, true);  break;
 	default: set_visible(state, false); break;
 	}
 // END
@@ -3014,7 +3153,15 @@ bool budgetwindow_section_header_rrbutton_t::button_action(sys::state& state) no
 	case budget_categories::army_upkeep: vals.land_spending = economy::budget_maximums(state, state.local_player_nation).land_spending; break;
 	case budget_categories::navy_upkeep: vals.naval_spending = economy::budget_maximums(state, state.local_player_nation).naval_spending; break;
 	case budget_categories::debt_payment: break;
-	case budget_categories::stockpile:  break;
+	case budget_categories::stockpile: vals.stockpile_spending = economy::budget_maximums(state, state.local_player_nation).stockpile_spending;
+	case budget_categories::land_reinforcement: command::change_army_reinforcement_consumption_setting(state, logistics::army_reinforcement_setting_max(state, state.local_player_nation)); break;
+	case budget_categories::land_supply: command::change_army_supply_consumption_setting(state, logistics::army_supply_setting_max(state, state.local_player_nation)); break;
+	case budget_categories::naval_reinforcement: command::change_navy_reinforcement_consumption_setting(state, logistics::navy_reinforcement_setting_max(state, state.local_player_nation)); break;
+	case budget_categories::naval_supply: command::change_navy_supply_consumption_setting(state, logistics::navy_supply_setting_max(state, state.local_player_nation)); break;
+	case budget_categories::army_construction: command::change_army_construction_consumption_setting(state, logistics::army_construction_setting_max(state, state.local_player_nation)); break;
+	case budget_categories::naval_construction: command::change_navy_construction_consumption_setting(state, logistics::navy_construction_setting_max(state, state.local_player_nation)); break;
+	case budget_categories::factory_construction: command::change_factory_construction_consumption_setting(state, logistics::factory_construction_setting_max(state, state.local_player_nation)); break;
+	case budget_categories::building_construction: command::change_building_construction_consumption_setting(state, logistics::building_construction_setting_max(state, state.local_player_nation)); break;
 	default:  break;
 	}
 	command::change_budget_settings(state, state.local_player_nation, vals);
@@ -3045,7 +3192,15 @@ void budgetwindow_section_header_setting_amount_t::on_update(sys::state& state) 
 	case budget_categories::army_upkeep: set_text(state, std::to_string(state.world.nation_get_land_spending(state.local_player_nation))); break;
 	case budget_categories::navy_upkeep: set_text(state, std::to_string(state.world.nation_get_naval_spending(state.local_player_nation))); break;
 	case budget_categories::debt_payment: set_text(state, ""); break;
-	case budget_categories::stockpile: set_text(state, "");  break;
+	case budget_categories::stockpile: set_text(state, std::to_string(state.world.nation_get_stockpile_spending(state.local_player_nation)));  break;
+	case budget_categories::land_reinforcement: set_text(state, std::to_string(state.world.nation_get_land_reinforcement_consumption(state.local_player_nation)));  break;
+	case budget_categories::land_supply: set_text(state, std::to_string(state.world.nation_get_land_supply_consumption(state.local_player_nation)));  break;
+	case budget_categories::naval_reinforcement: set_text(state, std::to_string(state.world.nation_get_naval_reinforcement_consumption(state.local_player_nation)));  break;
+	case budget_categories::naval_supply: set_text(state, std::to_string(state.world.nation_get_naval_supply_consumption(state.local_player_nation)));  break;
+	case budget_categories::army_construction: set_text(state, std::to_string(state.world.nation_get_army_construction_consumption(state.local_player_nation)));  break;
+	case budget_categories::naval_construction: set_text(state, std::to_string(state.world.nation_get_navy_construction_consumption(state.local_player_nation)));  break;
+	case budget_categories::factory_construction: set_text(state, std::to_string(state.world.nation_get_factory_construction_consumption(state.local_player_nation)));  break;
+	case budget_categories::building_construction: set_text(state, std::to_string(state.world.nation_get_building_construction_consumption(state.local_player_nation)));  break;
 	default: set_text(state, ""); break;
 	}
 // END
@@ -3069,6 +3224,8 @@ void budgetwindow_section_header_expand_button_t::on_update(sys::state& state) n
 
 	auto n = state.local_player_nation;
 	auto spending_details = economy::national_budget::estimate_budget_detailed(state, n, economy::estimate_next_budget(state, n));
+	uint32_t total_armies = uint32_t(state.world.nation_get_army_control(state.local_player_nation).end() - state.world.nation_get_army_control(state.local_player_nation).begin());
+	uint32_t total_navies = uint32_t(state.world.nation_get_navy_control(state.local_player_nation).end() - state.world.nation_get_navy_control(state.local_player_nation).begin());
 
 	switch(section_header.section_type) {
 	case budget_categories::diplomatic_income: disabled = (spending_details.diplomacy.actual_spending <= 0); break;
@@ -3091,6 +3248,14 @@ void budgetwindow_section_header_expand_button_t::on_update(sys::state& state) n
 	case budget_categories::navy_upkeep:disabled = (spending_details.military_supplies_navy.actual_spending <= 0); break;
 	case budget_categories::debt_payment: disabled = (spending_details.interest.actual_spending <= 0); break;
 	case budget_categories::stockpile: disabled = (spending_details.stockpile.actual_spending <= 0);  break;
+	case budget_categories::land_reinforcement: disabled = (total_armies == 0); break;
+	case budget_categories::land_supply: disabled = (total_armies == 0); break;
+	case budget_categories::naval_reinforcement: disabled = (total_navies == 0); break;
+	case budget_categories::naval_supply: disabled = (total_navies == 0); break;
+	case budget_categories::army_construction: disabled = false; break;
+	case budget_categories::naval_construction: disabled = false; break;
+	case budget_categories::factory_construction: disabled = false; break;
+	case budget_categories::building_construction: disabled = false; break;
 	default: disabled = false; break;
 	}
 
@@ -3121,6 +3286,10 @@ void budgetwindow_section_header_total_amount_t::on_update(sys::state& state) no
 	auto adjust_spending_value = [&](float value) {
 		return text::prettify_currency(value);
 	};
+	auto adjust_military_value = [&](float value) {
+		return text::format_percentage(value, 2);
+	};
+
 
 	switch(section_header.section_type) {
 	case budget_categories::diplomatic_income: set_text(state, adjust_income_value(economy::estimate_diplomatic_income(state, state.local_player_nation))); break;
@@ -3143,6 +3312,14 @@ void budgetwindow_section_header_total_amount_t::on_update(sys::state& state) no
 	case budget_categories::navy_upkeep: set_text(state, adjust_spending_value(spending_details.military_supplies_navy.actual_spending)); break;
 	case budget_categories::debt_payment: set_text(state, adjust_spending_value(spending_details.interest.actual_spending)); break;
 	case budget_categories::stockpile: set_text(state, adjust_spending_value(spending_details.stockpile.actual_spending)); break;
+	case budget_categories::land_reinforcement: set_text(state, ""); break;
+	case budget_categories::land_supply: set_text(state, ""); break;
+	case budget_categories::naval_reinforcement: set_text(state, ""); break;
+	case budget_categories::naval_supply: set_text(state, ""); break;
+	case budget_categories::army_construction: break;
+	case budget_categories::naval_construction:  break;
+	case budget_categories::factory_construction: break;
+	case budget_categories::building_construction: break;
 	default: set_text(state, ""); break;
 	}
 // END
@@ -3172,7 +3349,15 @@ void budgetwindow_section_header_min_setting_t::update_tooltip(sys::state& state
 	case budget_categories::army_upkeep: value = economy::budget_minimums(state, state.local_player_nation).land_spending; break;
 	case budget_categories::navy_upkeep: value = economy::budget_minimums(state, state.local_player_nation).naval_spending; break;
 	case budget_categories::debt_payment: break;
-	case budget_categories::stockpile: break;
+	case budget_categories::stockpile: value = economy::budget_minimums(state, state.local_player_nation).stockpile_spending; break;
+	case budget_categories::land_reinforcement: value = logistics::army_reinforcement_setting_min(state, state.local_player_nation);  break;
+	case budget_categories::land_supply: value = logistics::army_supply_setting_min(state, state.local_player_nation);  break;
+	case budget_categories::naval_reinforcement: value = logistics::navy_reinforcement_setting_min(state, state.local_player_nation);  break;
+	case budget_categories::naval_supply: value = logistics::navy_supply_setting_min(state, state.local_player_nation);  break;
+	case budget_categories::army_construction: value = logistics::army_construction_setting_min(state, state.local_player_nation);  break;
+	case budget_categories::naval_construction: value = logistics::navy_construction_setting_min(state, state.local_player_nation);  break;
+	case budget_categories::factory_construction: value = logistics::factory_construction_setting_min(state, state.local_player_nation);  break;
+	case budget_categories::building_construction: value = logistics::building_construction_setting_min(state, state.local_player_nation);  break;
 	default:  break;
 	}
 	if(value == 0) {
@@ -3199,6 +3384,14 @@ void budgetwindow_section_header_min_setting_t::update_tooltip(sys::state& state
 		case budget_categories::navy_upkeep: break;
 		case budget_categories::debt_payment: break;
 		case budget_categories::stockpile: break;
+		case budget_categories::land_reinforcement: break;
+		case budget_categories::land_supply: break;
+		case budget_categories::naval_reinforcement: break;
+		case budget_categories::naval_supply: break;
+		case budget_categories::army_construction: break;
+		case budget_categories::naval_construction:  break;
+		case budget_categories::factory_construction: break;
+		case budget_categories::building_construction: break;
 		default:  break;
 		}
 	}
@@ -3229,7 +3422,15 @@ void budgetwindow_section_header_min_setting_t::on_update(sys::state& state) noe
 	case budget_categories::army_upkeep: value = economy::budget_minimums(state, state.local_player_nation).land_spending; break;
 	case budget_categories::navy_upkeep: value = economy::budget_minimums(state, state.local_player_nation).naval_spending; break;
 	case budget_categories::debt_payment: break;
-	case budget_categories::stockpile: break;
+	case budget_categories::stockpile: value = economy::budget_minimums(state, state.local_player_nation).stockpile_spending;  break;
+	case budget_categories::land_reinforcement: value = logistics::army_reinforcement_setting_min(state, state.local_player_nation);  break;
+	case budget_categories::land_supply: value = logistics::army_supply_setting_min(state, state.local_player_nation);  break;
+	case budget_categories::naval_reinforcement: value = logistics::navy_reinforcement_setting_min(state, state.local_player_nation);  break;
+	case budget_categories::naval_supply: value = logistics::navy_supply_setting_min(state, state.local_player_nation);  break;
+	case budget_categories::army_construction: value = logistics::army_construction_setting_min(state, state.local_player_nation);  break;
+	case budget_categories::naval_construction: value = logistics::navy_construction_setting_min(state, state.local_player_nation);  break;
+	case budget_categories::factory_construction: value = logistics::factory_construction_setting_min(state, state.local_player_nation);  break;
+	case budget_categories::building_construction: value = logistics::building_construction_setting_min(state, state.local_player_nation);  break;
 	default:  break;
 	}
 	if(value == 0) {
@@ -3266,7 +3467,15 @@ void budgetwindow_section_header_max_setting_t::update_tooltip(sys::state& state
 	case budget_categories::army_upkeep: value = economy::budget_maximums(state, state.local_player_nation).land_spending; break;
 	case budget_categories::navy_upkeep: value = economy::budget_maximums(state, state.local_player_nation).naval_spending; break;
 	case budget_categories::debt_payment: break;
-	case budget_categories::stockpile: break;
+	case budget_categories::stockpile: value = economy::budget_maximums(state, state.local_player_nation).stockpile_spending; break;
+	case budget_categories::land_reinforcement: value = logistics::army_reinforcement_setting_max(state, state.local_player_nation);  break;
+	case budget_categories::land_supply: value = logistics::army_supply_setting_max(state, state.local_player_nation);  break;
+	case budget_categories::naval_reinforcement: value = logistics::navy_reinforcement_setting_max(state, state.local_player_nation);  break;
+	case budget_categories::naval_supply: value = logistics::navy_supply_setting_max(state, state.local_player_nation);  break;
+	case budget_categories::army_construction: value = logistics::army_construction_setting_max(state, state.local_player_nation);  break;
+	case budget_categories::naval_construction: value = logistics::navy_construction_setting_max(state, state.local_player_nation);  break;
+	case budget_categories::factory_construction: value = logistics::factory_construction_setting_max(state, state.local_player_nation);  break;
+	case budget_categories::building_construction: value = logistics::building_construction_setting_max(state, state.local_player_nation);  break;
 	default:  break;
 	}
 	if(value == 100) {
@@ -3293,6 +3502,14 @@ void budgetwindow_section_header_max_setting_t::update_tooltip(sys::state& state
 		case budget_categories::navy_upkeep: break;
 		case budget_categories::debt_payment: break;
 		case budget_categories::stockpile: break;
+		case budget_categories::land_reinforcement: break;
+		case budget_categories::land_supply: break;
+		case budget_categories::naval_reinforcement: break;
+		case budget_categories::naval_supply: break;
+		case budget_categories::army_construction: break;
+		case budget_categories::naval_construction:  break;
+		case budget_categories::factory_construction: break;
+		case budget_categories::building_construction: break;
 		default:  break;
 		}
 	}
@@ -3323,7 +3540,15 @@ void budgetwindow_section_header_max_setting_t::on_update(sys::state& state) noe
 	case budget_categories::army_upkeep: value = economy::budget_maximums(state, state.local_player_nation).land_spending; break;
 	case budget_categories::navy_upkeep: value = economy::budget_maximums(state, state.local_player_nation).naval_spending; break;
 	case budget_categories::debt_payment: break;
-	case budget_categories::stockpile: break;
+	case budget_categories::stockpile: value = economy::budget_maximums(state, state.local_player_nation).stockpile_spending; break;
+	case budget_categories::land_reinforcement: value = logistics::army_reinforcement_setting_max(state, state.local_player_nation);  break;
+	case budget_categories::land_supply: value = logistics::army_supply_setting_max(state, state.local_player_nation);  break;
+	case budget_categories::naval_reinforcement: value = logistics::navy_reinforcement_setting_max(state, state.local_player_nation);  break;
+	case budget_categories::naval_supply: value = logistics::navy_supply_setting_max(state, state.local_player_nation);  break;
+	case budget_categories::army_construction: value = logistics::army_construction_setting_max(state, state.local_player_nation);  break;
+	case budget_categories::naval_construction: value = logistics::navy_construction_setting_max(state, state.local_player_nation);  break;
+	case budget_categories::factory_construction: value = logistics::factory_construction_setting_max(state, state.local_player_nation);  break;
+	case budget_categories::building_construction: value = logistics::building_construction_setting_max(state, state.local_player_nation);  break;
 	default:  break;
 	}
 	if(value == 100) {
@@ -3384,13 +3609,15 @@ void budgetwindow_section_header_t::create_layout_level(sys::state& state, layou
 				buffer.read(temp.texture);
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
-			case layout_item_types::control:
+			case layout_item_types::control2:
 			{
 				layout_control temp;
 				std::string_view cname = buffer.read<std::string_view>();
 				buffer.read(temp.abs_x);
 				buffer.read(temp.abs_y);
 				buffer.read(temp.absolute_position);
+				buffer.read(temp.fill_x);
+				buffer.read(temp.fill_y);
 				temp.ptr = nullptr;
 				if(cname == "label") {
 					temp.ptr = label.get();
@@ -3431,13 +3658,15 @@ void budgetwindow_section_header_t::create_layout_level(sys::state& state, layou
 				}
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
-			case layout_item_types::window:
+			case layout_item_types::window2:
 			{
 				layout_window temp;
 				std::string_view cname = buffer.read<std::string_view>();
 				buffer.read(temp.abs_x);
 				buffer.read(temp.abs_y);
 				buffer.read(temp.absolute_position);
+				buffer.read(temp.fill_x);
+				buffer.read(temp.fill_y);
 				if(cname == "main") {
 					temp.ptr = make_budgetwindow_main(state);
 				}
@@ -3465,7 +3694,7 @@ void budgetwindow_section_header_t::create_layout_level(sys::state& state, layou
 				buffer.read(temp.amount);
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
-			case layout_item_types::generator:
+			case layout_item_types::generator2:
 			{
 				generator_instance temp;
 				std::string_view cname = buffer.read<std::string_view>();
@@ -3997,13 +4226,15 @@ void budgetwindow_budget_row_t::create_layout_level(sys::state& state, layout_le
 				buffer.read(temp.texture);
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
-			case layout_item_types::control:
+			case layout_item_types::control2:
 			{
 				layout_control temp;
 				std::string_view cname = buffer.read<std::string_view>();
 				buffer.read(temp.abs_x);
 				buffer.read(temp.abs_y);
 				buffer.read(temp.absolute_position);
+				buffer.read(temp.fill_x);
+				buffer.read(temp.fill_y);
 				temp.ptr = nullptr;
 				if(cname == "contents") {
 					temp.ptr = contents.get();
@@ -4017,13 +4248,15 @@ void budgetwindow_budget_row_t::create_layout_level(sys::state& state, layout_le
 				}
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
-			case layout_item_types::window:
+			case layout_item_types::window2:
 			{
 				layout_window temp;
 				std::string_view cname = buffer.read<std::string_view>();
 				buffer.read(temp.abs_x);
 				buffer.read(temp.abs_y);
 				buffer.read(temp.absolute_position);
+				buffer.read(temp.fill_x);
+				buffer.read(temp.fill_y);
 				if(cname == "main") {
 					temp.ptr = make_budgetwindow_main(state);
 				}
@@ -4051,7 +4284,7 @@ void budgetwindow_budget_row_t::create_layout_level(sys::state& state, layout_le
 				buffer.read(temp.amount);
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
-			case layout_item_types::generator:
+			case layout_item_types::generator2:
 			{
 				generator_instance temp;
 				std::string_view cname = buffer.read<std::string_view>();
@@ -4095,8 +4328,46 @@ void budgetwindow_budget_row_t::on_create(sys::state& state) noexcept {
 			cptr->on_create(state);
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
-		} else
-		if (child_data.is_lua) {
+		} else 
+		if(child_data.name == ".tabincome_table") {
+			int16_t running_w_total = 0;
+			auto tbuffer = serialization::in_buffer(pending_children.back().data, pending_children.back().size);
+			auto main_section = tbuffer.read_section();
+			main_section.read<std::string_view>(); // discard name 
+			income_table_ascending_icon_key = main_section.read<std::string_view>();
+			income_table_descending_icon_key = main_section.read<std::string_view>();
+			main_section.read<ogl::color3f>();
+			auto col_section = tbuffer.read_section();
+			col_section.read<std::string_view>(); // discard
+			col_section.read<std::string_view>(); // discard
+			col_section.read<std::string_view>(); // discard
+			income_table_lead_space_column_start = running_w_total;
+			col_section.read(income_table_lead_space_column_width);
+			running_w_total += income_table_lead_space_column_width;
+			col_section.read<text::text_color>(); // discard
+			col_section.read<text::text_color>(); // discard
+			col_section.read<text::alignment>(); // discard
+			income_table_item_name_header_text_key = col_section.read<std::string_view>();
+			col_section.read<std::string_view>(); // discard
+			col_section.read<std::string_view>(); // discard
+			income_table_item_name_column_start = running_w_total;
+			col_section.read(income_table_item_name_column_width);
+			running_w_total += income_table_item_name_column_width;
+			col_section.read(income_table_item_name_column_text_color);
+			col_section.read(income_table_item_name_header_text_color);
+			col_section.read(income_table_item_name_text_alignment);
+			income_table_item_value_header_text_key = col_section.read<std::string_view>();
+			col_section.read<std::string_view>(); // discard
+			col_section.read<std::string_view>(); // discard
+			income_table_item_value_column_start = running_w_total;
+			col_section.read(income_table_item_value_column_width);
+			running_w_total += income_table_item_value_column_width;
+			col_section.read(income_table_item_value_column_text_color);
+			col_section.read(income_table_item_value_header_text_color);
+			col_section.read(income_table_item_value_text_alignment);
+			pending_children.pop_back(); continue;
+		} else 
+		if (child_data.is_lua) { 
 			std::string str_name {child_data.name};
 			scripted_elements[str_name] = std::make_unique<ui::lua_scripted_element>();
 			auto cptr = scripted_elements[str_name].get();
@@ -4344,13 +4615,15 @@ void budgetwindow_budget_header_t::create_layout_level(sys::state& state, layout
 				buffer.read(temp.texture);
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
-			case layout_item_types::control:
+			case layout_item_types::control2:
 			{
 				layout_control temp;
 				std::string_view cname = buffer.read<std::string_view>();
 				buffer.read(temp.abs_x);
 				buffer.read(temp.abs_y);
 				buffer.read(temp.absolute_position);
+				buffer.read(temp.fill_x);
+				buffer.read(temp.fill_y);
 				temp.ptr = nullptr;
 				if(cname == "contents") {
 					temp.ptr = contents.get();
@@ -4364,13 +4637,15 @@ void budgetwindow_budget_header_t::create_layout_level(sys::state& state, layout
 				}
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
-			case layout_item_types::window:
+			case layout_item_types::window2:
 			{
 				layout_window temp;
 				std::string_view cname = buffer.read<std::string_view>();
 				buffer.read(temp.abs_x);
 				buffer.read(temp.abs_y);
 				buffer.read(temp.absolute_position);
+				buffer.read(temp.fill_x);
+				buffer.read(temp.fill_y);
 				if(cname == "main") {
 					temp.ptr = make_budgetwindow_main(state);
 				}
@@ -4398,7 +4673,7 @@ void budgetwindow_budget_header_t::create_layout_level(sys::state& state, layout
 				buffer.read(temp.amount);
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
-			case layout_item_types::generator:
+			case layout_item_types::generator2:
 			{
 				generator_instance temp;
 				std::string_view cname = buffer.read<std::string_view>();
@@ -4442,8 +4717,46 @@ void budgetwindow_budget_header_t::on_create(sys::state& state) noexcept {
 			cptr->on_create(state);
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
-		} else
-		if (child_data.is_lua) {
+		} else 
+		if(child_data.name == ".tabincome_table") {
+			int16_t running_w_total = 0;
+			auto tbuffer = serialization::in_buffer(pending_children.back().data, pending_children.back().size);
+			auto main_section = tbuffer.read_section();
+			main_section.read<std::string_view>(); // discard name 
+			income_table_ascending_icon_key = main_section.read<std::string_view>();
+			income_table_descending_icon_key = main_section.read<std::string_view>();
+			main_section.read<ogl::color3f>();
+			auto col_section = tbuffer.read_section();
+			col_section.read<std::string_view>(); // discard
+			col_section.read<std::string_view>(); // discard
+			col_section.read<std::string_view>(); // discard
+			income_table_lead_space_column_start = running_w_total;
+			col_section.read(income_table_lead_space_column_width);
+			running_w_total += income_table_lead_space_column_width;
+			col_section.read<text::text_color>(); // discard
+			col_section.read<text::text_color>(); // discard
+			col_section.read<text::alignment>(); // discard
+			income_table_item_name_header_text_key = col_section.read<std::string_view>();
+			col_section.read<std::string_view>(); // discard
+			col_section.read<std::string_view>(); // discard
+			income_table_item_name_column_start = running_w_total;
+			col_section.read(income_table_item_name_column_width);
+			running_w_total += income_table_item_name_column_width;
+			col_section.read(income_table_item_name_column_text_color);
+			col_section.read(income_table_item_name_header_text_color);
+			col_section.read(income_table_item_name_text_alignment);
+			income_table_item_value_header_text_key = col_section.read<std::string_view>();
+			col_section.read<std::string_view>(); // discard
+			col_section.read<std::string_view>(); // discard
+			income_table_item_value_column_start = running_w_total;
+			col_section.read(income_table_item_value_column_width);
+			running_w_total += income_table_item_value_column_width;
+			col_section.read(income_table_item_value_column_text_color);
+			col_section.read(income_table_item_value_header_text_color);
+			col_section.read(income_table_item_value_text_alignment);
+			pending_children.pop_back(); continue;
+		} else 
+		if (child_data.is_lua) { 
 			std::string str_name {child_data.name};
 			scripted_elements[str_name] = std::make_unique<ui::lua_scripted_element>();
 			auto cptr = scripted_elements[str_name].get();
@@ -4479,14 +4792,5 @@ std::unique_ptr<ui::element_base> make_budgetwindow_budget_header(sys::state& st
 	ptr->on_create(state);
 	return ptr;
 }
-#ifdef __clang__
-#pragma clang diagnostic pop
-#endif
 // LOST-CODE
-// BEGIN main::debt_overlay::update
-//	set_visible(state, economy::interest_payment(state, state.local_player_nation) > 0);
-// END
-// BEGIN main::close_button::lbutton_action
-////////////////////////////////////////	parent->set_visible(state, false);
-// END
 }

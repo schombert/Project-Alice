@@ -20,7 +20,7 @@
 namespace effect {
 
 #define EFFECT_PARAMTERS                                                                                                         \
-	uint16_t const *tval, sys::state &ws, int32_t primary_slot, int32_t this_slot, int32_t from_slot, uint32_t r_hi, uint32_t r_lo, bool& els
+	uint16_t const *tval, sys::state &ws, int32_t primary_slot, int32_t this_slot, int32_t from_slot, uint32_t r_lo, uint32_t r_hi, bool& els
 
 uint32_t internal_execute_effect(EFFECT_PARAMTERS);
 
@@ -328,22 +328,19 @@ uint32_t es_x_country_scope_nation(EFFECT_PARAMTERS) {
 }
 uint32_t es_x_event_country_scope_nation(EFFECT_PARAMTERS) {
 	if((tval[0] & effect::is_random_scope) != 0) {
-		std::vector<dcon::nation_id> rlist;
+		dcon::nation_id affected_nation;
 		if((tval[0] & effect::scope_has_limit) != 0) {
 			auto limit = trigger::payload(tval[2]).tr_id;
-			for(auto n : ws.world.in_nation) {
-				if(n != trigger::to_nation(primary_slot) && trigger::evaluate(ws, limit, trigger::to_generic(n.id), this_slot, from_slot))
-					rlist.push_back(n.id);
-			}
+			affected_nation = nations::get_random_nation(ws, r_hi, r_lo, [&](dcon::nation_id n) {
+				return nations::exists(ws, n) && n != trigger::to_nation(primary_slot) && trigger::evaluate(ws, limit, trigger::to_generic(n), this_slot, from_slot);
+			});
 		} else {
-			for(auto n : ws.world.in_nation) {
-				if(n != trigger::to_nation(primary_slot))
-					rlist.push_back(n.id);
-			}
+			affected_nation = nations::get_random_nation(ws, r_hi, r_lo, [&](dcon::nation_id n) {
+				return nations::exists(ws, n) && n != trigger::to_nation(primary_slot);
+			});
 		}
-		if(rlist.size() != 0) {
-			auto r = rng::get_random(ws, r_hi, r_lo) % rlist.size();
-			return 1 + apply_subeffects(tval, ws, trigger::to_generic(rlist[r]), this_slot, from_slot, r_hi, r_lo + 1, els);
+		if(affected_nation) {
+			return 1 + apply_subeffects(tval, ws, trigger::to_generic(affected_nation), this_slot, from_slot, r_hi, r_lo + 1, els);
 		}
 		return 0;
 	} else {
@@ -351,12 +348,12 @@ uint32_t es_x_event_country_scope_nation(EFFECT_PARAMTERS) {
 		if((tval[0] & effect::scope_has_limit) != 0) {
 			auto limit = trigger::payload(tval[2]).tr_id;
 			for(auto n : ws.world.in_nation) {
-				if(n != trigger::to_nation(primary_slot) && trigger::evaluate(ws, limit, trigger::to_generic(n.id), this_slot, from_slot))
+				if(nations::exists(ws, n) && n != trigger::to_nation(primary_slot) && trigger::evaluate(ws, limit, trigger::to_generic(n.id), this_slot, from_slot))
 					i += apply_subeffects(tval, ws, trigger::to_generic(n.id), this_slot, from_slot, r_hi, r_lo + i, els);
 			}
 		} else {
 			for(auto n : ws.world.in_nation) {
-				if(n != trigger::to_nation(primary_slot))
+				if(nations::exists(ws, n) && n != trigger::to_nation(primary_slot))
 					i += apply_subeffects(tval, ws, trigger::to_generic(n.id), this_slot, from_slot, r_hi, r_lo + i, els);
 			}
 		}
@@ -1936,11 +1933,11 @@ uint32_t ef_government_reb(EFFECT_PARAMTERS) {
 uint32_t ef_treasury(EFFECT_PARAMTERS) {
 	auto amount = trigger::read_float_from_payload(tval + 1);
 	assert(std::isfinite(amount));
-	auto& t = ws.world.nation_get_stockpiles(trigger::to_nation(primary_slot), economy::money);
+	auto& t = ws.world.nation_get_treasury(trigger::to_nation(primary_slot));
 	if(ws.world.nation_get_is_player_controlled(trigger::to_nation(primary_slot)))
-		ws.world.nation_set_stockpiles(trigger::to_nation(primary_slot), economy::money, t + amount);
+		ws.world.nation_set_treasury(trigger::to_nation(primary_slot), t + amount);
 	else
-		ws.world.nation_set_stockpiles(trigger::to_nation(primary_slot), economy::money, std::max(0.0f, t + amount));
+		ws.world.nation_set_treasury(trigger::to_nation(primary_slot), std::max(0.0f, t + amount));
 	return 0;
 }
 uint32_t ef_suppression_points(EFFECT_PARAMTERS) {
@@ -3078,12 +3075,12 @@ uint32_t ef_add_tax_relative_income(EFFECT_PARAMTERS) {
 	assert(std::isfinite(amount));
 	auto combined_amount = income * amount;
 	assert(std::isfinite(combined_amount));
-	auto& v = ws.world.nation_get_stockpiles(trigger::to_nation(primary_slot), economy::money);
+	auto& v = ws.world.nation_get_treasury(trigger::to_nation(primary_slot));
 
 	if(ws.world.nation_get_is_player_controlled(trigger::to_nation(primary_slot)))
-		ws.world.nation_set_stockpiles(trigger::to_nation(primary_slot), economy::money, v + combined_amount);
+		ws.world.nation_set_treasury(trigger::to_nation(primary_slot), v + combined_amount);
 	else
-		ws.world.nation_set_stockpiles(trigger::to_nation(primary_slot), economy::money, std::max(v + combined_amount, 0.0f)); // temporary measure since there is no debt
+		ws.world.nation_set_treasury(trigger::to_nation(primary_slot), std::max(v + combined_amount, 0.0f)); // temporary measure since there is no debt
 	return 0;
 }
 uint32_t ef_neutrality(EFFECT_PARAMTERS) {
@@ -4766,18 +4763,69 @@ uint32_t ef_scaled_consciousness_province_unemployment(EFFECT_PARAMTERS) {
 	return 0;
 }
 uint32_t ef_variable_good_name(EFFECT_PARAMTERS) {
-	auto amount = trigger::read_float_from_payload(tval + 2);
+	auto nation = trigger::to_nation(primary_slot);
+	if(ws.world.nation_get_state_control(nation).end() - ws.world.nation_get_state_control(nation).begin() == 0) {
+		return 0; // No controlled states to put the goods into
+	}
+
+	static std::vector<dcon::state_instance_id> closest_stockpiles;
+	closest_stockpiles.clear();
+	auto capital_prov = ws.world.nation_get_capital(nation);
+	auto capital_state = ws.world.province_get_state_membership(capital_prov);
+	auto capital_market = ws.world.state_instance_get_market_from_local_market(capital_state);
+	assert(capital_prov);
+	auto amount  = trigger::read_float_from_payload(tval + 2);
+	auto commodity = trigger::payload(tval[1]).com_id;
 	assert(std::isfinite(amount));
-	auto& v = ws.world.nation_get_stockpiles(trigger::to_nation(primary_slot), trigger::payload(tval[1]).com_id);
-	ws.world.nation_set_stockpiles(trigger::to_nation(primary_slot), trigger::payload(tval[1]).com_id, std::max(v + amount, 0.0f));
+	if(amount > 0.0f) {
+		if(ws.world.state_instance_get_nation_from_state_control(capital_state) == nation) {
+			// Add to capital stockpile cos we control the state
+			economy::add_government_stockpile(ws, nation, capital_market, commodity, amount);
+		}
+		else {
+			// Otherwise, add it to the first available state which we control
+			auto other_market = ws.world.state_instance_get_market_from_local_market((*ws.world.nation_get_state_control(nation).begin()).get_state()); // We know we have atleast one controlled state from the check at the start
+			economy::add_government_stockpile(ws, nation, other_market, commodity, amount);
+		}
+	}
+	else {
+		// Walk though state stockpiles starting from the capital and consume from them since the amount to be "gained" is negative. We dont care about the satisfaction rate and simply try to remove as much of the commodities as required;
+		float amount_to_sub = abs(amount);
+		economy::get_closest_available_market_states(ws, closest_stockpiles, nation, capital_prov);
+			// Iterate over each stockpile in the preferred order, and consume from them until the required supply is satisfied, or there are no more stockpiles
+			for(auto stockpile_state : closest_stockpiles) {
+				auto stockpile_market = ws.world.state_instance_get_market_from_local_market(stockpile_state);
+				// Find out what needs to be consumed from the stockpile, and set the satisfaction.e
+				auto current_stockpile = ws.world.market_get_government_stockpile(stockpile_market, commodity);
+				float to_consume_amount = std::min(amount, current_stockpile); // We may not consume more than exists in the stockpile
+				amount_to_sub -= to_consume_amount;
+				economy::subtract_government_stockpile(ws, nation, stockpile_market, commodity, to_consume_amount);
+				if(amount_to_sub <= 0.0f) {
+					break;
+				}
+			}
+	}
+
+
 	return 0;
 }
 uint32_t ef_variable_good_name_province(EFFECT_PARAMTERS) {
-	auto amount = trigger::read_float_from_payload(tval + 2);
-	assert(std::isfinite(amount));
-	if(auto owner = ws.world.province_get_nation_from_province_ownership(trigger::to_prov(primary_slot)); owner) {
-		auto& v = ws.world.nation_get_stockpiles(owner, trigger::payload(tval[1]).com_id);
-		ws.world.nation_set_stockpiles(owner, trigger::payload(tval[1]).com_id, std::max(v + amount, 0.0f));
+	auto prov = trigger::to_prov(primary_slot);
+	if(auto owner = ws.world.province_get_nation_from_province_ownership(prov); owner) {
+		auto prov_state = ws.world.province_get_state_membership(prov);
+		auto state_controller = ws.world.state_instance_get_nation_from_state_control(prov_state);
+		auto prov_market = ws.world.state_instance_get_market_from_local_market(prov_state);
+		auto amount = trigger::read_float_from_payload(tval + 2);
+		auto commodity = trigger::payload(tval[1]).com_id;
+		assert(std::isfinite(amount));
+		if(state_controller) {
+			// Add to market
+			(amount > 0.0f ? economy::add_government_stockpile(ws, state_controller, prov_market, commodity, amount) : economy::subtract_government_stockpile(ws, state_controller, prov_market, commodity, amount));
+		}
+		else {
+			(amount > 0.0f ? economy::add_rebel_stockpile(ws, prov_market, commodity, amount) : economy::subtract_rebel_stockpile(ws, prov_market, commodity, amount));
+		}
+
 	}
 	return 0;
 }

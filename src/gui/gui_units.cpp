@@ -20,6 +20,10 @@
 #include "gui_modifier_tooltips.hpp"
 #include "game_scene.hpp"
 #include "commands.hpp"
+#include "economy_templates.hpp"
+#include "concept_declarations.hpp"
+#include "logistics.hpp"
+#include "economy.hpp"
 
 namespace ui {
 
@@ -1474,6 +1478,71 @@ public:
 	}
 };
 
+class u_row_selectonly_button : public button_element_base {
+private:
+	void on_update(sys::state& state) noexcept override {
+		
+	}
+	// On normal left click, select just the clicked unit and clear all other selected units
+	void button_action(sys::state& state) noexcept override {
+		state.selected_navies.clear();
+		state.selected_armies.clear();
+		state.ui_state.pending_shift_selected_armies.clear();
+		state.ui_state.pending_shift_selected_navies.clear();
+		auto foru = retrieve<unit_var>(state, parent);
+		if(std::holds_alternative<dcon::army_id>(foru)) {
+			auto army = std::get<dcon::army_id>(foru);
+			state.selected_armies.push_back(army);
+
+		} else if(std::holds_alternative<dcon::navy_id>(foru)) {
+			auto navy = std::get<dcon::navy_id>(foru);
+			state.selected_navies.push_back(navy);
+		}
+		state.game_state_updated.store(true);
+	}
+	// On shift left click, add the clicked unit the pending shift selected units
+	void button_shift_action(sys::state& state) noexcept override {
+		auto foru = retrieve<unit_var>(state, parent);
+		if(std::holds_alternative<dcon::army_id>(foru)) {
+			auto army = std::get<dcon::army_id>(foru);
+			state.ui_state.pending_shift_selected_armies.push_back(army);
+
+		} else if(std::holds_alternative<dcon::navy_id>(foru)) {
+			auto navy = std::get<dcon::navy_id>(foru);
+			state.ui_state.pending_shift_selected_navies.push_back(navy);
+		}
+		state.game_state_updated.store(true);
+	}
+
+
+
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		auto foru = retrieve<unit_var>(state, parent);
+		constexpr int32_t increment_x = 30; 
+		if(std::holds_alternative<dcon::army_id>(foru)) {
+			auto army = std::get<dcon::army_id>(foru);
+			auto found = std::find(state.ui_state.pending_shift_selected_armies.begin(), state.ui_state.pending_shift_selected_armies.end(), army);
+			// If already selected, nudge element to the right
+			if(found != state.ui_state.pending_shift_selected_armies.end()) {
+				button_element_base::render(state, x + increment_x, y);
+				return;
+			}
+
+		} else if(std::holds_alternative<dcon::navy_id>(foru)) {
+			auto navy = std::get<dcon::navy_id>(foru);
+			auto found = std::find(state.ui_state.pending_shift_selected_navies.begin(), state.ui_state.pending_shift_selected_navies.end(), navy);
+			// If already selected, nudge element to the right
+			if(found != state.ui_state.pending_shift_selected_navies.end()) {
+				button_element_base::render(state, x + increment_x, y);
+				return;
+			}
+		}
+		button_element_base::render(state, x, y);
+
+	}
+
+};
+
 template<class T>
 class unit_panel_dynamic_tinted_bg : public opaque_element_base {
 public:
@@ -2125,58 +2194,103 @@ public:
 	}
 };
 
+template<military::unit_consumption_type consume_type, concepts::military_unit unit_type>
+void explain_unit_consumption(sys::state& state, unit_type unit, text::columnar_layout& contents) {
+	tagged_vector<float, dcon::commodity_id> commodities_satisfied_no_loss(state.world.commodity_size());
+	tagged_vector<float, dcon::commodity_id> commodities_actual_satisfied(state.world.commodity_size());
+	tagged_vector<float, dcon::commodity_id> commodities_satisfied_w_throughput(state.world.commodity_size());
+	tagged_vector<float, dcon::commodity_id> commodities_satisfied_w_loss(state.world.commodity_size());
+
+	// We get the last required supplies instead of the future required supplies because all the route data is current
+	tagged_vector<float, dcon::commodity_id> commodities_required = military::unit_get_last_required_goods_need<consume_type>(state, unit);
+
+	auto for_each_relevant_unit_commodity = [&]<typename F>(F && func) {
+		if constexpr(consume_type == military::unit_consumption_type::supply) {
+			state.world.for_each_unit_supply_commodity(func);
+		} else if constexpr(consume_type == military::unit_consumption_type::reinforcement) {
+			state.world.for_each_unit_build_commodity(func);
+		}
+	};
+
+	auto routes = military::unit_get_supply_routes(state, unit);
+
+	for(auto route : routes) {
+		float throughput = logistics::supply_route_get_throughput(state, route.id);
+		float supply_loss = logistics::supply_route_get_supply_loss(state, route.id);
+		if(logistics::supply_route_is_active(state, route.id)) {
+			for_each_relevant_unit_commodity([&](auto com_id) {
+				dcon::commodity_id base_commodity = economy::unit_commodity_get_base_commodity(state, com_id);
+				float com_supply_loss_mod = state.world.commodity_get_supply_loss_rate(base_commodity);
+				float loss_mult = logistics::supply_loss_to_loss_multiplier(state, supply_loss, com_supply_loss_mod);
+				float buffered_amount = logistics::military_route_get_buffered_goods(state, route.id, com_id);
+				commodities_actual_satisfied[base_commodity] += (buffered_amount * throughput * loss_mult);
+				commodities_satisfied_no_loss[base_commodity] += buffered_amount;
+				commodities_satisfied_w_throughput[base_commodity] += (buffered_amount * throughput);
+				commodities_satisfied_w_loss[base_commodity] += (buffered_amount * loss_mult);
+			});
+		}
+	}
+	economy::for_each_commodity_no_money(state, [&](dcon::commodity_id com_id) {
+		if(commodities_required[com_id] > 0.0f) {
+			float satisfaction = commodities_actual_satisfied[com_id] / commodities_required[com_id];
+			int32_t display_satisfaction = int32_t(satisfaction * 100);
+			float supply_route_loss = (commodities_satisfied_no_loss[com_id] == 0.0f ? 0.0f : 1.0f - (commodities_satisfied_w_loss[com_id] / commodities_satisfied_no_loss[com_id]));
+			float num_satisfied = commodities_actual_satisfied[com_id];
+			float num_required = commodities_required[com_id];
+			float avg_throughput = (commodities_satisfied_no_loss[com_id] == 0.0f ? 0.0f : std::min(commodities_satisfied_w_throughput[com_id] / commodities_satisfied_no_loss[com_id], 1.0f));
+
+			text::substitution_map sub{};
+			auto com_icon = text::get_commodity_text_icon(state, com_id);
+			//text::add_to_substitution_map(sub, text::variable_type::what, std::string_view(com_icon));
+			text::add_to_substitution_map(sub, text::variable_type::val, text::fp_three_places{ num_satisfied });
+			text::add_to_substitution_map(sub, text::variable_type::value, text::fp_three_places{ num_required });
+			text::add_to_substitution_map(sub, text::variable_type::total, text::int_wholenum{ display_satisfaction });
+			text::add_to_substitution_map(sub, text::variable_type::x, text::fp_percentage_two_places{ supply_route_loss });
+			text::add_to_substitution_map(sub, text::variable_type::y, text::fp_percentage_two_places{ avg_throughput });
+			auto box = text::open_layout_box(contents);
+			text::add_unparsed_text_to_layout_box(state, contents, box, com_icon);
+			if(satisfaction == 1 || satisfaction >= 0.95) {
+				text::localised_format_box(state, contents, box, "unit_current_supply_high", sub);
+			} else if(satisfaction < 0.95 && satisfaction >= 0.5) {
+				text::localised_format_box(state, contents, box, "unit_current_supply_mid", sub);
+			} else {
+				text::localised_format_box(state, contents, box, "unit_current_supply_low", sub);
+			}
+			text::close_layout_box(contents, box);
+		}
+	});
+}
+
+
 class unit_supply_bar : public progress_bar {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto army = retrieve<dcon::army_id>(state, parent);
 		auto navy = retrieve<dcon::navy_id>(state, parent);
 
-		economy::commodity_set commodities;
-
-		dcon::nation_id owner{};
-
+		float total_satisfied = 0.0f;
+		float total_required = 0.0f;
 		if(army) {
-			owner = state.world.army_get_controller_from_army_control(army);
+			auto commodities_required = military::unit_get_last_required_goods_need<military::unit_consumption_type::supply>(state, army);
+			auto commodities_fufilled = military::unit_get_last_fufilled_goods_need<military::unit_consumption_type::supply>(state, army);
+			economy::for_each_commodity_no_money(state, [&](dcon::commodity_id com_id) {
+				total_satisfied += commodities_fufilled[com_id];
+				total_required += commodities_required[com_id];
+			});
+			
 		} else if(navy) {
-			owner = state.world.navy_get_controller_from_navy_control(navy);
+			auto commodities_required = military::unit_get_last_required_goods_need<military::unit_consumption_type::supply>(state, navy);
+			auto commodities_fufilled = military::unit_get_last_fufilled_goods_need<military::unit_consumption_type::supply>(state, navy);
+			economy::for_each_commodity_no_money(state, [&](dcon::commodity_id com_id) {
+				total_satisfied += commodities_fufilled[com_id];
+				total_required += commodities_required[com_id];
+			});
 		}
-
-		auto capital = state.world.nation_get_capital(owner);
-		auto s = state.world.province_get_state_membership(capital);
-		auto m = state.world.state_instance_get_market_from_local_market(s);
-
-		float spending_level = .0f;
-
-		if(army) {
-			commodities = military::get_required_supply(state, owner, army);
-			spending_level = float(state.world.nation_get_land_spending(owner)) / 100.0f;
-		} else if(navy) {
-			commodities = military::get_required_supply(state, owner, navy);
-			spending_level = float(state.world.nation_get_naval_spending(owner)) / 100.0f;
+		if(total_required == 0.0f) {
+			progress = 1.0f;
+		} else {
+			progress = total_satisfied / total_required;
 		}
-
-
-
-		float max_supply = 0.0f;
-		float actual_supply = 0.0f;
-
-
-		auto nations_commodity_spending = state.world.nation_get_spending_level(owner);
-
-		for(uint32_t i = 0; i < commodities.set_size; ++i) {
-
-			dcon::commodity_id c = commodities.commodity_type[i];
-
-			auto satisfaction = state.world.market_get_actual_probability_to_buy(m, c);
-
-
-			max_supply += commodities.commodity_amounts[i];
-			actual_supply += commodities.commodity_amounts[i] * satisfaction * nations_commodity_spending * spending_level;
-		}
-
-		float median_supply = max_supply > 0.0f ? actual_supply / max_supply : 0.0f;
-
-		progress = median_supply;
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -2186,70 +2300,80 @@ public:
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto army = retrieve<dcon::army_id>(state, parent);
 		auto navy = retrieve<dcon::navy_id>(state, parent);
-		economy::commodity_set commodities;
 
-		float spending_level = .0f;
-		dcon::nation_id owner{};
+		text::add_line(state, contents, "unit_current_supply", text::variable_type::val, int16_t(progress * 100.0f));
 		if(army) {
-			owner = state.world.army_get_controller_from_army_control(army);
-		} else if(navy) {
-			owner = state.world.navy_get_controller_from_navy_control(navy);
+			explain_unit_consumption<military::unit_consumption_type::supply>(state, army, contents);
 		}
-		auto capital = state.world.nation_get_capital(owner);
-		auto s = state.world.province_get_state_membership(capital);
-		auto m = state.world.state_instance_get_market_from_local_market(s);
-
-		if(army) {
-			commodities = military::get_required_supply(state, owner, army);
-			spending_level = float(state.world.nation_get_land_spending(owner)) / 100.0f;
-		} else if(navy) {
-			commodities = military::get_required_supply(state, owner, navy);
-			spending_level = float(state.world.nation_get_naval_spending(owner)) / 100.0f;
+		else if(navy) {
+			explain_unit_consumption<military::unit_consumption_type::supply>(state, navy, contents);
 		}
 
-
-		uint32_t total_commodities = state.world.commodity_size();
-
-		float max_supply = 0.0f;
-		float actual_supply = 0.0f;
-
-		auto nations_commodity_spending = state.world.nation_get_spending_level(owner);
-		for(uint32_t i = 0; i < total_commodities; ++i) {
-			if(!commodities.commodity_type[i]) {
-				break;
-			}
-			dcon::commodity_id c = commodities.commodity_type[i];
-
-			auto satisfaction = state.world.market_get_actual_probability_to_buy(m, c);
-			auto val = commodities.commodity_type[i];
-
-			max_supply += commodities.commodity_amounts[i];
-			actual_supply += commodities.commodity_amounts[i] * satisfaction * nations_commodity_spending * spending_level;
-		}
-
-		float median_supply = max_supply > 0.0f ? actual_supply / max_supply : 0.0f;
-		text::add_line(state, contents, "unit_current_supply", text::variable_type::val, int16_t(median_supply * 100.f));
-		text::add_line_break_to_layout(state, contents);
-		for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
-			if(commodities.commodity_type[i] && commodities.commodity_amounts[i] > 0) {
-				dcon::commodity_id c = commodities.commodity_type[i];
-				float satisfaction = state.world.market_get_actual_probability_to_buy(m, c);
-				float wanted_commodity = commodities.commodity_amounts[i];
-				float actual_commodity = commodities.commodity_amounts[i] * satisfaction * nations_commodity_spending * spending_level;
-
-				int32_t display_satisfaction = int32_t(satisfaction * 100);
-
-				if(satisfaction == 1 || satisfaction >= 0.95) {
-					text::add_line(state, contents, "unit_current_supply_high", text::variable_type::what, state.world.commodity_get_name(commodities.commodity_type[i]), text::variable_type::val, text::fp_three_places{ actual_commodity }, text::variable_type::value, text::fp_three_places{ wanted_commodity }, text::variable_type::total, display_satisfaction);
-				} else if(satisfaction < 0.95 && satisfaction >= 0.5) {
-					text::add_line(state, contents, "unit_current_supply_mid", text::variable_type::what, state.world.commodity_get_name(commodities.commodity_type[i]), text::variable_type::val, text::fp_three_places{ actual_commodity }, text::variable_type::value, text::fp_three_places{ wanted_commodity }, text::variable_type::total, display_satisfaction);
-				} else {
-					text::add_line(state, contents, "unit_current_supply_low", text::variable_type::what, state.world.commodity_get_name(commodities.commodity_type[i]), text::variable_type::val, text::fp_three_places{ actual_commodity }, text::variable_type::value, text::fp_three_places{ wanted_commodity }, text::variable_type::total, display_satisfaction);
-				}
-			}
-		}
 	}
 };
+
+
+
+class unit_reinforcement_bar : public progress_bar {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto army = retrieve<dcon::army_id>(state, parent);
+		auto navy = retrieve<dcon::navy_id>(state, parent);
+
+		float total_satisfied = 0.0f;
+		float total_required = 0.0f;
+		if(army) {
+			auto commodities_required = military::unit_get_last_required_goods_need<military::unit_consumption_type::reinforcement>(state, army);
+			auto commodities_fufilled = military::unit_get_last_fufilled_goods_need<military::unit_consumption_type::reinforcement>(state, army);
+			economy::for_each_commodity_no_money(state, [&](dcon::commodity_id com_id) {
+				total_satisfied += commodities_fufilled[com_id];
+				total_required += commodities_required[com_id];
+			});
+		} else if(navy) {
+			auto commodities_required = military::unit_get_last_required_goods_need<military::unit_consumption_type::reinforcement>(state, navy);
+			auto commodities_fufilled = military::unit_get_last_fufilled_goods_need<military::unit_consumption_type::reinforcement>(state, navy);
+			economy::for_each_commodity_no_money(state, [&](dcon::commodity_id com_id) {
+				total_satisfied += commodities_fufilled[com_id];
+				total_required += commodities_required[com_id];
+			});
+		}
+		if(total_required == 0.0f) {
+			progress = 1.0f;
+		} else {
+			progress = total_satisfied / total_required;
+		}
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto army = retrieve<dcon::army_id>(state, parent);
+		auto navy = retrieve<dcon::navy_id>(state, parent);
+		if(army) {
+			text::add_line(state, contents, "unit_current_reinforcement_land", text::variable_type::val, int16_t(progress * 100.0f));
+			explain_unit_consumption<military::unit_consumption_type::reinforcement>(state, army, contents);
+		}
+		else if(navy) {
+			text::add_line(state, contents, "unit_current_reinforcement_naval", text::variable_type::val, int16_t(progress * 100.0f));
+			explain_unit_consumption<military::unit_consumption_type::reinforcement>(state, navy, contents);
+		}
+
+	}
+};
+
+
+
+
+
+
+
+
+
+
+
+
 
 class main_template_composition_label : public simple_text_element_base {
 public:
@@ -2449,6 +2573,191 @@ class strategic_redeployment_order_button : public button_element_base {
 		text::add_line(state, contents, "strategic_redeployment_desc");
 	}
 };
+
+
+class u_row_supply_priority_button : public button_element_base {
+private:
+	void on_update(sys::state& state) noexcept override {
+		military::unit_priority priority;
+		auto unit = retrieve<unit_var>(state, parent);
+		if(std::holds_alternative<dcon::army_id>(unit)) {
+			auto army = std::get<dcon::army_id>(unit);
+			disabled = !military::can_set_army_supply_priority<command::actor::player>(state, state.local_player_nation, army, military::unit_priority::normal_priority);
+			priority = state.world.army_get_supply_priority(army);
+		} else {
+			auto navy = std::get<dcon::navy_id>(unit);
+			disabled = !military::can_set_navy_supply_priority<command::actor::player>(state, state.local_player_nation, navy, military::unit_priority::normal_priority);
+			priority = state.world.navy_get_supply_priority(navy);
+		}
+		switch(priority) {
+		case military::unit_priority::high_priority:
+			frame = 0;
+			break;
+		case military::unit_priority::low_priority:
+			frame = 1;
+			break;
+		case military::unit_priority::normal_priority:
+			frame = 2;
+			break;
+		}
+	}
+	void button_action(sys::state& state) noexcept override {
+		military::unit_priority current_priority;
+		auto unit = retrieve<unit_var>(state, parent);
+		if(std::holds_alternative<dcon::army_id>(unit)) {
+			auto army = std::get<dcon::army_id>(unit);
+			current_priority = state.world.army_get_supply_priority(army);
+			command::set_army_supply_priority(state, state.local_player_nation, army, military::increment_priority(current_priority));
+		} else {
+			auto navy = std::get<dcon::navy_id>(unit);
+			current_priority = state.world.navy_get_supply_priority(navy);
+			command::set_navy_supply_priority(state, state.local_player_nation, navy, military::increment_priority(current_priority));
+		}
+	}
+	void button_right_action(sys::state& state) noexcept override {
+		military::unit_priority current_priority;
+		auto unit = retrieve<unit_var>(state, parent);
+		if(std::holds_alternative<dcon::army_id>(unit)) {
+			auto army = std::get<dcon::army_id>(unit);
+			current_priority = state.world.army_get_supply_priority(army);
+			command::set_army_supply_priority(state, state.local_player_nation, army, military::decrement_priority(current_priority));
+		} else {
+			auto navy = std::get<dcon::navy_id>(unit);
+			current_priority = state.world.navy_get_supply_priority(navy);
+			command::set_navy_supply_priority(state, state.local_player_nation, navy, military::decrement_priority(current_priority));
+		}
+	}
+
+
+
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
+	virtual void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		military::unit_priority priority;
+		military::unit_priority effective_prio;
+		auto unit = retrieve<unit_var>(state, parent);
+		if(std::holds_alternative<dcon::army_id>(unit)) {
+			auto army = std::get<dcon::army_id>(unit);
+			priority = state.world.army_get_supply_priority(army);
+			effective_prio = military::get_effective_unit_supply_priority(state, army, military::unit_get_controller(state, army));
+		} else {
+			auto navy = std::get<dcon::navy_id>(unit);
+			priority = state.world.navy_get_supply_priority(navy);
+			effective_prio = military::get_effective_unit_supply_priority(state, navy, military::unit_get_controller(state, navy));
+		}
+		switch(priority) {
+		case military::unit_priority::high_priority:
+			text::add_line(state, contents, "unit_supply_priority_high_tooltip_1");
+			break;
+		case military::unit_priority::low_priority:
+			text::add_line(state, contents, "unit_supply_priority_low_tooltip_1");
+			break;
+		case military::unit_priority::normal_priority:
+			text::add_line(state, contents, "unit_supply_priority_normal_tooltip_1");
+			break;
+		}
+		text::add_line(state, contents, "unit_priority_tooltip_2");
+		text::add_line(state, contents, "unit_priority_tooltip_2");
+		if(effective_prio == military::unit_priority::high_priority && priority != military::unit_priority::high_priority) {
+			text::add_line(state, contents, "unit_priority_tooltip_3");
+		}
+
+	}
+
+};
+
+template<typename T>
+class supply_priority_button : public button_element_base {
+private:
+	void on_update(sys::state& state) noexcept override {
+		military::unit_priority priority;
+		if constexpr(std::is_same_v<T, dcon::army_id>) {
+			auto army = retrieve<dcon::army_id>(state, parent);
+			disabled = !military::can_set_army_supply_priority<command::actor::player>(state, state.local_player_nation, army, military::unit_priority::normal_priority);
+			priority = state.world.army_get_supply_priority(army);
+		} else {
+			auto navy = retrieve<dcon::navy_id>(state, parent);
+			disabled = !military::can_set_navy_supply_priority<command::actor::player>(state, state.local_player_nation, navy, military::unit_priority::normal_priority);
+			priority = state.world.navy_get_supply_priority(navy);
+		}
+		switch(priority) {
+		case military::unit_priority::high_priority:
+			frame = 0;
+			break;
+		case military::unit_priority::low_priority:
+			frame = 1;
+			break;
+		case military::unit_priority::normal_priority:
+			frame = 2;
+			break;
+		}
+	}
+	void button_action(sys::state& state) noexcept override {
+		military::unit_priority current_priority;
+		if constexpr(std::is_same_v<T, dcon::army_id>) {
+			auto army = retrieve<dcon::army_id>(state, parent);
+			current_priority = state.world.army_get_supply_priority(army);
+			command::set_army_supply_priority(state, state.local_player_nation, army, military::increment_priority(current_priority));
+		} else {
+			auto navy = retrieve<dcon::navy_id>(state, parent);
+			current_priority = state.world.navy_get_supply_priority(navy);
+			command::set_navy_supply_priority(state, state.local_player_nation, navy, military::increment_priority(current_priority));
+		}
+	}
+	void button_right_action(sys::state& state) noexcept override {
+		military::unit_priority current_priority;
+		if constexpr(std::is_same_v<T, dcon::army_id>) {
+			auto army = retrieve<dcon::army_id>(state, parent);
+			current_priority = state.world.army_get_supply_priority(army);
+			command::set_army_supply_priority(state, state.local_player_nation, army, military::decrement_priority(current_priority));
+		} else {
+			auto navy = retrieve<dcon::navy_id>(state, parent);
+			current_priority = state.world.navy_get_supply_priority(navy);
+			command::set_navy_supply_priority(state, state.local_player_nation, navy, military::decrement_priority(current_priority));
+		}
+	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
+	virtual void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		military::unit_priority priority;
+		military::unit_priority effective_prio;
+		if constexpr(std::is_same_v<T, dcon::army_id>) {
+			auto army = retrieve<dcon::army_id>(state, parent);
+			priority = state.world.army_get_supply_priority(army);
+			effective_prio = military::get_effective_unit_supply_priority(state, army, military::unit_get_controller(state, army) );
+		} else {
+			auto navy = retrieve<dcon::navy_id>(state, parent);
+			priority = state.world.navy_get_supply_priority(navy);
+			effective_prio = military::get_effective_unit_supply_priority(state, navy, military::unit_get_controller(state, navy));
+		}
+		switch(priority) {
+		case military::unit_priority::high_priority:
+			text::add_line(state, contents, "unit_supply_priority_high_tooltip_1");
+			break;
+		case military::unit_priority::low_priority:
+			text::add_line(state, contents, "unit_supply_priority_low_tooltip_1");
+			break;
+		case military::unit_priority::normal_priority:
+			text::add_line(state, contents, "unit_supply_priority_normal_tooltip_1");
+			break;
+		}
+		text::add_line(state, contents, "unit_priority_tooltip_2");
+		if(effective_prio == military::unit_priority::high_priority && priority != military::unit_priority::high_priority) {
+			text::add_line(state, contents, "unit_priority_tooltip_3");
+		}
+
+	}
+};
+
+
+
+
+
+
+
 
 class pursue_to_engage_order_button : public button_element_base {
 	void on_update(sys::state& state) noexcept override {
@@ -2815,48 +3124,48 @@ void unit_details_window<T>::on_create(sys::state& state) noexcept {
 
 	{
 		auto win = make_element_by_type<unit_details_type_item<T, 0>>(state,
-				state.ui_state.defs_by_name.find(state.lookup_key("unittype_item"))->second.definition);
+				state.ui_state.defs_by_name.find(state.lookup_key("alice_unittype_item"))->second.definition);
 		win->base_data.position.x = base_position.x + (0 * base_offset.x); // Flexnudge
 		win->base_data.position.y = base_position.y + (0 * base_offset.y); // Flexnudge
 		add_child_to_front(std::move(win));
 	}
 	{
 		auto win = make_element_by_type<unit_details_type_item<T, 1>>(state,
-				state.ui_state.defs_by_name.find(state.lookup_key("unittype_item"))->second.definition);
+				state.ui_state.defs_by_name.find(state.lookup_key("alice_unittype_item"))->second.definition);
 		win->base_data.position.x = base_position.x + (1 * base_offset.x); // Flexnudge
 		win->base_data.position.y = base_position.y + (1 * base_offset.y); // Flexnudge
 		add_child_to_front(std::move(win));
 	}
 	{
 		auto win = make_element_by_type<unit_details_type_item<T, 2>>(state,
-				state.ui_state.defs_by_name.find(state.lookup_key("unittype_item"))->second.definition);
+				state.ui_state.defs_by_name.find(state.lookup_key("alice_unittype_item"))->second.definition);
 		win->base_data.position.x = base_position.x + (2 * base_offset.x); // Flexnudge
 		win->base_data.position.y = base_position.y + (2 * base_offset.y); // Flexnudge
 		add_child_to_front(std::move(win));
 	}
 
-	const xy_pair item_offset = state.ui_defs.gui[state.ui_state.defs_by_name.find(state.lookup_key("unittype_item"))->second.definition].position;
+	const xy_pair item_offset = state.ui_defs.gui[state.ui_state.defs_by_name.find(state.lookup_key("alice_unittype_item"))->second.definition].position;
 	if constexpr(std::is_same_v<T, dcon::army_id>) {
 		auto ptr = make_army_details_listbox(
 			state,
-			state.ui_state.defs_by_name.find(state.lookup_key("sup_subunits"))->second.definition
+			state.ui_state.defs_by_name.find(state.lookup_key("alice_sup_subunits"))->second.definition
 		);
-		ptr->base_data.position.y = base_position.y + item_offset.y + (3 * base_offset.y) + 72 - 32;
+		ptr->base_data.position.y = base_position.y + item_offset.y + (3 * base_offset.y) + 72 - 9;
 		ptr->base_data.size.y += 32;
 		add_child_to_front(std::move(ptr));
 	} else {
 		auto ptr = make_navy_details_listbox(
 			state,
-			state.ui_state.defs_by_name.find(state.lookup_key("sup_subunits"))->second.definition
+			state.ui_state.defs_by_name.find(state.lookup_key("alice_sup_subunits"))->second.definition
 		);
-		ptr->base_data.position.y = base_position.y + item_offset.y + (3 * base_offset.y) + 72 - 32;
+		ptr->base_data.position.y = base_position.y + item_offset.y + (3 * base_offset.y) + 72 - 9;
 		ptr->base_data.size.y += 32;
 		add_child_to_front(std::move(ptr));
 	}
 
 	{
 		auto ptr = make_element_by_type<unit_details_buttons<T>>(state,
-				state.ui_state.defs_by_name.find(state.lookup_key("sup_buttons_window"))->second.definition);
+				state.ui_state.defs_by_name.find(state.lookup_key("alice_sup_buttons_window"))->second.definition);
 		ptr->base_data.position.y = base_data.size.y; // Nudge
 		add_child_to_front(std::move(ptr));
 	}
@@ -2879,7 +3188,7 @@ void unit_details_window<T>::on_create(sys::state& state) noexcept {
 }
 template<class T>
 std::unique_ptr<element_base> unit_details_window<T>::make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept {
-	if(name == "unit_bottom_bg") {
+	if(name == "alice_unit_bottom_bg") {
 		return make_element_by_type<unit_panel_dynamic_tinted_bg<T>>(state, id);
 	} else if(name == "icon_speed") {
 		return make_element_by_type<image_element_base>(state, id);
@@ -2907,12 +3216,16 @@ std::unique_ptr<element_base> unit_details_window<T>::make_child(sys::state& sta
 		return make_element_by_type<image_element_base>(state, id);
 	} else if(name == "supply_status") {
 		auto ptr = make_element_by_type<unit_supply_bar>(state, id);
-		unitsupply_bar = ptr.get();
 		return ptr;
 	} else if(name == "unitstatus_dugin") {
 		auto ptr = make_element_by_type<dug_in_icon>(state, id);
-		unitdugin_icon = ptr.get();
 		return ptr;
+	}else if(name == "icon_reinforcement") {
+		return make_element_by_type<image_element_base>(state, id);
+	} else if(name == "reinforcement_status") {
+		return make_element_by_type<unit_reinforcement_bar>(state, id);
+	} else if(name == "supply_prio_button") {
+		return make_element_by_type<supply_priority_button<T>>(state, id);
 	} else {
 		return nullptr;
 	}
@@ -3037,6 +3350,134 @@ public:
 		}
 	}
 };
+
+
+static const int8_t unknown_unit_priority = -128;
+// Tries to get the aggregated priority across all selected units as a int8_t. Returns unknown_priority if no single aggregate was found
+int8_t selected_units_aggregated_priority(const sys::state& state) {
+	uint32_t low_prio = 0;
+	uint32_t med_prio = 0;
+	uint32_t high_prio = 0;
+	for(auto army : state.selected_armies) {
+		military::unit_priority priority;
+		priority = state.world.army_get_supply_priority(army);
+		switch(priority) {
+		case military::unit_priority::low_priority:
+			low_prio++;
+			break;
+		case military::unit_priority::normal_priority:
+			med_prio++;
+			break;
+		case military::unit_priority::high_priority:
+			high_prio++;
+			break;
+		}
+	}
+	for(auto navy : state.selected_navies) {
+		military::unit_priority priority;
+		priority = state.world.navy_get_supply_priority(navy);
+		switch(priority) {
+		case military::unit_priority::low_priority:
+			low_prio++;
+			break;
+		case military::unit_priority::normal_priority:
+			med_prio++;
+			break;
+		case military::unit_priority::high_priority:
+			high_prio++;
+			break;
+		}
+	}
+	if(med_prio > 0 && low_prio == 0 && high_prio == 0) {
+		return int8_t(military::unit_priority::normal_priority);
+	} else if(low_prio > 0 && med_prio == 0 && high_prio == 0) {
+		return int8_t(military::unit_priority::low_priority);
+	} else if(high_prio > 0 && med_prio == 0 && low_prio == 0) {
+		return int8_t(military::unit_priority::high_priority);
+	} else {
+		return unknown_unit_priority;
+	}
+}
+
+class selected_units_supply_priority_button : public button_element_base {
+private:
+
+
+	void on_update(sys::state& state) noexcept override {
+		auto priority = selected_units_aggregated_priority(state);
+		switch(priority) {
+		case int8_t(military::unit_priority::high_priority):
+			frame = 0;
+			break;
+		case int8_t(military::unit_priority::low_priority):
+			frame = 1;
+			break;
+		case int8_t(military::unit_priority::normal_priority):
+			frame = 2;
+			break;
+		case unknown_unit_priority:
+			frame = 2;
+			break;
+		}
+	}
+	void button_action(sys::state& state) noexcept override {
+		auto priority = selected_units_aggregated_priority(state);
+		military::unit_priority converted_priority = (priority == unknown_unit_priority ? military::unit_priority::normal_priority : military::unit_priority(priority));
+		for(auto army : state.selected_armies) {
+			if(military::can_set_army_supply_priority<command::actor::player>(state, state.local_player_nation, army, military::increment_priority(converted_priority))) {
+				command::set_army_supply_priority(state, state.local_player_nation, army, military::increment_priority(converted_priority));
+			}
+		}
+		for(auto navy : state.selected_navies) {
+			if(military::can_set_navy_supply_priority<command::actor::player>(state, state.local_player_nation, navy, military::increment_priority(converted_priority))) {
+				command::set_navy_supply_priority(state, state.local_player_nation, navy, military::increment_priority(converted_priority));
+			}
+		}
+	}
+	void button_right_action(sys::state& state) noexcept override {
+		auto priority = selected_units_aggregated_priority(state);
+		military::unit_priority converted_priority = (priority == unknown_unit_priority ? military::unit_priority::normal_priority : military::unit_priority(priority));
+		for(auto army : state.selected_armies) {
+			if(military::can_set_army_supply_priority<command::actor::player>(state, state.local_player_nation, army, military::decrement_priority(converted_priority))) {
+				command::set_army_supply_priority(state, state.local_player_nation, army, military::decrement_priority(converted_priority));
+			}
+		}
+		for(auto navy : state.selected_navies) {
+			if(military::can_set_navy_supply_priority<command::actor::player>(state, state.local_player_nation, navy, military::decrement_priority(converted_priority))) {
+				command::set_navy_supply_priority(state, state.local_player_nation, navy, military::decrement_priority(converted_priority));
+			}
+		}
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
+	virtual void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto priority = selected_units_aggregated_priority(state);
+		switch(priority) {
+		case int8_t(military::unit_priority::high_priority):
+			text::add_line(state, contents, "selected_units_supply_priority_high_tooltip_1");
+			break;
+		case int8_t(military::unit_priority::low_priority):
+			text::add_line(state, contents, "selected_units_supply_priority_low_tooltip_1");
+			break;
+		case int8_t(military::unit_priority::normal_priority):
+			text::add_line(state, contents, "selected_units_supply_priority_normal_tooltip_1");
+			break;
+		case unknown_unit_priority:
+			text::add_line(state, contents, "selected_units_supply_priority_unknown_tooltip_1");
+			break;
+		}
+		text::add_line(state, contents, "selected_units_priority_tooltip_2");
+
+	}
+};
+
+
+
+
+
+
 
 class deselect_all_button : public button_element_base {
 public:
@@ -3575,12 +4016,16 @@ public:
 			return make_element_by_type<u_row_str_bar>(state, id);
 		} else if(name == "disbandbutton") {
 			return make_element_by_type<u_row_disband>(state, id);
+		} else if(name == "supply_prio_button") {
+			return make_element_by_type<u_row_supply_priority_button>(state, id);
 		} else if(name == "splitinhalf") {
 			return make_element_by_type<u_row_split>(state, id);
 		} else if(name == "newunitbutton") {
 			return make_element_by_type<u_row_new>(state, id);
 		} else if(name == "remove_unit_from_selection_button") {
 			return make_element_by_type<u_row_remove>(state, id);
+		} else if(name == "only_unit_from_selection_button") {
+			return make_element_by_type<u_row_selectonly_button>(state, id);
 		} else if(name == "unit_inf") {
 			return make_element_by_type<u_row_inf>(state, id);
 		} else if(name == "unit_inf_count") {
@@ -3677,6 +4122,8 @@ std::unique_ptr<element_base> mulit_unit_selection_panel::make_child(sys::state&
 		return make_element_by_type<disband_all_button>(state, id);
 	} else if(name == "unit_listbox") {
 		return make_element_by_type<selected_unit_list>(state, id);
+	} else if(name == "supply_priority_button_multiunit") {
+		return make_element_by_type<selected_units_supply_priority_button>(state, id);
 	} else {
 		return nullptr;
 	}

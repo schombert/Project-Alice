@@ -12,6 +12,7 @@
 #include "politics.hpp"
 #include "system_state.hpp"
 #include "text.hpp"
+#include "gui_listbox_templates.hpp"
 #include <cstdint>
 #include <string_view>
 

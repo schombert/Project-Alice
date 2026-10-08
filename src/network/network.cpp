@@ -1504,6 +1504,9 @@ std::string generate_full_oos_report(const sys::state& state_1, const sys::state
 			add_compare_to_oos_report(state_1.national_definitions.occupied, state_2.national_definitions.occupied, "occupied") +
 			add_compare_to_oos_report(state_1.national_definitions.nationalism, state_2.national_definitions.nationalism, "nationalism") +
 			add_compare_to_oos_report(state_1.national_definitions.infrastructure, state_2.national_definitions.infrastructure, "infrastructure") +
+			add_compare_to_oos_report(state_1.national_definitions.province_militancy, state_2.national_definitions.province_militancy, "province_militancy") +
+			add_compare_to_oos_report(state_1.national_definitions.province_control, state_2.national_definitions.province_control, "province_control") +
+			add_compare_to_oos_report(state_1.national_definitions.civilian_port, state_2.national_definitions.civilian_port, "civilian_port") +
 			add_compare_to_oos_report(state_1.national_definitions.base_values, state_2.national_definitions.base_values, "base_values") +
 			add_compare_to_oos_report(state_1.national_definitions.war, state_2.national_definitions.war, "war") +
 			add_compare_to_oos_report(state_1.national_definitions.peace, state_2.national_definitions.peace, "peace") +
@@ -1522,6 +1525,10 @@ std::string generate_full_oos_report(const sys::state& state_1, const sys::state
 			add_compare_to_oos_report(state_1.national_definitions.total_occupation, state_2.national_definitions.total_occupation, "total_occupation") +
 			add_compare_to_oos_report(state_1.national_definitions.total_blockaded, state_2.national_definitions.total_blockaded, "total_blockaded") +
 			add_compare_to_oos_report(state_1.national_definitions.in_bankrupcy, state_2.national_definitions.in_bankrupcy, "in_bankrupcy") +
+			add_compare_to_oos_report(state_1.national_definitions.fastest_land_unit_speed, state_2.national_definitions.fastest_land_unit_speed, "fastest_land_unit_speed") +
+			add_compare_to_oos_report(state_1.national_definitions.fastest_transport_unit_speed, state_2.national_definitions.fastest_transport_unit_speed, "fastest_transport_unit_speed") +
+			add_compare_to_oos_report(state_1.national_definitions.province_base, state_2.national_definitions.province_base, "province_base") +
+			add_compare_to_oos_report(state_1.national_definitions.nation_base, state_2.national_definitions.nation_base, "nation_base") +
 			add_compare_to_oos_report(state_1.national_definitions.num_allocated_national_variables, state_2.national_definitions.num_allocated_national_variables, "num_allocated_national_variables") +
 			add_compare_to_oos_report(state_1.national_definitions.num_allocated_national_flags, state_2.national_definitions.num_allocated_national_flags, "num_allocated_national_flags") +
 			add_compare_to_oos_report(state_1.national_definitions.num_allocated_global_flags, state_2.national_definitions.num_allocated_global_flags, "num_allocated_global_flags") +
@@ -2424,7 +2431,7 @@ void switch_one_player(sys::state& state, dcon::nation_id new_n, dcon::nation_id
 
 	if(state.current_scene.game_in_progress) {
 		// give back units if puppet becomes player controlled while the game is running. This is also done when the game starts and goes from lobby to game in progress
-		if(bool(state.world.nation_get_overlord_as_subject(new_n)) && state.world.nation_get_overlord_commanding_units(new_n)) {
+		if(nations::is_vassal(state, new_n)) {
 			military::give_back_units(state, new_n);
 		}
 	}

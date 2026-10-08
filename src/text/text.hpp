@@ -988,6 +988,11 @@ void add_line(sys::state& state, layout_base& dest, std::string_view key, variab
 void add_line(sys::state& state, layout_base& dest, std::string_view key, variable_type subkey, substitution value,
 		variable_type subkey_b, substitution value_b, variable_type subkey_c, substitution value_c, variable_type subkey_d,
 		substitution value_d, int32_t indent = 0);
+
+void add_line(sys::state& state, layout_base& dest, std::string_view key, variable_type subkey, substitution value,
+		variable_type subkey_b, substitution value_b, variable_type subkey_c, substitution value_c, variable_type subkey_d,
+		substitution value_d, variable_type subkey_e, substitution value_e, int32_t indent = 0);
+
 void add_line(sys::state& state, layout_base& dest, dcon::text_key txt, int32_t indent = 0);
 void add_line(sys::state& state, layout_base& dest, dcon::text_key txt, variable_type subkey, substitution value,
 		int32_t indent = 0);

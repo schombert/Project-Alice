@@ -379,6 +379,21 @@ object {
 		tag{ scenario }
 	}
 	property{
+		name{ unit_supply_and_build_commodity }
+		type{ unit_supply_and_build_commodity_id }
+		tag{ scenario }
+	}
+	property{
+		name{ unit_supply_commodity }
+		type{ unit_supply_commodity_id }
+		tag{ scenario }
+	}
+	property{
+		name{ unit_build_commodity }
+		type{ unit_build_commodity_id }
+		tag{ scenario }
+	}
+	property{
 		name{ rgo_amount }
 		type{ float }
 		tag{ scenario }
@@ -440,6 +455,73 @@ object {
 	property{
 		name{ uses_potentials }
 		type{ bitfield }
+		tag{ scenario }
+	}
+	property{
+		name{ supply_weight }
+		type{ float }
+		tag{ scenario }
+	}
+	property{
+		name{ supply_loss_rate }
+		type{ float }
+		tag{ scenario }
+	}
+}
+
+object {
+	name{ unit_supply_commodity }
+	storage_type{ contiguous }
+	size{ 126 }
+	tag{ scenario }
+	 
+	property{
+		name{ base_commodity }
+		type{ commodity_id }
+		tag{ scenario }
+	}
+	property{
+		name{ supply_and_build_commodity }
+		type{ unit_supply_and_build_commodity_id }
+		tag{ scenario }
+	}
+}
+object {
+	name{ unit_build_commodity }
+	storage_type{ contiguous }
+	size{ 126 }
+	tag{ scenario }
+
+	property{
+		name{ base_commodity }
+		type{ commodity_id }
+		tag{ scenario }
+	}
+	property{
+		name{ supply_and_build_commodity }
+		type{ unit_supply_and_build_commodity_id }
+		tag{ scenario }
+	}
+}
+object {
+	name{ unit_supply_and_build_commodity }
+	storage_type{ contiguous }
+	size{ 126 }
+	tag{ scenario }
+
+	property{
+		name{ base_commodity }
+		type{ commodity_id }
+		tag{ scenario }
+	}
+	property{
+		name{ supply_commodity }
+		type{ unit_supply_commodity_id }
+		tag{ scenario }
+	}
+	property{
+		name{ build_commodity }
+		type{ unit_build_commodity_id }
 		tag{ scenario }
 	}
 }
@@ -1467,6 +1549,11 @@ object {
 		type{ bitfield }
 		tag{ save }
 	}
+	property{
+		name{ supply_routes_requires_update }
+		type{ bitfield }
+		tag{ save }
+	}
 
 	property{
 		name{ crime }
@@ -1873,6 +1960,11 @@ object {
 		type{ float }
 		tag{ save }
 	}
+	property {
+		name{ nation_routes_to_be_updated }
+		type{ vector_pool{200}{nation_id} }
+		tag{ save }
+	}
 }
 
 relationship{
@@ -1906,13 +1998,16 @@ relationship{
 		type{ float }
 		
 	}
-
 	property{
 		name{ canal_or_blockade_province }
 		type{ dcon::province_id }
 		tag{ save }
 	}
-
+	property{
+		name{ used_supply_throughput }
+		type{ float }
+		tag{ save }
+	}
 	property{
 		name{ type }
 		type{ uint8_t }
@@ -1962,6 +2057,26 @@ object {
 		type{ float }
 		tag{ save }
 	}
+	property{
+		name { supply_satisfaction }
+		type{ float }
+	}
+	property{
+		name { last_required_supply_percent_base_cost }
+		type{ float }
+	}
+	property{
+		name { total_pending_reinforcement  }
+		type{ float }
+	}
+	property{
+		name { last_required_reinforcement_percent_base_cost }
+		type{ float }
+	}
+	property{
+		name { reinforcement_satisfaction }
+		type{ float }
+	}
 	property{	
 		name{ pending_combat_damage }
 		type{ float }
@@ -1987,12 +2102,14 @@ object {
 	storage_type{ erasable }
 	size { 50 }
 	tag { local_save }
+	tag{ keep_after_state_reload }
 	tag { mp_checksum_excluded }
 
 	property {
 		name { owner }
 		type { nation_id }
 		tag { local_save }
+		tag{ keep_after_state_reload }
 		tag { mp_checksum_excluded }
 	}
 
@@ -2000,6 +2117,7 @@ object {
 		name { hq }
 		type { province_id }
 		tag { local_save }
+		tag{ keep_after_state_reload }
 		tag { mp_checksum_excluded }
 	}
 
@@ -2007,6 +2125,7 @@ object {
 		name { provinces_defend }
 		type { vector_pool{30000}{province_id} }
 		tag { local_save }
+		tag{ keep_after_state_reload }
 		tag { mp_checksum_excluded }
 	}
 
@@ -2014,6 +2133,7 @@ object {
 		name { provinces_enforce_control }
 		type { vector_pool{30000}{province_id} }
 		tag { local_save }
+		tag{ keep_after_state_reload }
 		tag { mp_checksum_excluded }
 	}
 
@@ -2021,6 +2141,7 @@ object {
 		name { provinces_ferry_origin }
 		type { vector_pool{30000}{province_id} }
 		tag { local_save }
+		tag{ keep_after_state_reload }
 		tag { mp_checksum_excluded }
 	}
 }
@@ -2028,6 +2149,7 @@ object {
 relationship{
 	name{ automated_army_group_membership_regiment }
 	tag{ local_save }
+	tag{ keep_after_state_reload }
 	tag { mp_checksum_excluded }
 
 	link{
@@ -2046,6 +2168,7 @@ relationship{
 relationship{
 	name{ automated_army_group_membership_navy }
 	tag{ local_save }
+	tag{ keep_after_state_reload }
 	tag { mp_checksum_excluded }
 
 	link{
@@ -2066,30 +2189,35 @@ object {
 	storage_type{ erasable }
 	size { 4000 }
 	tag { local_save }
+	tag{ keep_after_state_reload }
 	tag { mp_checksum_excluded }
 
 	property {
 		name { status }
 		type { sys::army_group_regiment_status }
 		tag { local_save }
+		tag{ keep_after_state_reload }
 		tag { mp_checksum_excluded }
 	}
 	property {
 		name { task }
 		type { sys::army_group_regiment_task }
 		tag { local_save }
+		tag{ keep_after_state_reload }
 		tag { mp_checksum_excluded }
 	}
 	property {
 		name { await_command_execution_flag }
 		type { bitfield }
 		tag { local_save }
+		tag{ keep_after_state_reload }
 		tag { mp_checksum_excluded }
 	}
 	property {
 		name { target }
 		type { province_id }
 		tag { local_save }
+		tag{ keep_after_state_reload }
 		tag { mp_checksum_excluded }
 	}
 
@@ -2097,6 +2225,7 @@ object {
 		name { ferry_target }
 		type { province_id }
 		tag { local_save }
+		tag{ keep_after_state_reload }
 		tag { mp_checksum_excluded }
 	}
 
@@ -2104,6 +2233,7 @@ object {
 		name { ferry_origin }
 		type { province_id }
 		tag { local_save }
+		tag{ keep_after_state_reload }
 		tag { mp_checksum_excluded }
 	}
 }
@@ -2112,6 +2242,7 @@ object {
 relationship{
 	name{ automation }
 	tag{ local_save }
+	tag{ keep_after_state_reload }
 	tag { mp_checksum_excluded }
 
 	link{
@@ -2143,6 +2274,22 @@ object {
 		name{ type }
 		type{ unit_type_id }
 		tag{ save }
+	}
+	property{
+		name { supply_satisfaction }
+		type{ float }
+	}
+	property{
+		name { last_required_supply_percent_base_cost }
+		type{ float }
+	}
+	property{
+		name { last_required_reinforcement_percent_base_cost }
+		type{ float }
+	}
+	property{
+		name { reinforcement_satisfaction }
+		type{ float }
 	}
 	property{	
 		name{ strength }
@@ -2189,6 +2336,11 @@ object {
 		tag{ save }
 	}
 	property{
+		name{ supply_priority }
+		type{ military::unit_priority }
+		tag{ save }
+	}
+	property{
 		name{ moving_to_merge }
 		type{ bitfield }
 		tag{ save }
@@ -2232,6 +2384,36 @@ object {
 		name{ is_ai_controlled }
 		type{ bitfield }
 		tag{ save }
+	}
+	property{
+		name{ needs_supply_goods }
+		type{ bitfield }
+		tag{ keep_after_state_reload }
+		tag { mp_checksum_excluded }
+	}
+	property{
+		name{ needs_reinforcement_goods }
+		type{ bitfield }
+		tag{ keep_after_state_reload }
+		tag { mp_checksum_excluded }
+	}
+	property{
+		name{ unit_build_commodity_float_buffer_1 }
+		type{ array{unit_build_commodity_id}{float} }
+		tag{ keep_after_state_reload }
+		tag { mp_checksum_excluded }
+	}
+	property{
+		name{ unit_supply_commodity_float_buffer_1 }
+		type{ array{unit_supply_commodity_id}{float} }
+		tag{ keep_after_state_reload }
+		tag { mp_checksum_excluded }
+	}
+	property{
+		name{ state_instance_vector_buffer_1 }
+		type{ vector_pool{1000}{state_instance_id} }
+		tag{ keep_after_state_reload }
+		tag { mp_checksum_excluded }
 	}
 }
 
@@ -2280,6 +2462,11 @@ object {
 		tag{ save }
 	}
 	property{
+		name{ supply_priority }
+		type{ military::unit_priority }
+		tag{ save }
+	}
+	property{
 		name{ months_outside_naval_range }
 		type{ uint8_t }
 		tag{ save }
@@ -2298,6 +2485,36 @@ object {
 		name{ ai_activity }
 		type{ uint8_t }
 		tag{ save }
+	}
+	property{
+		name{ needs_supply_goods }
+		type{ bitfield }
+		tag{ keep_after_state_reload }
+		tag { mp_checksum_excluded }
+	}
+	property{
+		name{ needs_reinforcement_goods }
+		type{ bitfield }
+		tag{ keep_after_state_reload }
+		tag { mp_checksum_excluded }
+	}
+	property{
+		name{ unit_build_commodity_float_buffer_1 }
+		type{ array{unit_build_commodity_id}{float} }
+		tag{ keep_after_state_reload }
+		tag { mp_checksum_excluded }
+	}
+	property{
+		name{ unit_supply_commodity_float_buffer_1 }
+		type{ array{unit_supply_commodity_id}{float} }
+		tag{ keep_after_state_reload }
+		tag { mp_checksum_excluded }
+	}
+	property{
+		name{ state_instance_vector_buffer_1 }
+		type{ vector_pool{1000}{state_instance_id} }
+		tag{ keep_after_state_reload }
+		tag { mp_checksum_excluded }
 	}
 }
 
@@ -3298,6 +3515,11 @@ object {
 		type{ array{production_directive_id}{bitfield} }
 		tag{ save }
 	}
+	property {
+		name{ last_state_capital_change }
+		type{ sys::date }
+		tag{ save }
+	}
 }
 relationship{
 	name{ colonization }
@@ -3337,6 +3559,24 @@ relationship{
 
 relationship{
 	name{ state_ownership }
+	tag{ save }
+
+	link{
+		object{state_instance}
+		name{state}
+		type{unique}
+	}
+	link{
+		object{nation}
+		name{nation}
+		type{many}
+		index_storage{array}
+	}
+}
+
+
+relationship{
+	name{ state_control }
 	tag{ save }
 
 	link{
@@ -4047,33 +4287,48 @@ object {
 		tag{ save }
 	}
 	property {
-		name{ land_reinforcement_buffer }
-		type{ float }
+		name{ stockpile_spending }
+		type{ int8_t }
 		tag{ save }
 	}
 	property {
-		name{ naval_reinforcement_buffer }
-		type{ float }
+		name{ land_supply_consumption }
+		type{ int8_t }
 		tag{ save }
 	}
 	property {
-		name{ effective_land_spending }
-		type{ float }
+		name{ land_reinforcement_consumption }
+		type{ int8_t }
 		tag{ save }
 	}
 	property {
-		name{ effective_naval_spending }
-		type{ float }
+		name{ naval_supply_consumption }
+		type{ int8_t }
 		tag{ save }
 	}
 	property {
-		name{ effective_construction_spending }
-		type{ float }
+		name{ naval_reinforcement_consumption }
+		type{ int8_t }
 		tag{ save }
 	}
 	property {
-		name{ maximum_military_costs }
-		type{ float }
+		name{ army_construction_consumption }
+		type{ int8_t }
+		tag{ save }
+	}
+	property {
+		name{ navy_construction_consumption }
+		type{ int8_t }
+		tag{ save }
+	}
+	property {
+		name{ factory_construction_consumption }
+		type{ int8_t }
+		tag{ save }
+	}
+	property {
+		name{ building_construction_consumption }
+		type{ int8_t }
 		tag{ save }
 	}
 	property {
@@ -4225,7 +4480,16 @@ object {
 		tag{ save }
 	}
 	property {
-		name{ stockpiles }
+		name{ treasury }
+		type{ float }
+		tag{ save }
+	}
+	property {
+		name{ total_stockpiles }
+		type{ array{commodity_id}{float} }
+	}
+	property {
+		name{ yesterday_total_stockpiles}
 		type{ array{commodity_id}{float} }
 		tag{ save }
 	}
@@ -4350,11 +4614,6 @@ object {
 		type{ uint16_t }
 	}
 	property {
-		name{ overlord_commanding_units }
-		type{ bitfield }
-		tag{ save }
-	}
-	property {
 		name{ averge_land_unit_score }
 		type{ float }
 	}
@@ -4427,9 +4686,76 @@ object {
 		tag{ save }
 	}
 	property {
+		name{ fastest_unlocked_land_unit }
+		type{ dcon::unit_type_id }
+		tag{ save }
+	}
+	property {
+		name{ fastest_unlocked_transport_unit }
+		type{ dcon::unit_type_id }
+		tag{ save }
+	}
+	property {
+		name{ supply_routes_requires_path_update }
+		type{ bitfield }
+		tag{ save }
+	}
+	property {
 		name{ production_directive }
 		type{ array{production_directive_id}{bitfield} }
 		tag{ save }
+	}
+	property {
+		name{ armies_have_supply_prio_in_battle }
+		type{ bitfield }
+		tag{ save }
+	}
+	property {
+		name{ navies_have_supply_prio_in_battle }
+		type{ bitfield }
+		tag{ save }
+	}
+	property {
+		name{ commodity_float_buffer_1 } 
+		type{ array{commodity_id}{float} }
+		tag{ keep_after_state_reload }
+		tag { mp_checksum_excluded }
+	}
+	property {
+		name{ commodity_float_buffer_2 } 
+		type{ array{commodity_id}{float} }
+		tag{ keep_after_state_reload }
+		tag { mp_checksum_excluded }
+	}
+	property {
+		name{ commodity_float_buffer_3 } 
+		type{ array{commodity_id}{float} }
+		tag{ keep_after_state_reload }
+		tag { mp_checksum_excluded }
+	}
+	property {
+		name{ unit_supply_and_build_commodity_float_buffer_1 } 
+		type{ array{unit_supply_and_build_commodity_id}{float} }
+		tag{ keep_after_state_reload }
+		tag { mp_checksum_excluded }
+	}
+	property {
+		name{ unit_supply_and_build_commodity_float_buffer_2 } 
+		type{ array{unit_supply_and_build_commodity_id}{float} }
+		tag{ keep_after_state_reload }
+		tag { mp_checksum_excluded }
+	}
+	property {
+		name{ unit_supply_and_build_commodity_float_buffer_3 } 
+		type{ array{unit_supply_and_build_commodity_id}{float} }
+		tag{ keep_after_state_reload }
+		tag { mp_checksum_excluded }
+	}
+	property {
+		name{ unit_supply_and_build_commodity_float_buffer_4 } 
+		type{ array{unit_supply_and_build_commodity_id}{float} }
+		tag{ keep_after_state_reload }
+		tag { mp_checksum_excluded }
 	}
 }
 
@@ -4533,6 +4859,16 @@ object{
 	}
 	property {
 		name{ stockpile }
+		type{ array{commodity_id}{float} }
+		tag{ save }
+	}
+	property {
+		name{ government_stockpile }
+		type{ array{commodity_id}{float} }
+		tag{ save }
+	}
+	property {
+		name{ government_stockpile_demand_weights }
 		type{ array{commodity_id}{float} }
 		tag{ save }
 	}
@@ -4730,7 +5066,12 @@ object{
 		tag{ save }
 	}
 	property {
-		name{ construction_demand }
+		name{ government_stockpile_demand }
+		type{ array{commodity_id}{float} }
+		tag{ save }
+	}
+	property {
+		name{ government_construction_demand }
 		type{ array{commodity_id}{float} }
 		tag{ save }
 	}
@@ -4881,6 +5222,8 @@ object{
 		tag{ save }
 	}
 
+}
+
 	property {
 		name{ demand_per_consumption_category }
 		type{ array{consumption_category_id}{float} }
@@ -4897,6 +5240,18 @@ object{
 		name{ satisfied_demand_ratio_per_consumption_category }
 		type{ array{consumption_category_id}{float} }
 		tag{ save }
+	}
+	property {
+		name{ supply_route_path_vector_buffer_1 }
+		type{ vector_pool{500}{supply_route_path_id} }
+		tag{ keep_after_state_reload }
+		tag { mp_checksum_excluded }
+	}
+	property {
+		name{ commodity_float_buffer_1 }
+		type{ array{commodity_id}{float} }
+		tag{ keep_after_state_reload }
+		tag { mp_checksum_excluded }
 	}
 }
 
@@ -4992,6 +5347,7 @@ relationship{
 	}
 }
 
+
 relationship{
 	name{ diplomatic_relation }
 	storage_type{ compactable }
@@ -5020,6 +5376,10 @@ relationship{
 		name{ are_allied }
 		type{ bitfield }
 		tag{ save }
+	}
+	property{
+		name{ are_at_war }
+		type{ bitfield }
 	}
 	property{
 		name{ truce_until }
@@ -5342,6 +5702,35 @@ relationship{
 		type{ sys::date }
 		tag{ save }
 	}
+	property{
+		name{ construction_days }
+		type{ uint32_t }
+		tag{ save }
+	}
+	property{
+		name{ last_required_percent_base_cost }
+		type{ float }
+		tag{ save }
+	}
+
+	property{
+		name{ needs_construction_goods }
+		type{ bitfield }
+		tag{ keep_after_state_reload }
+		tag { mp_checksum_excluded }
+	}
+	property{
+		name{ commodity_amounts_buffer_1 }
+		type{ economy::commodity_amounts }
+		tag{ keep_after_state_reload }
+		tag { mp_checksum_excluded }
+	}
+	property{
+		name{ state_instance_vector_buffer_1 }
+		type{ vector_pool{1000}{state_instance_id} }
+		tag{ keep_after_state_reload }
+		tag { mp_checksum_excluded }
+	}
 }
 
 relationship{
@@ -5383,6 +5772,34 @@ relationship{
 		type{ sys::date }
 		tag{ save }
 	}
+	property{
+		name{ construction_days }
+		type{ uint32_t }
+		tag{ save }
+	}
+	property{
+		name{ last_required_percent_base_cost }
+		type{ float }
+		tag{ save }
+	}
+	property{
+		name{ needs_construction_goods }
+		type{ bitfield }
+		tag{ keep_after_state_reload }
+		tag { mp_checksum_excluded }
+	}
+	property{
+		name{ commodity_amounts_buffer_1 }
+		type{ economy::commodity_amounts }
+		tag{ keep_after_state_reload }
+		tag { mp_checksum_excluded }
+	}
+	property{
+		name{ state_instance_vector_buffer_1 }
+		type{ vector_pool{1000}{state_instance_id} }
+		tag{ keep_after_state_reload }
+		tag { mp_checksum_excluded }
+	}
 }
 
 relationship{
@@ -5415,9 +5832,37 @@ relationship{
 		tag{ save }
 	}
 	property{
+		name{ construction_days }
+		type{ uint32_t }
+		tag{ save }
+	}
+	property{
 		name{ is_pop_project }
 		type{ bitfield }
 		tag{ save }
+	}
+	property{
+		name{ last_required_percent_base_cost }
+		type{ float }
+		tag{ save }
+	}
+	property{
+		name{ needs_construction_goods }
+		type{ bitfield }
+		tag{ keep_after_state_reload }
+		tag { mp_checksum_excluded }
+	}
+	property{
+		name{ commodity_amounts_buffer_1 }
+		type{ economy::commodity_amounts }
+		tag{ keep_after_state_reload }
+		tag { mp_checksum_excluded }
+	}
+	property{
+		name{ state_instance_vector_buffer_1 }
+		type{ vector_pool{1000}{state_instance_id} }
+		tag{ keep_after_state_reload }
+		tag { mp_checksum_excluded }
 	}
 }
 
@@ -5453,6 +5898,11 @@ relationship{
 		tag{ save }
 	}
 	property{
+		name{ construction_days }
+		type{ uint32_t }
+		tag{ save }
+	}
+	property{
 		name{ is_pop_project }
 		type{ bitfield }
 		tag{ save }
@@ -5466,6 +5916,29 @@ relationship{
 		name{ refit_target }
 		type{ factory_type_id }
 		tag{ save }
+	}
+	property{
+		name{ last_required_percent_base_cost }
+		type{ float }
+		tag{ save }
+	}
+	property{
+		name{ needs_construction_goods }
+		type{ bitfield }
+		tag{ keep_after_state_reload }
+		tag { mp_checksum_excluded }
+	}
+	property{
+		name{ commodity_amounts_buffer_1 }
+		type{ economy::commodity_amounts }
+		tag{ keep_after_state_reload }
+		tag { mp_checksum_excluded }
+	}
+	property{
+		name{ state_instance_vector_buffer_1 }
+		type{ vector_pool{1000}{state_instance_id} }
+		tag{ keep_after_state_reload }
+		tag { mp_checksum_excluded }
 	}
 }
 
@@ -5483,6 +5956,11 @@ relationship{
 		name{ruler}
 		type{many}
 		index_storage{array}
+	}
+	property{
+		name{ commanding_units }
+		type{ bitfield }
+		tag { save }
 	}
 }
 
@@ -6119,9 +6597,477 @@ object {
 	property{
 		name{ hide_notification }
 		type{ bitfield }
+		tag{ keep_after_state_reload }
 		tag { mp_checksum_excluded }
 	}
 }
+
+
+
+
+
+
+relationship{
+	name{ supply_route_path }
+	storage_type{ compactable }
+	size{ 100000 }
+	tag{ save }
+
+	link{
+		object{province}
+		name{destination}
+		type{many}
+		index_storage{array}
+	}
+	link{
+		object{market}
+		name{origin}
+		type{many}
+		index_storage{array}
+	}
+	composite_key{
+		name{origin_destination_pair}
+		index{destination}
+		index{origin}
+	}
+
+	property{
+		name{ path }
+		type{vector_pool{5000}{province_id}}
+		tag{ save }
+	}
+	property{
+		name{ adjacency_path }
+		type{vector_pool{5000}{province_adjacency_id}}
+	}
+	property{
+		name{ path_out_of_date }
+		type{ bitfield }
+		tag{ save }
+	}
+	property{
+		name{ valid_path }
+		type{ bitfield }
+		tag{ save }
+	}
+	property{
+		name{ is_active }
+		type{ bitfield }
+		tag{ save }
+	}
+	property{
+		name{ attempting_to_route }
+		type{ bitfield }
+		tag{ save }
+	}
+	property{
+		name{ recently_created }
+		type{ bitfield }
+		tag{ save }
+	}
+	property{
+		name{ inactive_days }
+		type{ uint8_t }
+		tag{ save }
+	}
+	property{
+		name{ supply_loss }
+		type{float}
+		tag{ save }
+	}
+	property{
+		name{ throughput }
+		type{float}
+		tag{ save }
+	}
+	property{
+		name{ volume }
+		type{float}
+		tag{ save }
+	}
+	property{
+		name{ expected_throughput }
+		type{float}
+		tag{ save }
+	}
+}
+
+
+
+relationship{
+	name{ army_supply_route }
+	storage_type{ compactable }
+	size{ 50000 }
+	tag{ save }
+
+	link{
+		object{army}
+		name{army}
+		type{many}
+		index_storage{array}
+	}
+	link{
+		object{market}
+		name{origin}
+		type{many}
+		index_storage{array}
+	}
+	composite_key{
+		name{origin_army_pair}
+		index{army}
+		index{origin}
+	}
+	property{
+		name{ inactive_days }
+		type{ uint8_t }
+		tag{ save }
+	}
+	property{
+		name{ is_active }
+		type{ bitfield }
+		tag{ save }
+	}
+	property{
+		name{ buffered_supply_goods }
+		type{ array{unit_supply_commodity_id}{float} }
+		tag{ save }
+	}
+	property{
+		name{ buffered_reinforcement_goods }
+		type{ array{unit_build_commodity_id}{float}  }
+		tag{ save }
+	}
+}
+
+
+relationship{
+	name{ navy_supply_route }
+	storage_type{ compactable }
+	size{ 50000 }
+	tag{ save }
+
+	link{
+		object{navy}
+		name{navy}
+		type{many}
+		index_storage{array}
+	}
+	link{
+		object{market}
+		name{origin}
+		type{many}
+		index_storage{array}
+	}
+	composite_key{
+		name{origin_navy_pair}
+		index{navy}
+		index{origin}
+	}
+	property{
+		name{ inactive_days }
+		type{ uint8_t }
+		tag{ save }
+	}
+	property{
+		name{ is_active }
+		type{ bitfield }
+		tag{ save }
+	}
+	property{
+		name{ buffered_supply_goods }
+		type{  array{unit_supply_commodity_id}{float} }
+		tag{ save }
+	}
+	property{
+		name{ buffered_reinforcement_goods }
+		type{ array{ unit_build_commodity_id}{float} }
+		tag{ save }
+	}
+
+}
+
+
+relationship{
+	name{ land_construction_supply_route }
+	storage_type{ compactable }
+	size{ 50000 }
+	tag{ save }
+
+	link{
+		object{province_land_construction}
+		name{construction}
+		type{many}
+		index_storage{array}
+	}
+	link{
+		object{market}
+		name{origin}
+		type{many}
+		index_storage{array}
+	}
+	composite_key{
+		name{origin_construction_pair}
+		index{construction}
+		index{origin}
+	}
+	property{
+		name{ inactive_days }
+		type{ uint8_t }
+		tag{ save }
+	}
+	property{
+		name{ is_active }
+		type{ bitfield }
+		tag{ save }
+	} 
+	property{
+		name{ buffered_goods }
+		type{ economy::commodity_amounts }
+		tag{ save }
+	}
+
+}
+
+
+
+relationship{
+	name{ naval_construction_supply_route }
+	storage_type{ compactable }
+	size{ 50000 }
+	tag{ save }
+
+	link{
+		object{province_naval_construction}
+		name{construction}
+		type{many}
+		index_storage{array}
+	}
+	link{
+		object{market}
+		name{origin}
+		type{many}
+		index_storage{array}
+	}
+	composite_key{
+		name{origin_construction_pair}
+		index{construction}
+		index{origin}
+	}
+	property{
+		name{ inactive_days }
+		type{ uint8_t }
+		tag{ save }
+	}
+	property{
+		name{ is_active }
+		type{ bitfield }
+		tag{ save }
+	}
+	property{
+		name{ buffered_goods }
+		type{ economy::commodity_amounts }
+		tag{ save }
+	}
+
+}
+
+
+
+
+relationship{
+	name{ factory_construction_supply_route }
+	storage_type{ compactable }
+	size{ 50000 }
+	tag{ save }
+
+	link{
+		object{factory_construction}
+		name{construction}
+		type{many}
+		index_storage{array}
+	}
+	link{
+		object{market}
+		name{origin}
+		type{many}
+		index_storage{array}
+	}
+	composite_key{
+		name{origin_construction_pair}
+		index{construction}
+		index{origin}
+	}
+	property{
+		name{ inactive_days }
+		type{ uint8_t }
+		tag{ save }
+	}
+	property{
+		name{ is_active }
+		type{ bitfield }
+		tag{ save }
+	}
+	property{
+		name{ buffered_goods }
+		type{ economy::commodity_amounts }
+		tag{ save }
+	}
+
+}
+
+
+relationship{
+	name{ building_construction_supply_route }
+	storage_type{ compactable }
+	size{ 50000 }
+	tag{ save }
+
+	link{
+		object{province_building_construction}
+		name{construction}
+		type{many}
+		index_storage{array}
+	}
+	link{
+		object{market}
+		name{origin}
+		type{many}
+		index_storage{array}
+	}
+	composite_key{
+		name{origin_construction_pair}
+		index{construction}
+		index{origin}
+	}
+	property{
+		name{ inactive_days }
+		type{ uint8_t }
+		tag{ save }
+	}
+	property{
+		name{ is_active }
+		type{ bitfield }
+		tag{ save }
+	}
+
+	property{
+		name{ buffered_goods }
+		type{ economy::commodity_amounts }
+		tag{ save }
+	}
+
+}
+
+
+relationship{
+	name{ army_route_path }
+	storage_type{ compactable }
+	size{ 50000 }
+	tag{ save }
+
+	link{
+		object{army_supply_route}
+		name{route}
+		type{unique}
+	}
+	link{
+		object{supply_route_path}
+		name{path}
+		type{many}
+		index_storage{array}
+	}
+}
+relationship{
+	name{ navy_route_path }
+	storage_type{ compactable }
+	size{ 50000 }
+	tag{ save }
+
+	link{
+		object{navy_supply_route}
+		name{route}
+		type{unique}
+	}
+	link{
+		object{supply_route_path}
+		name{path}
+		type{many}
+		index_storage{array}
+	}
+}
+relationship{
+	name{ land_construction_route_path }
+	storage_type{ compactable }
+	size{ 50000 }
+	tag{ save }
+
+	link{
+		object{land_construction_supply_route}
+		name{route}
+		type{unique}
+	}
+	link{
+		object{supply_route_path}
+		name{path}
+		type{many}
+		index_storage{array}
+	}
+}
+relationship{
+	name{ naval_construction_route_path }
+	storage_type{ compactable }
+	size{ 50000 }
+	tag{ save }
+
+	link{
+		object{naval_construction_supply_route}
+		name{route}
+		type{unique}
+	}
+	link{
+		object{supply_route_path}
+		name{path}
+		type{many}
+		index_storage{array}
+	}
+}
+relationship{
+	name{ factory_construction_route_path }
+	storage_type{ compactable }
+	size{ 50000 }
+	tag{ save }
+
+	link{
+		object{factory_construction_supply_route}
+		name{route}
+		type{unique}
+	}
+	link{
+		object{supply_route_path}
+		name{path}
+		type{many}
+		index_storage{array}
+	}
+}
+relationship{
+	name{ building_construction_route_path }
+	storage_type{ compactable }
+	size{ 50000 }
+	tag{ save }
+
+	link{
+		object{building_construction_supply_route}
+		name{route}
+		type{unique}
+	}
+	link{
+		object{supply_route_path}
+		name{path}
+		type{many}
+		index_storage{array}
+	}
+}
+
 
 object {
 	name{ locale }

@@ -791,7 +791,7 @@ national_modifiers;National modifiers
 trade_fill;Fill
 trade_use;Draw upon
 trade_stockpile_target;Stockpile target amount:
-trade_stockpile_current;Current stockpile: 
+trade_stockpile_current;Amount in government stockpiles: 
 diplomacy_wx_1;Monthly war exhaustion: 
 influence_explain_1;We are currently banned and accumulate no influence with this nation
 influence_explain_2;We have a truce with this nation and accumulate no influence with it
@@ -1263,15 +1263,9 @@ alice_con_decay_description;Natural decay ?R-$x$
 x_from_y;?Y$culture$?W $x$ from ?Y$y$?W
 x_in_y;$x$ at $y$
 alice_reserve_reg_count;$x$ currently have ?Y$y$?W reserve brigades in the battle.
-alice_reinforce_battle_mod_top;?Y$x$?W reserve brigades affected by the following reinforcement modifiers:
-alice_reinforce_battle_only_reserve;Only ?Yreserves?W in a battle can be reinforced.
-alice_reinforce_battle_spending_modifier;Average army supply fufillment: ?Yx$x$.?W
-alice_reinforce_battle_location_modifier;Average location modifier: ?Yx$x$.?W
-alice_reinforce_battle_national_modifier;Average national modifiers&techs: ?Yx$x$.?W
-alice_reinforce_rate_battle_attacker;The attackers can reinforce up to $x$ soldiers per month.
-alice_reinforce_rate_battle_attacker_none;The attackers are currently getting no reinforcements.
-alice_reinforce_rate_battle_defender;The defenders can reinforce up to $x$ soldiers per month.
-alice_reinforce_rate_battle_defender_none;The defenders are currently getting no reinforcements.
+land_battle_supply_satisfaction_header_tooltip;An estimated reinforcement rate of ?Y$val$?W soldiers per month, with the following sastisfaction:
+battle_supply_satisfaction_tooltip;Supply satisfaction: ?Y$val$?W
+battle_reinforcement_satisfaction_tooltip;Reinforcement satisfaction: ?Y$val$?W
 reinforce_rate;This regiment can reinforce up to $x$ soldiers per month.
 reinforce_rate_none;This regiment can't currently be reinforced.
 alice_domestic_investment_button;Investing in individual projects is ?Rdeprecated?W, use the ?Ydomestic investment?W slider on the budget screen instead
@@ -1395,9 +1389,11 @@ alice_mw_controls_1;?YRight-click?W create ?Gall?W possible as generals
 alice_mw_controls_2;?YRight-click?W create ?Gall?W possible as admirals
 alice_daily_leadership_tt;$poptype$ provide ?G$value$?W leadership points (?Y$fraction$?W of the population, ?Y$optimal$?W is optimal). Extra leadership points will automatically be spent on creating new generals.
 unit_current_supply;This unit received ?Y$val$%?W of the supplies needed in the last day.\nThe amount we could get of our current supply consumption was:
-unit_current_supply_high;$what$: ?Y$val$?W/?Y$value$?! ?l(?W?G$total$%?W?l demand satisfaction)
-unit_current_supply_mid;$what$: ?Y$val$?!/?Y$value$?! ?l(?O$total$%?W?l demand satisfaction)
-unit_current_supply_low;$what$: ?Y$val$?!/?Y$value$?! ?l(?R$total$%?W?l demand satisfaction)
+unit_current_supply_high;: ?Y$val$?W/?Y$value$?! ?l(?W?G$total$%?W?l satisfaction) (?Y$x$?W loss from supply routes) (?Y$y$?W throughput)
+unit_current_supply_mid;: ?Y$val$?!/?Y$value$?! ?l(?O$total$%?W?l satisfaction) (?Y$x$?W loss from routes) (?Y$y$?W throughput)
+unit_current_supply_low;: ?Y$val$?!/?Y$value$?! ?l(?R$total$%?W?l satisfaction) (?Y$x$?W loss from routes) (?Y$y$?W throughput)
+unit_current_reinforcement_land;This unit received ?Y$val$%?W of the reinforcements needed in the last day.\nThe amount we could get of our current reinforcement consumption was:
+unit_current_reinforcement_naval;This unit received ?Y$val$%?W of the repairs needed in the last day.\nThe amount we could get of our current repair consumption was:
 alice_crisis_inactive;No current active crisis
 alice_crisis_finding_attacker;Finding an attacker for the current crisis
 alice_crisis_finding_defender;Finding a defender for the current crisis
@@ -1763,6 +1759,7 @@ province_market_demand;Demand: ?R$val$?!
 province_market_production;Production: ?G$val$?!
 province_market_consumption;Consumption: ?R$val$?!
 province_market_stockpiles;Stockpiles: ?Y$val$?!
+province_market_government_stockpiles;Government Stockpiles: ?Y$val$?!
 province_market_stockpiles_sales;Stockpiles sale target: ?Y$val$?!
 province_market_balance;Balance: ?Y$val$?!
 province_market_trade_in;Trade in: ?G$val$?!
@@ -2026,6 +2023,7 @@ rgo_bank_out;RGOs to pops ?Y$val$?W
 factory_bank;Factories balance ?Y$val$?W
 factory_bank_in;Factories from production ?Y$val$?W
 factory_bank_out;Factories to pops ?Y$val$?W
+government_stockpiles;Government stockpiles
 alice_unit_crossing_modifier;Unit receives a ?Y$x$?W modifier to its combat roll from adjacency modifiers
 alice_river_penalty_mod_tooltip;?Y$COUNT$?W units receives a modifier of ?Y$NUM$?W from river crossing
 alice_strait_penalty_mod_tooltip;?Y$COUNT$?W units receives a modifier of ?Y$NUM$?W from strait crossing or landing penalty
@@ -2036,6 +2034,24 @@ alice_num_units_targeting_dug_in_tooltip;?Y$COUNT$?W units are targeting dug in 
 alice_unit_dug_in;Unit has a dig-in lvl of ?Y$NUM$?W
 alice_unit_targeting_dug_in_modifier;Unit receives a ?Y$NUM$?W modifier to its combat roll targeting a dug-in unit
 add_wargoal_wargoal_count;Will add ?Y$COUNT$?W wargoal(s) when proceeding
+unit_supply_priority_low_tooltip_1;This unit currently has ?Rlow?W priority on receiving supplies
+unit_supply_priority_normal_tooltip_1;This unit currently has ?Ymedium?W priority on receiving supplies
+unit_supply_priority_high_tooltip_1;This unit currently has ?Ghigh?W priority on receiving supplies
+unit_priority_tooltip_2;Increase priority with ?Yleft-click?W, and decrement with ?Yright-click?W
+unit_priority_tooltip_3;(This unit has ?Ghigh?W priority due being in a battle)
+selected_units_supply_priority_low_tooltip_1;All selected units currently has ?Rlow?W priority on receiving supplies
+selected_units_supply_priority_normal_tooltip_1;All selected units currently has ?Ymedium?W priority on receiving supplies
+selected_units_supply_priority_high_tooltip_1;All selected units currently has ?Ghigh?W priority on receiving supplies
+selected_units_supply_priority_unknown_tooltip_1;All selected units currently has ?Odiffering?W priority on receiving supplies
+selected_units_priority_tooltip_2;Increase priority for all units with ?Yleft-click?W, and decrement with ?Yright-click?W
+military_title;Military
+budget_military_satisfaction_label;Military satisfaction:
+land_reinforcement_consumption;Army Reinforcement
+land_supply_consumption;Army Supply
+naval_reinforcement_consumption;Navy Reinforcement
+naval_supply_consumption;Navy Supply
+budget_military_settings;Satisfaction
+government_stockpiles_target;Current target: $val$
 subsidies_label;Subsidies
 effective_output_tooltip;Effective output (output divided by base output)
 subsidies_explanation_tooltip;Total volume of subsidies is decided by national budget. Factories receive for subsidies proportionally to their effective output. You can set subsidies in updated production menu via directives.
@@ -2043,6 +2059,85 @@ factory_investments_header;Investments
 total_investments_label;Total
 investment_efficiency_tooltip;Tools, efficiency inputs and machines
 investment_expansion_tooltip;Expansion
+supply_throughput_total_tooltip;Total supply throughput: ?Y$value$?W
+supply_efficiency_header_tooltip;Efficiency for province connections:
+supply_efficiency_adjacency_tooltip;?Y$prov$?W -> Available: ?G$value$?W. Used: ?R$val$?W. Efficiency: ?Y$x$?W
+port_capacity_efficiency_header_tooltip;Port capacity efficiency:
+supply_throughput_mult_access_modifier;Supply access
+supply_throughput_mult_hostile_units_modifier;Hostile armies
+supply_throughput_efficiency_tooltip;Net efficiency: ?Y$value$?W
+modifier_naval_supply_speed;Naval supply speed
+modifier_land_supply_speed;Land supply speed
+modifier_supply_throughput;Supply throughput
+modifier_supply_loss;Supply loss
+modifier_port_supply_capacity;Port supply capacity
+modifier_national_land_supply_throughput;National land supply throughput
+modifier_national_land_supply_loss;National land supply loss
+modifier_national_naval_supply_throughput;National naval supply throughput
+modifier_national_naval_supply_loss;National naval supply loss
+modifier_national_port_supply_capacity;National port supply capacity
+nation_base;Nation base
+province_militancy;Province militancy
+province_control;Province control
+supply_loss_total_tooltip;Supply loss: ?Y$value$?W
+supply_loss_add_convoy_raiding_modifier;Convoy raiding
+supply_loss_add_hostile_armies_modifier;Hostile armies
+port_supply_capacity_total_tooltip;Total port supply capacity: ?Y$value$?W
+port_supply_capacity_mul_blockaded_modifier;Port blockaded
+port_supply_capacity_mul_access_modifier;Port access
+port_supply_capacity_mul_hostile_units_modifier;Hostile armies
+alice_mvstatecap_1;Moves the market capital and state government stockpiles to this province
+alice_mvstatecap_2;State is owned by us
+alice_mvstatecap_3;Province is not the market capital
+alice_mvstatecap_4;Cooldown is not active ($val$ days left)
+alice_mvstatecap_5;No provinces in the state are occupied, or being sieged
+military_stockpile_window_header;Military Stockpiles
+military_stockpile_value_divider;/
+open_mil_stockpile_button_text;Military Stockpiles
+current_stockpile_count_tooltip;In stockpiles: ?Y$val$?W
+stockpile_target_tooltip;Stockpiles target: ?Y$val$?W
+stockpile_change;$val$/day
+stockpile_change_tooltip;Daily Stockpile Change: ?Y$val$?W
+stockpile_days_left;$days$ days left
+stockpile_days_left_tooltip;Estimated ?Y$days$?W days worth of supplies left at current consumption levels
+mlitary_stockpile_commodity_tooltip;?GLeft-click?W to select commodity, ?Rright-click?W to deselect
+mlitary_stockpile_target_error;?RInvalid input?W
+confirm_stockpile_target_tooltip;Confirm the stockpile target
+stockpile_target_set_label;Set stockpile target:
+military_stockpile_info_tooltip;Each commodity icon and the numbers under it displays diffrent values about the state of all summed-up government stockpiles. It shows:\n    -The current amount present in stockpiles\n    -The current stockpile target for the stockpile spending setting\n    -The daily amount change (positive or negative)\n    -The estimated amount of days left until stockpile exhaustion.\nSelect a commodity by ?Gright-clicking?W the icon to set a stockpile target in the right window.
+military_stockpile_targets_info_tooltip;Once a commodity is selected, its stockpile target can be set here by typing in a new target (number with or without decimals)\nHit ?GEnter?W, or click on the confirmation button below to apply the new target.
+army_construction_consumption;Army Construction
+navy_construction_consumption;Navy Construction
+factory_construction_consumption;Factory Construction
+building_construction_consumption;Building Construction
+military_consumption_title;Military
+construction_consumption_title;Construction
+consumption_item;Item
+consumption_amount;Amount
+consumption_amount_tooltip;Shows the fufilled amount to the left, and the required amount to the right of the divider
+consumption_fufillment_percent;Satisfied
+government_stockpiles_title;Government Stockpiles
+only_military_goods_label;Show military goods only
+prio_armies_in_battle_label;Prioritize supply for armies in battle
+prio_navies_in_battle_label;Prioritize supply for navies in battle
+consumption_section_army_supply_info_tooltip;Decides how big a percentage of army ?Gsupply?W requirements will be routed from national stockpiles to them.\nA value of 100 means armies will attempt to draw 100% of their ?Gsupply?W need from stockpiles, and a value of 0 means armies will not draw any goods.\n?GSupply?W satisfaction dictates organization regain.
+consumption_section_army_reinforcement_info_tooltip;Decides how big a percentage of army ?Oreinforcement?W requirements will be routed from national stockpiles to them.\nA value of 100 means armies will attempt to draw 100% of their ?Oreinforcement?W need from stockpiles, and a value of 0 means armies will not draw any goods.\n?Oreinforcement?W satisfaction dictates how fast a unit can reinforce if below 100% strength.
+consumption_section_navy_supply_info_tooltip;Decides how big a percentage of navy ?Gsupply?W requirements will be routed from national stockpiles to them.\nA value of 100 means navies will attempt to draw 100% of their ?Gsupply?W need from stockpiles, and a value of 0 means armies will not draw any goods.\n?GSupply?W satisfaction dictates organization regain.
+consumption_section_navy_reinforcement_info_tooltip;Decides how big a percentage of navy ?Oreinforcement?W requirements will be routed from national stockpiles to them.\nA value of 100 means navies will attempt to draw 100% of their ?Oreinforcement?W need from stockpiles, and a value of 0 means armies will not draw any goods.\n?Oreinforcement?W satisfaction dictates how fast a unit can repair if below 100% strength and is in a naval base province.
+consumption_section_army_construction_info_tooltip;Decides how big a percentage of daily army construction requirements will be routed from national stockpiles to them.\nA value of 100 means army constructions will attempt to draw 100% of their daily construction need from stockpiles, and a value of 0 means armies will not draw any goods.\nThis setting also affects the amount purchased for army constructions from the construction budget in the budget window.
+consumption_section_navy_construction_info_tooltip;Decides how big a percentage of daily navy construction requirements will be routed from national stockpiles to them.\nA value of 100 means navy constructions will attempt to draw 100% of their daily construction need from stockpiles, and a value of 0 means armies will not draw any goods.\nThis setting also affects the amount purchased for navy constructions from the construction budget in the budget window.
+consumption_section_factory_construction_info_tooltip;Decides how big a percentage of daily government factory construction requirements will be routed from national stockpiles to them.\nA value of 100 means government factory constructions will attempt to draw 100% of their daily construction need from stockpiles, and a value of 0 means armies will not draw any goods.\nThis setting also affects the amount purchased for government factory constructions from the construction budget in the budget window.
+consumption_section_building_construction_info_tooltip;Decides how big a percentage of daily government province building construction requirements will be routed from national stockpiles to them.\nA value of 100 means government province building constructions will attempt to draw 100% of their daily construction need from stockpiles, and a value of 0 means armies will not draw any goods.\nThis setting also affects the amount purchased for government province building constructions from the construction budget in the budget window.
+logistics_topbar_army_tooltip;Our armies currently receive ?Y$total$?W of their total required supply & reinforcement need\nArmy Supply Satisfaction: ?Y$x$?W\nArmy Reinforcement Satisfaction: ?Y$y$?W
+logistics_topbar_navy_tooltip;Our navies currently receive ?Y$total$?W of their total required supply & reinforcement need\nNavy Supply Satisfaction: ?Y$x$?W\nNavy Reinforcement Satisfaction: ?Y$y$?W
+logistics_topbar_supply_loss_tooltip;Our supply routes currently incur an average loss of ?Y$total$?W of transported goods\nArmy Supply Route Loss: ?Y$x$?W\nNavy Supply Route Loss: ?Y$y$?W\nConstruction Supply Routes Loss: ?Y$val$?W
+logistics_topbar_supply_throughput_tooltip;Our supply routes currently operate at an average throughput of ?Y$total$?W\nArmy Supply Route Throughput: ?Y$x$?W\nNavy Supply Route Throughput: ?Y$y$?W\nConstruction Supply Routes Throughput: ?Y$val$?W
+logistics_satisfaction_label;Satisfaction:
+logistics_supply_loss_label;Loss rate:
+logistics_supply_throughput_label;Throughput:
+logistics_satisfaction_tooltip;The average satisfaction percentage of the required commodities for this section is ?Y$val$?W
+logistics_supply_loss_tooltip;The average loss percentage for the transported commodities in this section is ?Y$val$?W
+logistics_supply_throughput_tooltip;The throughput percentage for the transported commodities in this section is ?Y$val$?W
 alice_budget_military_expense;Military Pay
 alice_budget_education_expense;Public Education
 alice_budget_administration_expense;Official Pay

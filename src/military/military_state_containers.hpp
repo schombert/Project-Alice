@@ -7,6 +7,21 @@
 
 namespace military {
 
+struct supply_values {
+	float max_thoughput;
+	float total_attrition;
+	std::vector<dcon::province_id> supply_path;
+	constexpr supply_values() {
+
+	}
+	constexpr supply_values(float _max_thoughput, float _total_attrition, std::vector<dcon::province_id>&& _supply_path) : max_thoughput(_max_thoughput), total_attrition(_total_attrition)
+	{
+		supply_path = std::move(_supply_path);
+	}
+};
+
+
+
 struct unit_definition : public sys::unit_variable_stats {
 	economy::commodity_set build_cost;
 	economy::commodity_set supply_cost;
@@ -85,6 +100,7 @@ struct global_military_state {
 	dcon::unit_type_id artillery;
 
 	bool pending_blackflag_update = false;
+
 };
 
 }

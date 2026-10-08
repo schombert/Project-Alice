@@ -578,3 +578,40 @@ TEST_CASE("make_path_to_expression_profiling_AStar", "[pathfinding_profiling]") 
 
 
 
+TEST_CASE("make_logistics_path_profiling", "[pathfinding_profiling]") {
+	{
+		std::unique_ptr<sys::state> gamestate_ptr = load_testing_scenario_file_with_save(sys::network_mode_type::host);
+		auto start = dcon::province_id{ 299 }; // London
+		auto dest = dcon::province_id{ 1246 }; // Gaya
+		auto tag = dcon::nation_id{ 9 }; // ENG
+		auto start_name = text::produce_simple_string(*gamestate_ptr, gamestate_ptr->world.province_get_name(start));
+		auto end_name = text::produce_simple_string(*gamestate_ptr, gamestate_ptr->world.province_get_name(dest));
+		auto tag_name = text::produce_simple_string(*gamestate_ptr, gamestate_ptr->world.national_identity_get_name(gamestate_ptr->world.nation_get_identity_from_identity_holder(tag)));
+
+
+		auto begin = std::chrono::steady_clock::now();
+		for(int i = 0; i < 100; i++) {
+			static thread_local std::vector<dcon::province_id> prov_path;
+			static thread_local std::vector<dcon::province_adjacency_id> adj_path;
+			prov_path.clear();
+			adj_path.clear();
+			province::make_logistics_path(*gamestate_ptr, start, dest, tag, 0, prov_path, adj_path);
+		}
+		auto end = std::chrono::steady_clock::now();
+		gamestate_ptr->console_log(std::string("PATH SERIAL time: " + std::to_string(std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count())));
+		begin = std::chrono::steady_clock::now();
+		concurrency::parallel_for(uint32_t(0), uint32_t(100), [&](uint32_t) {
+			static thread_local std::vector<dcon::province_id> prov_path;
+			static thread_local std::vector<dcon::province_adjacency_id> adj_path;
+			prov_path.clear();
+			adj_path.clear();
+			province::make_logistics_path(*gamestate_ptr, start, dest, tag, 0, prov_path, adj_path);
+		});
+		end = std::chrono::steady_clock::now();
+		gamestate_ptr->console_log(std::string("PATH PARALLEL time: " + std::to_string(std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count())));
+	}
+
+}
+
+
+

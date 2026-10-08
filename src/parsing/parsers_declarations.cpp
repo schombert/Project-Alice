@@ -236,10 +236,26 @@ void good::overseas_penalty(association_type, bool b, error_handler& err, int32_
 void good::uses_potentials(association_type, bool b, error_handler& err, int32_t line, good_context& context) {
 	context.outer_context.state.world.commodity_set_uses_potentials(context.id, b);
 }
+void good::supply_weight(association_type, float val, error_handler& err, int32_t line, good_context& context) {
+	if(val < 0.0f) {
+		err.accumulated_errors += "Good supply weight cannot be below 0. (file " + err.file_name + ", line " + std::to_string(line) + ")\n";
+		return;
+	}
+	good_supply_weight = val;
+}
+void good::supply_loss_rate(association_type, float val, error_handler& err, int32_t line, good_context& context) {
+	if(val < 0.0f) {
+		err.accumulated_errors += "Good supply loss rate cannot be below 0. (file " + err.file_name + ", line " + std::to_string(line) + ")\n";
+		return;
+	}
+	good_supply_loss_rate = val;
+}
 
 void good::finish(good_context& context) {
 	++context.outer_context.number_of_commodities_seen;
 	context.outer_context.state.world.commodity_set_icon(context.id, uint8_t(context.outer_context.number_of_commodities_seen));
+	context.outer_context.state.world.commodity_set_supply_weight(context.id, good_supply_weight);
+	context.outer_context.state.world.commodity_set_supply_loss_rate(context.id, good_supply_loss_rate);
 }
 
 void issue::next_step_only(association_type, bool value, error_handler& err, int32_t line, issue_context& context) {
@@ -434,7 +450,69 @@ void commodity_set::any_value(std::string_view name, association_type, float val
 	}
 }
 
-void unit_definition::finish(scenario_building_context&) {
+void military_supply_commodity_set::any_value(std::string_view name, association_type c, float value, error_handler& err, int32_t line,
+		scenario_building_context& context) {
+
+	auto found_commodity = context.map_of_commodity_names.find(std::string(name));
+	if(found_commodity != context.map_of_commodity_names.end()) {
+		auto com = fatten(context.state.world, found_commodity->second);
+		// Have we already added it?
+		auto supply_build_com_id = com.get_unit_supply_and_build_commodity();
+		if(!supply_build_com_id) {
+			supply_build_com_id = fatten(context.state.world, context.state.world.create_unit_supply_and_build_commodity());
+			com.set_unit_supply_and_build_commodity(supply_build_com_id);
+			supply_build_com_id.set_base_commodity(com);
+		}
+		// Have we already added it to the supply-only container?
+		if(!com.get_unit_supply_commodity()) {
+			auto supply_com_id = fatten(context.state.world, context.state.world.create_unit_supply_commodity());
+			com.set_unit_supply_commodity(supply_com_id);
+			supply_com_id.set_base_commodity(com);
+			supply_com_id.set_supply_and_build_commodity(supply_build_com_id);
+
+			// Add the union of supply and build commodities id to be able to retrieve it later
+			supply_build_com_id.set_supply_commodity(supply_com_id);
+		}
+		commodity_set::any_value(name, c, value, err, line, context);
+	} else {
+		err.accumulated_errors += "Unknown commodity " + std::string(name) + " in file " + err.file_name + " line " + std::to_string(line) + "\n";
+		return;
+	}
+}
+
+
+
+void military_build_commodity_set::any_value(std::string_view name, association_type c, float value, error_handler& err, int32_t line,
+		scenario_building_context& context) {
+
+	auto found_commodity = context.map_of_commodity_names.find(std::string(name));
+	if(found_commodity != context.map_of_commodity_names.end()) {
+		auto com = fatten(context.state.world, found_commodity->second);
+		// Have we already added it?
+		auto supply_build_com_id = com.get_unit_supply_and_build_commodity();
+		if(!supply_build_com_id) {
+			supply_build_com_id = fatten(context.state.world, context.state.world.create_unit_supply_and_build_commodity());
+			com.set_unit_supply_and_build_commodity(supply_build_com_id);
+			supply_build_com_id.set_base_commodity(com);
+		}
+		// Have we already added it to the build-only container?
+		if(!com.get_unit_build_commodity()) {
+			auto build_com_id = fatten(context.state.world, context.state.world.create_unit_build_commodity());
+			com.set_unit_build_commodity(build_com_id);
+			build_com_id.set_base_commodity(com);
+			build_com_id.set_supply_and_build_commodity(supply_build_com_id);
+
+			// Add the union of supply and build commodities id to be able to retrieve it later
+			supply_build_com_id.set_build_commodity(build_com_id);
+		}
+		commodity_set::any_value(name, c, value, err, line, context);
+	} else {
+		err.accumulated_errors += "Unknown commodity " + std::string(name) + " in file " + err.file_name + " line " + std::to_string(line) + "\n";
+		return;
+	}
+}
+
+void unit_definition::finish(scenario_building_context& context) {
 	// minimum discipline for land units
 	if(is_land) {
 		if(discipline_or_evasion <= 0.0f)
