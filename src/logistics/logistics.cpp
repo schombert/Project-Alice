@@ -1979,9 +1979,23 @@ void setup_spread_supply_path_batches(sys::state& state, uint32_t num_path_batch
 
 
 void update_supply_routes_daily(sys::state& state) {
+	// Just some variables for optimal profiling
+	std::chrono::steady_clock::time_point begin;
+	std::chrono::steady_clock::time_point end;
+
+	// Profiling functions. Comment/uncomment to disable/enable
+	auto profile_step_start = [&]() {
+		//begin = std::chrono::steady_clock::now();
+	};
+	auto profile_step_end = [&](std::string_view step_name) {
+		//end = std::chrono::steady_clock::now();
+		//auto time_str = std::to_string(std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count());
+		//state.console_log(std::format("{} MICROSECS: {}", step_name, time_str));
+	};
+
 
 	// STEP 1: initialize buffers in parallel
-	auto begin = std::chrono::steady_clock::now();
+	profile_step_start();
 	concurrency::parallel_for(0, 16, [&](uint32_t i) {
 		switch(i) {
 		case 0:
@@ -2216,10 +2230,8 @@ void update_supply_routes_daily(sys::state& state) {
 		}
 	});
 
-	auto end = std::chrono::steady_clock::now();
-	state.console_log(std::string("STEP 1 time: " + std::to_string(std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count())));
-	begin = std::chrono::steady_clock::now();
-
+	profile_step_end("STEP 1");
+	profile_step_start();
 
 	// STEP 2: delete unused routes and paths serially. Iterate from the end to compact as we go
 	for(uint32_t i = state.world.army_supply_route_size(); i-- > 0;) {
@@ -2264,10 +2276,8 @@ void update_supply_routes_daily(sys::state& state) {
 			state.world.delete_supply_route_path(path);
 		}
 	}
-
-	end = std::chrono::steady_clock::now();
-	state.console_log(std::string("STEP 2 time: " + std::to_string(std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count())));
-	begin = std::chrono::steady_clock::now();
+	profile_step_end("STEP 2");
+	profile_step_start();
 
 	// STEP 3: Compute the closest stockpile states to each military unit and construction, and accumulate all the goods required by each of them into buffers. Run them in parallel
 
@@ -2350,11 +2360,8 @@ void update_supply_routes_daily(sys::state& state) {
 		economy::construction_set_last_required_percent_base_cost(state, construction, required_construction_goods_of_base_cost);
 		economy::accumulate_construction_daily_goods_requirements(state, construction, accumulate_func);
 	});
-
-	end = std::chrono::steady_clock::now();
-	state.console_log(std::string("STEP 3 time: " + std::to_string(std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count())));
-
-	begin = std::chrono::steady_clock::now();
+	profile_step_end("STEP 3");
+	profile_step_start();
 
 	// STEP 4: Split the total goods required by units in each of the priority brackets (high, medium, low) per-nation, and accumulate total goods requried for constructions per-nation by using the previously buffered data
 
@@ -2399,14 +2406,13 @@ void update_supply_routes_daily(sys::state& state) {
 	concurrency::parallel_invoke(
 		[&]() {
 			military::for_each_unit(state, [&](auto mil_unit) {
-				auto fat_unit = fatten(state.world, mil_unit);
 				dcon::nation_id controller = military::unit_get_controller(state, mil_unit);
 				if constexpr(std::is_same_v<decltype(mil_unit), dcon::army_id>) {
 					if(!controller) {
 						return;
 					}
 				}
-				military::unit_priority supply_prio = military::get_effective_unit_supply_priority(state, fat_unit.id, controller);
+				military::unit_priority supply_prio = military::get_effective_unit_supply_priority(state, mil_unit, controller);
 				switch(supply_prio) {
 				case military::unit_priority::low_priority:
 					accumulate_prioritized_unit_supply.template operator() < military::unit_priority::low_priority > (mil_unit, controller);
@@ -2429,9 +2435,7 @@ void update_supply_routes_daily(sys::state& state) {
 			});
 		}
 	);
-
-	end = std::chrono::steady_clock::now();
-	state.console_log(std::string("STEP 4 time: " + std::to_string(std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count())));
+	profile_step_end("STEP 4");
 	
 
 
@@ -2531,11 +2535,12 @@ void update_supply_routes_daily(sys::state& state) {
 
 
 	// STEP 5: Update the actual goods satisfaction for all units and constructions. It will remove goods presumed to be consumed from the buffer if a valid route and path exists.
-	// If a route or path does not exist already between the stockpile and the unit/construction, it will add to to the pending queue of routes/paths to be created and skip.
-	// Units must be done in order of reinforcement priority, via 3 vectors of differing priorities
-	// Each unit vector and constructions are done in parallel over the commodities, as that allows it to be deterministic
+	// If a route or path does not exist already between the stockpile and the unit/construction, it will create them without pathing and assume the pathing will be valid and thus consume as if it was valid.
+	// The later pathing logic will then find out if it is valid later. If it turns out to be invalid, then no transportation will occur
+	// Units must be done in order of supply priority, via 3 vectors of differing priorities
+	// Each unit vector and constructions are done in serial, as the units/constructions following must know how much is planned to be consumed from the stockpiles by other units/constructions, to know how much they can consume
 
-	begin = std::chrono::steady_clock::now();
+	profile_step_start();
 
 
 	// Lambda to process each prioitized unit vector seperately
@@ -2628,16 +2633,15 @@ void update_supply_routes_daily(sys::state& state) {
 	compute_nations_construction_expected_satisfaction();
 	process_constructions();
 
-	end = std::chrono::steady_clock::now();
-	state.console_log(std::string("STEP 5 time: " + std::to_string(std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count())));
-	begin = std::chrono::steady_clock::now();
+	profile_step_end("STEP 5");
+	profile_step_start();
 
 
 
 
 	// STEP 6: update the paths of any supply routes which are deemed out-of-date or has no path. They are deemed out of date if anything significant happens to disrupt it and an update is scheduled. 
-	// Weekly province updates are issued once per week at diffrent intervals, ie army supply routes are done at the 1st day of the week, navy supply routes on the 2nd day etc
-	// Updates triggered by unit movement is done daily 
+	// Weekly province updates are issued once per week, and things like moving into an enemy province will schedule a weekly update on enemy routes through said province.
+	// Updates on army/navy routes are done daily if the army/navy completes a movement to a diffrent province
 
 	auto day_of_week = state.current_date.value % 7;
 	if(day_of_week == 0) {
@@ -2690,13 +2694,15 @@ void update_supply_routes_daily(sys::state& state) {
 		});
 	}
 
-	end = std::chrono::steady_clock::now();
-	state.console_log(std::string("STEP 6 time: " + std::to_string(std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count())));
-	begin = std::chrono::steady_clock::now();
+	profile_step_end("STEP 6");
+	profile_step_start();
 
 
-	// step 7: Increment the amount of days a route or path has been inactive, add the volume used by some supply routes unto each adjacency, and finally set the recently_created flag to false.
-	// Also setup the path batch container in the meantime as it can also run in parallel with these things
+	// step 7: Do a bunch of mostly unrelated things in parallel:
+	// Increment the amount of days a route or path has been inactive,
+	// add the volume used by some supply routes unto each adjacency,
+	// set the recently_created flag to false
+	// setup the path batch container in the meantime as it can also run in parallel with these things
 
 	static std::vector<std::vector<dcon::supply_route_path_id>> path_batches;
 
@@ -2717,7 +2723,7 @@ void update_supply_routes_daily(sys::state& state) {
 			});
 		},
 		[&]() {
-			// Add the used supply throughput from paths unto each province adjacency. Might be able to parallelize this
+			// Add the used supply throughput from paths unto each province adjacency. Might be able to parallelize this, but its really annoying
 			state.world.for_each_supply_route_path([&](dcon::supply_route_path_id path) {
 				bool path_valid = state.world.supply_route_path_get_valid_path(path);
 				bool path_out_of_date = state.world.supply_route_path_get_path_out_of_date(path);
@@ -2736,14 +2742,14 @@ void update_supply_routes_daily(sys::state& state) {
 		}
 	);
 
-	end = std::chrono::steady_clock::now();
-	state.console_log(std::string("STEP 7 time: " + std::to_string(std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count())));
-	begin = std::chrono::steady_clock::now();
+	profile_step_end("STEP 7");
+	profile_step_start();
 
 	// STEP 8: Update paths requiring an update by processing it in batches. The total amount of paths requiring an update will be divided into x batches, done by the previous loop. The logic will attempt to keep paths with the same origin point in diffrent batches to lessen the impact on patching quality
 
 
 	// Process the batches. The application of used supply throughput is done once per batch, and has to be done serially as it modifies arbitrary province adjacency data
+	// Maybe you can parallelize the last part too, but i havent found a nice way of doing it
 	for(const auto& paths_batch : path_batches) {
 		concurrency::parallel_for_each(paths_batch.begin(), paths_batch.end(), [&](dcon::supply_route_path_id path_handle) {
 			update_supply_route_path(state, path_handle, state.world.supply_route_path_get_volume(path_handle));
@@ -2766,24 +2772,23 @@ void update_supply_routes_daily(sys::state& state) {
 		});
 	}
 
-	end = std::chrono::steady_clock::now();
-	state.console_log(std::string("STEP 8 time: " + std::to_string(std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count())));
-	begin = std::chrono::steady_clock::now();
+	profile_step_end("STEP 8");
+	profile_step_start();
 
 	// STEP 9: update throughput rate and supply loss on paths which are active and valid in parallel 
-
+	// Non-active or non-valid paths are not expected to be used to actually transfer goods to its destination
 	parallel_for_each_supply_route_path_predicate(state, [&](dcon::supply_route_path_id p) { return supply_route_path_is_active(state, p) && state.world.supply_route_path_get_valid_path(p);  }, [&](dcon::supply_route_path_id path_handle) {
 		update_supply_path_throughput_attrition(state, path_handle, supply_route_path_get_owner(state, path_handle));
 	});
 
 
-	end = std::chrono::steady_clock::now();
-	state.console_log(std::string("STEP 9 time: " + std::to_string(std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count())));
-	begin = std::chrono::steady_clock::now();
+	profile_step_end("STEP 9");
+	profile_step_start();
 
 
 	// STEP 10: subtract from stockpiles the actual buffered amount which each route has taken
 	// Must take into account the actual throughput, and only subtract the percentage of goods which were possible to move
+	// This can't be parallelized easily as the adding/subtracting from govt stockpiles does it both to the market, and to the cached "total" stockpiles on nation
 
 	for_each_unit_supply_route(state, [&](auto r) {
 		auto route = fatten(state.world, r);
@@ -2825,11 +2830,10 @@ void update_supply_routes_daily(sys::state& state) {
 		}
 	});
 
-	end = std::chrono::steady_clock::now();
-	state.console_log(std::string("STEP 10 time: " + std::to_string(std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count())));
-	begin = std::chrono::steady_clock::now();
+	profile_step_end("STEP 10");
+	profile_step_start();
 
-	// STEP 11: Update each army/navy supply & reinforcement satisfaction and advance constructions, by computing how much of their required commodities they were able to receive from all supply routes
+	// STEP 11: Commit the transpotation on active routes to each army/navy and convert it into supply & reinforcement satisfaction. Commit it for constructions too, and move goods from routes to their purchased_goods container
 
 	// Start processing each army/navy and applying reinforcement/supply satisfaction
 	// Do military units
@@ -2841,8 +2845,7 @@ void update_supply_routes_daily(sys::state& state) {
 		update_construction_commodity_satisfaction(state, construction);
 	});
 
-	end = std::chrono::steady_clock::now();
-	state.console_log(std::string("STEP 11 time: " + std::to_string(std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count())));
+	profile_step_end("STEP 11");
 
 }
 
