@@ -37,9 +37,24 @@
 #include "alice_ui.hpp"
 #include "commands.hpp"
 #include "dcon_oos_reporter_generated.hpp"
+#include "logistics.hpp"
+#include "logistics_templates.hpp"
 #include "math_fns.hpp"
 
 namespace sys {
+
+
+state::state() : untrans_key_to_text_sequence(0, text::vector_backed_ci_hash(key_data), text::vector_backed_ci_eq(key_data)), locale_key_to_text_sequence(0, text::vector_backed_ci_hash(key_data), text::vector_backed_ci_eq(key_data)), current_scene(game_scene::nation_picker()), singleplayer_commands(4096), new_n_event(1024), new_f_n_event(1024), new_p_event(1024), new_f_p_event(1024), new_requests(256), new_messages(2048), naval_battle_reports(256), land_battle_reports(256), error_windows(256), pending_log_messages(256) {
+
+
+	key_data.push_back(0);
+	logger_thread = start_logger_thread(); // create logger thread to handle incoming log message asynchronously
+}
+
+state::~state() {
+	quit_signaled.store(true, std::memory_order::release);
+	logger_thread.join(); // wait for logger thread to quit after signalling
+}
 
 void state::start_state_selection(state_selection_data& data) {
 	state_selection = data;
@@ -3091,7 +3106,6 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 
 	// misc touch ups
 	nations::generate_initial_state_instances(*this);
-	world.nation_resize_stockpiles(world.commodity_size());
 	world.nation_resize_variables(uint32_t(national_definitions.num_allocated_national_variables));
 	world.pop_resize_udemographics(pop_demographics::size(*this));
 	national_definitions.global_flag_variables.resize((national_definitions.num_allocated_global_flags + 7) / 8, dcon::bitfield_type{ 0 });
@@ -3270,6 +3284,8 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	world.market_resize_stockpile_sales(world.commodity_size());
 	world.market_resize_consumption(world.commodity_size());
 	world.market_resize_intermediate_demand(world.commodity_size());
+	world.market_resize_government_stockpile(world.commodity_size());
+	world.market_resize_government_stockpile_demand_weights(world.commodity_size());
 
 	world.market_resize_life_needs_costs(world.pop_type_size());
 	world.market_resize_everyday_needs_costs(world.pop_type_size());
@@ -3289,7 +3305,8 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	world.market_resize_export(world.commodity_size());
 	world.market_resize_army_demand(world.commodity_size());
 	world.market_resize_navy_demand(world.commodity_size());
-	world.market_resize_construction_demand(world.commodity_size());
+	world.market_resize_government_construction_demand(world.commodity_size());
+	world.market_resize_government_stockpile_demand(world.commodity_size());
 	world.market_resize_private_construction_demand(world.commodity_size());
 	world.market_resize_actual_probability_to_buy(world.commodity_size());
 	world.market_resize_actual_probability_to_sell(world.commodity_size());
@@ -3317,9 +3334,16 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	advanced_province_buildings::initialize_size_of_dcon_arrays(*this);
 
 	world.nation_resize_stockpile_targets(world.commodity_size());
+	world.nation_resize_total_stockpiles(world.commodity_size());
+	world.nation_resize_yesterday_total_stockpiles(world.commodity_size());
 	world.nation_resize_drawing_on_stockpiles(world.commodity_size());
 	world.commodity_resize_price_record(economy::price_history_length);
 	world.nation_resize_gdp_record(economy::gdp_history_length);
+
+	world.army_supply_route_resize_buffered_reinforcement_goods(world.unit_build_commodity_size());
+	world.army_supply_route_resize_buffered_supply_goods(world.unit_supply_commodity_size());
+	world.navy_supply_route_resize_buffered_reinforcement_goods(world.unit_build_commodity_size());
+	world.navy_supply_route_resize_buffered_supply_goods(world.unit_supply_commodity_size());
 
 	nations_by_rank.resize(2000); // TODO: take this value directly from the data container: max number of nations
 	nations_by_industrial_score.resize(2000);
@@ -3681,8 +3705,6 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 
 	demographics::fixup_state_only_pops<true>(*this);
 
-	military::reinforce_regiments(*this);
-	military::repair_ships(*this);
 
 
 	nations::update_national_administrative_efficiency(*this);
@@ -3717,6 +3739,8 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 		culture::fix_slaves_in_province(*this, p.get_nation_from_province_ownership(), p);
 	}
 
+	military::update_fastest_units(*this);
+
 	economy::sanity_check(*this);
 
 	economy::sanity_check(*this);
@@ -3732,8 +3756,23 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	// ai::update_ai_research(*this);
 	ai::update_influence_priorities(*this);
 	ai::update_focuses(*this);
+	// Right now we dont need to do any military or logistics related updates on scenario creation, since it won't do anything anyway
+	/*logistics::update_supply_routes_daily(*this);
 
-	military::recover_org(*this);
+
+	military::reinforce_regiments(*this);
+
+	concurrency::parallel_invoke(
+		[&]() {
+			military::recover_land_org(*this);
+		},
+		[&]() {
+			military::recover_naval_org(*this);
+		},
+		[&]() {
+			military::repair_ships(*this);
+		}
+	);*/
 
 	military::set_initial_leaders(*this);
 
@@ -4557,6 +4596,22 @@ void state::fill_unsaved_data() { // reconstructs derived values that are not di
 	world.state_instance_resize_demographics_alt(demographics::size(*this));
 	world.province_resize_demographics_alt(demographics::size(*this));
 
+	world.market_resize_commodity_float_buffer_1(world.commodity_size());
+
+	world.nation_resize_commodity_float_buffer_1(world.commodity_size());
+	world.nation_resize_commodity_float_buffer_2(world.commodity_size());
+	world.nation_resize_commodity_float_buffer_3(world.commodity_size());
+	world.nation_resize_unit_supply_and_build_commodity_float_buffer_1(world.unit_supply_and_build_commodity_size());
+	world.nation_resize_unit_supply_and_build_commodity_float_buffer_2(world.unit_supply_and_build_commodity_size());
+	world.nation_resize_unit_supply_and_build_commodity_float_buffer_3(world.unit_supply_and_build_commodity_size());
+	world.nation_resize_unit_supply_and_build_commodity_float_buffer_4(world.unit_supply_and_build_commodity_size());
+
+	world.army_resize_unit_build_commodity_float_buffer_1(world.unit_build_commodity_size());
+	world.army_resize_unit_supply_commodity_float_buffer_1(world.unit_supply_commodity_size());
+
+	world.navy_resize_unit_build_commodity_float_buffer_1(world.unit_build_commodity_size());
+	world.navy_resize_unit_supply_commodity_float_buffer_1(world.unit_supply_commodity_size());
+
 	province::restore_distances(*this);
 
 	world.for_each_nation([&](dcon::nation_id id) { politics::update_displayed_identity(*this, id); });
@@ -4619,6 +4674,8 @@ void state::fill_unsaved_data() { // reconstructs derived values that are not di
 		world.issue_set_issue_type(i, uint8_t(culture::issue_type::political));
 	}
 
+
+
 	military::reset_unit_stats(*this);
 	culture::clear_existing_tech_effects(*this);
 	culture::repopulate_technology_effects(*this);
@@ -4658,6 +4715,7 @@ void state::fill_unsaved_data() { // reconstructs derived values that are not di
 
 	nations::monthly_flashpoint_update(*this);
 
+	logistics::regenerate_unsaved_values(*this);
 
 	//
 	// clear any pending messages from previously loaded saves
@@ -5045,6 +5103,8 @@ void state::single_game_tick() {
 				break;
 			}
 		});
+		// unit movement update should happen before supply routes update at minimum so routes can be immediately updated upon movement completion
+		military::update_movement(*this);
 
 		economy::daily_update(*this, false, 1.f);
 
@@ -5052,9 +5112,26 @@ void state::single_game_tick() {
 		// ALTERNATE PAR DEMO START POINT B
 		//
 
-		military::recover_org(*this);
+
+		logistics::update_supply_routes_daily(*this);
+
+		economy::advance_constructions_progress(*this);
+
+		economy::resolve_constructions(*this);
+
+		// Ship repair happens daily now, and can be done in parallel with org calculations
+		concurrency::parallel_invoke(
+			[&]() {
+				military::recover_land_org(*this);
+			},
+			[&]() {
+				military::recover_naval_org(*this);
+			},
+			[&]() {
+				military::repair_ships(*this);
+			}
+		);
 		military::update_siege_progress(*this);
-		military::update_movement(*this);
 		military::update_naval_battles(*this);
 		military::update_land_battles(*this);
 
@@ -5088,15 +5165,23 @@ void state::single_game_tick() {
 
 		event::update_events(*this);
 
+		// weekly updates
+		auto day_of_week = current_date.to_raw_value() % 7;
+		switch(day_of_week) {
+		case 6:
+			sys::update_modifier_effects(*this);
+			break;
+		}
+
 		// Once per month updates, spread out over the month
 		switch(ymd_date.day) {
 		case 1:
 			nations::update_monthly_points(*this);
 			economy::prune_factories(*this);
+			logistics::schedule_active_ineffective_supply_paths_update(*this); // The actual update will happen on the 2nd day of the month, this just schedules it
 			break;
 		case 2:
 			province::update_blockaded_cache(*this);
-			sys::update_modifier_effects(*this);
 			break;
 		case 3:
 			military::monthly_leaders_update(*this);
@@ -5125,10 +5210,11 @@ void state::single_game_tick() {
 			military::apply_attrition(*this);
 			break;
 		case 9:
-			military::repair_ships(*this);
+			military::update_fastest_units(*this);
 			break;
 		case 10:
 			province::update_crimes(*this);
+			economy::recreate_total_government_stockpiles(*this);
 			break;
 		case 11:
 			province::update_nationalism(*this);
@@ -5158,6 +5244,7 @@ void state::single_game_tick() {
 			break;
 		case 19:
 			ai::update_budget(*this);
+			ai::update_stockpile_targets(*this);
 			break;
 		case 20:
 			nations::update_flashpoint_tags(*this);
@@ -5506,6 +5593,8 @@ std::thread state::start_logger_thread() {
 			this->flush_pending_log_messages();
 			std::this_thread::sleep_for(std::chrono::milliseconds(50));
 		}
+		// Do one last flush to flush any remaining messages before exit
+		this->flush_pending_log_messages();
 	});
 	return thread;
 }

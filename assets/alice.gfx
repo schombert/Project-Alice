@@ -1,4 +1,14 @@
 spriteTypes = {
+	spriteType = {
+		name = "GFX_alice_unit_bottom_bg"
+		texturefile = "assets\\alice_unit_bottom_bg.dds"
+	}
+	spriteType = {
+		name = "GFX_supply_prio_buttons"
+		texturefile = "assets\\supply_prio_buttons.dds"
+		noOfFrames = 3
+	}
+
     textSpriteType = {
 		name = "GFX_goto_location_button"
 		texturefile = "gfx\\interface\\save_list_button.png"
@@ -314,6 +324,26 @@ spriteTypes = {
 		noOfFrames = 2
 	}
 	spriteType = {
+		name = "GFX_mapmode_supply_loss"
+		texturefile = "assets\\mapmode_supply_loss.png"
+		noOfFrames = 2
+	}
+	spriteType = {
+		name = "GFX_mapmode_supply_throughput"
+		texturefile = "assets\\mapmode_supply_throughput.png"
+		noOfFrames = 2
+	}
+	spriteType = {
+		name = "GFX_mapmode_port_supply_capacity"
+		texturefile = "assets\\mapmode_port_supply_capacity.png"
+		noOfFrames = 2
+	}
+	spriteType = {
+		name = "GFX_mapmode_supply_efficiency"
+		texturefile = "assets\\mapmode_supply_efficiency.png"
+		noOfFrames = 2
+	}
+	spriteType = {
 		name = "new-minimap-bg"
 		texturefile = "assets\\sub-minimap.dds"
 		noOfFrames = 1
@@ -487,6 +517,10 @@ spriteTypes = {
 	spriteType = {
 		name = "GFX_move_capital"
 		texturefile = "assets\\move_cap.png"
+	}
+	spriteType = {
+		name = "GFX_move_state_capital"
+		texturefile = "assets\\move_state_cap.png"
 	}
 	
 	spriteType = {
@@ -670,5 +704,15 @@ spriteTypes = {
         name = "province_markettiles"
         texturefile = "assets\\markettiles.png"
         noOfFrames = 4
+	}
+	spriteType = {
+        name = "GFX_supply_loss_icon"
+        texturefile = "assets\\supply_loss_icon.dds"
+        noOfFrames = 1
+	}
+	spriteType = {
+        name = "GFX_supply_throughput_icon"
+        texturefile = "assets\\supply_throughput_icon.dds"
+        noOfFrames = 1
 	}
 }

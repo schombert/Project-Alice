@@ -18,8 +18,10 @@
 #include "projections.hpp"
 #include "gamerule_templates.hpp"
 #include "advanced_province_buildings.hpp"
-
+#include "concept_declarations.hpp"
 #include "xac.hpp"
+#include "logistics.hpp"
+
 namespace duplicates {
 glm::vec2 get_port_location(sys::state& state, dcon::province_id p) {
 	auto pt = state.world.province_get_port_to(p);
@@ -3118,6 +3120,61 @@ void make_army_path(sys::state& state, std::vector<map::curved_line_vertex>& buf
 		}
 	}
 }
+
+
+
+template<concepts::supply_route_type route_type>
+void make_supply_route_path(sys::state& state, std::vector<map::curved_line_vertex>& buffer, route_type r, std::span<const dcon::province_id> path, float size_x, float size_y) {
+	auto route = fatten(state.world, r);
+	if(auto ps = path.size(); ps > 0) {
+		auto progress = 0.0f;
+		// The "destination" is actually the start in the path, as it is more convinient to path FROM the army/construction to the origin (market stockpile).
+		dcon::province_id start_location = logistics::supply_route_get_destination(state, r);
+		glm::vec2 current_pos = duplicates::get_army_location(state, start_location);
+		glm::vec2 next_pos = put_in_local(duplicates::get_army_location(state, path[ps - 1]), current_pos, size_x);
+		glm::vec2 prev_perpendicular = glm::normalize(next_pos - current_pos);
+
+		auto start_normal = glm::vec2(-prev_perpendicular.y, prev_perpendicular.x);
+		auto norm_pos = current_pos / glm::vec2(size_x, size_y);
+
+		buffer.emplace_back(norm_pos, +start_normal, glm::vec2{ 0,0 }, glm::vec2(0.0f, 0.0f), progress > 0.0f ? 2.0f : 0.0f);
+		buffer.emplace_back(norm_pos, -start_normal, glm::vec2{ 0,0 }, glm::vec2(0.0f, 1.0f), progress > 0.0f ? 2.0f : 0.0f);
+		for(auto i = ps; i-- > 0;) {
+			glm::vec2 next_perpendicular{ 0.0f, 0.0f };
+			next_pos = put_in_local(duplicates::get_army_location(state, path[i]), current_pos, size_x);
+
+			if(i > 0) {
+				glm::vec2 next_next_pos = put_in_local(duplicates::get_army_location(state, path[i - 1]), next_pos, size_x);
+				glm::vec2 a_per = glm::normalize(next_pos - current_pos);
+				glm::vec2 b_per = glm::normalize(next_pos - next_next_pos);
+				glm::vec2 temp = a_per + b_per;
+				if(glm::length(temp) < 0.00001f) {
+					next_perpendicular = -a_per;
+				} else {
+					next_perpendicular = glm::normalize(glm::vec2{ -temp.y, temp.x });
+					if(glm::dot(a_per, -next_perpendicular) < glm::dot(a_per, next_perpendicular)) {
+						next_perpendicular *= -1.0f;
+					}
+				}
+			} else {
+				next_perpendicular = glm::normalize(current_pos - next_pos);
+			}
+
+			add_bezier_to_buffer(buffer, current_pos, next_pos, prev_perpendicular, next_perpendicular, i == ps - 1 ? progress : 0.0f, i == 0, size_x, size_y, default_num_b_segments);
+
+			prev_perpendicular = -1.0f * next_perpendicular;
+			current_pos = duplicates::get_army_location(state, path[i]);
+		}
+	}
+}
+
+template void make_supply_route_path<dcon::army_supply_route_id>(sys::state& state, std::vector<map::curved_line_vertex>& buffer, dcon::army_supply_route_id r, std::span<const dcon::province_id> path, float size_x, float size_y);
+template void make_supply_route_path<dcon::navy_supply_route_id>(sys::state& state, std::vector<map::curved_line_vertex>& buffer, dcon::navy_supply_route_id r, std::span<const dcon::province_id> path, float size_x, float size_y);
+template void make_supply_route_path<dcon::land_construction_supply_route_id>(sys::state& state, std::vector<map::curved_line_vertex>& buffer, dcon::land_construction_supply_route_id r, std::span<const dcon::province_id> path, float size_x, float size_y);
+template void make_supply_route_path<dcon::naval_construction_supply_route_id>(sys::state& state, std::vector<map::curved_line_vertex>& buffer, dcon::naval_construction_supply_route_id r, std::span<const dcon::province_id> path, float size_x, float size_y);
+
+
+
 
 void make_army_direction(sys::state& state, std::vector<map::curved_line_vertex>& buffer, dcon::army_id selected_army, float size_x, float size_y) {
 	auto path = state.world.army_get_path(selected_army);

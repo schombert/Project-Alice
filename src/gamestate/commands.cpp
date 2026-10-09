@@ -29,6 +29,8 @@
 #include "gui_message_settings_window.hpp"
 #include "gui_combat.hpp"
 #include "validation.hpp"
+#include "advanced_province_buildings.hpp"
+#include "logistics.hpp"
 
 namespace command {
 
@@ -550,9 +552,9 @@ void execute_begin_province_building_construction(sys::state& state, dcon::natio
 			si.set_naval_base_is_taken(true);
 	}
 
+	const auto& base_cost = state.economy_definitions.building_definitions[int32_t(type)].cost;
 	if(type != economy::province_building_type::fort && type != economy::province_building_type::naval_base && source != state.world.province_get_nation_from_province_ownership(p)) {
 		float amount = 0.0f;
-		auto& base_cost = state.economy_definitions.building_definitions[int32_t(type)].cost;
 		for(uint32_t j = 0; j < economy::commodity_set::set_size; ++j) {
 			if(base_cost.commodity_type[j]) {
 				amount += base_cost.commodity_amounts[j] * state.world.commodity_get_cost(base_cost.commodity_type[j]); //base cost
@@ -566,6 +568,9 @@ void execute_begin_province_building_construction(sys::state& state, dcon::natio
 	auto new_rr = fatten(state.world, state.world.force_create_province_building_construction(p, source));
 	new_rr.set_is_pop_project(false);
 	new_rr.set_type(uint8_t(type));
+	auto& purchased_goods = economy::construction_get_purchased_goods(state, new_rr.id);
+	// init types in new set
+	base_cost.copy_types_to(purchased_goods);
 }
 
 
@@ -808,10 +813,14 @@ void execute_begin_factory_building_construction(sys::state& state, dcon::nation
 	new_up.set_is_upgrade(is_upgrade);
 	new_up.set_type(type);
 	new_up.set_refit_target(refit_target);
+	const auto& base_cost = state.world.factory_type_get_construction_costs(type);
+
+	auto& purchased_goods = economy::construction_get_purchased_goods(state, new_up.id);
+	// init types in new set
+	base_cost.copy_types_to(purchased_goods);
 
 	if(source != state.world.province_get_nation_from_province_ownership(location)) {
 		float amount = 0.0f;
-		auto& base_cost = state.world.factory_type_get_construction_costs(type);
 		for(uint32_t j = 0; j < economy::commodity_set::set_size; ++j) {
 			if(base_cost.commodity_type[j]) {
 				amount += base_cost.commodity_amounts[j] * state.world.commodity_get_cost(base_cost.commodity_type[j]); //base cost
@@ -880,9 +889,18 @@ bool can_start_naval_unit_construction(sys::state& state, dcon::nation_id source
 
 void execute_start_naval_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::unit_type_id type, dcon::province_id template_province) {
 	auto c = fatten(state.world, state.world.try_create_province_naval_construction(location, source));
+	auto& fufilled_goods = c.get_purchased_goods();
+	const auto& build_cost = state.military_definitions.unit_base_definitions[type].build_cost;
+	// Initialize the commodity types in the fufilled goods buffer to have identical types as build cost
+	for(uint32_t i = 0; i < economy::commodity_set::set_size; i++) {
+		fufilled_goods.commodity_type[i] = build_cost.commodity_type[i];
+		fufilled_goods.commodity_amounts[i] = 0.0f;
+
+	}
 	c.set_type(type);
 	c.set_start_date(state.current_date);
 	c.set_template_province(template_province);
+	c.set_construction_days(0);
 }
 
 void start_land_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::culture_id soldier_culture, dcon::unit_type_id type, dcon::province_id template_province) {
@@ -936,11 +954,19 @@ template bool can_start_land_unit_construction<false>(sys::state& state, dcon::n
 
 void execute_start_land_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::culture_id soldier_culture, dcon::unit_type_id type, dcon::province_id template_province) {
 	auto soldier = military::find_available_soldier(state, location, soldier_culture);
-
 	auto c = fatten(state.world, state.world.try_create_province_land_construction(soldier, source));
+	auto& fufilled_goods = c.get_purchased_goods();
+	const auto& build_cost = state.military_definitions.unit_base_definitions[type].build_cost;
+	// Initialize the commodity types in the fufilled goods buffer to have identical types as build cost
+	for(uint32_t i = 0; i < economy::commodity_set::set_size; i++) {
+		fufilled_goods.commodity_type[i] = build_cost.commodity_type[i];
+		fufilled_goods.commodity_amounts[i] = 0.0f;
+
+	}
 	c.set_start_date(state.current_date);
 	c.set_type(type);
 	c.set_template_province(template_province);
+	c.set_construction_days(0);
 }
 
 void cancel_naval_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::unit_type_id type) {
@@ -967,7 +993,7 @@ void execute_cancel_naval_unit_construction(sys::state& state, dcon::nation_id s
 			c = lc.id;
 		}
 	}
-	state.world.delete_province_naval_construction(c);
+	economy::delete_unit_construction<economy::construction_completed::no>(state, c);
 }
 
 void cancel_land_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::culture_id soldier_culture, dcon::unit_type_id type) {
@@ -997,7 +1023,7 @@ void execute_cancel_land_unit_construction(sys::state& state, dcon::nation_id so
 			}
 		}
 	}
-	state.world.delete_province_land_construction(c);
+	economy::delete_unit_construction<economy::construction_completed::no>(state, c);
 }
 
 void delete_factory(sys::state& state, dcon::nation_id source, dcon::factory_id f) {
@@ -1140,6 +1166,135 @@ void execute_release_and_play_as(sys::state& state, dcon::nation_id source, dcon
 	}
 }
 
+
+bool can_change_army_supply_consumption_setting(const sys::state& state, dcon::nation_id source, const command_data& command) {
+	const auto& data = command.get_payload<change_logistics_setting_data>();
+	return logistics::can_change_army_supply_consumption_setting<actor::player>(state, source, data.new_setting);
+}
+void change_army_supply_consumption_setting(sys::state& state, int8_t new_setting) {
+	command_data p{command_type::change_army_supply_consumption_setting, state.local_player_id };
+	auto data = change_logistics_setting_data{ new_setting };
+	p << data;
+	add_to_command_queue(state, p);
+}
+void execute_change_army_supply_consumption_setting(sys::state& state, dcon::nation_id source, const command_data& command) {
+	const auto& data = command.get_payload< change_logistics_setting_data>();
+	logistics::change_army_supply_consumption_setting<actor::player>(state, source, data.new_setting);
+}
+
+
+bool can_change_army_reinforcement_consumption_setting(const sys::state& state, dcon::nation_id source, const command_data& command) {
+	const auto& data = command.get_payload<change_logistics_setting_data>();
+	return logistics::can_change_army_reinforcement_consumption_setting<actor::player>(state, source, data.new_setting);
+}
+void change_army_reinforcement_consumption_setting(sys::state& state, int8_t new_setting) {
+	command_data p{ command_type::change_army_reinforcement_consumption_setting, state.local_player_id };
+	auto data = change_logistics_setting_data{ new_setting };
+	p << data;
+	add_to_command_queue(state, p);
+}
+void execute_change_army_reinforcement_consumption_setting(sys::state& state, dcon::nation_id source, const command_data& command) {
+	const auto& data = command.get_payload< change_logistics_setting_data>();
+	logistics::change_army_reinforcement_consumption_setting<actor::player>(state, source, data.new_setting);
+}
+
+
+bool can_change_navy_supply_consumption_setting(const sys::state& state, dcon::nation_id source, const command_data& command) {
+	const auto& data = command.get_payload<change_logistics_setting_data>();
+	return logistics::can_change_navy_supply_consumption_setting<actor::player>(state, source, data.new_setting);
+}
+void change_navy_supply_consumption_setting(sys::state& state, int8_t new_setting) {
+	command_data p{ command_type::change_navy_supply_consumption_setting, state.local_player_id };
+	auto data = change_logistics_setting_data{ new_setting };
+	p << data;
+	add_to_command_queue(state, p);
+}
+void execute_change_navy_supply_consumption_setting(sys::state& state, dcon::nation_id source, const command_data& command) {
+	const auto& data = command.get_payload< change_logistics_setting_data>();
+	logistics::change_navy_supply_consumption_setting<actor::player>(state, source, data.new_setting);
+}
+
+
+bool can_change_navy_reinforcement_consumption_setting(const sys::state& state, dcon::nation_id source, const command_data& command) {
+	const auto& data = command.get_payload<change_logistics_setting_data>();
+	return logistics::can_change_navy_reinforcement_consumption_setting<actor::player>(state, source, data.new_setting);
+}
+void change_navy_reinforcement_consumption_setting(sys::state& state, int8_t new_setting) {
+	command_data p{ command_type::change_navy_reinforcement_consumption_setting, state.local_player_id };
+	auto data = change_logistics_setting_data{ new_setting };
+	p << data;
+	add_to_command_queue(state, p);
+}
+void execute_change_navy_reinforcement_consumption_setting(sys::state& state, dcon::nation_id source, const command_data& command) {
+	const auto& data = command.get_payload< change_logistics_setting_data>();
+	logistics::change_navy_reinforcement_consumption_setting<actor::player>(state, source, data.new_setting);
+}
+
+
+bool can_change_army_construction_consumption_setting(const sys::state& state, dcon::nation_id source, const command_data& command) {
+	const auto& data = command.get_payload<change_logistics_setting_data>();
+	return logistics::can_change_army_construction_consumption_setting<actor::player>(state, source, data.new_setting);
+}
+void change_army_construction_consumption_setting(sys::state& state, int8_t new_setting) {
+	command_data p{ command_type::change_army_construction_consumption_setting, state.local_player_id };
+	auto data = change_logistics_setting_data{ new_setting };
+	p << data;
+	add_to_command_queue(state, p);
+}
+void execute_change_army_construction_consumption_setting(sys::state& state, dcon::nation_id source, const command_data& command) {
+	const auto& data = command.get_payload< change_logistics_setting_data>();
+	logistics::change_army_construction_consumption_setting<actor::player>(state, source, data.new_setting);
+}
+
+
+bool can_change_navy_construction_consumption_setting(const sys::state& state, dcon::nation_id source, const command_data& command) {
+	const auto& data = command.get_payload<change_logistics_setting_data>();
+	return logistics::can_change_navy_construction_consumption_setting<actor::player>(state, source, data.new_setting);
+}
+void change_navy_construction_consumption_setting(sys::state& state, int8_t new_setting) {
+	command_data p{ command_type::change_navy_construction_consumption_setting, state.local_player_id };
+	auto data = change_logistics_setting_data{ new_setting };
+	p << data;
+	add_to_command_queue(state, p);
+}
+void execute_change_navy_construction_consumption_setting(sys::state& state, dcon::nation_id source, const command_data& command) {
+	const auto& data = command.get_payload< change_logistics_setting_data>();
+	logistics::change_navy_construction_consumption_setting<actor::player>(state, source, data.new_setting);
+}
+
+
+bool can_change_factory_construction_consumption_setting(const sys::state& state, dcon::nation_id source, const command_data& command) {
+	const auto& data = command.get_payload<change_logistics_setting_data>();
+	return logistics::can_change_factory_construction_consumption_setting<actor::player>(state, source, data.new_setting);
+}
+void change_factory_construction_consumption_setting(sys::state& state, int8_t new_setting) {
+	command_data p{ command_type::change_factory_construction_consumption_setting, state.local_player_id };
+	auto data = change_logistics_setting_data{ new_setting };
+	p << data;
+	add_to_command_queue(state, p);
+}
+void execute_change_factory_construction_consumption_setting(sys::state& state, dcon::nation_id source, const command_data& command) {
+	const auto& data = command.get_payload< change_logistics_setting_data>();
+	logistics::change_factory_construction_consumption_setting<actor::player>(state, source, data.new_setting);
+}
+
+
+bool can_change_building_construction_consumption_setting(const sys::state& state, dcon::nation_id source, const command_data& command) {
+	const auto& data = command.get_payload<change_logistics_setting_data>();
+	return logistics::can_change_building_construction_consumption_setting<actor::player>(state, source, data.new_setting);
+}
+void change_building_construction_consumption_setting(sys::state& state, int8_t new_setting) {
+	command_data p{ command_type::change_building_construction_consumption_setting, state.local_player_id };
+	auto data = change_logistics_setting_data{ new_setting };
+	p << data;
+	add_to_command_queue(state, p);
+}
+void execute_change_building_construction_consumption_setting(sys::state& state, dcon::nation_id source, const command_data& command) {
+	const auto& data = command.get_payload< change_logistics_setting_data>();
+	logistics::change_building_construction_consumption_setting<actor::player>(state, source, data.new_setting);
+}
+
+
 inline bool can_change_budget_settings(sys::state& state, dcon::nation_id source, budget_settings_data const& values) {
 	if(!state.current_scene.game_in_progress) {
 		return false;
@@ -1184,6 +1339,9 @@ void execute_change_budget_settings(sys::state& state, dcon::nation_id source, b
 	}
 	if(values.social_spending != int8_t(-127)) {
 		state.world.nation_set_social_spending(source, std::clamp(values.social_spending, int8_t(0), int8_t(100)));
+	}
+	if(values.stockpile_spending != int8_t(-127)) {
+		state.world.nation_set_stockpile_spending(source, std::clamp(values.stockpile_spending, int8_t(0), int8_t(100)));
 	}
 	if(values.tariffs_import != int8_t(-127)) {
 		state.world.nation_set_tariffs_import(source, std::clamp(values.tariffs_import, int8_t(-100), int8_t(100)));
@@ -2258,6 +2416,10 @@ bool can_change_stockpile_settings(sys::state& state, dcon::nation_id source, dc
 	if(!state.current_scene.game_in_progress) {
 		return false;
 	}
+	// sanity check, no negative target, and no more than 1 billion stockpile target
+	if(target_amount < 0.0f || target_amount > 1000000000.0f) {
+		return false;
+	}
 	return true;
 }
 
@@ -2642,14 +2804,9 @@ bool can_give_military_access(sys::state& state, dcon::nation_id asker, dcon::na
 	return true;
 }
 void execute_give_military_access(sys::state& state, dcon::nation_id asker, dcon::nation_id target) {
+	military::give_military_access(state, target, asker);
 	auto& current_diplo = state.world.nation_get_diplomatic_points(asker);
 	state.world.nation_set_diplomatic_points(asker, current_diplo - state.defines.givemilaccess_diplomatic_cost);
-
-	auto urel = state.world.get_unilateral_relationship_by_unilateral_pair(asker, target);
-	if(!urel) {
-		urel = state.world.force_create_unilateral_relationship(asker, target);
-	}
-	state.world.unilateral_relationship_set_military_access(urel, true);
 	nations::adjust_relationship(state, asker, target, state.defines.givemilaccess_relation_on_accept);
 }
 
@@ -3038,7 +3195,7 @@ bool can_command_units(sys::state& state, dcon::nation_id asker, dcon::nation_id
 	if(!nations::is_nation_subject_of(state, target, asker)) {
 		return false;
 	}
-	if(nations::is_commanding_subject_units(state, target, asker)) {
+	if(nations::is_units_commanded_by_overlord(state, target)) {
 		return false;
 	}
 	return true;
@@ -3055,7 +3212,8 @@ void command_units(sys::state& state, dcon::nation_id asker, dcon::nation_id tar
 
 
 void execute_command_units(sys::state& state, dcon::nation_id asker, dcon::nation_id target) {
-	state.world.nation_set_overlord_commanding_units(target, true);
+	auto overlord_rel = state.world.nation_get_overlord_as_subject(target);
+	state.world.overlord_set_commanding_units(overlord_rel, true);
 	ai::remove_ai_data(state, target);
 }
 
@@ -3076,7 +3234,7 @@ bool can_give_back_units(sys::state& state, dcon::nation_id asker, dcon::nation_
 	if(!nations::is_nation_subject_of(state, target, asker)) {
 		return false;
 	}
-	if(!nations::is_commanding_subject_units(state, target, asker)) {
+	if(!nations::is_units_commanded_by_overlord(state, target)) {
 		return false;
 	}
 	return true;
@@ -3226,10 +3384,7 @@ bool can_cancel_military_access(sys::state& state, dcon::nation_id source, dcon:
 		return false;
 }
 void execute_cancel_military_access(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
-	auto rel = state.world.get_unilateral_relationship_by_unilateral_pair(target, source);
-	if(rel)
-		state.world.unilateral_relationship_set_military_access(rel, false);
-
+	military::remove_military_access(state, source, target);
 	auto& current_diplo = state.world.nation_get_diplomatic_points(source);
 	state.world.nation_set_diplomatic_points(source, current_diplo - state.defines.cancelaskmilaccess_diplomatic_cost);
 	nations::adjust_relationship(state, source, target, state.defines.cancelaskmilaccess_relation_on_accept);
@@ -3277,10 +3432,7 @@ bool can_cancel_given_military_access(sys::state& state, dcon::nation_id source,
 
 }
 void execute_cancel_given_military_access(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
-	auto rel = state.world.get_unilateral_relationship_by_unilateral_pair(source, target);
-	if(rel)
-		state.world.unilateral_relationship_set_military_access(rel, false);
-
+	military::remove_military_access(state, target, source);
 	auto& current_diplo = state.world.nation_get_diplomatic_points(source);
 	state.world.nation_set_diplomatic_points(source, current_diplo - state.defines.cancelgivemilaccess_diplomatic_cost);
 	nations::adjust_relationship(state, source, target, state.defines.cancelgivemilaccess_relation_on_accept);
@@ -4421,6 +4573,36 @@ void execute_toggle_rebel_hunting(sys::state& state, dcon::nation_id source, dco
 	}
 }
 
+
+void set_supply_priority_for_armies_in_battle(sys::state& state, fixed_bool_t setting) {
+	command_data p{ command_type::set_supply_priority_for_armies_in_battle, state.local_player_id };
+	auto data = set_supply_priority_for_units_in_battle_data{ setting };
+	p << data;
+	add_to_command_queue(state, p);
+}
+bool can_set_supply_priority_for_armies_in_battle(const sys::state& state, const command_data& cmd) {
+	return true;
+}
+void execute_set_supply_priority_for_armies_in_battle(sys::state& state, dcon::nation_id source, const command_data& cmd) {
+	const auto& data = cmd.get_payload<set_supply_priority_for_units_in_battle_data>();
+	military::set_supply_priority_for_armies_in_battle<actor::player>(state, source, data.setting);
+}
+
+
+void set_supply_priority_for_navies_in_battle(sys::state& state, fixed_bool_t setting) {
+	command_data p{ command_type::set_supply_priority_for_navies_in_battle, state.local_player_id };
+	auto data = set_supply_priority_for_units_in_battle_data{ setting };
+	p << data;
+	add_to_command_queue(state, p);
+}
+bool can_set_supply_priority_for_navies_in_battle(const sys::state& state, const command_data& cmd) {
+	return true;
+}
+void execute_set_supply_priority_for_navies_in_battle(sys::state& state, dcon::nation_id source, const command_data& cmd) {
+	const auto& data = cmd.get_payload<set_supply_priority_for_units_in_battle_data>();
+	military::set_supply_priority_for_navies_in_battle<actor::player>(state, source, data.setting);
+}
+
 void toggle_unit_ai_control(sys::state& state, dcon::nation_id source, dcon::army_id a) {
 
 	command_data p{ command_type::toggle_unit_ai_control, state.local_player_id };
@@ -4718,6 +4900,47 @@ bool can_split_navy(sys::state& state, dcon::nation_id source, command_data& com
 void execute_split_navy(sys::state& state, dcon::nation_id source, command_data& command) {
 	const auto& payload = command.get_payload< split_navy_data>();
 	return military::split_navy<command::actor::player>(state, source, payload.navy, std::span<const dcon::ship_id>(payload.ships(), payload.ship_count), payload.select_both_navies);
+}
+
+
+void set_army_supply_priority(sys::state& state, dcon::nation_id source, dcon::army_id army, military::unit_priority priority) {
+
+	command_data p{ command_type::set_army_supply_priority, state.local_player_id };
+	auto data = set_army_priority_data{};
+	data.army = army;
+	data.priority = priority;
+	p << data;
+	add_to_command_queue(state, p);
+
+}
+bool can_set_army_supply_priority(sys::state& state, dcon::nation_id source, command_data& command) {
+	const auto& payload = command.get_payload<set_army_priority_data>();
+
+	return military::can_set_army_supply_priority<command::actor::player>(state, source, payload.army, payload.priority);
+}
+void execute_set_army_supply_priority(sys::state& state, dcon::nation_id source, command_data& command) {
+	const auto& payload = command.get_payload<set_army_priority_data>();
+	military::set_army_supply_priority<command::actor::player>(state, source, payload.army, payload.priority);
+}
+
+void set_navy_supply_priority(sys::state& state, dcon::nation_id source, dcon::navy_id navy, military::unit_priority priority) {
+
+	command_data p{ command_type::set_navy_supply_priority, state.local_player_id };
+	auto data = set_navy_priority_data{};
+	data.navy = navy;
+	data.priority = priority;
+	p << data;
+	add_to_command_queue(state, p);
+
+}
+bool can_set_navy_supply_priority(sys::state& state, dcon::nation_id source, command_data& command) {
+	const auto& payload = command.get_payload<set_navy_priority_data>();
+
+	return military::can_set_navy_supply_priority<command::actor::player>(state, source, payload.navy, payload.priority);
+}
+void execute_set_navy_supply_priority(sys::state& state, dcon::nation_id source, command_data& command) {
+	const auto& payload = command.get_payload<set_navy_priority_data>();
+	military::set_navy_supply_priority<command::actor::player>(state, source, payload.navy, payload.priority);
 }
 
 void delete_army(sys::state& state, dcon::nation_id source, dcon::army_id a) {
@@ -5205,6 +5428,26 @@ bool can_move_capital(sys::state& state, dcon::nation_id source, dcon::province_
 void execute_move_capital(sys::state& state, dcon::nation_id source, dcon::province_id p) {
 	state.world.nation_set_capital(source, p);
 }
+
+void move_state_capital(sys::state& state, dcon::province_id prov) {
+
+	command_data p{ command_type::move_state_capital, state.local_player_id };
+	auto data = generic_location_data{ prov };
+	p << data;
+	add_to_command_queue(state, p);
+
+}
+
+bool can_move_state_capital(const sys::state& state, dcon::nation_id source, const command_data& command) {
+	const auto& payload = command.get_payload<generic_location_data>();
+	return province::can_move_state_capital<actor::player>(state, source, payload.prov);
+}
+
+void execute_move_state_capital(sys::state& state, dcon::nation_id source, const command_data& command) {
+	const auto& payload = command.get_payload<generic_location_data>();
+	province::move_state_capital<actor::player>(state, source, payload.prov);
+}
+
 
 void toggle_local_administration(sys::state& state, dcon::nation_id source, dcon::province_id prov) {
 
@@ -6019,7 +6262,7 @@ void execute_notify_start_game(sys::state& state, dcon::nation_id source) {
 		if(state.world.nation_get_is_player_controlled(n)) {
 			ai::remove_ai_data(state, n);
 			// give back units if puppet becomes player controlled
-			if(bool(state.world.nation_get_overlord_as_subject(n)) && state.world.nation_get_overlord_commanding_units(n)) {
+			if(nations::is_vassal(state, n)) {
 				military::give_back_units(state, n);
 			}
 		}
@@ -6935,6 +7178,10 @@ bool can_perform_command(sys::state& state, command_data& c) {
 		auto& data = c.get_payload<command::generic_location_data>();
 		return can_move_capital(state, source, data.prov);
 	}
+	case command_type::move_state_capital:
+	{
+		return can_move_state_capital(state, source, c);
+	}
 
 	case command_type::toggle_local_administration:
 	{
@@ -6974,6 +7221,46 @@ bool can_perform_command(sys::state& state, command_data& c) {
 	{
 		auto& data = c.get_payload<command::nbutton_data>();
 		return can_use_nation_button(state, source, data.button, data.id);
+	}
+	case command_type::change_army_supply_consumption_setting:
+	{
+		return can_change_army_supply_consumption_setting(state, source, c);
+	}
+	case command_type::change_army_reinforcement_consumption_setting:
+	{
+		return can_change_army_reinforcement_consumption_setting(state, source, c);
+	}
+	case command_type::change_navy_supply_consumption_setting:
+	{
+		return can_change_navy_supply_consumption_setting(state, source, c);
+	}
+	case command_type::change_navy_reinforcement_consumption_setting:
+	{
+		return can_change_navy_reinforcement_consumption_setting(state, source, c);
+	}
+	case command_type::change_army_construction_consumption_setting:
+	{
+		return can_change_army_construction_consumption_setting(state, source, c);
+	}
+	case command_type::change_navy_construction_consumption_setting:
+	{
+		return can_change_navy_construction_consumption_setting(state, source, c);
+	}
+	case command_type::change_factory_construction_consumption_setting:
+	{
+		return can_change_factory_construction_consumption_setting(state, source, c);
+	}
+	case command_type::change_building_construction_consumption_setting:
+	{
+		return can_change_building_construction_consumption_setting(state, source, c);
+	}
+	case command_type::set_supply_priority_for_armies_in_battle:
+	{
+		return can_set_supply_priority_for_armies_in_battle(state, c);
+	}
+	case command_type::set_supply_priority_for_navies_in_battle:
+	{
+		return can_set_supply_priority_for_navies_in_battle(state, c);
 	}
 
 		// common mp commands
@@ -7122,7 +7409,14 @@ bool can_perform_command(sys::state& state, command_data& c) {
 	{
 		return can_change_naval_unit_type(state, source, c);
 	}
-
+	case command_type::set_army_supply_priority:
+	{
+		return can_set_army_supply_priority(state, source, c);
+	}
+	case command_type::set_navy_supply_priority:
+	{
+		return can_set_navy_supply_priority(state, source, c);
+	}
 	}
 	return false;
 }
@@ -7486,7 +7780,7 @@ void execute_command(sys::state& state, command_data& c) {
 	case command_type::cancel_given_military_access:
 	{
 		auto& data = c.get_payload<diplo_action_data>();
-		execute_cancel_military_access(state, source_nation, data.target);
+		execute_cancel_given_military_access(state, source_nation, data.target);
 		break;
 	}
 	case command_type::declare_war:
@@ -7710,6 +8004,11 @@ void execute_command(sys::state& state, command_data& c) {
 		execute_move_capital(state, source_nation, data.prov);
 		break;
 	}
+	case command_type::move_state_capital:
+	{
+		execute_move_state_capital(state, source_nation, c);
+		break;
+	}
 	case command_type::toggle_local_administration:
 	{
 		auto& data = c.get_payload<generic_location_data>();
@@ -7757,6 +8056,47 @@ void execute_command(sys::state& state, command_data& c) {
 		execute_use_nation_button(state, source_nation, data.button, data.id);
 		break;
 	}
+	case command_type::change_army_supply_consumption_setting:
+	{
+		execute_change_army_supply_consumption_setting(state, source_nation, c);
+		break;
+	}
+	case command_type::change_army_reinforcement_consumption_setting:
+	{
+		execute_change_army_reinforcement_consumption_setting(state, source_nation, c);
+		break;
+	}
+	case command_type::change_navy_supply_consumption_setting:
+	{
+		execute_change_navy_supply_consumption_setting(state, source_nation, c);
+		break;
+	}
+	case command_type::change_navy_reinforcement_consumption_setting:
+	{
+		execute_change_navy_reinforcement_consumption_setting(state, source_nation, c);
+		break;
+	}
+	case command_type::change_army_construction_consumption_setting:
+	{
+		execute_change_army_construction_consumption_setting(state, source_nation, c);
+		break;
+	}
+	case command_type::change_navy_construction_consumption_setting:
+	{
+		execute_change_navy_construction_consumption_setting(state, source_nation, c);
+		break;
+	}
+	case command_type::change_factory_construction_consumption_setting:
+	{
+		execute_change_factory_construction_consumption_setting(state, source_nation, c);
+		break;
+	}
+	case command_type::change_building_construction_consumption_setting:
+	{
+		execute_change_building_construction_consumption_setting(state, source_nation, c);
+		break;
+	}
+
 		// common mp commands
 	case command_type::chat_message:
 	{
@@ -7924,6 +8264,26 @@ void execute_command(sys::state& state, command_data& c) {
 	{
 		auto& data = c.get_payload<change_naval_unit_type_data>();
 		execute_change_naval_unit_type(state, source_nation, std::span<const dcon::ship_id>(data.ships(), data.unit_count), data.new_type);
+		break;
+	}
+	case command_type::set_army_supply_priority:
+	{
+		execute_set_army_supply_priority(state, source_nation, c);
+		break;
+	}
+	case command_type::set_navy_supply_priority:
+	{
+		execute_set_navy_supply_priority(state, source_nation, c);
+		break;
+	}
+	case command_type::set_supply_priority_for_armies_in_battle:
+	{
+		execute_set_supply_priority_for_armies_in_battle(state, source_nation, c);
+		break;
+	}
+	case command_type::set_supply_priority_for_navies_in_battle:
+	{
+		execute_set_supply_priority_for_navies_in_battle(state, source_nation, c);
 		break;
 	}
 	}

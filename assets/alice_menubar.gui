@@ -522,6 +522,34 @@ guiTypes = {
 			Orientation = "LOWER_RIGHT"
 		}
 		guiButtonType = {
+			name = "mapmode_45"
+			tooltipText = "mapmode_45"
+			position = { -348 -220 }
+			quadTextureSprite = "GFX_mapmode_supply_loss"
+			Orientation = "LOWER_RIGHT"
+		}
+		guiButtonType = {
+			name = "mapmode_46"
+			tooltipText = "mapmode_46"
+			position = { -322 -220 }
+			quadTextureSprite = "GFX_mapmode_supply_throughput"
+			Orientation = "LOWER_RIGHT"
+		}
+		guiButtonType = {
+			name = "mapmode_47"
+			tooltipText = "mapmode_47"
+			position = { -296 -220 }
+			quadTextureSprite = "GFX_mapmode_port_supply_capacity"
+			Orientation = "LOWER_RIGHT"
+		}
+		guiButtonType = {
+			name = "mapmode_48"
+			tooltipText = "mapmode_48"
+			position = { -270 -220 }
+			quadTextureSprite = "GFX_mapmode_supply_efficiency"
+			Orientation = "LOWER_RIGHT"
+		}
+		guiButtonType = {
 				name = "expand_mapmodes_button"
 				position = { -374 -178 }
 				quadTextureSprite = "mapmodes_expand_button"

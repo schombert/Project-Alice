@@ -4,6 +4,7 @@
 #include "gui_listbox_templates.hpp"
 #include "gui_templates.hpp"
 #include "commands.hpp"
+#include <military_templates.hpp>
 
 namespace ui {
 
@@ -192,7 +193,7 @@ public:
 			);
 
 			//auto a = state.world.regiment_get_army_from_army_membership(reg_id);
-			auto reinf = state.defines.pop_size_per_regiment * military::unit_calculate_reinforcement<military::reinforcement_estimation_type::monthly>(state, reg_id, true);
+			auto reinf = state.defines.pop_size_per_regiment * military::estimate_reinforcement<military::interval_estimation::monthly, military::supply_estimation::based_on_satisfaction, military::reinforcement_cap::capped_at_max_strength>(state, reg_id);
 			if(reinf >= 2.0f) {
 				text::add_line(state, contents, "reinforce_rate", text::variable_type::x, int64_t(reinf));
 			} else {

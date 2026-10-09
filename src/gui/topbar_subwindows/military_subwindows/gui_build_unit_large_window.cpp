@@ -388,7 +388,7 @@ public:
 			for(auto ele : resource_cost_elements) {
 				ele->set_visible(state, false);
 			}
-			float factor = economy::build_cost_multiplier(state, content.province_info, false);
+			float factor = economy::location_build_cost_multiplier(state, content.province_info, false);
 			for(auto com : udef.build_cost.commodity_type) {
 				if(udef.build_cost.commodity_amounts[r] > 0.0f) {
 					if(r >= int16_t(resource_cost_elements.size()))
@@ -458,7 +458,7 @@ public:
 			for(auto ele : resource_cost_elements) {
 				ele->set_visible(state, false);
 			}
-			float factor = economy::build_cost_multiplier(state, content.province_info, false);
+			float factor = economy::location_build_cost_multiplier(state, content.province_info, false);
 			for(auto com : udef.build_cost.commodity_type) {
 				if(udef.build_cost.commodity_amounts[r] > 0.0f) {
 					if(r >= int16_t(resource_cost_elements.size()))

@@ -51,6 +51,7 @@ struct global_national_state {
 	dcon::modifier_id very_hard_ai;
 
 	// provincial
+	dcon::modifier_id province_base;
 	dcon::modifier_id overseas;
 	dcon::modifier_id coastal;
 	dcon::modifier_id non_coastal;
@@ -64,9 +65,12 @@ struct global_national_state {
 	dcon::modifier_id occupied;
 	dcon::modifier_id nationalism;
 	dcon::modifier_id infrastructure;
-
+	dcon::modifier_id province_militancy;
+	dcon::modifier_id province_control;
+	dcon::modifier_id civilian_port;
 	// national
-	dcon::modifier_id base_values;
+	dcon::modifier_id base_values; // old vanilla one, is not expected to work so we don't do anything with it
+	dcon::modifier_id nation_base; // new base added, this one will actually work
 	dcon::modifier_id war;
 	dcon::modifier_id peace;
 	dcon::modifier_id disarming;
@@ -84,6 +88,8 @@ struct global_national_state {
 	dcon::modifier_id total_occupation;
 	dcon::modifier_id total_blockaded;
 	dcon::modifier_id in_bankrupcy;
+	dcon::modifier_id fastest_land_unit_speed;
+	dcon::modifier_id fastest_transport_unit_speed;
 
 	int32_t num_allocated_national_variables = 0;
 	int32_t num_allocated_national_flags = 0;

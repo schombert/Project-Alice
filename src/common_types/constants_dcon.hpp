@@ -50,6 +50,11 @@ constexpr inline size_t max_production_type_bonuses = 6;
 
 namespace military {
 	constexpr uint8_t max_combat_width = 30;
+	enum class unit_priority : int8_t {
+		low_priority = -1,
+		normal_priority = 0,
+		high_priority = 1
+	};
 }
 // global namespace
 

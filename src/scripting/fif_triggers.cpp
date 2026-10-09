@@ -3529,7 +3529,7 @@ TRIGGER_FUNCTION(tf_variable_pop_type_name_pop) {
 		" r@ / 0.0 0.0 r> >= select " + value_to_string(read_float_from_payload(tval + 2)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_variable_good_name) {
-	return "dup " + value_to_string(trigger::payload(tval[1]).com_id.index()) + " >commodity_id stockpiles @ " + value_to_string(read_float_from_payload(tval + 2)) + " " + compare_values(tval[0]);
+	return "dup " + value_to_string(trigger::payload(tval[1]).com_id.index()) + " >commodity_id total_stockpiles @ " + value_to_string(read_float_from_payload(tval + 2)) + " " + compare_values(tval[0]);
 }
 TRIGGER_FUNCTION(tf_religion_nation) {
 	return "dup religion @ >index " + value_to_string(trigger::payload(tval[1]).rel_id.index()) + " " + compare_values_eq(tval[0]);

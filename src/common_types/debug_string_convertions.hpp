@@ -4,8 +4,8 @@
 
 
 namespace economy {
-struct commodity_set;
-struct small_commodity_set;
+//struct commodity_set;
+//struct small_commodity_set;
 }
 
 namespace military {
@@ -54,6 +54,7 @@ std::string to_debug_string(const military::mobilization_order& obj);
 std::string to_debug_string(const military::battle_regiment& obj);
 
 std::string to_debug_string(const military::available_cb& obj);
+
 
 }
 

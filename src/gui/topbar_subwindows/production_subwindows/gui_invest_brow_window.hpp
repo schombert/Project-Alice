@@ -3,6 +3,7 @@
 #include "gui_element_types.hpp"
 #include "gui_foreign_investment_window.hpp"
 #include "gui_listbox_templates.hpp"
+#include "culture_constants.hpp"
 
 namespace ui {
 

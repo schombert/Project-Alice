@@ -1,5 +1,7 @@
 #pragma once
 
+#include "culture_constants.hpp"
+
 std::vector<uint32_t> infrastructure_map_from(sys::state& state) {
 	uint32_t province_size = state.world.province_size();
 	uint32_t texture_size = province_size + 256 - province_size % 256;

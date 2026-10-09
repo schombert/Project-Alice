@@ -5,6 +5,7 @@
 #include "construction.hpp"
 #include "gui_listbox_templates.hpp"
 #include "economy_stats.hpp"
+#include "culture_constants.hpp"
 
 namespace ui {
 

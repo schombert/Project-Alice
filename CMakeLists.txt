@@ -127,6 +127,11 @@ set_source_files_properties(
 )
 
 list(APPEND ALICE_INCREMENTAL_SOURCES_LIST_GUI_OTHER
+	"${PROJECT_SOURCE_DIR}/src/gui/gui_element_types.cpp"
+	"${PROJECT_SOURCE_DIR}/src/gui/gui_main_menu.cpp"
+	"${PROJECT_SOURCE_DIR}/src/gui/gui_console.cpp"
+	"${PROJECT_SOURCE_DIR}/src/gui/gui_event.cpp"
+	"${PROJECT_SOURCE_DIR}/src/gui/gui_message_settings_window.cpp"
 	"${PROJECT_SOURCE_DIR}/src/gui/gui_message_window.cpp"
 	"${PROJECT_SOURCE_DIR}/src/gui/gui_chat_window.cpp"
 	"${PROJECT_SOURCE_DIR}/src/gui/gui_combat.cpp"
@@ -148,6 +153,28 @@ list(APPEND ALICE_INCREMENTAL_SOURCES_LIST_GUI_OTHER
 	"${PROJECT_SOURCE_DIR}/src/gui/unit_tooltip.cpp"
 	"${PROJECT_SOURCE_DIR}/src/gui/gui_context_window.cpp"
 	"${PROJECT_SOURCE_DIR}/src/gui/labour_details.cpp"
+	"${PROJECT_SOURCE_DIR}/src/map/map_modes.cpp"
+	"${PROJECT_SOURCE_DIR}/src/military/military.cpp"
+	"${PROJECT_SOURCE_DIR}/src/logistics/logistics.cpp"
+	"${PROJECT_SOURCE_DIR}/src/common_types/debug_string_convertions.cpp"
+	"${PROJECT_SOURCE_DIR}/src/nations/nations.cpp"
+	"${PROJECT_SOURCE_DIR}/src/network/SHA512.cpp"
+	"${PROJECT_SOURCE_DIR}/src/network/network.cpp"
+	"${PROJECT_SOURCE_DIR}/src/parsing/float_from_chars.cpp"
+	"${PROJECT_SOURCE_DIR}/src/parsing/parsers.cpp"
+	"${PROJECT_SOURCE_DIR}/src/platform_specific.cpp"
+	"${PROJECT_SOURCE_DIR}/src/provinces/province.cpp"
+	"${PROJECT_SOURCE_DIR}/src/scripting/effects.cpp"
+	"${PROJECT_SOURCE_DIR}/src/scripting/events.cpp"
+	"${PROJECT_SOURCE_DIR}/src/scripting/triggers.cpp"
+	"${PROJECT_SOURCE_DIR}/src/scripting/fif_triggers.cpp"
+	"${PROJECT_SOURCE_DIR}/src/text/bmfont.cpp"
+	"${PROJECT_SOURCE_DIR}/src/text/fonts.cpp"
+	"${PROJECT_SOURCE_DIR}/src/text/text.cpp"
+	"${PROJECT_SOURCE_DIR}/src/zstd/zstd.cpp"
+	"${PROJECT_SOURCE_DIR}/src/network/pcp.cpp"
+	"${PROJECT_SOURCE_DIR}/src/gamestate/game_scene.cpp"
+	"${PROJECT_SOURCE_DIR}/src/gamerule/gamerule.cpp"
 	"${PROJECT_SOURCE_DIR}/src/gui/gui_common_elements.cpp"
 	"${PROJECT_SOURCE_DIR}/src/gui/gui_effect_tooltips.cpp"
 	"${PROJECT_SOURCE_DIR}/src/gui/widgets/table.cpp"
@@ -156,6 +183,7 @@ list(APPEND ALICE_INCREMENTAL_SOURCES_LIST_GUI_OTHER
 	"${PROJECT_SOURCE_DIR}/src/gui/ui_state.cpp"
 	"${PROJECT_SOURCE_DIR}/src/gui/gui_element_base.cpp"
 	"${PROJECT_SOURCE_DIR}/src/gui/gui_other.cpp"
+
 )
 set_source_files_properties(
 	${ALICE_INCREMENTAL_SOURCES_LIST_GUI_OTHER}
@@ -185,13 +213,15 @@ list(APPEND ALICE_INCREMENTAL_SOURCES_LIST_SCRIPTING
 	"${PROJECT_SOURCE_DIR}/src/scripting/events.cpp"
 	"${PROJECT_SOURCE_DIR}/src/scripting/triggers.cpp"
 	"${PROJECT_SOURCE_DIR}/src/scripting/fif_triggers.cpp"
+	"${PROJECT_SOURCE_DIR}/src/gamestate/lua_alice_api.cpp"
 )
 set_source_files_properties(
 	${ALICE_INCREMENTAL_SOURCES_LIST_SCRIPTING}
 	PROPERTIES UNITY_GROUP "bucket-SCRIPTING"
 )
 
-list(APPEND ALICE_INCREMENTAL_SOURCES_LIST_GAMESTATE	
+list(APPEND ALICE_INCREMENTAL_SOURCES_LIST_GAMESTATE
+	"${PROJECT_SOURCE_DIR}/src/gamestate/system_state.cpp"
 	"${PROJECT_SOURCE_DIR}/src/gamestate/commands.cpp"
 	"${PROJECT_SOURCE_DIR}/src/gamestate/diplomatic_messages.cpp"
 	"${PROJECT_SOURCE_DIR}/src/gamestate/modifiers.cpp"
@@ -481,6 +511,7 @@ target_include_directories(AliceCommon INTERFACE
 	${PROJECT_SOURCE_DIR}/src/economy
 	${PROJECT_SOURCE_DIR}/src/culture
 	${PROJECT_SOURCE_DIR}/src/military
+	${PROJECT_SOURCE_DIR}/src/logistics
 	${PROJECT_SOURCE_DIR}/src/scripting
 	${PROJECT_SOURCE_DIR}/src/scripting/luajit
 	${PROJECT_SOURCE_DIR}/src/zstd

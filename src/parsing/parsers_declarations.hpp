@@ -643,6 +643,8 @@ struct good_context {
 };
 
 struct good {
+	float good_supply_weight = 1.0f;
+	float good_supply_loss_rate = 1.0f;
 	void money(association_type, bool v, error_handler& err, int32_t line, good_context& context);
 	void color(color_from_3i v, error_handler& err, int32_t line, good_context& context);
 	void cost(association_type, float v, error_handler& err, int32_t line, good_context& context);
@@ -650,6 +652,8 @@ struct good {
 	void is_local(association_type, bool b, error_handler& err, int32_t line, good_context& context);
 	void overseas_penalty(association_type, bool b, error_handler& err, int32_t line, good_context& context);
 	void uses_potentials(association_type, bool b, error_handler& err, int32_t line, good_context& context);
+	void supply_weight(association_type, float val, error_handler& err, int32_t line, good_context& context);
+	void supply_loss_rate(association_type, float val, error_handler& err, int32_t line, good_context& context);
 
 	void finish(good_context& context);
 };
@@ -677,10 +681,38 @@ struct goods_file {
 			++next_to_add_p;                                                                                                           \
 		}                                                                                                                            \
 	}
+
+
+#define MUL_MOD_PROV_FUNCTION(X)                                                                                                     \
+	template<typename T>                                                                                                           \
+	void X(association_type, float v, error_handler& err, int32_t line, T& context) {                                              \
+		if(v == 1.0f) return; \
+		if(next_to_add_p >= sys::provincial_modifier_definition::modifier_definition_size) {                                         \
+			err.accumulated_errors += "Too many modifier values; " + err.file_name + " line " + std::to_string(line) + "\n";           \
+		} else {                                                                                                                     \
+			constructed_definition_p.offsets[next_to_add_p] = sys::provincial_mod_offsets::X;                                          \
+			constructed_definition_p.values[next_to_add_p] = v;                                                                        \
+			++next_to_add_p;                                                                                                           \
+		}                                                                                                                            \
+	}
+
 #define MOD_NAT_FUNCTION(X)                                                                                                      \
 	template<typename T>                                                                                                           \
 	void X(association_type, float v, error_handler& err, int32_t line, T& context) {                                              \
 		if(v == 0.0f) return; \
+		if(next_to_add_n >= sys::national_modifier_definition::modifier_definition_size) {                                           \
+			err.accumulated_errors += "Too many modifier values; " + err.file_name + " line " + std::to_string(line) + "\n";           \
+		} else {                                                                                                                     \
+			constructed_definition_n.offsets[next_to_add_n] = sys::national_mod_offsets::X;                                            \
+			constructed_definition_n.values[next_to_add_n] = v;                                                                        \
+			++next_to_add_n;                                                                                                           \
+		}                                                                                                                            \
+	}
+
+#define MUL_MOD_NAT_FUNCTION(X)                                                                                                      \
+	template<typename T>                                                                                                           \
+	void X(association_type, float v, error_handler& err, int32_t line, T& context) {                                              \
+		if(v == 1.0f) return; \
 		if(next_to_add_n >= sys::national_modifier_definition::modifier_definition_size) {                                           \
 			err.accumulated_errors += "Too many modifier values; " + err.file_name + " line " + std::to_string(line) + "\n";           \
 		} else {                                                                                                                     \
@@ -703,7 +735,6 @@ public:
 	void icon(association_type, uint32_t v, error_handler& err, int32_t line, T& context) {
 		icon_index = uint8_t(v);
 	}
-
 	MOD_PROV_FUNCTION(supply_limit)
 	MOD_PROV_FUNCTION(attrition)
 	MOD_PROV_FUNCTION(max_attrition)
@@ -774,8 +805,52 @@ public:
 	MOD_PROV_FUNCTION(poor_luxury_needs)
 	MOD_PROV_FUNCTION(middle_luxury_needs)
 	MOD_PROV_FUNCTION(rich_luxury_needs)
+
+	MOD_PROV_FUNCTION(supply_throughput_add)
+	MOD_PROV_FUNCTION(supply_throughput_percent)
+	MUL_MOD_PROV_FUNCTION(supply_throughput_mul)
+
+
+	MOD_PROV_FUNCTION(supply_loss_add)
+	MOD_PROV_FUNCTION(supply_loss_percent)
+	MUL_MOD_PROV_FUNCTION(supply_loss_mul)
+
+
+	MOD_PROV_FUNCTION(port_supply_capacity_add)
+	MOD_PROV_FUNCTION(port_supply_capacity_percent)
+	MUL_MOD_PROV_FUNCTION(port_supply_capacity_mul)
+
+	MOD_NAT_FUNCTION(national_land_supply_throughput_add)
+	MOD_NAT_FUNCTION(national_land_supply_throughput_percent)
+	MUL_MOD_NAT_FUNCTION(national_land_supply_throughput_mul)
+
+
+	MOD_NAT_FUNCTION(national_land_supply_loss_add)
+	MOD_NAT_FUNCTION(national_land_supply_loss_percent)
+	MUL_MOD_NAT_FUNCTION(national_land_supply_loss_mul)
+
+	MOD_NAT_FUNCTION(national_naval_supply_throughput_add)
+	MOD_NAT_FUNCTION(national_naval_supply_throughput_percent)
+	MUL_MOD_NAT_FUNCTION(national_naval_supply_throughput_mul)
+
+	MOD_NAT_FUNCTION(national_naval_supply_loss_add)
+	MOD_NAT_FUNCTION(national_naval_supply_loss_percent)
+	MUL_MOD_NAT_FUNCTION(national_naval_supply_loss_mul)
+
+	MOD_NAT_FUNCTION(national_port_supply_capacity_add)
+	MOD_NAT_FUNCTION(national_port_supply_capacity_percent)
+	MUL_MOD_NAT_FUNCTION(national_port_supply_capacity_mul)
+
 	MOD_NAT_FUNCTION(unemployment_benefit)
 	MOD_NAT_FUNCTION(pension_level)
+	MOD_NAT_FUNCTION(land_supply_speed_add)
+	MOD_NAT_FUNCTION(land_supply_speed_percent)
+	MUL_MOD_NAT_FUNCTION(land_supply_speed_mul)
+
+	MOD_NAT_FUNCTION(naval_supply_speed_add)
+	MOD_NAT_FUNCTION(naval_supply_speed_percent)
+	MUL_MOD_NAT_FUNCTION(naval_supply_speed_mul)
+
 	MOD_PROV_FUNCTION(population_growth)
 	template<typename T>
 	void global_population_growth(association_type, float v, error_handler& err, int32_t line, T& context) {
@@ -1226,7 +1301,7 @@ struct building_definition : public modifier_base {
 struct building_file {
 	void result(std::string_view name, building_definition&& res, error_handler& err, int32_t line,
 			scenario_building_context& context);
-	void finish(scenario_building_context& context) { }
+	void finish(scenario_building_context& context);
 };
 
 struct ideology_group_context {
@@ -1372,6 +1447,8 @@ struct national_values_file {
 	void finish(scenario_building_context&) { }
 };
 
+dcon::modifier_id create_static_modifier(scenario_building_context& context, uint8_t icon, std::string_view name);
+
 void m_very_easy_player(token_generator& gen, error_handler& err, scenario_building_context& context);
 void m_easy_player(token_generator& gen, error_handler& err, scenario_building_context& context);
 void m_hard_player(token_generator& gen, error_handler& err, scenario_building_context& context);
@@ -1393,6 +1470,10 @@ void m_has_siege(token_generator& gen, error_handler& err, scenario_building_con
 void m_occupied(token_generator& gen, error_handler& err, scenario_building_context& context);
 void m_nationalism(token_generator& gen, error_handler& err, scenario_building_context& context);
 void m_infrastructure(token_generator& gen, error_handler& err, scenario_building_context& context);
+void m_province_control(token_generator& gen, error_handler& err, scenario_building_context& context);
+void m_province_militancy(token_generator& gen, error_handler& err, scenario_building_context& context);
+void m_province_base(token_generator& gen, error_handler& err, scenario_building_context& context);
+void m_civilian_port(token_generator& gen, error_handler& err, scenario_building_context& context);
 void m_base_values(token_generator& gen, error_handler& err, scenario_building_context& context);
 void m_war(token_generator& gen, error_handler& err, scenario_building_context& context);
 void m_peace(token_generator& gen, error_handler& err, scenario_building_context& context);
@@ -1411,9 +1492,12 @@ void m_generalised_debt_default(token_generator& gen, error_handler& err, scenar
 void m_total_occupation(token_generator& gen, error_handler& err, scenario_building_context& context);
 void m_total_blockaded(token_generator& gen, error_handler& err, scenario_building_context& context);
 void m_in_bankrupcy(token_generator& gen, error_handler& err, scenario_building_context& context);
+void m_nation_base(token_generator& gen, error_handler& err, scenario_building_context& context);
+void m_fastest_land_unit_speed(token_generator& gen, error_handler& err, scenario_building_context& context);
+void m_fastest_transport_unit_speed(token_generator& gen, error_handler& err, scenario_building_context& context);
 
 struct static_modifiers_file {
-	void finish(scenario_building_context&) { }
+	void finish(scenario_building_context& context);
 };
 
 void make_event_modifier(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context);
@@ -1568,6 +1652,23 @@ struct commodity_set : public economy::commodity_set {
 
 	void finish(scenario_building_context&) { }
 };
+
+// Same as a normal parsers commodity set, but with custom logic in member functions to add to the military supply goods global vars
+struct military_supply_commodity_set : public commodity_set {
+	void any_value(std::string_view name, association_type, float value, error_handler& err, int32_t line,
+			scenario_building_context& context);
+
+	void finish(scenario_building_context&) { }
+};
+
+// Same as a normal parsers commodity set, but with custom logic in member functions to add to the military build goods global vars
+struct military_build_commodity_set : public commodity_set {
+	void any_value(std::string_view name, association_type, float value, error_handler& err, int32_t line,
+			scenario_building_context& context);
+
+	void finish(scenario_building_context&) { }
+};
+
 
 struct unit_definition : public military::unit_definition {
 	void unit_type_text(association_type, std::string_view value, error_handler& err, int32_t line, scenario_building_context& context) {

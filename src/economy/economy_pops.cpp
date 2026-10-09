@@ -8,6 +8,7 @@
 #include "economy_constants.hpp"
 #include "economy_templates_pure.hpp"
 #include "economy_pops_constants.hpp"
+#include "demographics_templates.hpp"
 
 namespace economy {
 namespace pops {

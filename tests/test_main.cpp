@@ -6,6 +6,7 @@
 #ifndef DCON_TRAP_INVALID_STORE
 #define DCON_TRAP_INVALID_STORE 1
 #endif
+#define INCREMENTAL 1 
 
 #pragma comment(lib, "icu.lib")
 
@@ -21,12 +22,13 @@
 #define NATIVE_SEP "/"
 #endif
 
+#include "serialization.hpp"
 
 std::unique_ptr<sys::state> load_testing_scenario_file(sys::network_mode_type mode = sys::network_mode_type::single_player) {
 	std::unique_ptr<sys::state> game_state = std::make_unique<sys::state>(); // too big for the stack
 
 	game_state->network_mode = mode;
-	game_state->user_settings.autosaves = sys::autosave_frequency::yearly;
+	game_state->user_settings.autosaves = sys::autosave_frequency::none;
 
 	add_root(game_state->common_fs, NATIVE("."));        // for the moment this lets us find the shader files
 	if(!sys::try_read_scenario_file(*game_state, NATIVE("tests_scenario.bin"))) {
@@ -47,7 +49,7 @@ std::unique_ptr<sys::state> load_testing_scenario_file_with_save(sys::network_mo
 	std::unique_ptr<sys::state> game_state = std::make_unique<sys::state>(); // too big for the stack
 
 	game_state->network_mode = mode;
-	game_state->user_settings.autosaves = sys::autosave_frequency::yearly;
+	game_state->user_settings.autosaves = sys::autosave_frequency::none;
 
 	add_root(game_state->common_fs, NATIVE("."));        // for the moment this lets us find the shader files
 	if(!sys::try_read_scenario_and_save_file(*game_state, NATIVE("tests_scenario.bin"))) {
@@ -87,6 +89,7 @@ std::unique_ptr<sys::state> load_testing_scenario_file_with_save(sys::network_mo
 #include "dcon_tests.cpp"
 #include "network_tests.cpp"
 #include "pathfinding_tests.cpp"
+#include "profiling_tests.cpp"
 
 TEST_CASE("Dummy test", "[dummy test instance]") {
 	REQUIRE(1 + 1 == 2);

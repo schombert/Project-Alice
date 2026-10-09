@@ -10,6 +10,7 @@
 #include "system_state.hpp"
 #include "text.hpp"
 #include "triggers.hpp"
+#include "nations_templates.hpp"
 
 namespace ui {
 
@@ -457,24 +458,21 @@ uint32_t es_x_country_scope_nation(EFFECT_DISPLAY_PARAMS) {
 }
 uint32_t es_x_event_country_scope_nation(EFFECT_DISPLAY_PARAMS) {
 	if((tval[0] & effect::is_random_scope) != 0) {
-		std::vector<dcon::nation_id> rlist;
+		dcon::nation_id affected_nation;
 		if((tval[0] & effect::scope_has_limit) != 0) {
 			auto limit = trigger::payload(tval[2]).tr_id;
-			for(auto n : ws.world.in_nation) {
-				if(n != trigger::to_nation(primary_slot) && trigger::evaluate(ws, limit, trigger::to_generic(n.id), this_slot, from_slot))
-					rlist.push_back(n.id);
-			}
+			affected_nation = nations::get_random_nation(ws, r_hi, r_lo, [&](dcon::nation_id n) {
+				return nations::exists(ws, n) && n != trigger::to_nation(primary_slot) && trigger::evaluate(ws, limit, trigger::to_generic(n), this_slot, from_slot);
+			});
 		} else {
-			for(auto n : ws.world.in_nation) {
-				if(n != trigger::to_nation(primary_slot))
-					rlist.push_back(n.id);
-			}
+			affected_nation = nations::get_random_nation(ws, r_hi, r_lo, [&](dcon::nation_id n) {
+				return nations::exists(ws, n) && n != trigger::to_nation(primary_slot);
+			});
 		}
-		if(rlist.size() != 0) {
-			auto r = rng::get_random(ws, r_hi, r_lo) % rlist.size();
-			show_full_random_tooltip(ws, tval[0], "nation", layout, rlist[r], indentation);
-			show_limit(ws, tval, layout, trigger::to_generic(rlist[r]), this_slot, from_slot, indentation);
-			return 1 + display_subeffects(ws, tval, layout, trigger::to_generic(rlist[r]), this_slot, from_slot, r_hi, r_lo + 1,
+		if(affected_nation) {
+			show_full_random_tooltip(ws, tval[0], "nation", layout, affected_nation, indentation);
+			show_limit(ws, tval, layout, trigger::to_generic(affected_nation), this_slot, from_slot, indentation);
+			return 1 + display_subeffects(ws, tval, layout, trigger::to_generic(affected_nation), this_slot, from_slot, r_hi, r_lo + 1,
 				indentation + indentation_amount);
 		}
 		return 0;

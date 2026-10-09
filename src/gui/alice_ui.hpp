@@ -1011,6 +1011,20 @@ inline constexpr int32_t category_count = 20;
 inline static bool expanded[category_count] = { false };
 }
 
+namespace logistic_categories {
+inline constexpr int32_t land_reinforcement = 0;
+inline constexpr int32_t land_supply = 1;
+inline constexpr int32_t naval_reinforcement = 2;
+inline constexpr int32_t naval_supply = 3;
+inline constexpr int32_t army_construction = 4;
+inline constexpr int32_t naval_construction = 5;
+inline constexpr int32_t factory_construction = 6;
+inline constexpr int32_t building_construction = 7;
+inline constexpr int32_t category_count = 8;
+inline static bool expanded[category_count] = { false };
+
+}
+
 namespace popwindow {
 inline static ankerl::unordered_dense::set<int32_t> open_states;
 inline static ankerl::unordered_dense::set<int32_t> open_provs;
@@ -1029,6 +1043,7 @@ bool pop_passes_filter(sys::state& state, dcon::pop_id p);
 
 std::unique_ptr<ui::element_base> make_gamerules_main(sys::state& state);
 std::unique_ptr<ui::element_base> make_macrobuilder2_main(sys::state& state);
+std::unique_ptr<ui::element_base> make_logisticswindow_main(sys::state& state);
 std::unique_ptr<ui::element_base> make_budgetwindow_main(sys::state& state);
 std::unique_ptr<ui::element_base> make_demographicswindow_main(sys::state& state);
 std::unique_ptr<ui::element_base> make_province_economy_overview_body(sys::state& state);
