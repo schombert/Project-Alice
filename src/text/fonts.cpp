@@ -1336,6 +1336,7 @@ void map_font::make_glyph(uint32_t glyph_id) {
 			glyph.curveCount = temp_buffer_glyph.count;
 			glyphs[glyph_id] = glyph;
 		}
+		glyph_data_has_changed = true;
 	}
 
 	if(!bold_glyphs.contains(glyph_id)) {
@@ -1374,6 +1375,7 @@ void map_font::make_glyph(uint32_t glyph_id) {
 			glyph.curveCount = temp_buffer_glyph.count;
 			bold_glyphs[glyph_id] = glyph;
 		}
+		glyph_data_has_changed = true;
 	}
 
 }
@@ -1387,22 +1389,25 @@ float map_font::text_extent(sys::state const& state, stored_glyphs const& txt, u
 	return x_total;
 }
 void map_font::upload_buffers() {
-	glBindBuffer(GL_TEXTURE_BUFFER, glyph_buffer);
-	glBufferData(GL_TEXTURE_BUFFER, sizeof(map_font_buffer_glyph) * buffer_glyphs.size(), buffer_glyphs.data(), GL_STATIC_DRAW);
-	glBindBuffer(GL_TEXTURE_BUFFER, 0);
+	if(glyph_data_has_changed) {
+		glBindBuffer(GL_TEXTURE_BUFFER, glyph_buffer);
+		glBufferData(GL_TEXTURE_BUFFER, sizeof(map_font_buffer_glyph) * buffer_glyphs.size(), buffer_glyphs.data(), GL_STATIC_DRAW);
+		glBindBuffer(GL_TEXTURE_BUFFER, 0);
 
-	glBindBuffer(GL_TEXTURE_BUFFER, curve_buffer);
-	glBufferData(GL_TEXTURE_BUFFER, sizeof(map_font_buffer_curve) * buffer_curves.size(), buffer_curves.data(), GL_STATIC_DRAW);
-	glBindBuffer(GL_TEXTURE_BUFFER, 0);
+		glBindBuffer(GL_TEXTURE_BUFFER, curve_buffer);
+		glBufferData(GL_TEXTURE_BUFFER, sizeof(map_font_buffer_curve) * buffer_curves.size(), buffer_curves.data(), GL_STATIC_DRAW);
+		glBindBuffer(GL_TEXTURE_BUFFER, 0);
 
 
-	glBindBuffer(GL_TEXTURE_BUFFER, bold_glyph_buffer);
-	glBufferData(GL_TEXTURE_BUFFER, sizeof(map_font_buffer_glyph) * buffer_bold_glyphs.size(), buffer_bold_glyphs.data(), GL_STATIC_DRAW);
-	glBindBuffer(GL_TEXTURE_BUFFER, 0);
+		glBindBuffer(GL_TEXTURE_BUFFER, bold_glyph_buffer);
+		glBufferData(GL_TEXTURE_BUFFER, sizeof(map_font_buffer_glyph) * buffer_bold_glyphs.size(), buffer_bold_glyphs.data(), GL_STATIC_DRAW);
+		glBindBuffer(GL_TEXTURE_BUFFER, 0);
 
-	glBindBuffer(GL_TEXTURE_BUFFER, bold_curve_buffer);
-	glBufferData(GL_TEXTURE_BUFFER, sizeof(map_font_buffer_curve) * buffer_bold_curves.size(), buffer_bold_curves.data(), GL_STATIC_DRAW);
-	glBindBuffer(GL_TEXTURE_BUFFER, 0);
+		glBindBuffer(GL_TEXTURE_BUFFER, bold_curve_buffer);
+		glBufferData(GL_TEXTURE_BUFFER, sizeof(map_font_buffer_curve) * buffer_bold_curves.size(), buffer_bold_curves.data(), GL_STATIC_DRAW);
+		glBindBuffer(GL_TEXTURE_BUFFER, 0);
+		glyph_data_has_changed = false;
+	}
 }
 void convert_contour(
 	std::vector<map_font::map_font_buffer_glyph>& buffer_glyphs,
