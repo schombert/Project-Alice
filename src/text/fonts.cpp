@@ -1302,6 +1302,7 @@ void map_font::ready_textures() {
 		glBindTexture(GL_TEXTURE_BUFFER, 0);
 	}
 }
+// Call map_front::upload_buffers() sometime after to commit
 void map_font::make_glyph(uint32_t glyph_id) {
 	ready_textures();
 
@@ -1375,8 +1376,6 @@ void map_font::make_glyph(uint32_t glyph_id) {
 		}
 	}
 
-
-	upload_buffers();
 }
 float map_font::text_extent(sys::state const& state, stored_glyphs const& txt, uint32_t starting_offset, uint32_t count) {
 	float x_total = 0.0f;
