@@ -1,7 +1,6 @@
 #include "dcon_generated_ids.hpp"
 #include "system_state.hpp"
 #include "serialization.hpp"
-#include <cstdlib>
 #include <random>
 #include <ctime>
 
@@ -1136,7 +1135,7 @@ bool try_read_scenario_file(sys::state& state, native_string_view name) {
 	}
 }
 
-bool try_read_scenario_and_save_file(sys::state& state, native_string_view name) {
+bool try_read_scenario_and_save_file(sys::state& state, native_string_view name, std::optional<uint32_t> seed) {
 	auto dir = simple_fs::get_or_create_scenario_directory();
 	auto save_file = open_file(dir, name);
 	if(save_file) {
@@ -1170,7 +1169,7 @@ bool try_read_scenario_and_save_file(sys::state& state, native_string_view name)
 		buffer_pos = with_decompressed_section(buffer_pos,
 				[&](uint8_t const* ptr_in, uint32_t length) { read_save_section(ptr_in, ptr_in + length, state); });
 
-		state.game_seed = getenv("ALICE_SEED") ? uint32_t(strtoul(getenv("ALICE_SEED"), nullptr, 10)) : uint32_t(std::random_device()()); // -seed N sets ALICE_SEED
+		state.game_seed = seed ? *seed : uint32_t(std::random_device()());
 
 		state.on_scenario_load();
 
@@ -1220,7 +1219,7 @@ bool try_read_scenario_as_save_file(sys::state& state, native_string_view name) 
 				read_save_section(ptr_in, ptr_in + length, state);
 			});
 
-		state.game_seed = getenv("ALICE_SEED") ? uint32_t(strtoul(getenv("ALICE_SEED"), nullptr, 10)) : uint32_t(std::random_device()()); // -seed N sets ALICE_SEED
+		state.game_seed = uint32_t(std::random_device()());
 
 
 		// only load gamerule settings if host or singleplayer. A client would have to load the host' settings anyway

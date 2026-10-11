@@ -210,11 +210,12 @@ int main(int argc, char* argv[]) {
 	// headless batch flags: -seed N (fixed game seed), -years N (with -headless: run N game years at full speed, then exit),
 	// -dump DIR (monthly CSVs, see headless_run.hpp), -threads N (cap worker threads; 1 makes runs reproducible)
 	int run_years = -1;
+	std::optional<uint32_t> seed;
 	std::string dump_dir;
 	std::unique_ptr<oneapi::tbb::global_control> thread_cap;
 	for(int i = 1; i + 1 < argc; ++i) {
 		if(std::string(argv[i]) == "-seed")
-			setenv("ALICE_SEED", argv[i + 1], 1);
+			seed = uint32_t(std::strtoul(argv[i + 1], nullptr, 10));
 		else if(std::string(argv[i]) == "-years")
 			run_years = std::atoi(argv[i + 1]);
 		else if(std::string(argv[i]) == "-dump")
@@ -368,7 +369,7 @@ int main(int argc, char* argv[]) {
 		}
 	}
 
-	if(sys::try_read_scenario_and_save_file(game_state, selected_scenario_file)) {
+	if(sys::try_read_scenario_and_save_file(game_state, selected_scenario_file, seed)) {
 		auto msg = "Running scenario file " + simple_fs::native_to_utf8(selected_scenario_file) + "\n";
 		window::emit_error_message(msg, false);
 		game_state.loaded_scenario_file = NATIVE(selected_scenario_file);
