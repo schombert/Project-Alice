@@ -4790,14 +4790,14 @@ uint32_t ef_variable_good_name(EFFECT_PARAMTERS) {
 	}
 	else {
 		// Walk though state stockpiles starting from the capital and consume from them since the amount to be "gained" is negative. We dont care about the satisfaction rate and simply try to remove as much of the commodities as required;
-		float amount_to_sub = abs(amount);
+		float amount_to_sub = std::abs(amount);
 		economy::get_closest_available_market_states(ws, closest_stockpiles, nation, capital_prov);
 			// Iterate over each stockpile in the preferred order, and consume from them until the required supply is satisfied, or there are no more stockpiles
 			for(auto stockpile_state : closest_stockpiles) {
 				auto stockpile_market = ws.world.state_instance_get_market_from_local_market(stockpile_state);
 				// Find out what needs to be consumed from the stockpile, and set the satisfaction.e
 				auto current_stockpile = ws.world.market_get_government_stockpile(stockpile_market, commodity);
-				float to_consume_amount = std::min(amount, current_stockpile); // We may not consume more than exists in the stockpile
+				float to_consume_amount = std::min(amount_to_sub, current_stockpile); // We may not consume more than exists in the stockpile
 				amount_to_sub -= to_consume_amount;
 				economy::subtract_government_stockpile(ws, nation, stockpile_market, commodity, to_consume_amount);
 				if(amount_to_sub <= 0.0f) {
