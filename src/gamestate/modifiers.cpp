@@ -11,6 +11,7 @@
 #include "logistics.hpp"
 #include "logistics_templates.hpp"
 #include "advanced_province_buildings.hpp"
+#include "nations_templates.hpp"
 
 namespace sys {
 
@@ -432,12 +433,12 @@ void recreate_national_modifiers(sys::state& state) {
 		ve::mask_vector nations_valid = ve::apply([&](dcon::nation_id nation) {
 			return state.world.nation_is_valid(nation);
 		}, nations);
+		nations_valid = nations_valid && nations::exists(state, nations);
 
 		for(uint32_t i = 0; i < sys::national_mod_offsets::count; i++) {
 			dcon::national_modifier_value mid{ dcon::national_modifier_value::value_base_t(i) };
-			auto prev_val = state.world.nation_get_modifier_values(nations, mid);
 			auto start_val = sys::national_modifier_metadata[mid.index()].start_value;
-			state.world.nation_set_modifier_values(nations, mid, ve::select(nations_valid, start_val, prev_val));
+			state.world.nation_set_modifier_values(nations, mid, ve::select(nations_valid, start_val, ve::fp_vector {0.0f}));
 		}
 
 
@@ -585,11 +586,10 @@ void recreate_national_modifiers(sys::state& state) {
 				auto trigger_condition_satisfied =
 					nations_valid && trigger::evaluate(state, tm.trigger_condition, trigger::to_generic(nations), trigger::to_generic(nations), 0);
 				auto compressed_res = ve::compress_mask(trigger_condition_satisfied);
-				if(compressed_res.v == ve::vbitfield_type::storage(0)) {
-					return;
-				} else {
+				if(compressed_res.v != ve::vbitfield_type::storage(0)) {
 					ve_apply_masked_modifier_values_to_nation<false>(state, nations, tm.linked_modifier, trigger_condition_satisfied);
 				}
+				
 			}
 		}
 		ve_apply_hardcoded_modifier_values_to_nation(state, nations, nations_valid);
@@ -929,9 +929,8 @@ void recreate_province_modifiers(sys::state& state) {
 		}, ids);
 		for(uint32_t i = 0; i < sys::provincial_mod_offsets::count; i++) {
 			dcon::provincial_modifier_value mid{ dcon::provincial_modifier_value::value_base_t(i) };
-			auto current_vals = state.world.province_get_modifier_values(ids, mid);
 			float start_val = sys::province_modifier_metadata[mid.index()].start_value;
-			state.world.province_set_modifier_values(ids, mid, ve::select(prov_valid_mask, start_val, current_vals));
+			state.world.province_set_modifier_values(ids, mid, ve::select(prov_valid_mask, start_val, ve::fp_vector{ 0.0f }));
 		}
 	});
 
