@@ -1392,6 +1392,11 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 				p.get_pop().set_is_primary_or_accepted_culture(false);
 			}();
 		}
+		uint16_t prev_prov_count = state.world.nation_get_owned_province_count(new_owner);
+		if(prev_prov_count == 0) {
+			// If the nation just popped into existance, give it an arbitrary capital for now to prevent logic failures. Later effects may change it
+			state.world.nation_set_capital(new_owner, id);
+		}
 		state.world.nation_set_owned_province_count(new_owner, uint16_t(state.world.nation_get_owned_province_count(new_owner) + uint16_t(1)));
 	} else {
 		state.world.province_set_state_membership(id, dcon::state_instance_id{});
@@ -1509,6 +1514,10 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 		auto lprovs = state.world.nation_get_province_ownership(old_owner);
 		if(!nations::exists_or_is_utility_tag(state, old_owner) ) {
 			state.world.nation_set_marked_for_gc(old_owner, true);
+		}
+		// Set new capital if this province was the prev. owner's capital
+		if(id == state.world.nation_get_capital(old_owner) && nations::exists(state, old_owner)) {
+			state.world.nation_set_capital(old_owner, pick_capital(state, old_owner));
 		}
 	}
 

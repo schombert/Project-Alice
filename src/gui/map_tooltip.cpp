@@ -758,7 +758,7 @@ void migration_map_tt_box(sys::state& state, text::columnar_layout& contents, dc
 			dcon::nation_id n;
 		};
 		struct migration_display_data {
-			std::vector<float> total_migration;
+			tagged_vector<float, dcon::nation_id> total_migration;
 			std::vector<nation_and_value> positive_migration;
 			std::vector<nation_and_value> negative_migration;
 			float total_neg = 0;
@@ -780,12 +780,12 @@ void migration_map_tt_box(sys::state& state, text::columnar_layout& contents, dc
 			demographics::estimate_directed_immigration(state, owner, local_mig_data.total_migration);
 			for(uint32_t i = uint32_t(local_mig_data.total_migration.size()); i-- > 0; ) {
 				dcon::nation_id in{ dcon::nation_id::value_base_t(i) };
-				if(local_mig_data.total_migration[i] > 0.0f) {
-					local_mig_data.positive_migration.push_back(nation_and_value{ local_mig_data.total_migration[i],in });
-					local_mig_data.total_pos += local_mig_data.total_migration[i];
-				} else if(local_mig_data.total_migration[i] < 0.0f) {
-					local_mig_data.negative_migration.push_back(nation_and_value{ local_mig_data.total_migration[i],in });
-					local_mig_data.total_neg += local_mig_data.total_migration[i];
+				if(local_mig_data.total_migration[in] > 0.0f) {
+					local_mig_data.positive_migration.push_back(nation_and_value{ local_mig_data.total_migration[in],in });
+					local_mig_data.total_pos += local_mig_data.total_migration[in];
+				} else if(local_mig_data.total_migration[in] < 0.0f) {
+					local_mig_data.negative_migration.push_back(nation_and_value{ local_mig_data.total_migration[in],in });
+					local_mig_data.total_neg += local_mig_data.total_migration[in];
 				}
 			}
 
