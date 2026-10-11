@@ -887,7 +887,7 @@ float estimate_local_trade_income(sys::state const& state, dcon::province_id pid
 	}
 
 	auto balance = state.world.market_get_stockpile(mid, economy::money);
-	auto trade_dividents = balance > 0.f ? balance * trade_dividents_rate : 0.f;
+	auto trade_dividents = balance > 0.f ? balance * trade_dividends_rate : 0.f;
 
 	return size / total * trade_dividents;
 }
@@ -1037,7 +1037,7 @@ void update_income_non_labor(sys::state& state) {
 
 	constexpr float min_registered_token_size = 2.f;
 
-	constexpr float expected_share = production_dividents_rate;
+	constexpr float expected_share = production_dividends_rate;
 
 	auto const artisan_def = state.culture_definitions.artisans;
 	auto artisan_key = demographics::to_key(state, artisan_def);

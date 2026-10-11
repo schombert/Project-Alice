@@ -2058,7 +2058,7 @@ void run_private_investment(sys::state& state) {
 
 
 // AWESOME ECONOMY PROFILE TOOLS
-// static auto pf = fopen("performance_record", "w");
+ //static auto pf = fopen("performance_record", "w");
 // static inline int64_t GetTicks() {
 // 	LARGE_INTEGER ticks;
 // 	if(!QueryPerformanceCounter(&ticks)) {
@@ -2066,41 +2066,92 @@ void run_private_investment(sys::state& state) {
 // 	}
 // 	return ticks.QuadPart;
 // }
-
+//static auto pf = fopen("money_record", "w");
+/*
+static int columns = 0;
+static int column = 0;
+static bool no_more_columns = false;
 static float total_history;
+*/
+/*
+Funnily enough, this place is great to put logging into because of the passed name.
+*/
+static ankerl::unordered_dense::map<std::string, float> total_history_per_label;
+static ankerl::unordered_dense::map<std::string, nation_monetary_breakdown> total_history_full_per_label;
+static float previous_total;
 static void set_profile_point(sys::state& state, std::string name) {
-
 	/*
-	Funnily enough, this place is great to put logging into because of the passed name.
-	*/
+	nation_monetary_breakdown data{};
+	state.world.for_each_nation([&](auto n) {
+		auto money_pools = economy::breakdown_nation_monetary_structure(state, n);
+		data.total += money_pools.total;
+		data.artisans += money_pools.artisans;
+		data.bank += money_pools.bank;
+		data.educators += money_pools.educators;
+		data.factory += money_pools.factory;
+		data.investment_pool += money_pools.investment_pool;
+		data.landlords += money_pools.landlords;
+		data.market += money_pools.market;
+		data.nation += money_pools.nation;
+		data.pops += money_pools.pops;
+		data.ports += money_pools.ports;
+		data.rgo += money_pools.rgo;
+	});
+	auto it = total_history_per_label.find(name);
+	if(it == total_history_per_label.end()) {
+		if(columns == 0) {
+			fprintf(pf, "%s", name.c_str());
+		} else {
+			fprintf(pf, ";%s", name.c_str());
+		}
+		total_history_per_label[name] = 0.f;
+		columns++;
+	} else {
+		if(!no_more_columns) {
+			fprintf(pf, "\n");
+			no_more_columns = true;
+		}
+		auto diff = data.total - previous_total;
+		auto diff_diff = diff - it->second;
+		std::string logged_data = name + "\n"
+			+ std::to_string(data.total) + ","
+			+ std::to_string(data.nation) + ","
+			+ std::to_string(data.bank) + ","
+			+ std::to_string(data.investment_pool) + ","
+			+ std::to_string(data.rgo) + ","
+			+ std::to_string(data.factory) + ","
+			+ std::to_string(data.market) + ","
+			+ std::to_string(data.artisans) + ","
+			+ std::to_string(data.ports) + ","
+			+ std::to_string(data.landlords) + ","
+			+ std::to_string(data.educators) + ","
+			+ std::to_string(data.pops) + "\n"
+			+ std::to_string(int(diff_diff)) + "\n";
+			//+ "RGO sales: "+ std::to_string(int(data.rgo_sales)) + "\n"
+			//+ "RGO wages: "+ std::to_string(int(data.rgo_wages)) + "\n"
+			//+ "POP wages: "+ std::to_string(int(data.pops_wages)) + "\n"
+			//+ "POP purchase goods: "+ std::to_string(int(data.pops_spending_life + data.pops_spending_everyday + data.pops_spending_luxury)) + "\n"
+			//+ "POP education: " + std::to_string(int(data.pops_cashback_education)) + "/" + std::to_string(int(data.pops_spending_education)) + "\n"
+			//+ "POP housing: " + std::to_string(int(data.pops_cashback_housing)) + "/" + std::to_string(int(data.pops_spending_housing)) + "\n"
+		;
+		if(abs(diff_diff) > 0.5f) {
+			//state.console_log(logged_data);
+		} else {
+			//state.console_log(name + " OK!");
+		}
+		previous_total = data.total;
+		total_history_per_label[name] = diff;
 
-	/*
-	nation_monetary_breakdown data = breakdown_nation_monetary_structure(state, state.local_player_nation);
-	auto diff = data.total - total_history;
-	std::string logged_data = name + "\n"
-		+ std::to_string(data.total) + ","
-		+ std::to_string(data.nation) + ","
-		+ std::to_string(data.bank) + ","
-		+ std::to_string(data.investment_pool) + ","
-		+ std::to_string(data.rgo) + ","
-		+ std::to_string(data.factory) + ","
-		+ std::to_string(data.market) + ","
-		+ std::to_string(data.pops) + "\n"
-		+ std::to_string(int(diff)) + "\n"
-		+ "RGO sales: "+ std::to_string(int(data.rgo_sales)) + "\n"
-		+ "RGO wages: "+ std::to_string(int(data.rgo_wages)) + "\n"
-		+ "POP wages: "+ std::to_string(int(data.pops_wages)) + "\n"
-		+ "POP purchase goods: "+ std::to_string(int(data.pops_spending_life + data.pops_spending_everyday + data.pops_spending_luxury)) + "\n"
-		+ "POP education: " + std::to_string(int(data.pops_cashback_education)) + "/" + std::to_string(int(data.pops_spending_education)) + "\n"
-		+ "POP housing: " + std::to_string(int(data.pops_cashback_housing)) + "/" + std::to_string(int(data.pops_spending_housing)) + "\n"
-	;
-
-	if(abs(diff) > 0.5f) {
-		state.console_log(logged_data);
+		column = (column + 1) % columns;
+		if(column == 0) {
+			fprintf(pf, "%f\n", data.total);
+		} else {
+			fprintf(pf, "%f;", data.total);
+		}
 	}
-
-	total_history = data.total;
 	*/
+
+	//total_history = data.total;
 
 	/*
 	ve::fp_vector total_nations {};
@@ -3250,7 +3301,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 
 		auto earn = ve::select(arbitrage > 0.f, arbitrage, 0.f) + export_gains + investments + unused_dividends + sales + reinvestment;
 
-		auto next_dividends = earn * economy::pops::trade_dividents_rate;
+		auto next_dividends = earn * economy::pops::trade_dividends_rate;
 		state.world.market_set_pop_dividends(market, next_dividends);
 		state.world.market_set_last_pop_dividends(market, next_dividends);
 
@@ -3817,7 +3868,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			auto current_weight = state.world.market_get_total_port_capacity_weight(mid);
 
 			auto bought_locally = current_weight == 0.f ? 0.f : local_weight / current_weight;
-			auto local_satisfied = state.world.province_get_service_satisfaction(pid, services::list::education);
+			auto local_satisfied = state.world.province_get_service_satisfaction(pid, services::list::port_capacity);
 
 			auto sat_contribution = bought_locally * local_satisfied;
 			total_sat = total_sat + sat_contribution;

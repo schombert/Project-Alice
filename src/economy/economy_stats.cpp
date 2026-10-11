@@ -1246,7 +1246,7 @@ void make_trade_center_tooltip(sys::state& state, text::columnar_layout& content
 		"factory_bank_out",
 		text::variable_type::val,
 		text::fp_currency{
-			std::max(0.f, state.world.province_get_factory_bank(province) * economy::pops::production_dividents_rate)
+			std::max(0.f, state.world.province_get_factory_bank(province) * economy::pops::production_dividends_rate)
 		},
 		15
 	);
@@ -1300,7 +1300,7 @@ void make_trade_center_tooltip(sys::state& state, text::columnar_layout& content
 		"rgo_bank_out",
 		text::variable_type::val,
 		text::fp_currency{
-			std::max(0.f, state.world.province_get_rgo_bank(province) * economy::pops::production_dividents_rate)
+			std::max(0.f, state.world.province_get_rgo_bank(province) * economy::pops::production_dividends_rate)
 		},
 		15
 	);
@@ -1446,7 +1446,7 @@ void make_trade_center_tooltip(sys::state& state, text::columnar_layout& content
 	}
 }
 
-nation_monetary_breakdown breakdown_nation_monetary_structure(sys::state& state, dcon::nation_id n) {
+nation_monetary_breakdown breakdown_nation_monetary_structure(sys::state const& state, dcon::nation_id n) {
 	nation_monetary_breakdown result { };
 	result.nation = state.world.nation_get_stockpiles(n, economy::money);
 	result.bank = state.world.nation_get_national_bank(n);
@@ -1475,7 +1475,7 @@ nation_monetary_breakdown breakdown_nation_monetary_structure(sys::state& state,
 	state.world.nation_for_each_state_ownership(n, [&](auto soid){
 		auto local_state = state.world.state_ownership_get_state(soid);
 		auto mid = state.world.state_instance_get_market_from_local_market(local_state);
-		result.market += state.world.market_get_stockpile(mid, economy::money);
+		result.market += state.world.market_get_stockpile(mid, economy::money) + state.world.market_get_pop_investments(mid) + state.world.market_get_shipbuilding_refund(mid);
 	});
 	state.world.nation_for_each_province_ownership(n, [&](auto poid) {
 		auto pid = state.world.province_ownership_get_province(poid);
@@ -1522,7 +1522,18 @@ nation_monetary_breakdown breakdown_nation_monetary_structure(sys::state& state,
 		});
 	});
 
-	result.total = result.nation + result.bank + result.investment_pool + result.rgo + result.market + result.factory + result.pops + result.educators + result.ports + result.landlords + result.artisans;
+	result.total =
+		result.nation
+		+ result.bank
+		+ result.investment_pool
+		+ result.rgo
+		+ result.market
+		+ result.factory
+		+ result.pops
+		+ result.educators
+		+ result.ports
+		+ result.landlords
+		+ result.artisans;
 
 	return result;
 }

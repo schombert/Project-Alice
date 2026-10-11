@@ -509,7 +509,7 @@ void update_private_size(sys::state& state) {
 				/ (state.world.province_get_demographics(pids, demographics::total) + 1.f)
 			);
 
-			auto wage = state.world.province_get_labor_price(pids, def.throughput_labour_type);
+			auto wage = state.world.province_get_labor_price(pids, def.throughput_labour_type) * 2.5f;
 			auto cost_of_output = state.world.province_get_service_price(pids, def.output) * local_education_efficiency * tmod * nmod * def.output_amount;
 			auto current_private_size = state.world.province_get_advanced_province_building_private_size(pids, bid);
 			auto sat = state.world.province_get_labor_demand_satisfaction(pids, def.throughput_labour_type);
