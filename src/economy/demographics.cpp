@@ -3874,12 +3874,11 @@ void estimate_directed_immigration(sys::state& state, dcon::nation_id n, tagged_
 float get_estimated_emigration(sys::state& state, dcon::pop_id ids) {
 
 	float total_amount = 0.0f;
-	impl::calculate_immigration_amount(state, ids, [&](auto pops, auto locations, auto owners, auto amounts, auto pops_can_immigrate) {
-		ve::apply([&](dcon::pop_id pop, dcon::nation_id owner, float amount, bool pop_can_immigrate) {
-			if(pop_can_immigrate) {
-				total_amount += amount;
-			}
-			}, pops, owners, amounts, pops_can_immigrate);
+	impl::calculate_immigration_amount(state, ids, [&](dcon::pop_id pop, dcon::province_id location, dcon::nation_id owner, float amount, bool pop_can_immigrate) {
+		if(pop_can_immigrate) {
+			total_amount += amount;
+		}
+
 	});
 	return total_amount;
 }

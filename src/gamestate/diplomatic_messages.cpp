@@ -140,6 +140,11 @@ void decline(sys::state& state, message const& m) {
 	}
 }
 
+bool can_accept_peace_offer(const sys::state& state, dcon::nation_id from, dcon::nation_id to, dcon::peace_offer_id) {
+	// Both nations must exist to accept peaceoffers
+	return nations::exists(state,from) && nations::exists(state, to);
+}
+
 bool can_accept_crisis_offer(sys::state& state, dcon::nation_id from, dcon::nation_id to, sys::full_wg offer) {
 	if(state.current_crisis_state != sys::crisis_state::heating_up)
 		return false;
@@ -269,8 +274,9 @@ bool can_accept(sys::state& state, message const& m) {
 		return command::can_call_to_arms(state, m.from, m.to, m.data.war, true, m.automatic_call);
 	case type::be_crisis_primary_attacker:
 	case type::be_crisis_primary_defender:
-	case type::peace_offer:
 		return true;
+	case type::peace_offer:
+		return can_accept_peace_offer(state, m.from, m.to, m.data.peace);
 	case type::take_crisis_side_offer:
 		return can_accept_crisis_offer(state, m.from, m.to, m.data.crisis_offer);
 	case type::crisis_peace_offer:
