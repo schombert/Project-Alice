@@ -727,26 +727,10 @@ tagged_vector<float, dcon::commodity_id> get_last_required_construction_need(con
 template<concepts::construction_type con_type>
 tagged_vector<float, dcon::commodity_id> nation_get_last_required_construction_need(const sys::state& state, dcon::nation_id nation) {
 	tagged_vector<float, dcon::commodity_id> result(state.world.commodity_size());
-	if constexpr(std::is_same_v<con_type, dcon::province_land_construction_id>) {
-		state.world.nation_for_each_province_land_construction(nation, [&](dcon::province_land_construction_id con) {
-			get_last_required_construction_need(state, con, result);
-		});
-	}
-	else if constexpr(std::is_same_v<con_type, dcon::province_naval_construction_id>) {
-		state.world.nation_for_each_province_naval_construction(nation, [&](dcon::province_naval_construction_id con) {
-			get_last_required_construction_need(state, con, result);
-		});
-	}
-	else if constexpr(std::is_same_v<con_type, dcon::factory_construction_id>) {
-		state.world.nation_for_each_factory_construction(nation, [&](dcon::factory_construction_id con) {
-			get_last_required_construction_need(state, con, result);
-		});
-	}
-	else if constexpr(std::is_same_v<con_type, dcon::province_building_construction_id>) {
-		state.world.nation_for_each_province_building_construction(nation, [&](dcon::province_building_construction_id con) {
-			get_last_required_construction_need(state, con, result);
-		});
-	}
+
+	nations::nation_for_each_construction_by_type<con_type>(state, nation, [&](con_type con) {
+		get_last_required_construction_need(state, con, result);
+	});
 	return result;
 }
 template tagged_vector<float, dcon::commodity_id> nation_get_last_required_construction_need<dcon::province_land_construction_id>(const sys::state& state, dcon::nation_id nation);
@@ -789,23 +773,10 @@ tagged_vector<float, dcon::commodity_id> get_last_fufilled_construction_need(con
 template<concepts::construction_type con_type>
 tagged_vector<float, dcon::commodity_id> nation_get_last_fufilled_construction_need(const sys::state& state, dcon::nation_id nation) {
 	tagged_vector<float, dcon::commodity_id> result(state.world.commodity_size());
-	if constexpr(std::is_same_v<con_type, dcon::province_land_construction_id>) {
-		state.world.nation_for_each_province_land_construction(nation, [&](dcon::province_land_construction_id con) {
-			get_last_fufilled_construction_need(state, con, result);
-		});
-	} else if constexpr(std::is_same_v<con_type, dcon::province_naval_construction_id>) {
-		state.world.nation_for_each_province_naval_construction(nation, [&](dcon::province_naval_construction_id con) {
-			get_last_fufilled_construction_need(state, con, result);
-		});
-	} else if constexpr(std::is_same_v<con_type, dcon::factory_construction_id>) {
-		state.world.nation_for_each_factory_construction(nation, [&](dcon::factory_construction_id con) {
-			get_last_fufilled_construction_need(state, con, result);
-		});
-	} else if constexpr(std::is_same_v<con_type, dcon::province_building_construction_id>) {
-		state.world.nation_for_each_province_building_construction(nation, [&](dcon::province_building_construction_id con) {
-			get_last_fufilled_construction_need(state, con, result);
-		});
-	}
+
+	nations::nation_for_each_construction_by_type<con_type>(state, nation, [&](con_type con) {
+		get_last_fufilled_construction_need(state, con, result);
+	});
 	return result;
 }
 template tagged_vector<float, dcon::commodity_id> nation_get_last_fufilled_construction_need<dcon::province_land_construction_id>(const sys::state& state, dcon::nation_id nation);
