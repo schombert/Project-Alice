@@ -213,8 +213,8 @@ It's modified by local availability and price
 */
 
 template<typename VALUE>
-constexpr VALUE need_weight_change(VALUE scale, VALUE price, VALUE availability, VALUE current_weight, VALUE base_amount, VALUE total_cost, VALUE different_goods_count) {
-	return base_amount * availability * 2.f / adaptive_ve::max<VALUE>((current_weight + 1.f) + different_goods_count, 1.f) - base_amount * (price + price_properties::commodity::min) / (total_cost + price_properties::commodity::min) + scale / (total_cost + price_properties::commodity::min) - price * base_amount / (scale * 100'000.f + price_properties::commodity::min);
+constexpr VALUE need_weight_change(VALUE scale_min, VALUE scale_max, VALUE price, VALUE availability, VALUE current_weight, VALUE base_amount, VALUE total_cost, VALUE different_goods_count) {
+	return (2.f * availability - 20.f * base_amount * price / total_cost) + scale_min / total_cost - price * base_amount / scale_max;
 }
 
 void rebalance_needs_weights(sys::state& state) {
@@ -260,9 +260,9 @@ void rebalance_needs_weights(sys::state& state) {
 
 	// todo: vectorize
 	state.world.execute_parallel_over_market([&](auto market){
-		ve::fp_vector local_cost_life { 0.f };
-		ve::fp_vector local_cost_everyday{ 0.f };
-		ve::fp_vector local_cost_luxury{ 0.f };
+		ve::fp_vector local_cost_life { economy::price_properties::commodity::min };
+		ve::fp_vector local_cost_everyday{ economy::price_properties::commodity::min };
+		ve::fp_vector local_cost_luxury{ economy::price_properties::commodity::min };
 		state.world.for_each_commodity([&](auto cid) {
 			auto base_life = average_life_need.get(cid);
 			auto base_everyday = average_everyday_need.get(cid);
@@ -287,11 +287,12 @@ void rebalance_needs_weights(sys::state& state) {
 			auto needed_everyday = average_everyday_need.get(c);
 			auto needed_luxury = average_luxury_need.get(c);
 
-			auto scale = local_cost_life * 10.f;
+			auto scale_min = local_cost_life * 10.f;
+			auto scale_max = local_cost_life * 100000.f;
 
-			auto dw_life = need_weight_change<ve::fp_vector>(scale, price, available, w_life, needed_life, local_cost_life, life_count);
-			auto dw_everyday = need_weight_change<ve::fp_vector>(scale, price, available, w_everyday, needed_everyday, local_cost_everyday, everyday_count);
-			auto dw_luxury = need_weight_change<ve::fp_vector>(scale, price, available, w_luxury, needed_luxury, local_cost_luxury, luxury_count);
+			auto dw_life = need_weight_change<ve::fp_vector>(scale_min, scale_max, price, available, w_life, needed_life, local_cost_life, life_count);
+			auto dw_everyday = need_weight_change<ve::fp_vector>(scale_min, scale_max, price, available, w_everyday, needed_everyday, local_cost_everyday, everyday_count);
+			auto dw_luxury = need_weight_change<ve::fp_vector>(scale_min, scale_max, price, available, w_luxury, needed_luxury, local_cost_luxury, luxury_count);
 
 			w_life = ve::max(ve::fp_vector{0.f}, ve::min(ve::fp_vector{1.f}, w_life + dw_life * 10.f * state.defines.alice_need_drift_speed));
 			w_everyday = ve::max(ve::fp_vector{ 0.f }, ve::min(ve::fp_vector{ 1.f }, w_everyday + dw_everyday * 10.f * state.defines.alice_need_drift_speed));

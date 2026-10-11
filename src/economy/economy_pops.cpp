@@ -168,17 +168,33 @@ auto prepare_pop_budget_templated(
 		adaptive_ve::max<VALUE>(0.f, savings - total_cost_needs) / total_cost_needs
 	);
 
-	VALUE base_life_costs = (0.00001f + life_costs * pop_size / state.defines.alice_needs_scaling_factor);
+	VALUE base_life_costs = (economy::price_properties::commodity::min + life_costs * pop_size / state.defines.alice_needs_scaling_factor);
+	VALUE base_everyday_costs = (economy::price_properties::commodity::min + everyday_costs * pop_size / state.defines.alice_needs_scaling_factor);
+	VALUE base_luxury_costs = (economy::price_properties::commodity::min + luxury_costs * pop_size / state.defines.alice_needs_scaling_factor);
+
 	VALUE is_poor = adaptive_ve::max<VALUE>(0.01f, 1.f - savings / base_life_costs);
 	//VALUE current_life = pop_demographics::get_life_needs(state, ids);
 	is_poor = adaptive_ve::min<VALUE>(1.f, adaptive_ve::max<VALUE>(0.f, is_poor));
 
+	VALUE savings_divisor = 1.f / (savings + economy::price_properties::commodity::min);
+
 	// prepare desired spending rate for every category
 
-	VALUE life_spending_ratio = state.defines.alice_needs_lf_spend * (1.f - is_poor) + is_poor;
+	VALUE life_satisfaction_per_pound = 1.f / (life_costs + economy::price_properties::commodity::min);
+	VALUE everyday_satisfaction_per_pound = 1.f / (life_costs + economy::price_properties::commodity::min);
+	VALUE luxury_satisfaction_per_pound = 1.f / (life_costs + economy::price_properties::commodity::min);
+
+	VALUE total_score = life_satisfaction_per_pound + everyday_satisfaction_per_pound + luxury_satisfaction_per_pound;
+
+	VALUE lf_spend = adaptive_ve::min<VALUE>(10.f * base_life_costs * savings_divisor, life_satisfaction_per_pound / total_score);
+	VALUE ev_spend = adaptive_ve::min<VALUE>(10.f * base_everyday_costs * savings_divisor, everyday_satisfaction_per_pound / total_score);
+	VALUE lx_spend = adaptive_ve::min<VALUE>(10.f * base_luxury_costs * savings_divisor, luxury_satisfaction_per_pound / total_score);
+
+	VALUE life_spending_ratio = lf_spend * (1.f - is_poor) + is_poor;
 	VALUE housing_spending_ratio = 0.3f;
-	VALUE everyday_spending_ratio = state.defines.alice_needs_ev_spend * (1.f - is_poor);
-	VALUE luxury_spending_ratio = state.defines.alice_needs_lx_spend * (1.f - is_poor);
+	VALUE everyday_spending_ratio = ev_spend * (1.f - is_poor);
+	VALUE luxury_spending_ratio = lx_spend * (1.f - is_poor);
+
 	VALUE categories_spending_ratio = 0.0f;
 	VALUE education_spending_ratio = (0.2f) * (1.f - is_poor);
 	VALUE investment_ratio = adaptive_ve::max<VALUE>(investment_rate<VALUE>(state, ids), 0.0f);
