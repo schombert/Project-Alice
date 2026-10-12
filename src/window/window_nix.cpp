@@ -340,7 +340,7 @@ void create_window(sys::state& game_state, creation_parameters const& params) {
 	on_window_change(window); // Init the window size
 
 	change_cursor(game_state, cursor_type::busy);
-	game_state.on_create();
+	game_state.on_window_create();
 	change_cursor(game_state, cursor_type::normal_cancel_busy);
 
 	while(!glfwWindowShouldClose(window)) {

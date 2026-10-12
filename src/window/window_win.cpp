@@ -536,7 +536,7 @@ void create_window(sys::state& game_state, creation_parameters const& params) {
 	sound::start_music(game_state, game_state.user_settings.master_volume * game_state.user_settings.music_volume);
 
 	change_cursor(game_state, cursor_type::busy);
-	game_state.on_create();
+	game_state.on_window_create();
 	change_cursor(game_state, cursor_type::normal_cancel_busy);
 
 	

@@ -2288,6 +2288,8 @@ bool can_enact_reform(sys::state& state, dcon::nation_id source, dcon::reform_op
 }
 void execute_enact_reform(sys::state& state, dcon::nation_id source, dcon::reform_option_id r) {
 	nations::enact_reform(state, source, r);
+	// Run nations garbage collection incase any nations were made non-existant in the effect
+	nations::run_gc(state);
 	event::update_future_events(state);
 }
 
@@ -2315,6 +2317,8 @@ bool can_enact_issue(sys::state& state, dcon::nation_id source, dcon::issue_opti
 }
 void execute_enact_issue(sys::state& state, dcon::nation_id source, dcon::issue_option_id i) {
 	nations::enact_issue(state, source, i);
+	// Run nations garbage collection incase any nations were made non-existant in the effect
+	nations::run_gc(state);
 	event::update_future_events(state);
 }
 
@@ -2465,6 +2469,8 @@ bool can_take_decision(sys::state& state, dcon::nation_id source, dcon::decision
 void execute_take_decision(sys::state& state, dcon::nation_id source, dcon::decision_id d) {
 	nations::take_decision(state, source, d);
 	if(auto e = state.world.decision_get_effect(d); e) {
+		// Run nations garbage collection incase any nations were made non-existant in the effect
+		nations::run_gc(state);
 		event::update_future_events(state);
 	}
 }
@@ -2574,10 +2580,14 @@ void make_event_choice(sys::state& state, event::pending_human_f_p_event const& 
 void execute_make_event_choice(sys::state& state, dcon::nation_id source, pending_human_n_event_data const& e) {
 	event::take_option(state,
 			event::pending_human_n_event {e.r_lo, e.r_hi, e.primary_slot, e.from_slot, e.date, e.e, source, e.pt, e.ft}, e.opt_choice);
+	// Run nations garbage collection incase any nations were made non-existant in the effect
+	nations::run_gc(state);
 	event::update_future_events(state);
 }
 void execute_make_event_choice(sys::state& state, dcon::nation_id source, pending_human_f_n_event_data const& e) {
 	event::take_option(state, event::pending_human_f_n_event {e.r_lo, e.r_hi, e.date, e.e, source}, e.opt_choice);
+	// Run nations garbage collection incase any nations were made non-existant in the effect
+	nations::run_gc(state);
 	event::update_future_events(state);
 }
 void execute_make_event_choice(sys::state& state, dcon::nation_id source, pending_human_p_event_data const& e) {
@@ -2585,6 +2595,8 @@ void execute_make_event_choice(sys::state& state, dcon::nation_id source, pendin
 		return;
 
 	event::take_option(state, event::pending_human_p_event {e.r_lo, e.r_hi, e.from_slot, e.date, e.e, e.p, e.ft}, e.opt_choice);
+	// Run nations garbage collection incase any nations were made non-existant in the effect
+	nations::run_gc(state);
 	event::update_future_events(state);
 }
 void execute_make_event_choice(sys::state& state, dcon::nation_id source, pending_human_f_p_event_data const& e) {
@@ -2592,6 +2604,8 @@ void execute_make_event_choice(sys::state& state, dcon::nation_id source, pendin
 		return;
 
 	event::take_option(state, event::pending_human_f_p_event {e.r_lo, e.r_hi, e.date, e.e, e.p}, e.opt_choice);
+	// Run nations garbage collection incase any nations were made non-existant in the effect
+	nations::run_gc(state);
 	event::update_future_events(state);
 }
 
@@ -6311,6 +6325,8 @@ void execute_notify_start_game(sys::state& state, dcon::nation_id source) {
 
 		// take ai decisions on start incase important ai decisions need to fire exactly at the start, and not later
 		ai::take_ai_decisions(state);
+		// Run nations garbage collection incase any nations were made non-existant in the effects
+		nations::run_gc(state);
 		// update any events which were queued, so that they appear for players as soon as the game has started
 		event::update_future_events(state);
 	}

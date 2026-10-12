@@ -742,11 +742,6 @@ void state::render() { // called to render the frame may (and should) delay retu
 
 
 	auto game_state_was_updated = game_state_updated.exchange(false, std::memory_order::acq_rel);
-	if(game_state_was_updated && !current_scene.starting_scene && !ui_state.lazy_load_in_game) {
-		window::change_cursor(*this, window::cursor_type::busy);
-		ui::create_in_game_windows(*this);
-		window::change_cursor(*this, window::cursor_type::normal_cancel_busy);
-	}
 	// Process queued ui function invocations from command thread
 	auto* queued_func = ui_state.queued_invocations.front();
 	while(queued_func) {
@@ -1179,15 +1174,13 @@ void state::render() { // called to render the frame may (and should) delay retu
 	/*render_semaphore.release();*/
 }
 
-void state::on_create() {
-	// lua
-	lua_alice_api::set_state(this);
-	lua_alice_api::setup_gameloop_environment(*this);
+void state::on_window_create() {
+	// lua ui environment
 
 	lua_alice_api::setup_ui_environment(*this);
 
 
-	// populate the table with scripted functions from lua_combined_script and lua_ui_script (read during scenario generation)
+	// populate the table with scripted functions from lua_ui_script and the combined script (read during scenario generation)
 	{
 		int status;
 		status = luaL_dostring(lua_ui_environment, lua_combined_script.c_str());
@@ -1198,14 +1191,6 @@ void state::on_create() {
 			lua_settop(lua_ui_environment, 0);
 			std::abort();
 		}
-		status = luaL_dostring(lua_game_loop_environment, lua_combined_script.c_str());
-		if(status) {
-#ifdef _WIN32
-			OutputDebugStringA(lua_tostring(lua_game_loop_environment, -1));
-#endif
-			lua_settop(lua_game_loop_environment, 0);
-			std::abort();
-		}
 
 		status = luaL_dostring(lua_ui_environment, lua_ui_script.c_str());
 		if(status) {
@@ -1213,14 +1198,6 @@ void state::on_create() {
 			OutputDebugStringA(lua_tostring(lua_ui_environment, -1));
 #endif
 			lua_settop(lua_ui_environment, 0);
-			std::abort();
-		}
-		status = luaL_dostring(lua_game_loop_environment, lua_game_loop_script.c_str());
-		if(status) {
-#ifdef _WIN32
-			OutputDebugStringA(lua_tostring(lua_game_loop_environment, -1));
-#endif
-			lua_settop(lua_game_loop_environment, 0);
 			std::abort();
 		}
 	}
@@ -1271,6 +1248,9 @@ void state::on_create() {
 
 	ui::adjust_in_game_windows(*this);
 	map_mode::set_map_mode(*this, map_mode::mode::political);
+	// Create the ingame windows early, to prevent a message in the message loop to refer to a UI item before it has been created (nullptr deref).
+	// Could happen if the player clicked stuff while the game was transitioning from nation_picker to ingame_basic for the first time
+	ui::create_in_game_windows(*this); 
 }
 //
 // string pool functions
@@ -1848,8 +1828,8 @@ void state::update_ui_scale(float new_scale) {
 
 	if(ui_state.outliner_window)
 		ui_state.outliner_window->impl_on_update(*this);
-	if(current_scene.game_in_progress)
-		alice_ui::display_at_front<alice_ui::make_production_main>(*this, alice_ui::display_closure_command::return_pointer)->base_data.size.y = int16_t(y_size / user_settings.ui_scale);
+	//if(current_scene.game_in_progress)
+	//	alice_ui::display_at_front<alice_ui::make_production_main>(*this, alice_ui::display_closure_command::return_pointer)->base_data.size.y = int16_t(y_size / user_settings.ui_scale);
 
 	for(auto& s : ui_templates.backgrounds) {
 		s.renders.release_renders();
@@ -4564,6 +4544,36 @@ void state::on_scenario_load() {
 	} };
 
 	dispatch.detach();
+
+	// Lua init. Save lua ui environment for later when UI is available
+
+	lua_alice_api::set_state(this);
+	lua_alice_api::setup_gameloop_environment(*this);
+
+
+
+	// populate the table with scripted functions from lua_combined_script (read during scenario generation). Do ui script later when UI is available
+	{
+		int status;
+		status = luaL_dostring(lua_game_loop_environment, lua_combined_script.c_str());
+		if(status) {
+#ifdef _WIN32
+			OutputDebugStringA(lua_tostring(lua_game_loop_environment, -1));
+#endif
+			lua_settop(lua_game_loop_environment, 0);
+			std::abort();
+		}
+		status = luaL_dostring(lua_game_loop_environment, lua_game_loop_script.c_str());
+		if(status) {
+#ifdef _WIN32
+			OutputDebugStringA(lua_tostring(lua_game_loop_environment, -1));
+#endif
+			lua_settop(lua_game_loop_environment, 0);
+			std::abort();
+		}
+	}
+
+
 #endif
 
 }
