@@ -1249,7 +1249,7 @@ void internal_text_render(std::string_view str, color_modification enabled, floa
 	std::vector<text::stored_glyph> glyphs;
 
 	for(unsigned int i = 0; i < glyph_count; i++) {
-		font_instance.make_glyph((uint16_t)glyph_info[i].codepoint, 0);
+		font_instance.insert_or_find_glyph((uint16_t)glyph_info[i].codepoint, 0);
 		glyphs.emplace_back(glyph_info[i], glyph_pos[i]);
 	}
 
