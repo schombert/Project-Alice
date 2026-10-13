@@ -42,78 +42,64 @@ struct unit {
 
 
 // local functions for accessing resuable buffers, as a way of aliasing them
-template<concepts::any_dcon_id_type<dcon::market_id> market_type>
+template<typename market_type>
 auto local_stockpile_available_goods_get(const sys::state& state, market_type market, dcon::commodity_id com_id) {
 	return state.world.market_get_commodity_float_buffer_1(market, com_id);
 }
 
-template<concepts::any_dcon_id_type<dcon::market_id> market_type, concepts::regular_or_ve_value_type<float> float_type>
+template<typename market_type, typename float_type>
 void local_stockpile_available_goods_set(sys::state& state, market_type market, dcon::commodity_id com_id, float_type val) {
 	state.world.market_set_commodity_float_buffer_1(market, com_id, val);
 }
 
-template<concepts::any_dcon_id_type<dcon::nation_id> nation_type>
+template<typename nation_type>
 auto nation_stockpile_available_goods_get(const sys::state& state, nation_type nation, dcon::commodity_id com_id) {
 	return state.world.nation_get_commodity_float_buffer_1(nation, com_id);
 }
 
-template<concepts::any_dcon_id_type<dcon::nation_id> nation_type, concepts::regular_or_ve_value_type<float> float_type>
+template<typename nation_type, typename float_type>
 void nation_stockpile_available_goods_set(sys::state& state, nation_type nation, dcon::commodity_id com_id, float_type val) {
 	state.world.nation_set_commodity_float_buffer_1(nation, com_id, val);
 }
-
-
-template<typename unit_id_type>
-auto unit_supply_need_get(const sys::state& state, unit_id_type unit, dcon::unit_supply_commodity_id com_id) {
-	if constexpr(concepts::any_dcon_id_type<unit_id_type, dcon::army_id>) {
-		return state.world.army_get_unit_supply_commodity_float_buffer_1(unit, com_id);
-	}
-	else if constexpr(concepts::any_dcon_id_type<unit_id_type, dcon::navy_id>) {
-		return state.world.navy_get_unit_supply_commodity_float_buffer_1(unit, com_id);
-	}
-	else {
-		static_assert(false, "Unsupported type");
-	}
+template<concepts::any_dcon_id_type<dcon::army_id> army_type>
+auto unit_supply_need_get(const sys::state& state, army_type unit, dcon::unit_supply_commodity_id com_id) {
+	return state.world.army_get_unit_supply_commodity_float_buffer_1(unit, com_id);
+}
+template<concepts::any_dcon_id_type<dcon::navy_id> navy_type>
+auto unit_supply_need_get(const sys::state& state, navy_type unit, dcon::unit_supply_commodity_id com_id) {
+	return state.world.navy_get_unit_supply_commodity_float_buffer_1(unit, com_id);
 }
 
-template<typename unit_id_type, concepts::regular_or_ve_value_type<float> float_type>
-void unit_supply_need_set(sys::state& state, unit_id_type unit, dcon::unit_supply_commodity_id com_id, float_type val) {
-	if constexpr(concepts::any_dcon_id_type<unit_id_type, dcon::army_id>) {
-		state.world.army_set_unit_supply_commodity_float_buffer_1(unit, com_id, val);
-	}
-	else if constexpr(concepts::any_dcon_id_type<unit_id_type, dcon::navy_id>) {
-		state.world.navy_set_unit_supply_commodity_float_buffer_1(unit, com_id, val);
-	}
-	else {
-		static_assert(false, "Unsupported type");
-	}
+template<concepts::any_dcon_id_type<dcon::army_id> army_type, typename float_type>
+void unit_supply_need_set(sys::state& state, army_type unit, dcon::unit_supply_commodity_id com_id, float_type val) {
+	state.world.army_set_unit_supply_commodity_float_buffer_1(unit, com_id, val);
+}
+template<concepts::any_dcon_id_type<dcon::navy_id> navy_type, typename float_type>
+void unit_supply_need_set(sys::state& state, navy_type unit, dcon::unit_supply_commodity_id com_id, float_type val) {
+	state.world.navy_set_unit_supply_commodity_float_buffer_1(unit, com_id, val);
+}
+
+template<concepts::any_dcon_id_type<dcon::army_id> army_type>
+auto unit_reinforcement_need_get(const sys::state& state, army_type unit, dcon::unit_build_commodity_id com_id) {
+	return state.world.army_get_unit_build_commodity_float_buffer_1(unit, com_id);
+}
+template<concepts::any_dcon_id_type<dcon::navy_id> navy_type>
+auto unit_reinforcement_need_get(const sys::state& state, navy_type unit, dcon::unit_build_commodity_id com_id) {
+	return state.world.navy_get_unit_build_commodity_float_buffer_1(unit, com_id);
+}
+
+template<concepts::any_dcon_id_type<dcon::army_id> army_type, typename float_type>
+void unit_reinforcement_need_set(sys::state& state, army_type unit, dcon::unit_build_commodity_id com_id, float_type val) {
+	state.world.army_set_unit_build_commodity_float_buffer_1(unit, com_id, val);
+}
+template<concepts::any_dcon_id_type<dcon::navy_id> navy_type, typename float_type>
+void unit_reinforcement_need_set(sys::state& state, navy_type unit, dcon::unit_build_commodity_id com_id, float_type val) {
+	state.world.navy_set_unit_build_commodity_float_buffer_1(unit, com_id, val);
 }
 
 
-template<typename unit_id_type>
-auto unit_reinforcement_need_get(const sys::state& state, unit_id_type unit, dcon::unit_build_commodity_id com_id) {
-	if constexpr(concepts::any_dcon_id_type<unit_id_type, dcon::army_id>) {
-		return state.world.army_get_unit_build_commodity_float_buffer_1(unit, com_id);
-	} else if constexpr(concepts::any_dcon_id_type<unit_id_type, dcon::navy_id>) {
-		return state.world.navy_get_unit_build_commodity_float_buffer_1(unit, com_id);
-	} else {
-		static_assert(false, "Unsupported type");
-	}
-}
-
-template<typename unit_id_type, concepts::regular_or_ve_value_type<float> float_type>
-void unit_reinforcement_need_set(sys::state& state, unit_id_type unit, dcon::unit_build_commodity_id com_id, float_type val) {
-	if constexpr(concepts::any_dcon_id_type<unit_id_type, dcon::army_id>) {
-		state.world.army_set_unit_build_commodity_float_buffer_1(unit, com_id, val);
-	} else if constexpr(concepts::any_dcon_id_type<unit_id_type, dcon::navy_id>) {
-		state.world.navy_set_unit_build_commodity_float_buffer_1(unit, com_id, val);
-	} else {
-		static_assert(false, "Unsupported type");
-	}
-}
-
-template<military::unit_priority priority, concepts::any_dcon_id_type<dcon::nation_id> nation_id_type>
-auto nation_unit_prio_need_get(const sys::state& state, nation_id_type n, dcon::unit_supply_and_build_commodity_id com_id) {
+template<military::unit_priority priority, typename nation_type>
+auto nation_unit_prio_need_get(const sys::state& state, nation_type n, dcon::unit_supply_and_build_commodity_id com_id) {
 	if constexpr(priority == military::unit_priority::low_priority) {
 		return state.world.nation_get_unit_supply_and_build_commodity_float_buffer_1(n, com_id);
 	}
@@ -125,8 +111,8 @@ auto nation_unit_prio_need_get(const sys::state& state, nation_id_type n, dcon::
 	}
 }
 
-template<military::unit_priority priority, concepts::any_dcon_id_type<dcon::nation_id> nation_id_type, concepts::regular_or_ve_value_type<float> float_type>
-void nation_unit_prio_need_set(sys::state& state, nation_id_type n, dcon::unit_supply_and_build_commodity_id com_id, float_type val) {
+template<military::unit_priority priority, typename nation_type, typename float_type>
+void nation_unit_prio_need_set(sys::state& state, nation_type n, dcon::unit_supply_and_build_commodity_id com_id, float_type val) {
 	if constexpr(priority == military::unit_priority::low_priority) {
 		state.world.nation_set_unit_supply_and_build_commodity_float_buffer_1(n, com_id, val);
 	}
@@ -162,34 +148,34 @@ economy::commodity_amounts& constructions_need_get(sys::state& state, dcon::prov
 	return state.world.province_building_construction_get_commodity_amounts_buffer_1(con);
 }
 
-template<concepts::any_dcon_id_type<dcon::nation_id> nation_id_type>
-auto nation_construction_need_get(const sys::state& state, nation_id_type n, dcon::commodity_id com_id) {
+template<typename nation_type>
+auto nation_construction_need_get(const sys::state& state, nation_type n, dcon::commodity_id com_id) {
 	return state.world.nation_get_commodity_float_buffer_2(n, com_id);
 }
 
-template<concepts::any_dcon_id_type<dcon::nation_id> nation_id_type, concepts::regular_or_ve_value_type<float> float_type>
-void nation_construction_need_set(sys::state& state, nation_id_type n, dcon::commodity_id com_id, float_type val) {
+template<typename nation_type, typename float_type>
+void nation_construction_need_set(sys::state& state, nation_type n, dcon::commodity_id com_id, float_type val) {
 	state.world.nation_set_commodity_float_buffer_2(n, com_id, val);
 }
 
 
-template<concepts::any_dcon_id_type<dcon::nation_id> nation_id_type>
-auto nation_unit_expected_satisfaction_get(const sys::state& state, nation_id_type n, dcon::unit_supply_and_build_commodity_id com_id) {
+template<typename nation_type>
+auto nation_unit_expected_satisfaction_get(const sys::state& state, nation_type n, dcon::unit_supply_and_build_commodity_id com_id) {
 	return state.world.nation_get_unit_supply_and_build_commodity_float_buffer_4(n, com_id);
 }
 
-template<concepts::any_dcon_id_type<dcon::nation_id> nation_id_type, concepts::regular_or_ve_value_type<float> float_type>
-void nation_unit_expected_satisfaction_set(sys::state& state, nation_id_type n, dcon::unit_supply_and_build_commodity_id com_id, float_type val) {
+template<typename nation_type, typename float_type>
+void nation_unit_expected_satisfaction_set(sys::state& state, nation_type n, dcon::unit_supply_and_build_commodity_id com_id, float_type val) {
 	state.world.nation_set_unit_supply_and_build_commodity_float_buffer_4(n, com_id, val);
 }
 
 
-template<concepts::any_dcon_id_type<dcon::nation_id> nation_id_type>
-auto nation_construction_expected_satisfaction_get(const sys::state& state, nation_id_type n, dcon::commodity_id com_id) {
+template<typename nation_type>
+auto nation_construction_expected_satisfaction_get(const sys::state& state, nation_type n, dcon::commodity_id com_id) {
 	return state.world.nation_get_commodity_float_buffer_3(n, com_id);
 }
 
-template<concepts::any_dcon_id_type<dcon::nation_id> nation_id_type, concepts::regular_or_ve_value_type<float> float_type>
+template<typename nation_id_type, typename float_type>
 void nation_construction_expected_satisfaction_set(sys::state& state, nation_id_type n, dcon::commodity_id com_id, float_type val) {
 	state.world.nation_set_commodity_float_buffer_3(n, com_id, val);
 }
