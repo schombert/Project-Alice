@@ -1,8 +1,3 @@
-#include <cstdint>
-#include <functional>
-#include <unordered_map>
-#include <variant>
-#include <vector>
 #include "gui_units.hpp"
 #include "gui_templates.hpp"
 #include "dcon_generated_ids.hpp"
@@ -23,6 +18,7 @@
 #include "economy_templates.hpp"
 #include "concept_declarations.hpp"
 #include "logistics.hpp"
+#include "logistics_templates.hpp"
 #include "economy.hpp"
 
 namespace ui {

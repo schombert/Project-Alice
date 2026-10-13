@@ -4,6 +4,31 @@
 namespace logistics {
 
 
+template<concepts::any_dcon_id_type<dcon::army_supply_route_id> ID>
+auto supply_route_is_active(const sys::state& state, ID route) {
+	return state.world.army_supply_route_get_is_active(route);
+}
+template<concepts::any_dcon_id_type<dcon::navy_supply_route_id> ID>
+auto supply_route_is_active(const sys::state& state, ID route) {
+	return state.world.navy_supply_route_get_is_active(route);
+}
+template<concepts::any_dcon_id_type<dcon::land_construction_supply_route_id> ID>
+auto supply_route_is_active(const sys::state& state, ID route) {
+	return state.world.land_construction_supply_route_get_is_active(route);
+}
+template<concepts::any_dcon_id_type<dcon::naval_construction_supply_route_id> ID>
+auto supply_route_is_active(const sys::state& state, ID route) {
+	return state.world.naval_construction_supply_route_get_is_active(route);
+}
+template<concepts::any_dcon_id_type<dcon::factory_construction_supply_route_id> ID>
+auto supply_route_is_active(const sys::state& state, ID route) {
+	return state.world.factory_construction_supply_route_get_is_active(route);
+}
+template<concepts::any_dcon_id_type<dcon::building_construction_supply_route_id> ID>
+auto supply_route_is_active(const sys::state& state, ID route) {
+	return state.world.building_construction_supply_route_get_is_active(route);
+}
+
 template<typename F>
 void for_each_unit_supply_route(sys::state& state, F&& functor) {
 	state.world.for_each_army_supply_route(functor);

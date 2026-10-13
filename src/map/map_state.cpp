@@ -21,6 +21,7 @@
 
 #include <set>
 #include "logistics.hpp"
+#include "logistics_templates.hpp"
 
 namespace map {
 
