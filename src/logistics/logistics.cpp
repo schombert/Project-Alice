@@ -986,29 +986,23 @@ void update_supply_route_path(sys::state& state, dcon::supply_route_path_id supp
 	state.world.supply_route_path_set_valid_path(supply_path, valid);
 }
 
-template<concepts::supply_route_type route_type>
-void delete_supply_route(sys::state& state, route_type route) {
-	if constexpr(std::is_same_v<route_type, dcon::army_supply_route_id>) {
-		state.world.delete_army_supply_route(route);
-	}
-	else if constexpr(std::is_same_v<route_type, dcon::navy_supply_route_id>) {
-		state.world.delete_navy_supply_route(route);
-	}
-	else if constexpr(std::is_same_v<route_type, dcon::land_construction_supply_route_id>) {
-		state.world.delete_land_construction_supply_route(route);
-	}
-	else if constexpr(std::is_same_v<route_type, dcon::naval_construction_supply_route_id>) {
-		state.world.delete_naval_construction_supply_route(route);
-	}
-	else if constexpr(std::is_same_v<route_type, dcon::factory_construction_supply_route_id>) {
-		state.world.delete_factory_construction_supply_route(route);
-	}
-	else if constexpr(std::is_same_v<route_type, dcon::building_construction_supply_route_id>) {
-		state.world.delete_building_construction_supply_route(route);
-	}
-	else {
-		static_assert(false, "Unsupported route type");
-	}
+void delete_supply_route(sys::state& state, dcon::army_supply_route_id route) {
+	state.world.delete_army_supply_route(route);
+}
+void delete_supply_route(sys::state& state, dcon::navy_supply_route_id route) {
+	state.world.delete_navy_supply_route(route);
+}
+void delete_supply_route(sys::state& state, dcon::land_construction_supply_route_id route) {
+	state.world.delete_land_construction_supply_route(route);
+}
+void delete_supply_route(sys::state& state, dcon::naval_construction_supply_route_id route) {
+	state.world.delete_naval_construction_supply_route(route);
+}
+void delete_supply_route(sys::state& state, dcon::factory_construction_supply_route_id route) {
+	state.world.delete_factory_construction_supply_route(route);
+}
+void delete_supply_route(sys::state& state, dcon::building_construction_supply_route_id route) {
+	state.world.delete_building_construction_supply_route(route);
 }
 
 dcon::supply_route_path_id create_supply_route_path_no_pathing(sys::state& state, dcon::province_id destination, dcon::market_id origin, bool attempting_to_route) {
@@ -1086,248 +1080,303 @@ dcon::building_construction_supply_route_id create_supply_route(sys::state& stat
 	id.set_inactive_days(0);
 	return id.id;
 }
-template<concepts::supply_route_type route_type>
-dcon::market_id supply_route_get_origin_market(const sys::state& state, route_type route) {
-	if constexpr(std::is_same_v<route_type, dcon::army_supply_route_id>) {
-		return state.world.army_supply_route_get_origin(route);
-	}
-	else if constexpr(std::is_same_v<route_type, dcon::navy_supply_route_id>) {
-		return state.world.navy_supply_route_get_origin(route);
-	}
-	else if constexpr(std::is_same_v<route_type, dcon::land_construction_supply_route_id>) {
-		return state.world.land_construction_supply_route_get_origin(route);
-	}
-	else if constexpr(std::is_same_v<route_type, dcon::naval_construction_supply_route_id>) {
-		return state.world.naval_construction_supply_route_get_origin(route);
-	}
-	else if constexpr(std::is_same_v<route_type, dcon::factory_construction_supply_route_id>) {
-		return state.world.factory_construction_supply_route_get_origin(route);
-	}
-	else if constexpr(std::is_same_v<route_type, dcon::building_construction_supply_route_id>) {
-		return state.world.building_construction_supply_route_get_origin(route);
-	}
+
+dcon::market_id supply_route_get_origin_market(const sys::state& state, dcon::army_supply_route_id route) {
+	return state.world.army_supply_route_get_origin(route);
 }
-template dcon::market_id supply_route_get_origin_market(const sys::state& state, dcon::army_supply_route_id route);
-template dcon::market_id supply_route_get_origin_market(const sys::state& state, dcon::navy_supply_route_id route);
-template dcon::market_id supply_route_get_origin_market(const sys::state& state, dcon::land_construction_supply_route_id route);
-template dcon::market_id supply_route_get_origin_market(const sys::state& state, dcon::naval_construction_supply_route_id route);
-template dcon::market_id supply_route_get_origin_market(const sys::state& state, dcon::factory_construction_supply_route_id route);
-template dcon::market_id supply_route_get_origin_market(const sys::state& state, dcon::building_construction_supply_route_id route);
-
-template<concepts::supply_route_type route_type>
-dcon::supply_route_path_id supply_route_get_path(const sys::state& state, route_type route) {
-	if constexpr(std::is_same_v<route_type, dcon::army_supply_route_id>) {
-		return state.world.army_supply_route_get_path_from_army_route_path(route);
-	}
-	else if constexpr(std::is_same_v<route_type, dcon::navy_supply_route_id>) {
-		return state.world.navy_supply_route_get_path_from_navy_route_path(route);
-	}
-	else if constexpr(std::is_same_v<route_type, dcon::land_construction_supply_route_id>) {
-		return state.world.land_construction_supply_route_get_path_from_land_construction_route_path(route);
-	}
-	else if constexpr(std::is_same_v<route_type, dcon::naval_construction_supply_route_id>) {
-		return state.world.naval_construction_supply_route_get_path_from_naval_construction_route_path(route);
-	}
-	else if constexpr(std::is_same_v<route_type, dcon::factory_construction_supply_route_id>) {
-		return state.world.factory_construction_supply_route_get_path_from_factory_construction_route_path(route);
-	}
-	else if constexpr(std::is_same_v<route_type, dcon::building_construction_supply_route_id>) {
-		return state.world.building_construction_supply_route_get_path_from_building_construction_route_path(route);
-	}
+dcon::market_id supply_route_get_origin_market(const sys::state& state, dcon::navy_supply_route_id route) {
+	return state.world.navy_supply_route_get_origin(route);
 }
-template dcon::supply_route_path_id supply_route_get_path(const sys::state& state, dcon::army_supply_route_id route);
-template dcon::supply_route_path_id supply_route_get_path(const sys::state& state, dcon::navy_supply_route_id route);
-template dcon::supply_route_path_id supply_route_get_path(const sys::state& state, dcon::land_construction_supply_route_id route);
-template dcon::supply_route_path_id supply_route_get_path(const sys::state& state, dcon::naval_construction_supply_route_id route);
-template dcon::supply_route_path_id supply_route_get_path(const sys::state& state, dcon::factory_construction_supply_route_id route);
-template dcon::supply_route_path_id supply_route_get_path(const sys::state& state, dcon::building_construction_supply_route_id route);
+dcon::market_id supply_route_get_origin_market(const sys::state& state, dcon::land_construction_supply_route_id route) {
+	return state.world.land_construction_supply_route_get_origin(route);
+}
+dcon::market_id supply_route_get_origin_market(const sys::state& state, dcon::naval_construction_supply_route_id route) {
+	return state.world.naval_construction_supply_route_get_origin(route);
+}
+dcon::market_id supply_route_get_origin_market(const sys::state& state, dcon::factory_construction_supply_route_id route) {
+	return state.world.factory_construction_supply_route_get_origin(route);
+}
+dcon::market_id supply_route_get_origin_market(const sys::state& state, dcon::building_construction_supply_route_id route) {
+	return state.world.building_construction_supply_route_get_origin(route);
+}
+
+dcon::supply_route_path_id supply_route_get_path(const sys::state& state, dcon::army_supply_route_id route) {
+	return state.world.army_supply_route_get_path_from_army_route_path(route);
+}
+dcon::supply_route_path_id supply_route_get_path(const sys::state& state, dcon::navy_supply_route_id route) {
+	return state.world.navy_supply_route_get_path_from_navy_route_path(route);
+}
+dcon::supply_route_path_id supply_route_get_path(const sys::state& state, dcon::land_construction_supply_route_id route) {
+	return state.world.land_construction_supply_route_get_path_from_land_construction_route_path(route);
+}
+dcon::supply_route_path_id supply_route_get_path(const sys::state& state, dcon::naval_construction_supply_route_id route) {
+	return state.world.naval_construction_supply_route_get_path_from_naval_construction_route_path(route);
+}
+dcon::supply_route_path_id supply_route_get_path(const sys::state& state, dcon::factory_construction_supply_route_id route) {
+	return state.world.factory_construction_supply_route_get_path_from_factory_construction_route_path(route);
+}
+dcon::supply_route_path_id supply_route_get_path(const sys::state& state, dcon::building_construction_supply_route_id route) {
+	return state.world.building_construction_supply_route_get_path_from_building_construction_route_path(route);
+}
+
+
+struct supply_loss_stats {
+	float num_transported_goods{};
+	float num_goods_lost{};
+	supply_loss_stats operator+(const supply_loss_stats& n) {
+		return supply_loss_stats{num_transported_goods + n.num_transported_goods, num_goods_lost + n.num_goods_lost};
+	}
+	supply_loss_stats& operator+=(const supply_loss_stats& n) {
+		num_transported_goods += n.num_transported_goods;
+		num_goods_lost += n.num_goods_lost;
+		return *this;
+	}
+};
+struct supply_throughput_stats {
+	float num_potential_transported_goods{};
+	float num_actual_transported_goods{};
+	supply_throughput_stats operator+(const supply_throughput_stats& n) {
+		return supply_throughput_stats{num_potential_transported_goods + n.num_potential_transported_goods, num_actual_transported_goods + n.num_actual_transported_goods};
+	}
+	supply_throughput_stats& operator+=(const supply_throughput_stats& n) {
+		num_potential_transported_goods += n.num_potential_transported_goods;
+		num_actual_transported_goods += n.num_actual_transported_goods;
+		return *this;
+	}
+};
+
+
+template<concepts::military_unit unit_type>
+static supply_loss_stats get_military_unit_supply_loss_stats_from_supply(const sys::state& state, unit_type unit) {
+	supply_loss_stats stats{ };
+	logistics::unit_for_each_active_route(state, unit, [&](auto route) {
+		float supply_loss = logistics::supply_route_get_supply_loss(state, route);
+		float route_throughput = logistics::supply_route_get_throughput(state, route);
+		state.world.for_each_unit_supply_commodity([&](dcon::unit_supply_commodity_id com) {
+			dcon::commodity_id base_com = economy::unit_commodity_get_base_commodity(state, com);
+			float com_loss_mult = state.world.commodity_get_supply_loss_rate(base_com);
+			float commodity_loss = supply_loss_to_commodity_loss(state, supply_loss, com_loss_mult);
+			float buffered_amount = logistics::military_route_get_buffered_goods(state, route, com);
+			float throughput = route_throughput * state.world.commodity_get_supply_weight(base_com);
+			float actual_transported = throughput * buffered_amount;
+			stats.num_transported_goods += actual_transported;
+			stats.num_goods_lost += actual_transported * commodity_loss;
+		});
+
+	});
+	return stats;
+}
+template<concepts::military_unit unit_type>
+static supply_loss_stats get_military_unit_supply_loss_stats_from_reinforcement(const sys::state& state, unit_type unit) {
+	supply_loss_stats stats{ };
+	logistics::unit_for_each_active_route(state, unit, [&](auto route) {
+		float supply_loss = logistics::supply_route_get_supply_loss(state, route);
+		float route_throughput = logistics::supply_route_get_throughput(state, route);
+		state.world.for_each_unit_build_commodity([&](dcon::unit_build_commodity_id com) {
+			dcon::commodity_id base_com = economy::unit_commodity_get_base_commodity(state, com);
+			float com_loss_mult = state.world.commodity_get_supply_loss_rate(base_com);
+			float commodity_loss = supply_loss_to_commodity_loss(state, supply_loss, com_loss_mult);
+			float buffered_amount = logistics::military_route_get_buffered_goods(state, route, com);
+			float throughput = route_throughput * state.world.commodity_get_supply_weight(base_com);
+			float actual_transported = throughput * buffered_amount;
+			stats.num_transported_goods += actual_transported;
+			stats.num_goods_lost += actual_transported * commodity_loss;
+		});
+
+	});
+	return stats;
+}
 
 
 
-// Internal function to accumulate supply loss for military units to perform later computations.
-// Functor signature: void (dcon::commodity_id commodity, float amount, float loss). If loss is 1.0f then it is 100% loss, if 0.0f then no loss.
-template<military::unit_consumption_type consume_type, concepts::military_unit unit_type, typename F>
-static void accumulate_military_unit_supply_loss(const sys::state& state, unit_type unit, F&& accumulate_func) {
-	auto routes = military::unit_get_supply_routes(state, unit);
-	for(auto route : routes) {
-		if(logistics::supply_route_is_active(state, route.id)) {
-			float supply_loss = logistics::supply_route_get_supply_loss(state, route.id);
-			if constexpr(consume_type == military::unit_consumption_type::supply) {
-				state.world.for_each_unit_supply_commodity([&](dcon::unit_supply_commodity_id com) {
-					dcon::commodity_id base_com = economy::unit_commodity_get_base_commodity(state, com);
-					float com_loss_mult = state.world.commodity_get_supply_loss_rate(base_com);
-					float commodity_loss = supply_loss_to_commodity_loss(state, supply_loss, com_loss_mult);
-					float buffered_amount = logistics::military_route_get_buffered_goods(state, route.id, com);
-					accumulate_func(base_com, buffered_amount, commodity_loss);
-				});
-			} else if constexpr(consume_type == military::unit_consumption_type::reinforcement) {
-				state.world.for_each_unit_build_commodity([&](dcon::unit_build_commodity_id com) {
-					dcon::commodity_id base_com = economy::unit_commodity_get_base_commodity(state, com);
-					float com_loss_mult = state.world.commodity_get_supply_loss_rate(base_com);
-					float commodity_loss = supply_loss_to_commodity_loss(state, supply_loss, com_loss_mult);
-					float buffered_amount = logistics::military_route_get_buffered_goods(state, route.id, com);
-					accumulate_func(base_com, buffered_amount, commodity_loss);
-				});
-			}
+// Internal function to get supply loss stats for military units to perform later computations.
+//  If loss is 1.0f then it is 100% loss, if 0.0f then no loss.
+template<military::unit_consumption_type consume_type, concepts::military_unit unit_type>
+static supply_loss_stats get_military_unit_supply_loss_stats(const sys::state& state, unit_type unit) {
+	supply_loss_stats stats = [&]() {
+		if constexpr(consume_type == military::unit_consumption_type::supply) {
+			return get_military_unit_supply_loss_stats_from_supply(state, unit);
+		} else if constexpr(consume_type == military::unit_consumption_type::reinforcement) {
+			return get_military_unit_supply_loss_stats_from_reinforcement(state, unit);
 		}
-	}
+	}();
+	return stats;
 }
 
-// Internal function to accumulate supply loss for constructions to perform later computations.
-// Functor signature: void (dcon::commodity_id commodity, float amount, float loss). If loss is 1.0f then it is 100% loss, if 0.0f then no loss.
-template<concepts::construction_type con_type, typename F>
-static void accumulate_construction_supply_loss(const sys::state& state, con_type construction, F&& accumulate_func) {
+// Internal function to get supply loss for constructions to perform later computations.
+// If loss is 1.0f then it is 100% loss, if 0.0f then no loss.
+template<concepts::construction_type con_type>
+static supply_loss_stats get_construction_supply_loss_stats(const sys::state& state, con_type construction) {
 
-	// Privately owned constructions do not use the logistics system, and thus no supply loss
-	if(economy::construction_is_privately_owned(state, construction)) {
-		return;
-	}
-	auto routes = economy::construction_get_supply_routes(state, construction);
-	for(auto route : routes) {
-		if(logistics::supply_route_is_active(state, route.id)) {
-			float supply_loss = logistics::supply_route_get_supply_loss(state, route.id);
-			const economy::commodity_set& base_cost = economy::construction_get_base_build_cost(state, construction);
-			base_cost.for_each_valid_index([&](uint32_t idx) {
-				dcon::commodity_id base_com = base_cost.commodity_type[idx];
-				float com_loss_mult = state.world.commodity_get_supply_loss_rate(base_com);
-				float commodity_loss = supply_loss_to_commodity_loss(state, supply_loss,  com_loss_mult);
-				accumulate_func(base_com, base_cost.commodity_amounts[idx], commodity_loss);
-			});
-		}
-	}
+	supply_loss_stats stats{ };
+	logistics::construction_for_each_active_route(state, construction, [&](auto route) {
+		float supply_loss = logistics::supply_route_get_supply_loss(state, route);
+		float route_throughput = logistics::supply_route_get_throughput(state, route);
+		const economy::commodity_set& base_cost = economy::construction_get_base_build_cost(state, construction);
+		const economy::commodity_amounts& buffered_goods = logistics::construction_supply_route_get_buffered_goods(state, route);
+		base_cost.for_each_valid_index([&](uint32_t idx) {
+			dcon::commodity_id base_com = base_cost.commodity_type[idx];
+			float com_loss_mult = state.world.commodity_get_supply_loss_rate(base_com);
+			float commodity_loss = supply_loss_to_commodity_loss(state, supply_loss,  com_loss_mult);
+			float buffered_amount = buffered_goods[idx];
+			float throughput = route_throughput * state.world.commodity_get_supply_weight(base_com);
+			float actual_transported = throughput * buffered_amount;
+			stats.num_transported_goods += actual_transported;
+			stats.num_goods_lost += actual_transported * commodity_loss;
+		});
+	});
+	return stats;
+}
+template<concepts::military_unit unit_type>
+static supply_throughput_stats get_military_unit_supply_throughput_stats_from_supply(const sys::state& state, unit_type unit) {
+	supply_throughput_stats stats{ };
+	logistics::unit_for_each_active_route(state, unit, [&](auto route) {
+		float route_throughput = logistics::supply_route_get_throughput(state, route);
+		state.world.for_each_unit_supply_commodity([&](dcon::unit_supply_commodity_id com) {
+			dcon::commodity_id base_com = economy::unit_commodity_get_base_commodity(state, com);
+			float buffered_amount = logistics::military_route_get_buffered_goods(state, route, com);
+			float throughput = route_throughput * state.world.commodity_get_supply_weight(base_com);
+			float actual_transported = throughput * buffered_amount;
+			stats.num_potential_transported_goods += buffered_amount;
+			stats.num_actual_transported_goods += actual_transported;
+		});
+	});
+	return stats;
+}
+template<concepts::military_unit unit_type>
+static supply_throughput_stats get_military_unit_supply_throughput_stats_from_reinforcement(const sys::state& state, unit_type unit) {
+	supply_throughput_stats stats{ };
+	logistics::unit_for_each_active_route(state, unit, [&](auto route) {
+		float route_throughput = logistics::supply_route_get_throughput(state, route);
+		state.world.for_each_unit_build_commodity([&](dcon::unit_build_commodity_id com) {
+			dcon::commodity_id base_com = economy::unit_commodity_get_base_commodity(state, com);
+			float buffered_amount = logistics::military_route_get_buffered_goods(state, route, com);
+			float throughput = route_throughput * state.world.commodity_get_supply_weight(base_com);
+			float actual_transported = throughput * buffered_amount;
+			stats.num_potential_transported_goods += buffered_amount;
+			stats.num_actual_transported_goods += actual_transported;
+		});
+	});
+	return stats;
 }
 
 
-
-
-// Internal function to accumulate supply throughput for military units to perform later computations.
-// Functor signature: void (dcon::commodity_id commodity, float amount, float throughput). If throughput is 1.0f then it has 100% throughput, if 0.0f then 0% throughput.
-template<military::unit_consumption_type consume_type, concepts::military_unit unit_type, typename F>
-static void accumulate_military_unit_supply_throughput(const sys::state& state, unit_type unit, F&& accumulate_func) {
-	auto routes = military::unit_get_supply_routes(state, unit);
-	for(auto route : routes) {
-		if(logistics::supply_route_is_active(state, route.id)) {
-			float supply_throughput = logistics::supply_route_get_throughput(state, route.id);
-			if constexpr(consume_type == military::unit_consumption_type::supply) {
-				state.world.for_each_unit_supply_commodity([&](dcon::unit_supply_commodity_id com) {
-					dcon::commodity_id base_com = economy::unit_commodity_get_base_commodity(state, com);
-					float buffered_amount = logistics::military_route_get_buffered_goods(state, route.id, com);
-					accumulate_func(base_com, buffered_amount, supply_throughput);
-				});
-			} else if constexpr(consume_type == military::unit_consumption_type::reinforcement) {
-				state.world.for_each_unit_build_commodity([&](dcon::unit_build_commodity_id com) {
-					dcon::commodity_id base_com = economy::unit_commodity_get_base_commodity(state, com);
-					float buffered_amount = logistics::military_route_get_buffered_goods(state, route.id, com);
-					accumulate_func(base_com, buffered_amount, supply_throughput);
-				});
-			}
+// Internal function to get supply throughput stats for military units to perform later computations.
+// If throughput is 1.0f then it has 100% throughput, if 0.0f then 0% throughput.
+template<military::unit_consumption_type consume_type, concepts::military_unit unit_type>
+static supply_throughput_stats get_military_unit_supply_throughput_stats(const sys::state& state, unit_type unit) {
+	supply_throughput_stats stats = [&]() {
+		if constexpr(consume_type == military::unit_consumption_type::supply) {
+			return get_military_unit_supply_throughput_stats_from_supply(state, unit);
+		} else if constexpr(consume_type == military::unit_consumption_type::reinforcement) {
+			return get_military_unit_supply_throughput_stats_from_reinforcement(state, unit);
 		}
-	}
+	}();
+	return stats;
 }
 
 // Internal function to accumulate supply throughput for constructions to perform later computations.
 // Functor signature: void (dcon::commodity_id commodity, float amount, float throughput). If throughput is 1.0f then it has 100% throughput, if 0.0f then 0% throughput.
-template<concepts::construction_type con_type, typename F>
-static void accumulate_construction_supply_throughput(const sys::state& state, con_type construction, F&& accumulate_func) {
-	// Privately owned constructions do not use the logistics system, and thus no supply throughput
-	if(economy::construction_is_privately_owned(state, construction)) {
-		return;
-	}
-	auto routes = economy::construction_get_supply_routes(state, construction);
-	for(auto route : routes) {
-		if(logistics::supply_route_is_active(state, route.id)) {
-			float supply_throughput = logistics::supply_route_get_throughput(state, route.id);
-			const economy::commodity_set& base_cost = economy::construction_get_base_build_cost(state, construction);
-			base_cost.for_each_valid_index([&](uint32_t idx) {
-				dcon::commodity_id base_com = base_cost.commodity_type[idx];
-				accumulate_func(base_com, base_cost.commodity_amounts[idx], supply_throughput);
-			});
-		}
-	}
+template<concepts::construction_type con_type>
+static supply_throughput_stats get_construction_supply_throughput_stats(const sys::state& state, con_type construction) {
+
+	supply_throughput_stats stats{ };
+	logistics::construction_for_each_active_route(state, construction, [&](auto route) {
+
+		float route_throughput = logistics::supply_route_get_throughput(state, route);
+		const economy::commodity_set& base_cost = economy::construction_get_base_build_cost(state, construction);
+		const economy::commodity_amounts& buffered_goods = logistics::construction_supply_route_get_buffered_goods(state, route);
+		base_cost.for_each_valid_index([&](uint32_t idx) {
+			dcon::commodity_id base_com = base_cost.commodity_type[idx];
+			float buffered_amount = buffered_goods[idx];
+			float throughput = route_throughput * state.world.commodity_get_supply_weight(base_com);
+			float actual_transported = throughput * buffered_amount;
+			stats.num_potential_transported_goods += buffered_amount;
+			stats.num_actual_transported_goods += actual_transported;
+		});
+	});
+	return stats;
 }
 
 float nation_get_avg_supply_loss(const sys::state& state, dcon::nation_id nation) {
-	float goods_total = 0.0f;
-	float goods_lost = 0.0f;
-
-	auto accumulator = [&](dcon::commodity_id, float amount, float loss) {
-		goods_total += amount;
-		goods_lost += (amount * loss);
-	};
+	supply_loss_stats total_stats{ };
 
 	nations::nation_for_each_construction(state, nation, [&](auto construction) {
-		accumulate_construction_supply_loss(state, construction, accumulator);
+		// Privately owned constructions do not use the logistics system, and thus no supply loss
+		if(!economy::construction_is_privately_owned(state, construction)) {
+			supply_loss_stats stats = get_construction_supply_loss_stats(state, construction);
+			total_stats.num_transported_goods += stats.num_transported_goods;
+			total_stats.num_goods_lost += stats.num_goods_lost;
+		}
 	});
 	nations::nation_for_each_unit(state, nation, [&](auto unit) {
-		accumulate_military_unit_supply_loss<military::unit_consumption_type::supply>(state, unit, accumulator);
-		accumulate_military_unit_supply_loss<military::unit_consumption_type::reinforcement>(state, unit, accumulator);
+		supply_loss_stats stats_sup = get_military_unit_supply_loss_stats<military::unit_consumption_type::supply>(state, unit);
+		supply_loss_stats stats_reinf = get_military_unit_supply_loss_stats<military::unit_consumption_type::reinforcement>(state, unit);
+		total_stats.num_transported_goods += stats_sup.num_transported_goods + stats_reinf.num_transported_goods;
+		total_stats.num_goods_lost += stats_sup.num_goods_lost + stats_reinf.num_goods_lost;
 	});
-	return (goods_total == 0.0f ? 0.0f : goods_lost / goods_total);
+	return (total_stats.num_transported_goods == 0.0f ? 0.0f : total_stats.num_goods_lost / total_stats.num_transported_goods);
 }
 
 float nation_get_avg_supply_throughput(const sys::state& state, dcon::nation_id nation) {
-	float goods_total = 0.0f;
-	float goods_transported = 0.0f;
-
-	auto accumulator = [&](dcon::commodity_id, float amount, float throughput) {
-		goods_total += amount;
-		goods_transported += (amount * throughput);
-	};
+	supply_throughput_stats total_stats{ };
 
 	nations::nation_for_each_construction(state, nation, [&](auto construction) {
-		accumulate_construction_supply_throughput(state, construction, accumulator);
+		if(!economy::construction_is_privately_owned(state, construction)) {
+			supply_throughput_stats stats = get_construction_supply_throughput_stats(state, construction);
+			total_stats.num_actual_transported_goods += stats.num_actual_transported_goods;
+			total_stats.num_potential_transported_goods += stats.num_potential_transported_goods;
+		}
 	});
 	nations::nation_for_each_unit(state, nation, [&](auto unit) {
-		accumulate_military_unit_supply_throughput<military::unit_consumption_type::supply>(state, unit, accumulator);
-		accumulate_military_unit_supply_throughput<military::unit_consumption_type::reinforcement>(state, unit, accumulator);
+		supply_throughput_stats stats_sup = get_military_unit_supply_throughput_stats<military::unit_consumption_type::supply>(state, unit);
+		supply_throughput_stats stats_reinf = get_military_unit_supply_throughput_stats<military::unit_consumption_type::reinforcement>(state, unit);
+		total_stats.num_actual_transported_goods += stats_sup.num_actual_transported_goods + stats_reinf.num_actual_transported_goods;
+		total_stats.num_potential_transported_goods += stats_sup.num_potential_transported_goods + stats_reinf.num_potential_transported_goods;
 	});
-	return (goods_total == 0.0f ? 1.0f : goods_transported / goods_total);
+	return (total_stats.num_potential_transported_goods == 0.0f ? 1.0f : total_stats.num_actual_transported_goods / total_stats.num_potential_transported_goods);
 }
 
 float nation_get_avg_construction_supply_loss(const sys::state& state, dcon::nation_id nation) {
-	float goods_total = 0.0f;
-	float goods_lost = 0.0f;
-
-	auto accumulator = [&](dcon::commodity_id, float amount, float loss) {
-		goods_total += amount;
-		goods_lost += (amount * loss);
-	};
+	supply_loss_stats total_stats{ };
 
 	nations::nation_for_each_construction(state, nation, [&](auto construction) {
-		accumulate_construction_supply_loss(state, construction, accumulator);
+		// Privately owned constructions do not use the logistics system, and thus no supply loss
+		if(!economy::construction_is_privately_owned(state, construction)) {
+			supply_loss_stats stats = get_construction_supply_loss_stats(state, construction);
+			total_stats.num_transported_goods += stats.num_transported_goods;
+			total_stats.num_goods_lost += stats.num_goods_lost;
+		}
 	});
-	return (goods_total == 0.0f ? 0.0f : goods_lost / goods_total);
+	return (total_stats.num_transported_goods == 0.0f ? 0.0f : total_stats.num_goods_lost / total_stats.num_transported_goods);
 }
 float nation_get_avg_construction_supply_throughput(const sys::state& state, dcon::nation_id nation) {
-	float goods_total = 0.0f;
-	float goods_transported = 0.0f;
-
-	auto accumulator = [&](dcon::commodity_id, float amount, float throughput) {
-		goods_total += amount;
-		goods_transported += (amount * throughput);
-	};
+	supply_throughput_stats total_stats{ };
 
 	nations::nation_for_each_construction(state, nation, [&](auto construction) {
-		accumulate_construction_supply_throughput(state, construction, accumulator);
+		if(!economy::construction_is_privately_owned(state, construction)) {
+			supply_throughput_stats stats = get_construction_supply_throughput_stats(state, construction);
+			total_stats.num_actual_transported_goods += stats.num_actual_transported_goods;
+			total_stats.num_potential_transported_goods += stats.num_potential_transported_goods;
+		}
 	});
-	return (goods_total == 0.0f ? 1.0f : goods_transported / goods_total);
+	return (total_stats.num_potential_transported_goods == 0.0f ? 1.0f : total_stats.num_actual_transported_goods / total_stats.num_potential_transported_goods);
 }
 
 
 template<concepts::construction_type con_type>
 float nation_get_avg_construction_supply_loss_by_type(const sys::state& state, dcon::nation_id nation) {
-	float goods_total = 0.0f;
-	float goods_lost = 0.0f;
-
-	auto accumulator = [&](dcon::commodity_id, float amount, float loss) {
-		goods_total += amount;
-		goods_lost += (amount * loss);
-	};
+	supply_loss_stats total_stats{ };
 
 	nations::nation_for_each_construction_by_type<con_type>(state, nation, [&](con_type construction) {
-		accumulate_construction_supply_loss(state, construction, accumulator);
+		if(!economy::construction_is_privately_owned(state, construction)) {
+			// Privately owned constructions do not use the logistics system, and thus no supply loss
+			supply_loss_stats stats = get_construction_supply_loss_stats(state, construction);
+			total_stats.num_transported_goods += stats.num_transported_goods;
+			total_stats.num_goods_lost += stats.num_goods_lost;
+		}
 	});
-	return (goods_total == 0.0f ? 0.0f : goods_lost / goods_total);
+	return (total_stats.num_transported_goods == 0.0f ? 0.0f : total_stats.num_goods_lost / total_stats.num_transported_goods);
 }
 template float nation_get_avg_construction_supply_loss_by_type<dcon::province_land_construction_id>(const sys::state& state, dcon::nation_id nation);
 template float nation_get_avg_construction_supply_loss_by_type<dcon::province_naval_construction_id>(const sys::state& state, dcon::nation_id nation);
@@ -1336,18 +1385,16 @@ template float nation_get_avg_construction_supply_loss_by_type<dcon::province_bu
 
 template<concepts::construction_type con_type>
 float nation_get_avg_construction_supply_throughput_by_type(const sys::state& state, dcon::nation_id nation) {
-	float goods_total = 0.0f;
-	float goods_transported = 0.0f;
-
-	auto accumulator = [&](dcon::commodity_id, float amount, float throughput) {
-		goods_total += amount;
-		goods_transported += (amount * throughput);
-	};
+	supply_throughput_stats total_stats{ };
 
 	nations::nation_for_each_construction_by_type<con_type>(state, nation, [&](con_type construction) {
-		accumulate_construction_supply_throughput(state, construction, accumulator);
+		if(!economy::construction_is_privately_owned(state, construction)) {
+			supply_throughput_stats stats = get_construction_supply_throughput_stats(state, construction);
+			total_stats.num_potential_transported_goods += stats.num_potential_transported_goods;
+			total_stats.num_actual_transported_goods += stats.num_actual_transported_goods;
+		}
 	});
-	return (goods_total == 0.0f ? 1.0f : goods_transported / goods_total);
+	return (total_stats.num_potential_transported_goods == 0.0f ? 1.0f : total_stats.num_actual_transported_goods / total_stats.num_potential_transported_goods);
 }
 template float nation_get_avg_construction_supply_throughput_by_type<dcon::province_land_construction_id>(const sys::state& state, dcon::nation_id nation);
 template float nation_get_avg_construction_supply_throughput_by_type<dcon::province_naval_construction_id>(const sys::state& state, dcon::nation_id nation);
@@ -1356,15 +1403,14 @@ template float nation_get_avg_construction_supply_throughput_by_type<dcon::provi
 
 template<military::unit_consumption_type consume_type, concepts::military_unit unit_type>
 float nation_get_avg_military_supply_loss_by_type(const sys::state& state, dcon::nation_id nation) {
-	float goods_total = 0.0f;
-	float goods_lost = 0.0f;
+	supply_loss_stats total_stats{ };
+
 	nations::nation_for_each_unit_by_type<unit_type>(state, nation, [&](unit_type unit) {
-		accumulate_military_unit_supply_loss<consume_type>(state, unit, [&](dcon::commodity_id, float amount, float loss) {
-			goods_total += amount;
-			goods_lost += (amount * loss);
-		});
+		supply_loss_stats stats = get_military_unit_supply_loss_stats<consume_type>(state, unit);
+		total_stats.num_transported_goods += stats.num_transported_goods;
+		total_stats.num_goods_lost += stats.num_goods_lost;
 	});
-	return (goods_total == 0.0f ? 0.0f : goods_lost / goods_total);
+	return (total_stats.num_transported_goods == 0.0f ? 0.0f : total_stats.num_goods_lost / total_stats.num_transported_goods);
 }
 template float nation_get_avg_military_supply_loss_by_type<military::unit_consumption_type::supply, dcon::army_id>(const sys::state& state, dcon::nation_id nation);
 template float nation_get_avg_military_supply_loss_by_type<military::unit_consumption_type::reinforcement, dcon::army_id>(const sys::state& state, dcon::nation_id nation);
@@ -1373,17 +1419,14 @@ template float nation_get_avg_military_supply_loss_by_type<military::unit_consum
 
 template<military::unit_consumption_type consume_type, concepts::military_unit unit_type>
 float nation_get_avg_military_supply_throughput_by_type(const sys::state& state, dcon::nation_id nation) {
-	float goods_total = 0.0f;
-	float goods_transported = 0.0f;
+	supply_throughput_stats total_stats{ };
 
-	auto accumulator = [&](dcon::commodity_id, float amount, float loss) {
-		goods_total += amount;
-		goods_transported += (amount * loss);
-	};
 	nations::nation_for_each_unit_by_type<unit_type>(state, nation, [&](unit_type unit) {
-		accumulate_military_unit_supply_throughput<consume_type>(state, unit, accumulator);
+		supply_throughput_stats stats = get_military_unit_supply_throughput_stats<consume_type>(state, unit);
+		total_stats.num_potential_transported_goods += stats.num_potential_transported_goods;
+		total_stats.num_actual_transported_goods += stats.num_actual_transported_goods;
 	});
-	return (goods_total == 0.0f ? 1.0f : goods_transported / goods_total);
+	return (total_stats.num_potential_transported_goods == 0.0f ? 1.0f : total_stats.num_actual_transported_goods / total_stats.num_potential_transported_goods);
 }
 template float nation_get_avg_military_supply_throughput_by_type<military::unit_consumption_type::supply, dcon::army_id>(const sys::state& state, dcon::nation_id nation);
 template float nation_get_avg_military_supply_throughput_by_type<military::unit_consumption_type::reinforcement, dcon::army_id>(const sys::state& state, dcon::nation_id nation);
@@ -1393,36 +1436,30 @@ template float nation_get_avg_military_supply_throughput_by_type<military::unit_
 
 template<concepts::military_unit unit_type>
 float nation_get_avg_military_supply_loss_by_type(const sys::state& state, dcon::nation_id nation) {
-	float goods_total = 0.0f;
-	float goods_lost = 0.0f;
+	supply_loss_stats total_stats{ };
 
-	auto accumulator = [&](dcon::commodity_id, float amount, float loss) {
-		goods_total += amount;
-		goods_lost += (amount * loss);
-	};
 	nations::nation_for_each_unit_by_type<unit_type>(state, nation, [&](unit_type unit) {
-		accumulate_military_unit_supply_loss<military::unit_consumption_type::supply>(state, unit, accumulator);
-		accumulate_military_unit_supply_loss<military::unit_consumption_type::reinforcement>(state, unit, accumulator);
+		supply_loss_stats stats_sup = get_military_unit_supply_loss_stats<military::unit_consumption_type::supply>(state, unit);
+		supply_loss_stats stats_reinf = get_military_unit_supply_loss_stats<military::unit_consumption_type::reinforcement>(state, unit);
+		total_stats.num_transported_goods += stats_sup.num_transported_goods + stats_reinf.num_transported_goods;
+		total_stats.num_goods_lost += stats_sup.num_goods_lost + stats_reinf.num_goods_lost;
 	});
-	return (goods_total == 0.0f ? 0.0f : goods_lost / goods_total);
+	return (total_stats.num_transported_goods == 0.0f ? 0.0f : total_stats.num_goods_lost / total_stats.num_transported_goods);
 }
 template float nation_get_avg_military_supply_loss_by_type<dcon::army_id>(const sys::state& state, dcon::nation_id nation);
 template float nation_get_avg_military_supply_loss_by_type<dcon::navy_id>(const sys::state& state, dcon::nation_id nation);
 
 template<concepts::military_unit unit_type>
 float nation_get_avg_military_supply_throughput_by_type(const sys::state& state, dcon::nation_id nation) {
-	float goods_total = 0.0f;
-	float goods_transported = 0.0f;
+	supply_throughput_stats total_stats{ };
 
-	auto accumulator = [&](dcon::commodity_id, float amount, float loss) {
-		goods_total += amount;
-		goods_transported += (amount * loss);
-	};
 	nations::nation_for_each_unit_by_type<unit_type>(state, nation, [&](unit_type unit) {
-		accumulate_military_unit_supply_throughput<military::unit_consumption_type::supply>(state, unit, accumulator);
-		accumulate_military_unit_supply_throughput<military::unit_consumption_type::reinforcement>(state, unit, accumulator);
+		supply_throughput_stats stats_sup = get_military_unit_supply_throughput_stats<military::unit_consumption_type::supply>(state, unit);
+		supply_throughput_stats stats_reinf = get_military_unit_supply_throughput_stats<military::unit_consumption_type::reinforcement>(state, unit);
+		total_stats.num_actual_transported_goods += stats_sup.num_actual_transported_goods + stats_reinf.num_actual_transported_goods;
+		total_stats.num_potential_transported_goods += stats_sup.num_potential_transported_goods + stats_reinf.num_potential_transported_goods;
 	});
-	return (goods_total == 0.0f ? 1.0f : goods_transported / goods_total);
+	return (total_stats.num_potential_transported_goods == 0.0f ? 1.0f : total_stats.num_actual_transported_goods / total_stats.num_potential_transported_goods);
 }
 template float nation_get_avg_military_supply_throughput_by_type<dcon::army_id>(const sys::state& state, dcon::nation_id nation);
 template float nation_get_avg_military_supply_throughput_by_type<dcon::navy_id>(const sys::state& state, dcon::nation_id nation);
@@ -2136,7 +2173,7 @@ void update_supply_routes_daily(sys::state& state) {
 	profile_step_start();
 
 	// STEP 3: Compute the closest stockpile states to each military unit and construction, and accumulate all the goods required by each of them into buffers. Run them in parallel
-
+	// NOTE: Could prehaps do this looped over subunits instead, as this is most of the data which is used. Combinable likely needed as they must be accumulated into unit-specific buffers
 	military::parallel_for_each_unit(state, [&](auto unit) {
 		dcon::nation_id nation = military::unit_get_controller(state, unit);
 		if constexpr(std::is_same_v<decltype(unit), dcon::army_id>) {
@@ -2473,6 +2510,7 @@ void update_supply_routes_daily(sys::state& state) {
 
 
 	// Pricess units first, in order of priority
+	// NOTE: This could maybe be parallelized over nations, as for now it is an assumtion that any supply route may not pull goods from any non-controlled stockpile. However this could change easily in the future
 	if(!high_prio_units.empty()) {
 		compute_nations_unit_expected_satisfaction.template operator() < military::unit_priority::high_priority > ();
 		process_prioritized_unit_vector(high_prio_units);
@@ -2579,7 +2617,8 @@ void update_supply_routes_daily(sys::state& state) {
 			});
 		},
 		[&]() {
-			// Add the used supply throughput from paths unto each province adjacency. Might be able to parallelize this, but its really annoying
+			// Add the used supply throughput from paths unto each province adjacency.
+			// NOTE: Might be able to parallelize this, but it would require a combinable and conveting between float and fixed-point. Not sure if its worth it
 			state.world.for_each_supply_route_path([&](dcon::supply_route_path_id path) {
 				bool path_valid = state.world.supply_route_path_get_valid_path(path);
 				bool path_out_of_date = state.world.supply_route_path_get_path_out_of_date(path);
@@ -2605,7 +2644,8 @@ void update_supply_routes_daily(sys::state& state) {
 
 
 	// Process the batches. The application of used supply throughput is done once per batch, and has to be done serially as it modifies arbitrary province adjacency data
-	// Maybe you can parallelize the last part too, but i havent found a nice way of doing it
+	// NOTE: Might be able to paralellize the last part, but would likely require a combinable and convertion between float and fixed-point as it will modify arbitrary prov adjacency data
+	// NOTE2: The pathing itself is usually the biggest performance cost out of all these steps, even while batched.
 	for(const auto& paths_batch : path_batches) {
 		concurrency::parallel_for_each(paths_batch.begin(), paths_batch.end(), [&](dcon::supply_route_path_id path_handle) {
 			update_supply_route_path(state, path_handle, state.world.supply_route_path_get_volume(path_handle));
@@ -2644,7 +2684,8 @@ void update_supply_routes_daily(sys::state& state) {
 
 	// STEP 10: subtract from stockpiles the actual buffered amount which each route has taken
 	// Must take into account the actual throughput, and only subtract the percentage of goods which were possible to move
-	// This can't be parallelized easily as the adding/subtracting from govt stockpiles does it both to the market, and to the cached "total" stockpiles on nation
+	// NOTE: This can't be parallelized easily as the adding/subtracting from govt stockpiles does it both to the market, and to the cached "total" stockpiles on nation. Might be doable with a combinable and accumulate at the end
+	// Could vectorize some of too, but im not sure how much it would help
 
 	for_each_unit_supply_route(state, [&](auto r) {
 		auto route = fatten(state.world, r);
@@ -2693,6 +2734,8 @@ void update_supply_routes_daily(sys::state& state) {
 
 	// Start processing each army/navy and applying reinforcement/supply satisfaction
 	// Do military units
+	// NOTE: this could probbaly be split into two seperate parallel loops: one loop over all military routes with combinable that dumps their transported goods into an "goods_available" buffer indexed by armies/navies. The next parallel loop over armies/navies could use this buffer and compute their satisfaction
+	// Same thing with the construction loop
 	military::parallel_for_each_unit(state, [&](auto unit) {
 		update_unit_commodity_satisfaction(state, unit);
 	});

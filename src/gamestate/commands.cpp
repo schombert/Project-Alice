@@ -6262,14 +6262,14 @@ void execute_notify_start_game(sys::state& state, dcon::nation_id source) {
 		if(state.world.nation_get_is_player_controlled(n)) {
 			ai::remove_ai_data(state, n);
 			// give back units if puppet becomes player controlled
-			if(nations::is_vassal(state, n)) {
+			if(nations::is_vassal(state, n) && nations::is_units_commanded_by_overlord(state, n)) {
 				military::give_back_units(state, n);
 			}
 		}
 		else {
-			// If the nation's overlord is NOT a player and their armies are commanded by the overlord, return them since the overlord arent a player anymore
+			// If the nation has an overlord which is NOT a player and their armies are commanded by said overlord, return them since one ai cannot command other ai's units
 			auto overlord = state.world.overlord_get_ruler(state.world.nation_get_overlord_as_subject(n));
-			if(state.world.nation_is_valid(overlord) && !state.world.nation_get_is_player_controlled(overlord)) {
+			if(state.world.nation_is_valid(overlord) && !state.world.nation_get_is_player_controlled(overlord) && nations::is_units_commanded_by_overlord(state, n)) {
 				military::give_back_units(state, n);
 			}
 		}

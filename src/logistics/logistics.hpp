@@ -30,11 +30,20 @@ dcon::nation_id supply_route_get_owner(const sys::state& state, dcon::naval_cons
 
 dcon::supply_route_path_id create_supply_route_path_no_pathing(sys::state& state, dcon::province_id destination, dcon::market_id origin, bool attempting_to_route);
 
-template<concepts::supply_route_type route_type>
-dcon::supply_route_path_id supply_route_get_path(const sys::state& state, route_type route);
 
-template<concepts::supply_route_type route_type>
-dcon::market_id supply_route_get_origin_market(const sys::state& state, route_type route);
+dcon::supply_route_path_id supply_route_get_path(const sys::state& state, dcon::army_supply_route_id route);
+dcon::supply_route_path_id supply_route_get_path(const sys::state& state, dcon::navy_supply_route_id route);
+dcon::supply_route_path_id supply_route_get_path(const sys::state& state, dcon::land_construction_supply_route_id route);
+dcon::supply_route_path_id supply_route_get_path(const sys::state& state, dcon::naval_construction_supply_route_id route);
+dcon::supply_route_path_id supply_route_get_path(const sys::state& state, dcon::factory_construction_supply_route_id route);
+dcon::supply_route_path_id supply_route_get_path(const sys::state& state, dcon::building_construction_supply_route_id route);
+
+dcon::market_id supply_route_get_origin_market(const sys::state& state, dcon::army_supply_route_id route);
+dcon::market_id supply_route_get_origin_market(const sys::state& state, dcon::navy_supply_route_id route);
+dcon::market_id supply_route_get_origin_market(const sys::state& state, dcon::land_construction_supply_route_id route);
+dcon::market_id supply_route_get_origin_market(const sys::state& state, dcon::naval_construction_supply_route_id route);
+dcon::market_id supply_route_get_origin_market(const sys::state& state, dcon::factory_construction_supply_route_id route);
+dcon::market_id supply_route_get_origin_market(const sys::state& state, dcon::building_construction_supply_route_id route);
 
 // Gets the avg supply loss of all supply routes a nation owns
 float nation_get_avg_supply_loss(const sys::state& state, dcon::nation_id nation);
