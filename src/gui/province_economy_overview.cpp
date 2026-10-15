@@ -1253,17 +1253,19 @@ void province_economy_overview_body_import_value_graph_t::on_update(sys::state& 
 		auto flow = economy::trade_value_flow(state, origin, mid);
 		auto origin_sid = state.world.market_get_zone_from_local_market(origin);
 		auto origin_nation = state.world.state_instance_get_nation_from_state_ownership(origin_sid);
-
-		per_nation_data[origin_nation.index()] += flow;
-		total_left += flow;
+		// In the unlikely chance that the per-nation buffer was created just as a nation was deleted
+		if(size_t(origin_nation.index()) < per_nation_data.size()) {
+			per_nation_data[origin_nation.index()] += flow;
+			total_left += flow;
+		}
 	});
 
 	raw_content.clear();
-
-	state.world.for_each_nation([&](auto origin) {
+	for(uint32_t i = 0; i < per_nation_data.size(); i++) {
+		dcon::nation_id origin{ dcon::nation_id::value_base_t(i) };
 		entry_before_merge temp{ origin, per_nation_data[origin.index()] };
 		raw_content.push_back(temp);
-	});
+	}
 
 	std::sort(raw_content.begin(), raw_content.end(), [&](auto a, auto b) {
 		if(a.value == b.value) {
