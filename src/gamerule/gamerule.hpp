@@ -70,6 +70,8 @@ uint8_t get_gamerule_option_id_by_name(const sys::state& state, std::string_view
 
 uint8_t get_active_gamerule_option(const sys::state& state, dcon::gamerule_id gamerule);
 
+bool nation_has_fow_enabled(const sys::state& state, dcon::nation_id nation_as);
+
 
 }
 

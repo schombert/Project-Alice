@@ -2,6 +2,9 @@
 #include "system_state.hpp"
 #include "game_scene.hpp"
 #include "parsers_declarations.hpp"
+#include "headless_run.hpp"
+#include <oneapi/tbb/global_control.h>
+#include <memory>
 
 static sys::state game_state;
 struct scenario_file {
@@ -204,6 +207,22 @@ void enforce_list_order() {
 }
 
 int main(int argc, char* argv[]) {
+	// headless batch flags: -seed N (fixed game seed), -years N (with -headless: run N game years at full speed, then exit),
+	// -dump DIR (monthly CSVs, see headless_run.hpp), -threads N (cap worker threads; 1 makes runs reproducible)
+	int run_years = -1;
+	std::optional<uint32_t> seed;
+	std::string dump_dir;
+	std::unique_ptr<oneapi::tbb::global_control> thread_cap;
+	for(int i = 1; i + 1 < argc; ++i) {
+		if(std::string(argv[i]) == "-seed")
+			seed = uint32_t(std::strtoul(argv[i + 1], nullptr, 10));
+		else if(std::string(argv[i]) == "-years")
+			run_years = std::atoi(argv[i + 1]);
+		else if(std::string(argv[i]) == "-dump")
+			dump_dir = argv[i + 1];
+		else if(std::string(argv[i]) == "-threads")
+			thread_cap = std::make_unique<oneapi::tbb::global_control>(oneapi::tbb::global_control::max_allowed_parallelism, size_t(std::atoi(argv[i + 1])));
+	}
 	add_root(game_state.common_fs, NATIVE("."));
 	check_mods_folder();
 	check_scenario_folder();
@@ -350,7 +369,7 @@ int main(int argc, char* argv[]) {
 		}
 	}
 
-	if(sys::try_read_scenario_and_save_file(game_state, selected_scenario_file)) {
+	if(sys::try_read_scenario_and_save_file(game_state, selected_scenario_file, seed)) {
 		auto msg = "Running scenario file " + simple_fs::native_to_utf8(selected_scenario_file) + "\n";
 		window::emit_error_message(msg, false);
 		game_state.loaded_scenario_file = NATIVE(selected_scenario_file);
@@ -370,6 +389,13 @@ int main(int argc, char* argv[]) {
 		game_state.ui_pause.store(false, std::memory_order::release);
 		game_scene::switch_scene(game_state, game_scene::scene_id::in_game_basic);
 		game_state.local_player_nation = dcon::nation_id{};
+		// headless: network::init gave the rank-1 nation to a local player; nobody plays it, so hand it back to the AI
+		for(auto n : game_state.world.in_nation)
+			n.set_is_player_controlled(false);
+		if(run_years >= 0) {
+			headless::run(game_state, run_years, dump_dir);
+			return EXIT_SUCCESS;
+		}
 		game_state.game_loop();
 	} else {
 		std::thread update_thread([&]() { 

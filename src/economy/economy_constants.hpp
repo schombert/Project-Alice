@@ -1,8 +1,21 @@
 #pragma once
 
+#include "culture_constants.hpp"
+
 namespace economy {
 
 constexpr inline float factories_per_state_required_city_size = 60'000.f;
+
+constexpr float stockpile_targets_demand_mult = 0.05f; // Stockpile targets demand will be multplied with this amount
+constexpr float max_army_required_spend = 1.5f; // Max percentage of current required army supplies the army budget will attempt to buy (1.5 = 150% of current required army supplies)
+constexpr float max_navy_required_spend = 1.5f; // Max percentage of current required navy supplies the army budget will attempt to buy (1.5 = 150% of current required navy supplies)
+constexpr float max_con_required_spend = 1.5f; // Max percentage of current required military construction supplies the mil. construction budget will attempt to buy (1.5 = 150% of current required mil. construction supplies)
+
+
+enum class price_estimation : uint8_t {
+	theoretical_max,
+	capped_by_availability
+};
 
 namespace numerical {
 namespace commodity_unit {
@@ -63,4 +76,7 @@ inline constexpr float aristocrats_greed = 0.1f;
 inline constexpr float artisans_greed = 0.1f;
 inline constexpr float labor_greed_life = 0.1f;
 inline constexpr float capitalists_greed = 0.1f;
+
+inline constexpr float government_stockpile_spoilage = 0.001f; // Decay is 10x larger for govt stockpiles compared to market ones for balance, and to have some constant demand when stockpiling
+
 }

@@ -321,6 +321,9 @@ int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPWSTR
 			game_state.ui_pause.store(false, std::memory_order::release);
 			game_scene::switch_scene(game_state, game_scene::scene_id::in_game_basic);
 			game_state.local_player_nation = dcon::nation_id{};
+			// headless: network::init gave the rank-1 nation to a local player; nobody plays it, so hand it back to the AI
+			for(auto n : game_state.world.in_nation)
+				n.set_is_player_controlled(false);
 			if(headless_repeat) {
 				std::thread update_thread([&]() { game_state.game_loop(); });
 				while(!game_state.quit_signaled.load(std::memory_order::acquire)) {

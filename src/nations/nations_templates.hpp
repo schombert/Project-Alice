@@ -58,4 +58,115 @@ auto occupied_provinces_fraction(sys::state const& state, T ids) {
 	auto occ_count = ve::to_float(state.world.nation_get_occupied_count(ids));
 	return ve::select(cpc != 0.0f, occ_count / cpc, decltype(cpc)());
 }
+template<typename F>
+dcon::nation_id get_random_nation(const sys::state& state, uint32_t random_hi, uint32_t random_lo, F&& condition_func) {
+	static thread_local std::vector<dcon::nation_id> rlist;
+	rlist.clear();
+	state.world.for_each_nation([&](dcon::nation_id nation) {
+		if(condition_func(nation)) {
+			rlist.push_back(nation);
+		}
+	});
+	if(rlist.size() != 0) {
+		auto r = rng::get_random(state, random_hi, random_lo) % rlist.size();
+		return rlist[r];
+	}
+	return dcon::nation_id{};
+}
+
+template<concepts::dcon_id_ve_type<dcon::nation_id> ve_id_type>
+ve::mask_vector exists(sys::state& state, ve_id_type nations) {
+	return state.world.nation_get_owned_province_count(nations) > 0;
+}
+
+template<concepts::dcon_id_ve_type<dcon::nation_id> ve_id_type>
+ve::mask_vector exists_or_is_utility_tag(sys::state& state, ve_id_type nations) {
+	return exists(state, nations) || state.world.nation_get_utility_tag(nations);
+}
+// Calls the functor on all constructions a nation owns (all construction types)
+template<typename F>
+void nation_for_each_construction(const sys::state& state, dcon::nation_id nation, F&& func) {
+	for(auto lc : state.world.nation_get_province_land_construction(nation)) {
+		func(lc.id);
+	}
+	for(auto nc : state.world.nation_get_province_naval_construction(nation)) {
+		func(nc.id);
+	}
+	for(auto fc : state.world.nation_get_factory_construction(nation)) {
+		func(fc.id);
+	}
+	for(auto pc : state.world.nation_get_province_building_construction(nation)) {
+		func(pc.id);
+	}
+}
+
+// Calls the functor on all nation-owned constructions of the type passed as template param 
+template<concepts::construction_type con_type, typename F>
+void nation_for_each_construction_by_type(const sys::state& state, dcon::nation_id nation, F&& func) {
+	if constexpr(std::is_same_v<con_type, dcon::province_land_construction_id>) {
+		for(auto lc : state.world.nation_get_province_land_construction(nation)) {
+			func(lc.id);
+		}
+	}
+	else if constexpr(std::is_same_v<con_type, dcon::province_naval_construction_id>) {
+		for(auto nc : state.world.nation_get_province_naval_construction(nation)) {
+			func(nc.id);
+		}
+	}
+	else if constexpr(std::is_same_v<con_type, dcon::factory_construction_id>) {
+		for(auto fc : state.world.nation_get_factory_construction(nation)) {
+			func(fc.id);
+		}
+	}
+	else if constexpr(std::is_same_v<con_type, dcon::province_building_construction_id>) {
+		for(auto pc : state.world.nation_get_province_building_construction(nation)) {
+			func(pc.id);
+		}
+	}
+	else {
+		static_assert(false, "Unknown type");
+	}
+}
+
+// Calls the functor on all units a nation owns (both navies & armies)
+template<typename F>
+void nation_for_each_unit(const sys::state& state, dcon::nation_id nation, F&& func) {
+	auto army_it = state.world.nation_get_army_control(nation);
+	auto navy_it = state.world.nation_get_navy_control(nation);
+	for(auto a : army_it) {
+		func(a.get_army().id);
+	}
+	for(auto n : navy_it) {
+		func(n.get_navy().id);
+	}
+}
+// Calls the functor on either all navies or all armies a nation owns depending on the "unit_type" template param 
+template<concepts::military_unit unit_type, typename F>
+void nation_for_each_unit_by_type(const sys::state& state, dcon::nation_id nation, F&& func) {
+	if constexpr(std::is_same_v<unit_type, dcon::army_id>) {
+		auto army_it = state.world.nation_get_army_control(nation);
+		for(auto a : army_it) {
+			func(a.get_army().id);
+		}
+	}
+	else if constexpr(std::is_same_v<unit_type, dcon::navy_id>) {
+		auto navy_it = state.world.nation_get_navy_control(nation);
+		for(auto n : navy_it) {
+			func(n.get_navy().id);
+		}
+	}
+	else {
+		static_assert(false, "Unknown type");
+	}
+}
+template<typename F>
+void parallel_for_each_existing_nation(const sys::state& state, F&& func) {
+	concurrency::parallel_for(uint32_t(0), state.world.nation_size(), [&](uint32_t i) {
+		dcon::nation_id nation{ dcon::nation_id::value_base_t(i) };
+		if(exists(state, nation)) {
+			func(nation);
+		}
+	});
+}
+
 } // namespace nations

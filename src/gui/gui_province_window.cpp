@@ -498,6 +498,46 @@ public:
 	}
 };
 
+
+class province_move_state_capital_button : public button_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto p = retrieve<dcon::province_id>(state, parent);
+		disabled = !province::can_move_state_capital<command::actor::player>(state, state.local_player_nation, p);
+	}
+
+	void button_action(sys::state& state) noexcept override {
+		auto p = retrieve<dcon::province_id>(state, parent);
+		command::move_state_capital(state,  p);
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t t, text::columnar_layout& contents) noexcept override {
+		auto source = state.local_player_nation;
+		auto p = retrieve<dcon::province_id>(state, parent);
+		auto state_inst = state.world.province_get_state_membership(p);
+		auto state_owner = state_inst.get_nation_from_state_ownership();
+		sys::date last_change = state_inst.get_last_state_capital_change();
+		int32_t cooldown_days_left = (last_change ? std::max(int32_t(last_change.value) + int32_t(province::state_cap_move_days_cooldown) - int32_t(state.current_date.value), 0) : 0);
+		bool occupation_siege_check = true;
+
+		province::for_each_province_in_state_instance(state, state_inst, [&](dcon::province_id prov) {
+			if(state.world.province_get_nation_from_province_control(prov) != source || state.world.province_get_siege_progress(prov) > 0.0f) {
+				occupation_siege_check = false;
+			}
+		});
+
+		text::add_line(state, contents, "alice_mvstatecap_1");
+		text::add_line_with_condition(state, contents, "alice_mvstatecap_2", state_owner == source);
+		text::add_line_with_condition(state, contents, "alice_mvstatecap_3", state.world.state_instance_get_capital(state_inst) != p);
+		text::add_line_with_condition(state, contents, "alice_mvstatecap_4", !(last_change && last_change + province::state_cap_move_days_cooldown > state.current_date), text::variable_type::val, cooldown_days_left);
+		text::add_line_with_condition(state, contents, "alice_mvstatecap_5", occupation_siege_check);
+	}
+};
+
 class province_toggle_administration_button : public button_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -716,7 +756,9 @@ public:
 		} else if(name == "prov_terrain") {
 			return make_element_by_type<province_terrain_image>(state, id);
 		} else if(name == "province_modifiers") {
-			return make_element_by_type<province_modifiers>(state, id);
+			return make_element_by_type<invisible_element>(state, id);
+		} else if (name == "alice_province_modifiers") {
+			return make_element_by_type< province_modifiers>(state, id);
 		} else if(name == "slave_state_icon") {
 			auto ptr = make_element_by_type<fixed_pop_type_icon>(state, id);
 			slave_icon = ptr.get();
@@ -746,7 +788,10 @@ public:
 			return btn;
 		} else if(name == "alice_move_capital") {
 			return make_element_by_type<province_move_capital_button>(state, id);
-		} else if(name == "alice_toggle_administration") {
+		} else if(name == "alice_move_state_capital") {
+			return make_element_by_type<province_move_state_capital_button>(state, id);
+		}
+		else if(name == "alice_toggle_administration") {
 			return make_element_by_type<province_toggle_administration_button>(state, id);
 		} else if(name == "province_victory_points_icon") {
 			return make_element_by_type<image_element_base>(state, id);
@@ -893,7 +938,7 @@ public:
 				auto& goods = state.economy_definitions.building_definitions[int32_t(Value)].cost;
 				auto& cgoods = pb_con.get_purchased_goods();
 
-				float factor = economy::build_cost_multiplier(state, prov, pb_con.get_is_pop_project());
+				float factor = economy::construction_build_cost_multiplier(state, pb_con);
 
 				for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
 					auto cid = goods.commodity_type[i];

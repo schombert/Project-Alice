@@ -6,6 +6,7 @@
 #include "gui_listbox_templates.hpp"
 #include "gui_templates.hpp"
 #include "politics.hpp"
+#include "culture_constants.hpp"
 
 namespace ui {
 

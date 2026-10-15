@@ -4,6 +4,7 @@
 #include "gui_element_types.hpp"
 #include "unit_tooltip.hpp"
 #include "economy_tooltips.hpp"
+#include "construction.hpp"
 
 namespace ui {
 
@@ -439,7 +440,7 @@ public:
 		else if(std::holds_alternative<dcon::factory_construction_id>(content)) {
 			auto construction = std::get<dcon::factory_construction_id>(content);
 			auto ftid = state.world.factory_construction_get_type(construction);
-			auto progress = economy::factory_construction_progress(state, construction);
+			auto progress = economy::construction_progress(state, construction);
 			auto full_str = text::produce_simple_string(state, state.world.factory_type_get_name(ftid)) + " (" + text::format_percentage(progress, 0) + ")";
 			color = text::text_color::white;
 			set_text(state, full_str);
@@ -448,7 +449,7 @@ public:
 			auto pbcid = std::get<dcon::province_building_construction_id>(content);
 			auto btid = state.world.province_building_construction_get_type(pbcid);
 			auto name = economy::province_building_type_get_name(economy::province_building_type(btid));
-			float progress = economy::province_building_construction(state, state.world.province_building_construction_get_province(pbcid), economy::province_building_type(btid)).progress;
+			auto progress = economy::construction_progress(state, pbcid);
 
 			auto full_str = text::produce_simple_string(state, name) + " (" + text::format_percentage(progress, 0) + ")";
 
@@ -459,7 +460,7 @@ public:
 			auto plcid = std::get<dcon::province_land_construction_id>(content);
 			auto utid = state.world.province_land_construction_get_type(plcid);
 			auto unitname = utid ? state.military_definitions.unit_base_definitions[utid].name : dcon::text_key{};
-			float progress = economy::unit_construction_progress(state, plcid);
+			float progress = economy::construction_progress(state, plcid);
 			auto pop = state.world.province_land_construction_get_pop(plcid);
 			auto province = state.world.pop_get_province_from_pop_location(pop);
 
@@ -477,7 +478,7 @@ public:
 			auto pncid = std::get<dcon::province_naval_construction_id>(content);
 			auto utid = state.world.province_naval_construction_get_type(pncid);
 			auto unitname = state.military_definitions.unit_base_definitions[utid].name;
-			float progress = economy::unit_construction_progress(state, pncid);
+			float progress = economy::construction_progress(state, pncid);
 			auto province = state.world.province_naval_construction_get_province(pncid);
 
 			text::substitution_map sub;

@@ -15,7 +15,7 @@ enum class trade_volume_info_mode : uint8_t {
 
 enum class commodity_info_mode : uint8_t {
 	price, supply, demand, balance, trade_in, trade_out, trade_balance,
-	production, consumption, stockpiles, potentials,
+	production, consumption, stockpiles, government_stockpiles, potentials,
 	total
 };
 

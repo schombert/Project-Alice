@@ -295,7 +295,7 @@ public:
 class diplomacy_action_command_units_button : public diplomacy_action_btn_logic {
 public:
 	dcon::text_key get_name(sys::state& state, dcon::nation_id target) noexcept override {
-		if(nations::is_commanding_subject_units(state, target, state.local_player_nation)) {
+		if(nations::is_units_commanded_by_overlord(state, target)) {
 			return state.lookup_key("CANCEL_UNIT_COMMAND_BUTTON");
 		} else {
 			return state.lookup_key("GIVE_UNIT_COMMAND_BUTTON");
@@ -303,7 +303,7 @@ public:
 	}
 
 	bool is_available(sys::state& state, dcon::nation_id target) noexcept override {
-		if(nations::is_commanding_subject_units(state, target, state.local_player_nation)) {
+		if(nations::is_units_commanded_by_overlord(state, target)) {
 			return command::can_give_back_units(state, state.local_player_nation, target);
 		} else {
 			return command::can_command_units(state, state.local_player_nation, target);
@@ -312,7 +312,7 @@ public:
 
 
 	void button_action(sys::state& state, dcon::nation_id target, ui::element_base* parent) noexcept override {
-		if(nations::is_commanding_subject_units(state, target, state.local_player_nation)) {
+		if(nations::is_units_commanded_by_overlord(state, target)) {
 			command::give_back_units(state, state.local_player_nation, target);
 		} else {
 			command::command_units(state, state.local_player_nation, target);
@@ -320,7 +320,7 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents, dcon::nation_id target) noexcept override {
-		if(nations::is_commanding_subject_units(state, target, state.local_player_nation)) {
+		if(nations::is_units_commanded_by_overlord(state, target)) {
 			text::add_line(state, contents, "CANCEL_UNIT_COMMAND_DESC");
 		} else {
 			text::add_line(state, contents, "GIVE_UNIT_COMMAND_DESC");

@@ -1,10 +1,11 @@
 #include "gui_tooltips.hpp"
-
 #include "system_state.hpp"
 #include "text.hpp"
 #include "labour_details.hpp"
 #include "economy_production.hpp"
 #include "construction.hpp"
+#include "logistics.hpp"
+#include "culture_constants.hpp"
 #include "trade_network.hpp"
 
 namespace ui {
@@ -292,7 +293,7 @@ void province_building_construction_tooltip(sys::state& state, text::columnar_la
 	text::add_line(state, contents, "alice_construction_cost");
 
 	// Construction cost goods breakdown
-	float factor = economy::build_cost_multiplier(state, p, false);
+	float factor = economy::location_build_cost_multiplier(state, p, false);
 	auto constr_cost = state.economy_definitions.building_definitions[uint8_t(bt)].cost;
 
 	for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
@@ -386,5 +387,7 @@ void province_owner_rgo_commodity_tooltip(sys::state& state, text::columnar_layo
 		}
 	}
 };
+
+
 
 }

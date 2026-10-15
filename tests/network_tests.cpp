@@ -1,5 +1,6 @@
 #include "catch.hpp"
 #include "dcon_generated.hpp"
+#include "commands.hpp"
 #include <chrono>
 #include <thread>
 

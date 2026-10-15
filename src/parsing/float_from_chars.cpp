@@ -36,8 +36,7 @@ bool float_from_chars(char const* start, char const* end, float& float_out) { //
 	bool after_decimal = false;
 
 	if(start == end) {
-		float_out = 0.0f;
-		return true;
+		return false;
 	}
 
 	bool is_negative = false;
@@ -52,10 +51,10 @@ bool float_from_chars(char const* start, char const* end, float& float_out) { //
 		if(*start >= '0' && *start <= '9') {
 			accumulated = accumulated * 10 + (*start - '0');
 			magnitude += int32_t(after_decimal);
-		} else if(*start == '.') {
+		} else if(!after_decimal && *start == '.') {
 			after_decimal = true;
 		} else {
-			// maybe check for non space and throw an error?
+			return false;
 		}
 	}
 	if(!is_negative) {
@@ -78,8 +77,7 @@ bool double_from_chars(char const* start, char const* end, double& dbl_out) { //
 	bool after_decimal = false;
 
 	if(start == end) {
-		dbl_out = 0.0;
-		return true;
+		return false;
 	}
 
 	bool is_negative = false;
@@ -94,9 +92,10 @@ bool double_from_chars(char const* start, char const* end, double& dbl_out) { //
 		if(*start >= '0' && *start <= '9') {
 			accumulated = accumulated * 10 + (*start - '0');
 			magnitude += int32_t(after_decimal);
-		} else if(*start == '.') {
+		} else if(!after_decimal  && *start == '.') {
 			after_decimal = true;
 		} else {
+			return false;
 		}
 	}
 	if(!is_negative) {

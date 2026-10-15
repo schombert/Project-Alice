@@ -49,8 +49,12 @@ enum class mode : uint8_t {
 	rally = 0x2a,
 	workforce = 0x2b,
 	mobilization = 0x2c,
-	state_select = 0x2d,
-	nation_identity_select = 0x2e,
+	supply_loss = 0x2d,
+	supply_throughput = 0x2e,
+	port_supply_capacity = 0x2f,
+	supply_route_efficiency = 0x30,
+	state_select = 0x31,
+	nation_identity_select = 0x32,
 
 	handled_from_outside = 0xff
 };

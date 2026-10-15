@@ -137,4 +137,10 @@ bool check_gamerule(sys::state& state, dcon::gamerule_id gamerule, uint8_t setti
 	return state.world.gamerule_get_current_setting(gamerule) == setting;
 }
 
+bool nation_has_fow_enabled(const sys::state& state, dcon::nation_id nation_as) {
+	auto fow_setting = get_active_gamerule_option(state, state.hardcoded_gamerules.fog_of_war);
+	return fow_setting == uint8_t(fog_of_war_settings::enable) || (fow_setting == uint8_t(fog_of_war_settings::disable_for_observer) && nation_as != state.world.national_identity_get_nation_from_identity_holder( state.national_definitions.rebel_id));
+
+}
+
 }

@@ -819,14 +819,11 @@ public:
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto b = retrieve<dcon::land_battle_id>(state, parent);
 		float reinf = military::calculate_battle_reinforcement(state, b, true);
-		if(reinf > 0.0f) {
-			text::add_line(state, contents, "alice_reinforce_rate_battle_attacker", text::variable_type::x, int64_t(reinf));
-		} else {
-			text::add_line(state, contents, "alice_reinforce_rate_battle_attacker_none");
-		}
-		text::add_line(state, contents, "alice_reinforce_battle_only_reserve");
 
-		display_battle_reinforcement_modifiers(state, b, contents, 0, true);
+		text::add_line(state, contents, "land_battle_supply_satisfaction_header_tooltip", text::variable_type::val, int64_t(reinf));
+
+
+		display_land_battle_supply_satisfaction(state, b, contents, 0, true);
 	}
 };
 
@@ -856,14 +853,9 @@ public:
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto b = retrieve<dcon::land_battle_id>(state, parent);
 		float reinf = military::calculate_battle_reinforcement(state, b, false);
-		if(reinf > 0.0f) {
-			text::add_line(state, contents, "alice_reinforce_rate_battle_defender", text::variable_type::x, int64_t(reinf));
-		} else {
-			text::add_line(state, contents, "alice_reinforce_rate_battle_defender_none");
-		}
-		text::add_line(state, contents, "alice_reinforce_battle_only_reserve");
+		text::add_line(state, contents, "land_battle_supply_satisfaction_header_tooltip", text::variable_type::val, int64_t(reinf));
 
-		display_battle_reinforcement_modifiers(state, b, contents, 0, false);
+		display_land_battle_supply_satisfaction(state, b, contents, 0, false);
 	}
 };
 

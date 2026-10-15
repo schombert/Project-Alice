@@ -77,10 +77,8 @@ end
 ---@param gamerule_id gamerule id
 function alice.alice_gamerule_command_units_opt_disabled_on_select(gamerule_id)
 	-- get all commanded units back to their original owners when the gamerule is disabled
-	for nation_id = 0, NATION.size() - 1 do
-		if(NATION.get_overlord_commanding_units(nation_id)) then
-			NATION.set_overlord_commanding_units(nation_id, false)
-		end
+	for overlord_id = 0, OVERLORD.size() - 1 do
+		OVERLORD.set_commanding_units(overlord_id, false)
 	end
 end
 
