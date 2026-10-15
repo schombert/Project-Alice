@@ -238,6 +238,16 @@ float supply(
 	sys::state const& state,
 	dcon::commodity_id c
 );
+float production(
+	sys::state& state,
+	dcon::market_id s,
+	dcon::commodity_id c
+);
+float production(
+	sys::state& state,
+	dcon::nation_id s,
+	dcon::commodity_id c
+);
 
 float demand(
 	sys::state const& state,

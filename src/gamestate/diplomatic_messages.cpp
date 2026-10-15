@@ -292,12 +292,7 @@ void accept(sys::state& state, message const& m) {
 		break;
 	case type::access_request: {
 		nations::adjust_relationship(state, m.from, m.to, state.defines.askmilaccess_relation_on_accept);
-		auto rel = state.world.get_unilateral_relationship_by_unilateral_pair(m.to, m.from);
-		if(!rel) {
-			rel = state.world.force_create_unilateral_relationship(m.to, m.from);
-		}
-		state.world.unilateral_relationship_set_military_access(rel, true);
-
+		military::give_military_access(state, m.from, m.to);
 		notification::post(state, notification::message{
 			[source = m.from, target = m.to](sys::state& state, text::layout_base& contents) {
 				text::add_line(state, contents, "msg_access_granted_1", text::variable_type::x, target, text::variable_type::y, source);

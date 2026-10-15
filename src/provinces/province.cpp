@@ -11,13 +11,44 @@
 #include "triggers.hpp"
 #include "economy_stats.hpp"
 #include "events.hpp"
+#include "economy_templates.hpp"
 #include "economy.hpp"
 #include <set>
+#include "economy.hpp"
+#include "military_templates.hpp"
+#include "logistics.hpp"
+#include "construction.hpp"
 
 namespace province {
 
 template auto is_overseas<ve::tagged_vector<dcon::province_id>>(sys::state const&, ve::tagged_vector<dcon::province_id>);
 template void for_each_province_in_state_instance<std::function<void(dcon::province_id)>>(sys::state const &, dcon::state_instance_id, std::function<void(dcon::province_id)> const&);
+
+bool is_sea(const sys::state& state, dcon::province_id prov) {
+	return state.province_definitions.first_sea_province.index() <= prov.index();
+}
+
+bool is_land(const sys::state& state, dcon::province_id prov) {
+	return !is_sea(state, prov);
+}
+
+bool prov_is_coastal(const sys::state& state, dcon::province_id prov) {
+	return bool(state.world.province_get_port_to(prov));
+}
+
+bool adj_is_coastal(const sys::state& state, dcon::province_adjacency_id adj) {
+	return bool(state.world.province_adjacency_get_type(adj) & province::border::coastal_bit);
+}
+
+bool is_port_connected_to(const sys::state& state, dcon::province_id port, dcon::province_id port_to) {
+	return state.world.province_get_port_to(port) == port_to;
+}
+
+float movement_cost(const sys::state& state, dcon::province_id prov) {
+	return std::max(state.world.province_get_modifier_values(prov, sys::provincial_mod_offsets::movement_cost), 0.01f);
+
+}
+
 
 bool is_overseas(sys::state const& state, dcon::province_id ids) {
 	auto owners = state.world.province_get_nation_from_province_ownership(ids);
@@ -30,12 +61,12 @@ bool nations_are_adjacent(sys::state& state, dcon::nation_id a, dcon::nation_id 
 	auto it = state.world.get_nation_adjacency_by_nation_adjacency_pair(a, b);
 	return bool(it);
 }
-bool provinces_are_adjacent(sys::state& state, dcon::province_id a, dcon::province_id b) {
+bool provinces_are_adjacent(const sys::state& state, dcon::province_id a, dcon::province_id b) {
 	auto adj =  state.world.get_province_adjacency_by_province_pair(a, b);
 	return bool(adj);
 }
 
-bool province_is_deep_waters(sys::state& state, dcon::province_id prov) {
+bool province_is_deep_waters(const sys::state& state, dcon::province_id prov) {
 	assert(prov.index() >= state.province_definitions.first_sea_province.index());
 	
 	for(auto adj : state.world.province_get_province_adjacency(prov)) {
@@ -454,6 +485,21 @@ dcon::province_id pick_capital(sys::state& state, dcon::nation_id n) {
 	return best_choice;
 }
 
+void set_state_controller(sys::state& state, dcon::state_instance_id state_inst, dcon::nation_id new_controller) {
+	auto market = state.world.state_instance_get_market_from_local_market(state_inst);
+	auto old_controller = state.world.state_instance_get_nation_from_state_control(state_inst);
+	state.world.force_create_state_control(state_inst, new_controller);
+	economy::for_each_commodity_no_money(state, [&](dcon::commodity_id commodity) {
+		auto curr_local_stockpile = state.world.market_get_government_stockpile(market, commodity);
+		if(old_controller) {
+			economy::subtract_total_govt_stockpile(state, old_controller, commodity, curr_local_stockpile);
+		}
+		if(new_controller) {
+			economy::add_total_govt_stockpile(state, new_controller, commodity, curr_local_stockpile);
+		}
+	});
+}
+
 void set_province_controller(sys::state& state, dcon::province_id p, dcon::nation_id n) {
 	auto old_con = state.world.province_get_nation_from_province_control(p);
 	auto curr_owner = state.world.province_get_nation_from_province_ownership(p);
@@ -462,6 +508,11 @@ void set_province_controller(sys::state& state, dcon::province_id p, dcon::natio
 		return;
 	}
 	if(old_con != n) {
+		auto state_inst = state.world.province_get_state_membership(p);
+		// Check if the state needs to also change controller
+		if(state_inst && state.world.state_instance_get_capital(state_inst) == p) {
+			set_state_controller(state, state_inst, n);
+		}
 		state.world.province_set_last_control_change(p, state.current_date);
 		state.trade_route_cached_values_out_of_date = true;
 		auto rc = state.world.province_get_rebel_faction_from_province_rebel_control(p);
@@ -485,7 +536,22 @@ void set_province_controller(sys::state& state, dcon::province_id p, dcon::natio
 		}
 		state.world.province_set_rebel_faction_from_province_rebel_control(p, dcon::rebel_faction_id{});
 		state.world.province_set_nation_from_province_control(p, n);
+		// Schedule supply route update for routes which pass through this province
+		logistics::schedule_prov_all_supply_paths_update(state, p);
 		state.military_definitions.pending_blackflag_update = true;
+		// Delete unit constructions in the occupied province
+		for(auto pop_loc : state.world.province_get_pop_location(p)) {
+			auto land_cons = pop_loc.get_pop().get_province_land_construction();
+			while(land_cons.begin() != land_cons.end()) {
+				auto con = *(land_cons.begin());
+				economy::delete_unit_construction<economy::construction_completed::no>(state, con.id);
+			}
+		}
+		auto naval_cons = state.world.province_get_province_naval_construction(p);
+		while(naval_cons.begin() != naval_cons.end()) {
+			auto con = *(naval_cons.begin());
+			economy::delete_unit_construction<economy::construction_completed::no>(state, con.id);
+		}
 	}
 }
 
@@ -497,6 +563,11 @@ void set_province_controller(sys::state& state, dcon::province_id p, dcon::rebel
 		return;
 	}
 	if(old_con != rf) {
+		auto state_inst = state.world.province_get_state_membership(p);
+		// Check if the state needs to also change controller
+		if(state_inst && state.world.state_instance_get_capital(state_inst) == p) {
+			set_state_controller(state, state_inst, dcon::nation_id{});
+		}
 		state.world.province_set_last_control_change(p, state.current_date);
 		state.trade_route_cached_values_out_of_date = true;
 		auto owner = state.world.province_get_nation_from_province_ownership(p);
@@ -515,6 +586,8 @@ void set_province_controller(sys::state& state, dcon::province_id p, dcon::rebel
 		}
 		state.world.province_set_rebel_faction_from_province_rebel_control(p, rf);
 		state.world.province_set_nation_from_province_control(p, dcon::nation_id{});
+		// Schedule supply route update for routes which pass through this province
+		logistics::schedule_prov_all_supply_paths_update(state, p);
 		state.military_definitions.pending_blackflag_update = true;
 	}
 }
@@ -608,19 +681,6 @@ void restore_cached_values(sys::state& state) {
 	state.world.for_each_state_instance([&](dcon::state_instance_id s) {
 		auto owner = state.world.state_instance_get_nation_from_state_ownership(s);
 		state.world.nation_set_owned_state_count(owner, uint16_t(state.world.nation_get_owned_state_count(owner) + uint16_t(1)));
-		dcon::province_id p;
-
-		int16_t min_priority = (int16_t)state.world.abstract_state_membership_size();
-
-		for(auto prv : state.world.state_definition_get_abstract_state_membership(state.world.state_instance_get_definition(s))) {
-			auto priority = state.world.abstract_state_membership_get_priority(prv);
-			if (priority < min_priority && state.world.province_get_nation_from_province_ownership(prv.get_province()) == owner) {
-				p = prv.get_province().id;
-				min_priority = priority;
-			}
-		}
-
-		state.world.state_instance_set_capital(s, p);
 	});
 }
 
@@ -935,6 +995,8 @@ struct queue_node {
 	dcon::province_id prov_id;
 };
 
+
+
 float state_distance(sys::state& state, dcon::state_instance_id state_id, dcon::province_id prov_id) {
 	return direct_distance(state, state.world.state_instance_get_capital(state_id), prov_id);
 }
@@ -1032,6 +1094,9 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 	state.adjacency_data_out_of_date = true;
 	state.national_cached_values_out_of_date = true;
 
+	// Schedule an update on all routes passing through
+	logistics::schedule_prov_all_supply_paths_update(state, id);
+
 	bool state_is_new = false;
 	dcon::state_instance_id new_si;
 
@@ -1066,6 +1131,7 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 			new_si = state.world.create_state_instance();
 			state.world.state_instance_set_definition(new_si, state_def);
 			state.world.try_create_state_ownership(new_si, new_owner);
+			state.world.try_create_state_control(new_si, new_owner);
 
 			state.world.state_instance_set_capital(new_si, id);
 			state.world.province_set_is_colonial(id, will_be_colonial);
@@ -1372,7 +1438,8 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 			}
 			auto lc = p.get_pop().get_province_land_construction();
 			while(lc.begin() != lc.end()) {
-				state.world.delete_province_land_construction(*(lc.begin()));
+				auto con = *(lc.begin());
+				economy::delete_unit_construction<economy::construction_completed::no>(state, con.id);
 			}
 		}
 		//  safely delete the regiment instead of transferring it to the new owner
@@ -1385,6 +1452,7 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 	state.world.province_set_rebel_faction_from_province_rebel_control(id, dcon::rebel_faction_id{});
 	state.world.province_set_last_control_change(id, state.current_date);
 	state.world.province_set_nation_from_province_control(id, new_owner);
+	military::set_siege_progress(state, id, 0.0f);
 	state.world.province_set_siege_progress(id, 0.0f);
 	state.world.province_set_control_ratio(id, 0.f);
 	state.world.province_set_control_scale(id, 0.f);
@@ -1406,6 +1474,28 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 					nations::cleanup_crisis(state);
 			}
 			auto local_market = state.world.state_instance_get_market_from_local_market(old_si);
+
+			// Update total stockpile count
+			// If a new state was created in its place and there is both a owner to take the state from and an owner to receive the state (ie no uncolonized), transfer stockpile contents to the new state
+			if(new_si && old_owner && new_owner) {
+				economy::for_each_commodity_no_money(state, [&](dcon::commodity_id commodity) {
+					auto new_market = state.world.state_instance_get_market_from_local_market(new_si);
+					float move_stockpile_amount = state.world.market_get_government_stockpile(local_market, commodity);
+					float old_owner_total_stockpile = state.world.nation_get_total_stockpiles(old_owner, commodity);
+					float new_owner_total_stockpile = state.world.nation_get_total_stockpiles(new_owner, commodity);
+					float current_stockpile_amount = state.world.market_get_government_stockpile(new_market, commodity);
+					economy::add_government_stockpile(state, new_owner, new_market, commodity, move_stockpile_amount);
+					economy::subtract_government_stockpile(state, old_owner, local_market, commodity, move_stockpile_amount);
+				});
+			}
+			// Otherwise, simply delete stockpile contents from the old owner if applicable
+			else if(old_owner) {
+				economy::for_each_commodity_no_money(state, [&](dcon::commodity_id commodity) {
+					float move_stockpile_amount = state.world.market_get_government_stockpile(local_market, commodity);
+					float old_owner_total_stockpile = state.world.nation_get_total_stockpiles(old_owner, commodity);
+					state.world.nation_set_total_stockpiles(old_owner, commodity, std::max(old_owner_total_stockpile - move_stockpile_amount, 0.0f));
+				});
+			}
 
 			state.world.delete_market(local_market);
 			state.world.delete_state_instance(old_si);
@@ -1462,7 +1552,8 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 	{
 		auto rng = state.world.province_get_province_naval_construction(id);
 		while(rng.begin() != rng.end()) {
-			state.world.delete_province_naval_construction(*(rng.begin()));
+			auto con = *(rng.begin());
+			economy::delete_unit_construction<economy::construction_completed::no>(state, con.id);
 		}
 	}
 
@@ -1495,30 +1586,29 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 }
 // returns true if a strait between the two provinces are blocked by an enemy navy from the perspective of thisnation
 // Reads sea adjacency data from the v2 adjacencies file to determine if it is blocked
-bool is_crossing_blocked(sys::state& state, dcon::nation_id thisnation, dcon::province_id from, dcon::province_id to) {
+bool is_crossing_blocked(const sys::state& state, dcon::nation_id thisnation, dcon::province_id from, dcon::province_id to) {
 	auto adjacency = state.world.get_province_adjacency_by_province_pair(to, from);
 	return is_crossing_blocked(state, thisnation, adjacency);
 }
 
-bool is_crossing_blocked(sys::state& state, dcon::nation_id thisnation, dcon::province_adjacency_id adjacency) {
+bool is_crossing_blocked(const sys::state& state, dcon::nation_id thisnation, dcon::province_adjacency_id adjacency) {
 	auto path_bits = state.world.province_adjacency_get_type(adjacency);
 	auto strait_prov = state.world.province_adjacency_get_canal_or_blockade_province(adjacency);
 	if(strait_prov) { // strait crossing or canal control province
 		// if land province, check if we own the canal control province
 		if(strait_prov.index() < state.province_definitions.first_sea_province.index()) {
 			auto controller = state.world.province_get_nation_from_province_control(strait_prov);
-			auto reb_controller = state.world.province_get_rebel_faction_from_province_rebel_control(strait_prov);
-			return bool(reb_controller) || (bool(controller) && military::are_enemies(state, thisnation, controller));
+			return military::are_enemies(state, thisnation, controller);
 		}
 		// otherwise, its a blockadable strait
 		else {
-			return military::province_has_enemy_fleet(state, strait_prov, thisnation);
+			return military::province_has_fleet<military::battle_included::yes, military::retreat_included::no, military::participants_included::enemies>(state, strait_prov, thisnation);
 		}
 	}
 	return false;
 }
 
-bool is_adjacency_impassable(sys::state& state, dcon::nation_id thisnation, dcon::province_adjacency_id adj) {
+bool is_adjacency_impassable(const sys::state& state, dcon::nation_id thisnation, dcon::province_adjacency_id adj) {
 	// if impassable bit is set, always return true
 	auto type = state.world.province_adjacency_get_type(adj);
 	if((type & province::border::impassible_bit) != 0) {
@@ -1647,6 +1737,11 @@ bool is_colonizing(sys::state& state, dcon::nation_id n, dcon::state_definition_
 	return false;
 }
 
+float get_infrastructure(const sys::state& state, dcon::province_id province) {
+	return state.world.province_get_building_level(province, uint8_t(economy::province_building_type::railroad)) *
+		state.economy_definitions.building_definitions[int32_t(economy::province_building_type::railroad)].infrastructure;
+}
+
 bool can_invest_in_colony(sys::state& state, dcon::nation_id n, dcon::state_definition_id d) {
 	// Your country must be of define:COLONIAL_RANK or less.
 	if(state.world.nation_get_rank(n) > uint16_t(state.defines.colonial_rank))
@@ -1706,7 +1801,7 @@ bool can_invest_in_colony(sys::state& state, dcon::nation_id n, dcon::state_defi
 	}
 }
 
-float get_province_modifier_without_hostile_buildings(sys::state& state, dcon::nation_id as_nation, dcon::province_id prov, dcon::provincial_modifier_value prov_mod_val) {
+float get_province_modifier_without_hostile_buildings(const sys::state& state, dcon::nation_id as_nation, dcon::province_id prov, dcon::provincial_modifier_value prov_mod_val) {
 	auto modifier_val = state.world.province_get_modifier_values(prov, prov_mod_val);
 	// if the "as_nation" is not at war with the controller, we don't need to subtract anything
 	auto prov_controller = state.world.province_get_nation_from_province_control(prov);
@@ -2172,6 +2267,7 @@ dcon::province_id state_get_coastal_capital(sys::state const& state, dcon::state
 	return result;
 }
 
+
 bool state_is_coastal(sys::state& state, dcon::state_instance_id s) {
 	auto d = state.world.state_instance_get_definition(s);
 	auto o = state.world.state_instance_get_nation_from_state_ownership(s);
@@ -2356,7 +2452,7 @@ bool has_naval_access_to_province(sys::state& state, dcon::nation_id nation_as, 
 }
 
 // determines whether a land unit is allowed to move to / be in a province
-bool has_access_to_province(sys::state& state, dcon::nation_id nation_as, dcon::province_id prov) {
+bool has_access_to_province(const sys::state& state, dcon::nation_id nation_as, dcon::province_id prov) {
 	auto controller = state.world.province_get_nation_from_province_control(prov);
 
 	if(!controller)
@@ -2414,6 +2510,57 @@ bool has_safe_access_to_province(sys::state& state, dcon::nation_id nation_as, d
 	return false;
 }
 
+
+bool has_supply_access_to_province(const sys::state& state, dcon::nation_id nation_as, dcon::province_id prov) {
+	assert(nation_as);
+
+	bool is_sea = province::is_sea(state, prov);// Sea provinces are always accessible. Blockades are resolved elsewhere
+	auto controller = state.world.province_get_nation_from_province_control(prov);
+	auto coverl = state.world.nation_get_overlord_as_subject(controller);
+	bool is_controller = (controller == nation_as);
+	bool is_spherelord = (state.world.nation_get_in_sphere_of(controller) == nation_as);
+	bool is_overlord = (state.world.overlord_get_ruler(coverl) == nation_as);
+
+	if(is_sea || is_controller || is_spherelord || is_overlord) {
+		return true;
+	}
+
+	auto url = state.world.get_unilateral_relationship_by_unilateral_pair(controller, nation_as);
+	if(state.world.unilateral_relationship_get_military_access(url))
+		return true;
+
+	// War check is fairly cheap. Do that before more expensive checks
+	if(military::are_enemies(state, nation_as, controller)) {
+		return false;
+	}
+
+	if(military::are_allied_in_war(state, nation_as, controller))
+		return true;
+
+	return false;
+}
+
+void make_adjacency_path_from_prov_path(const sys::state& state, std::span<const dcon::province_id> prov_path, std::vector<dcon::province_adjacency_id>& adj_path_out) {
+	for(uint32_t i = 1; i < prov_path.size(); i++) {
+		auto prov = prov_path[i - 1];
+		auto next_prov = prov_path[i];
+		auto adj = state.world.get_province_adjacency_by_province_pair(prov, next_prov);
+		assert(adj);
+		adj_path_out.push_back(adj);
+	}
+}
+void make_adjacency_path_from_prov_path(const sys::state& state, std::span<const dcon::province_id> prov_path, dcon::dcon_vv_fat_id<dcon::province_adjacency_id>& adj_path_out) {
+	for(uint32_t i = 1; i < prov_path.size(); i++) {
+		auto prov = prov_path[i - 1];
+		auto next_prov = prov_path[i];
+		auto adj = state.world.get_province_adjacency_by_province_pair(prov, next_prov);
+		assert(adj);
+		adj_path_out.push_back(adj);
+	}
+}
+
+
+
 void assert_path_result(std::vector<dcon::province_id>& v) {
 	for(auto const e : v)
 		assert(bool(e));
@@ -2455,7 +2602,7 @@ std::vector<dcon::province_id> make_land_unit_path(sys::state& state, dcon::prov
 
 		};
 		auto modifier_func = [&](dcon::province_id to, dcon::province_id from, dcon::province_adjacency_id adj, float distance) {
-			float danger_factor = (to != end && military::province_has_enemy_army(state, to, nation_as)) ? 4.f : 1.f;
+			float danger_factor = (to != end && military::province_has_army<military::battle_included::yes, military::retreat_included::no, military::blackflag_included::no, military::participants_included::enemies>(state, to, nation_as)) ? 4.f : 1.f;
 			return distance * military::get_avg_movement_cost_modifier(state, nation_as, from, to) * danger_factor;
 
 		};
@@ -2471,7 +2618,7 @@ std::vector<dcon::province_id> make_land_unit_path(sys::state& state, dcon::prov
 
 		};
 		auto modifier_func = [&](dcon::province_id to, dcon::province_id from, dcon::province_adjacency_id adj, float distance) {
-			float danger_factor = (to != end && military::province_has_enemy_army(state, to, nation_as)) ? 4.f : 1.f;
+			float danger_factor = (to != end && military::province_has_army<military::battle_included::yes, military::retreat_included::no, military::blackflag_included::no, military::participants_included::enemies>(state, to, nation_as)) ? 4.f : 1.f;
 			return distance * military::get_avg_movement_cost_modifier(state, nation_as, from, to) * danger_factor;
 
 		};
@@ -2738,7 +2885,7 @@ bool make_land_manual_retreat_path_adjacency_valid(sys::state& state, dcon::nati
 bool make_land_manual_retreat_path_province_valid(sys::state& state, dcon::nation_id nation_as, dcon::province_id start, dcon::province_id to, dcon::army_id a) {
 	if(to.index() < state.province_definitions.first_sea_province.index()) { // is land
 		// Province must be accelsible, and must not be both adjacent to the start province AND have an enemy unit on it
-		return has_access_to_province(state, nation_as, to) && !(province::provinces_are_adjacent(state, to, start) && military::province_has_enemy_army(state, to, nation_as));
+		return has_access_to_province(state, nation_as, to) && !(province::provinces_are_adjacent(state, to, start) && military::province_has_army<military::battle_included::yes, military::retreat_included::no, military::blackflag_included::no, military::participants_included::enemies>(state, to, nation_as));
 
 	} else { // is sea
 		return military::can_embark_onto_sea_tile(state, nation_as, to, a);
@@ -2757,7 +2904,7 @@ std::vector<dcon::province_id> make_land_manual_retreat_path(sys::state& state, 
 	};
 	auto modifier_func = [&](dcon::province_id to, dcon::province_id from, dcon::province_adjacency_id adj, float distance) {
 		auto armies = state.world.province_get_army_location(to);
-		float danger_factor = (to != end && military::province_has_enemy_army(state, to, nation_as)) ? 4.0f : 1.0f;
+		float danger_factor = (to != end && military::province_has_army<military::battle_included::yes, military::retreat_included::no, military::blackflag_included::no, military::participants_included::enemies>(state, to, nation_as)) ? 4.0f : 1.0f;
 		float movement_cost_mod = military::get_avg_movement_cost_modifier(state, nation_as, to, from);
 		return distance * movement_cost_mod * danger_factor;
 	};
@@ -2772,7 +2919,7 @@ bool make_land_auto_retreat_path_adjacency_valid(sys::state& state, dcon::nation
 bool make_land_auto_retreat_path_province_valid(sys::state& state, dcon::nation_id nation_as, dcon::province_id start, dcon::province_id to) {
 	if(to.index() < state.province_definitions.first_sea_province.index()) { // is land
 		// Province must be accelsible, adjecent to the start province, and cannot have an enemy unit on it
-		return has_access_to_province(state, nation_as, to) && province::provinces_are_adjacent(state, to, start) && !military::province_has_enemy_army(state, to, nation_as);
+		return has_access_to_province(state, nation_as, to) && province::provinces_are_adjacent(state, to, start) && !military::province_has_army<military::battle_included::yes, military::retreat_included::no, military::blackflag_included::no, military::participants_included::enemies>(state, to, nation_as);
 
 	} else { // is sea
 		/*return military::can_embark_onto_sea_tile(state, nation_as, other_prov, a);*/
@@ -2798,7 +2945,7 @@ std::vector<dcon::province_id> make_land_auto_retreat_path(sys::state& state, dc
 		if(!military::are_enemies(state, nation_as, to_prov_controller)) {
 			distance *= 0.01f;
 		}
-		if(military::province_has_war_ally_army(state, to, nation_as)) {
+		if(military::province_has_army<military::battle_included::no, military::retreat_included::no, military::blackflag_included::no, military::participants_included::in_common_war>(state, to, nation_as)) {
 			distance *= 0.01f;
 		}
 		return distance;
@@ -2866,6 +3013,119 @@ std::vector<dcon::province_id> make_unowned_path_to_nearest_coast(sys::state& st
 
 }
 
+
+constexpr float supply_loss_path_factor = 10000.0f;
+constexpr float excess_supply_throughput_path_factor = 0.1f;
+constexpr float lacking_supply_throughput_path_factor = 100.0f;
+constexpr float lacking_navalbase_path_factor = 5.0f; // penalty to pathfind weight if the adjacency is sea->land or vice verca, and the land province does not have atleast a lvl 1 naval base
+
+// Creates a military supply path, but will actively try to find the path with good supply thoughput and supply attrition. Path is inserted into the passed-in buffer. Buffer must be cleared first
+bool make_logistics_path(const sys::state& state, dcon::province_id origin_prov, dcon::province_id destination, dcon::nation_id nation_as, float expected_volume, std::vector<dcon::province_id>& path_result, std::vector<dcon::province_adjacency_id>& adjacency_path_result) {
+
+	// Will store data relavent to each pathfind iteration, and initalized when a new iteration begins. Saves some duplicate computations
+	struct iteration_data {
+		bool is_land_to_sea{};
+		bool port_connection{};
+		uint8_t highest_naval_base_level{ };
+		float to_prov_supply_throughput{ };
+		float from_prov_supply_throughput{ };
+		float to_prov_port_capacity{ };
+		float from_prov_port_capacity{ };
+		float adj_supply_throughput{};
+		float from_prov_supply_loss{ };
+		float to_prov_supply_loss{ };
+		float adj_supply_loss{};
+		float free_supply_throughput{};
+		float supply_efficiency{};
+	};
+	auto adjacency_func = [&](dcon::province_id to, dcon::province_id from, dcon::province_adjacency_id adj, const iteration_data& data) {
+		// Most of the checks were done in the province func already. We do have to check supply throughput again, since it may change in the adjacency init func if its a port
+		
+		if(data.is_land_to_sea && !data.port_connection) {
+			return false;
+		}
+		return data.adj_supply_throughput > 0.0 && !is_adjacency_impassable(state, nation_as, adj);
+	};
+	auto to_province_func = [&](dcon::province_id to, const iteration_data& data) {
+		// If the province supply throughput of the to-province is 0 (eg. by being at war with the controller), then we may only path to it as long as there is a friendly army due to the special condition
+		if(data.to_prov_supply_throughput == 0.0f && data.to_prov_port_capacity == 0.0f) {
+			return military::province_has_army<military::battle_included::yes, military::retreat_included::yes, military::blackflag_included::no, military::participants_included::ourselves>(state, to, nation_as);
+		}
+		else {
+			return true;
+		}
+
+	};
+	auto movement_cost_func = [&](dcon::province_id to, dcon::province_id from, dcon::province_adjacency_id adj, float distance, const iteration_data& data) {
+		// Take into account the expected supply throughput, and supply loss. Increase perceived distance based on them to nudge the pathfinding to find a better path
+		assert(data.adj_supply_throughput > 0.0f);
+		assert(data.supply_efficiency > 0.0f);
+		assert(data.adj_supply_loss > 0.0f);
+		bool no_naval_base = (data.highest_naval_base_level == 0);
+		bool lacking_navalbase_penalty = (data.is_land_to_sea && no_naval_base);
+
+		float supply_loss_factor = (1.0f - data.adj_supply_loss) * supply_loss_path_factor + 1.0f;
+		float lacking_navalbase_factor = lacking_navalbase_path_factor * lacking_navalbase_penalty + 1.0f; // Apply lacking naval base weight
+		// if there is free supply throughput, the percived distance will be reduced. If there is no free throughput, then the percieved distance will be increased the lower the supply efficiency is (0.0-1.0)
+		float supply_throughput_factor = (data.free_supply_throughput > 0.0f ? data.free_supply_throughput * excess_supply_throughput_path_factor + 1.0f : data.supply_efficiency / lacking_supply_throughput_path_factor);
+		return distance * supply_loss_factor * lacking_navalbase_factor / supply_throughput_factor;
+
+	};
+	auto to_province_init_func = [&](dcon::province_id to, iteration_data& data) {
+		data.to_prov_supply_throughput = logistics::calculate_supply_throughput_in_province(state, to, nation_as);
+		data.to_prov_supply_loss = logistics::calculate_supply_loss_in_province(state, to, nation_as);
+		bool is_coastal = province::prov_is_coastal(state, to);
+		data.to_prov_port_capacity = (is_coastal ? logistics::port_supply_capacity_in_province(state, to, nation_as) : 0.0f);
+	}; 
+	auto from_province_init_func = [&](dcon::province_id from, iteration_data& data) {
+		data.from_prov_supply_throughput = logistics::calculate_supply_throughput_in_province(state, from, nation_as);
+		data.from_prov_supply_loss = logistics::calculate_supply_loss_in_province(state, from, nation_as);
+		bool is_coastal = province::prov_is_coastal(state, from);
+		data.from_prov_port_capacity = (is_coastal ? logistics::port_supply_capacity_in_province(state, from, nation_as) : 0.0f);
+	}; 
+
+	auto adj_init_func = [&](dcon::province_id to, dcon::province_id from, dcon::province_adjacency_id adj, float distance, iteration_data& data) {
+		float supply_loss = 1.0f - logistics::calculate_adjacency_avg_supply_loss(state, from, to, data.from_prov_supply_loss, data.to_prov_supply_loss, nation_as) / state.map_state.map_data.world_circumference; // Get the supply loss measured in loss per km
+		data.adj_supply_loss = std::max(supply_loss, 0.00000001f); // Clamp so that it cannot be zero, but is allowed to be a very small value
+		float used_throughput = state.world.province_adjacency_get_used_supply_throughput(adj) + expected_volume;
+		float adj_throughput = [&]() {
+			if(province::adj_is_coastal(state, adj)) {
+				return logistics::calculate_supply_throughput_in_coastal_adjacency(state, adj, from, to, data.from_prov_port_capacity, data.to_prov_port_capacity, nation_as);
+			}
+			else {
+				return logistics::calculate_supply_throughput_in_noncoastal_adjacency(state, adj, from, to, data.from_prov_supply_throughput, data.to_prov_supply_throughput, nation_as);
+			}
+		}();
+		data.adj_supply_throughput = adj_throughput;
+		data.free_supply_throughput = data.adj_supply_throughput - used_throughput;
+		data.supply_efficiency = logistics::compute_efficiency(used_throughput, data.adj_supply_throughput);
+
+		dcon::province_id from_port_to = state.world.province_get_port_to(from);
+		dcon::province_id to_port_to = state.world.province_get_port_to(to);
+		bool land_to_sea = (province::is_sea(state, to) != province::is_sea(state, from));
+		bool from_prov_is_connected_to_to = (from_port_to == to);
+		bool to_prov_is_connected_to_from = (to_port_to == from);
+		data.port_connection = (from_prov_is_connected_to_to || to_prov_is_connected_to_from);
+		data.is_land_to_sea = land_to_sea;
+		// Get the highest naval base lvl of the two provinces. Non-coast provinces or sea provinces should always have level 0 naval base
+		data.highest_naval_base_level = std::max(state.world.province_get_building_level(to, uint8_t(economy::province_building_type::naval_base)), state.world.province_get_building_level(from, uint8_t(economy::province_building_type::naval_base)));
+
+	};
+	// We are passing "origin" province as end, and "destination" as start. This is because creating the path in reverse has some desired effects. For example it means the province the army is on will not be path of the path (so that you wont lose supply instantly when adjacen to a friendly province)
+	// And will enable faster early-exits if units are deep in enemy territory
+	bool valid_path = make_path_to_prov<1.0f, iteration_data>(state, destination, origin_prov, path_result, adjacency_func, to_province_func, movement_cost_func, to_province_init_func, adj_init_func, from_province_init_func); // multiply heuristic by 1 for faster path ( is called as part of supply logic)
+	if(valid_path) {
+		path_result.push_back(destination); // Include the destination in the path (which normally is not included)
+		// Create the adjacency path. Maybe this can be done directly in the pathing algoritm?
+		make_adjacency_path_from_prov_path(state, path_result, adjacency_path_result);
+	}
+	return valid_path;
+}
+
+
+
+
+
 void restore_distances(sys::state& state) {
 	for(auto p : state.world.in_province) {
 		auto tile_pos = p.get_mid_point();
@@ -2890,5 +3150,49 @@ void restore_distances(sys::state& state) {
 		adj.set_distance_km(dist_km);
 	}
 }
+
+
+template<command::actor actor>
+bool can_move_state_capital(const sys::state& state, dcon::nation_id source, dcon::province_id move_to) {
+	if constexpr(actor == command::actor::player) {
+		if(!state.current_scene.game_in_progress) {
+			return false;
+		}
+	}
+	auto state_inst = state.world.province_get_state_membership(move_to);
+	auto state_owner = state.world.state_instance_get_nation_from_state_ownership(state_inst);
+	if(state_owner != source) {
+		return false;
+	}
+	if(state.world.state_instance_get_capital(state_inst) == move_to)
+		return false;
+	sys::date last_change = state_inst.get_last_state_capital_change();
+	if(last_change && last_change + state_cap_move_days_cooldown > state.current_date) {
+		return false;
+	}
+	bool occupation_siege_check = true;
+	// Cannot move state capital if any province in the state is controlled by someone else or is being sieged
+	province::for_each_province_in_state_instance(state, state_inst, [&](dcon::province_id prov) {
+		if(state.world.province_get_nation_from_province_control(prov) != source || state.world.province_get_siege_progress(prov) > 0.0f) {
+			occupation_siege_check = false;
+			return;
+		}
+	});
+	return occupation_siege_check;
+}
+template bool can_move_state_capital<command::actor::ai>(const sys::state& state, dcon::nation_id source, dcon::province_id move_to);
+template bool can_move_state_capital<command::actor::player>(const sys::state& state, dcon::nation_id source, dcon::province_id move_to);
+
+template<command::actor actor>
+void move_state_capital(sys::state& state, dcon::nation_id source, dcon::province_id move_to) {
+	auto state_inst = state.world.province_get_state_membership(move_to);
+	state_inst.set_capital(move_to);
+	state_inst.set_last_state_capital_change(state.current_date);
+	auto market = state_inst.get_market_from_local_market();
+	// Schedules update on all paths which have this market as their origin, so they wont be out of date
+	logistics::schedule_immediate_supply_path_update_on_origin_market(state, market);
+}
+template void move_state_capital<command::actor::ai>(sys::state& state, dcon::nation_id source, dcon::province_id move_to);
+template void move_state_capital<command::actor::player>(sys::state& state, dcon::nation_id source, dcon::province_id move_to);
 
 } // namespace province

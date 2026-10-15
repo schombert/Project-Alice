@@ -223,6 +223,8 @@ bool unpause_game(sys::state& state);
 void load_host_settings(sys::state& state);
 void save_host_settings(sys::state& state);
 
+std::string generate_full_oos_report(const sys::state& state_1, const sys::state& state_2);
+
 class port_forwarder {
 private:
 	std::mutex internal_wait;

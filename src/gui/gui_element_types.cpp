@@ -20,6 +20,7 @@
 #include "text_utility.hpp"
 #include "gui_templates.hpp"
 #include "gui_province_window.hpp"
+#include "commands.hpp"
 
 namespace ui {
 

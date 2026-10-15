@@ -13,6 +13,8 @@
 #include "money.hpp"
 #include "game_scene.hpp"
 #include "economy_government.hpp"
+#include "military_templates.hpp"
+#include "province.hpp"
 
 namespace ui {
 
@@ -198,7 +200,7 @@ public:
 			);
 
 			auto a = state.world.regiment_get_army_from_army_membership(target.regiment);
-			auto reinf = state.defines.pop_size_per_regiment * military::calculate_army_combined_reinforce<military::reinforcement_estimation_type::monthly>(state, a);
+			auto reinf = state.defines.pop_size_per_regiment * military::estimate_reinforcement<military::interval_estimation::monthly, military::supply_estimation::based_on_satisfaction, military::reinforcement_cap::capped_at_max_strength>(state, a);
 			if(reinf >= 2.0f) {
 				text::add_line(state, contents, "reinforce_rate", text::variable_type::x, int64_t(reinf));
 			} else {
@@ -370,7 +372,7 @@ public:
 
 		text::add_line(state, contents, "local_admin");
 
-		auto national_budget = state.world.nation_get_stockpiles(state.local_player_nation, economy::money);
+		auto national_budget = state.world.nation_get_treasury(state.local_player_nation);
 		auto admin_budget_approx = budget_priority * national_budget;
 		auto admin_count = economy::count_active_administrations(state, state.local_player_nation);
 		auto budget_per_administration = admin_count == 0.f ? 0.f : admin_budget_approx / admin_count;
@@ -417,7 +419,7 @@ public:
 
 		text::add_line(state, contents, "capital_admin");
 
-		auto national_budget = state.world.nation_get_stockpiles(state.local_player_nation, economy::money);
+		auto national_budget = state.world.nation_get_treasury(state.local_player_nation);
 		auto admin_budget_approx = budget_priority * national_budget;
 		auto admin_count = economy::count_active_administrations(state, state.local_player_nation);
 		auto budget_per_administration = admin_count == 0.f ? 0.f : admin_budget_approx / admin_count;
@@ -677,10 +679,8 @@ public:
 		auto reduced_multiplier = 0.2f;
 		auto coast_multiplier = is_coastal ? reduced_multiplier : normal_multiplier; // Coastal reduces decay by 20%
 		auto river_multiplier = has_major_river ? reduced_multiplier : normal_multiplier; // Rivers reduce decay by 20%
-		auto movement = std::max(
-			0.f,
-			state.world.province_get_modifier_values(pids, sys::provincial_mod_offsets::movement_cost) + 1.f
-		); // High movement cost increases decay
+		auto movement = province::movement_cost(state, pids);
+		 // High movement cost increases decay
 		auto attrition = std::max(
 			0.f,
 			state.world.province_get_modifier_values(pids, sys::provincial_mod_offsets::max_attrition) + 1.f
@@ -831,6 +831,7 @@ public:
 		text::add_line(state, contents, "province_market_production", text::variable_type::val, text::fp_two_places{ std::max(0.f, state.world.market_get_supply(market, target.commodity) - economy::trade_supply(state, market, target.commodity)) });
 		text::add_line(state, contents, "province_market_consumption", text::variable_type::val, text::fp_two_places{ std::max(0.f, state.world.market_get_demand(market, target.commodity) - economy::trade_demand(state, market, target.commodity)) });
 		text::add_line(state, contents, "province_market_stockpiles", text::variable_type::val, text::fp_two_places{ state.world.market_get_stockpile(market, target.commodity) });
+		text::add_line(state, contents, "province_market_government_stockpiles", text::variable_type::val, text::fp_two_places{ state.world.market_get_government_stockpile(market, target.commodity) });
 		text::add_line(state, contents, "province_market_stockpiles_sales", text::variable_type::val, text::fp_two_places{ state.world.market_get_stockpile_sales(market, target.commodity) });
 		{
 			auto supply = state.world.market_get_supply(market, target.commodity);

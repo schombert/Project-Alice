@@ -6,8 +6,12 @@
 #include "container_types_dcon.hpp"
 #include "container_types.hpp"
 #include "system_state_forward.hpp"
+#include "concept_declarations.hpp"
+#include "commands_constants.hpp"
 
 namespace province {
+
+constexpr uint32_t state_cap_move_days_cooldown = 730; // days cooldown for switching state capital
 
 inline constexpr float naval_range_distance_mult = 0.391f; // multiplier applied to regular direct distances to compute the naval range distance. This is so default naval range values match up with the expected values from vic2.
 
@@ -21,16 +25,30 @@ inline constexpr dcon::province_id from_map_id(uint16_t id) {
 		return dcon::province_id(id - 1);
 }
 
+bool is_sea(const sys::state& state, dcon::province_id prov);
+
+bool is_land(const sys::state& state, dcon::province_id prov);
+
+bool prov_is_coastal(const sys::state& state, dcon::province_id prov);
+
+bool adj_is_coastal(const sys::state& state, dcon::province_adjacency_id adj);
+
+// Checks if the port province is connected to the given sea province
+bool is_port_connected_to(const sys::state& state, dcon::province_id port, dcon::province_id port_to);
+
+// Get movement cost. Makes sure it cannot be zero, ever
+float movement_cost(const sys::state& state, dcon::province_id prov);
+
 struct naval_range_data {
 	float distance;
 	bool is_reachable;
 };
 
-bool province_is_deep_waters(sys::state& state, dcon::province_id prov);
+bool province_is_deep_waters(const sys::state& state, dcon::province_id prov);
 bool sea_province_is_adjacent_to_accessible_coast(sys::state& state, dcon::province_id prov, dcon::nation_id nation);
 
 bool nations_are_adjacent(sys::state& state, dcon::nation_id a, dcon::nation_id b);
-bool provinces_are_adjacent(sys::state& state, dcon::province_id a, dcon::province_id b);
+bool provinces_are_adjacent(const sys::state& state, dcon::province_id a, dcon::province_id b);
 void update_connected_regions(sys::state& state);
 void update_cached_values(sys::state& state);
 void update_blockaded_cache(sys::state& state);
@@ -62,7 +80,7 @@ bool state_is_coastal(sys::state& state, dcon::state_instance_id s);
 bool state_is_coastal_non_core_nb(sys::state& state, dcon::state_instance_id s);
 bool state_borders_nation(sys::state& state, dcon::nation_id n, dcon::state_instance_id si);
 
-float get_province_modifier_without_hostile_buildings(sys::state& state, dcon::nation_id as_nation, dcon::province_id prov, dcon::provincial_modifier_value prov_mod_val);
+float get_province_modifier_without_hostile_buildings(const sys::state& state, dcon::nation_id as_nation, dcon::province_id prov, dcon::provincial_modifier_value prov_mod_val);
 
 dcon::province_id pick_capital(sys::state& state, dcon::nation_id n);
 
@@ -71,9 +89,9 @@ float crime_fighting_efficiency(sys::state& state, dcon::province_id id);
 float revolt_risk(sys::state& state, dcon::province_id id);
 
 void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation_id new_owner);
-bool is_crossing_blocked(sys::state& state, dcon::nation_id thisnation, dcon::province_id from, dcon::province_id to);
-bool is_crossing_blocked(sys::state& state, dcon::nation_id thisnation, dcon::province_adjacency_id adjacency);
-bool is_adjacency_impassable(sys::state& state, dcon::nation_id thisnation, dcon::province_adjacency_id adj);
+bool is_crossing_blocked(const sys::state& state, dcon::nation_id thisnation, dcon::province_id from, dcon::province_id to);
+bool is_crossing_blocked(const sys::state& state, dcon::nation_id thisnation, dcon::province_adjacency_id adjacency);
+bool is_adjacency_impassable(const sys::state& state, dcon::nation_id thisnation, dcon::province_adjacency_id adj);
 void conquer_province(sys::state& state, dcon::province_id id, dcon::nation_id new_owner);
 
 void update_crimes(sys::state& state);
@@ -83,6 +101,7 @@ bool can_start_colony(sys::state& state, dcon::nation_id n, dcon::state_definiti
 bool fast_can_start_colony(sys::state& state, dcon::nation_id n, dcon::state_definition_id d, int32_t free_points, dcon::province_id coastal_target, bool& adjacent);
 bool can_invest_in_colony(sys::state& state, dcon::nation_id n, dcon::state_definition_id d);
 bool is_colonizing(sys::state& state, dcon::nation_id n, dcon::state_definition_id d);
+float get_infrastructure(const sys::state& state, dcon::province_id province);
 void update_colonization(sys::state& state);
 void increase_colonial_investment(sys::state& state, dcon::nation_id source, dcon::state_definition_id state_def);
 
@@ -113,11 +132,16 @@ float sorting_distance(sys::state& state, dcon::province_id a, dcon::province_id
 float state_sorting_distance(sys::state& state, dcon::state_instance_id state_id, dcon::province_id prov_id);
 
 // determines whether a land unit is allowed to move to / be in a province
-bool has_access_to_province(sys::state& state, dcon::nation_id nation_as, dcon::province_id prov);
+bool has_access_to_province(const sys::state& state, dcon::nation_id nation_as, dcon::province_id prov);
 // whether a ship can dock at a land province
 bool has_naval_access_to_province(sys::state& state, dcon::nation_id nation_as, dcon::province_id prov);
 // determines whether a land unit is allowed to move to / be in a province that isn't an active enemy
 bool has_safe_access_to_province(sys::state& state, dcon::nation_id nation_as, dcon::province_id prov);
+
+// Determines whether the nation can have supply routes go through this province
+bool has_supply_access_to_province(const sys::state& state, dcon::nation_id nation_as, dcon::province_id prov);
+
+void make_adjacency_path_from_prov_path(const sys::state& state, std::span<const dcon::province_id> prov_path, dcon::dcon_vv_fat_id<dcon::province_adjacency_id>& adj_path_out);
 
 enum class blackflagged_state : uint8_t {
 	not_blackflagged,
@@ -168,7 +192,14 @@ std::vector<dcon::province_id> make_land_manual_retreat_path(sys::state& state, 
 std::vector<dcon::province_id> make_path_to_nearest_coast(sys::state& state, dcon::nation_id nation_as, dcon::province_id start);
 std::vector<dcon::province_id> make_unowned_path_to_nearest_coast(sys::state& state, dcon::province_id start);
 
+bool make_logistics_path(const sys::state& state, dcon::province_id origin_prov, dcon::province_id end, dcon::nation_id nation_as, float expected_volume, std::vector<dcon::province_id>& path_result, std::vector<dcon::province_adjacency_id>& adjacency_path_result);
 void set_province_controller(sys::state& state, dcon::province_id p, dcon::nation_id n);
 void set_province_controller(sys::state& state, dcon::province_id p, dcon::rebel_faction_id rf);
+
+
+template<command::actor actor>
+bool can_move_state_capital(const sys::state& state, dcon::nation_id source, dcon::province_id move_to);
+template<command::actor actor>
+void move_state_capital(sys::state& state, dcon::nation_id source, dcon::province_id move_to);
 
 } // namespace province

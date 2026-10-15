@@ -1850,8 +1850,8 @@ void update_rgo_profit(sys::state& state) {
 				* state.world.commodity_get_cost(c);
 			assert(std::isfinite(move_to_nation) && produced >= 0.0f);
 			// #CAUTION# changes nation values!
-			auto& cur_money = state.world.nation_get_stockpiles(controller, economy::money);
-			state.world.nation_set_stockpiles(controller, economy::money, cur_money + move_to_nation);
+			auto cur_money = state.world.nation_get_treasury(controller);
+			state.world.nation_set_treasury(controller, cur_money + move_to_nation);
 		});
 	});
 

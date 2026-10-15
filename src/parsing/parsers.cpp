@@ -250,7 +250,7 @@ float parse_float(std::string_view content, int32_t line, error_handler& err) {
 	return rvalue;
 }
 
-std::optional<float> try_parse_float(std::string_view content, int32_t line, error_handler& err) {
+std::optional<float> try_parse_float(std::string_view content) {
 	float rvalue = 0.0f;
 	if(!float_from_chars(content.data(), content.data() + content.length(), rvalue)) {
 		return std::optional<float>{};

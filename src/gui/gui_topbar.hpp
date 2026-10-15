@@ -17,6 +17,7 @@
 #include "text.hpp"
 #include "gui_event.hpp"
 #include "gui_units.hpp"
+#include "logistics.hpp"
 
 namespace ui {
 
@@ -326,6 +327,127 @@ public:
 	}
 
 };
+
+text::text_color get_color_from_satisfaction(float sat) {
+	if(sat <= 0.25f) {
+		return text::text_color::red;
+	} else if(sat <= 0.75f) {
+		return text::text_color::yellow;
+	} else {
+		return text::text_color::green;
+	}
+}
+text::text_color get_color_from_loss(float loss) {
+	if(loss <= 0.15f) {
+		return text::text_color::green;
+	} else if(loss <= 0.35f) {
+		return text::text_color::yellow;
+	} else {
+		return text::text_color::red;
+	}
+}
+
+template<concepts::military_unit unit_type>
+class logistics_satisfaction_text : public multiline_text_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		// Satisfaction of BOTH supply & reinforcement for all owned armies or navies
+		float sat = military::nation_average_military_satisfaction_by_type<unit_type>(state, state.local_player_nation);
+		text::text_color color = get_color_from_satisfaction(sat);
+		auto layout = text::create_endless_layout(state, internal_layout,
+		text::layout_parameters{ 0, 0, int16_t(base_data.size.x), int16_t(base_data.size.y), base_data.data.text.font_handle, 0, text::alignment::left, text::text_color::white, false });
+		auto box = text::open_layout_box(layout, 0);
+		text::add_to_layout_box(state, layout, box, text::fp_percentage{ sat }, color);
+		text::close_layout_box(layout, box);
+	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+
+		float total_sat = military::nation_average_military_satisfaction_by_type<unit_type>(state, state.local_player_nation);
+
+		float supply_sat = military::nation_average_military_satisfaction_by_type<military::unit_consumption_type::supply, unit_type>(state, state.local_player_nation);
+		float reinf_sat = military::nation_average_military_satisfaction_by_type<military::unit_consumption_type::reinforcement, unit_type>(state, state.local_player_nation);
+
+		std::string_view tooltip_key = [&]() {
+			if constexpr(std::is_same_v<unit_type, dcon::army_id>) {
+				return "logistics_topbar_army_tooltip";
+			}
+			else if constexpr(std::is_same_v<unit_type, dcon::navy_id>) {
+				return "logistics_topbar_navy_tooltip";
+			}
+		}();
+
+		text::add_line(state, contents, tooltip_key, text::variable_type::total, text::fp_percentage{ total_sat }, text::variable_type::x, text::fp_percentage{ supply_sat }, text::variable_type::y, text::fp_percentage{  reinf_sat });
+	}
+
+};
+
+
+
+class logistics_supply_loss_text : public multiline_text_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+
+		float sup_loss = logistics::nation_get_avg_supply_loss(state, state.local_player_nation);
+		text::text_color color = get_color_from_loss(sup_loss);
+		auto layout = text::create_endless_layout(state, internal_layout,
+		text::layout_parameters{ 0, 0, int16_t(base_data.size.x), int16_t(base_data.size.y), base_data.data.text.font_handle, 0, text::alignment::left, text::text_color::white, false });
+		auto box = text::open_layout_box(layout, 0);
+		text::add_to_layout_box(state, layout, box, text::fp_percentage{ sup_loss }, color);
+		text::close_layout_box(layout, box);
+	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+
+		float total_sup_loss = logistics::nation_get_avg_supply_loss(state, state.local_player_nation);
+
+		// Includes both supply and reinforcement
+		float army_routes_loss = logistics::nation_get_avg_military_supply_loss_by_type<dcon::army_id>(state, state.local_player_nation);
+		float navy_routes_loss = logistics::nation_get_avg_military_supply_loss_by_type<dcon::navy_id>(state, state.local_player_nation);
+
+		float construction_routes_loss = logistics::nation_get_avg_construction_supply_loss(state, state.local_player_nation);
+
+		text::add_line(state, contents, "logistics_topbar_supply_loss_tooltip", text::variable_type::total, text::fp_percentage{ total_sup_loss }, text::variable_type::x, text::fp_percentage{ army_routes_loss }, text::variable_type::y, text::fp_percentage{ navy_routes_loss }, text::variable_type::val, text::fp_percentage{ construction_routes_loss });
+	}
+
+};
+
+class logistics_supply_throughput_text : public multiline_text_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		
+		float sup_throughput = logistics::nation_get_avg_supply_throughput(state, state.local_player_nation);
+		text::text_color color = get_color_from_satisfaction(sup_throughput);
+		auto layout = text::create_endless_layout(state, internal_layout,
+		text::layout_parameters{ 0, 0, int16_t(base_data.size.x), int16_t(base_data.size.y), base_data.data.text.font_handle, 0, text::alignment::left, text::text_color::white, false });
+		auto box = text::open_layout_box(layout, 0);
+		text::add_to_layout_box(state, layout, box, text::fp_percentage{ sup_throughput }, color);
+		text::close_layout_box(layout, box);
+	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+
+		float total_sup_throughput = logistics::nation_get_avg_supply_throughput(state, state.local_player_nation);
+
+		// Includes both supply and reinforcement
+		float army_routes_throughput = logistics::nation_get_avg_military_supply_throughput_by_type<dcon::army_id>(state, state.local_player_nation);
+		float navy_routes_throughput = logistics::nation_get_avg_military_supply_throughput_by_type<dcon::navy_id>(state, state.local_player_nation);
+
+		float construction_routes_loss = logistics::nation_get_avg_construction_supply_throughput(state, state.local_player_nation);
+
+		text::add_line(state, contents, "logistics_topbar_supply_throughput_tooltip", text::variable_type::total, text::fp_percentage{ total_sup_throughput }, text::variable_type::x, text::fp_percentage{ army_routes_throughput }, text::variable_type::y, text::fp_percentage{ navy_routes_throughput }, text::variable_type::val, text::fp_percentage{ construction_routes_loss });
+	}
+
+};
+
+
+
 
 class topbar_treasury_text : public multiline_text_element_base {
 public:
@@ -970,6 +1092,14 @@ public:
 		return sound::get_tab_technology_sound(state);
 	}
 };
+
+class topbar_logistics_tab_button : public topbar_tab_button {
+public:
+	sound::audio_instance& get_click_sound(sys::state& state) noexcept override {
+		return sound::get_tab_military_sound(state);
+	}
+};
+
 
 class topbar_population_view_button : public topbar_tab_button {
 public:
@@ -2208,6 +2338,14 @@ public:
 			btn->topbar_subwindow = tab.get();
 			state.ui_state.root->add_child_to_back(std::move(tab));
 			return btn;
+		} else if(name == "topbarbutton_logistics") {
+			auto btn = make_element_by_type<topbar_logistics_tab_button>(state, id);
+			auto tab = alice_ui::make_logisticswindow_main(state);
+			tab->set_visible(state, false);
+			btn->topbar_subwindow = tab.get();
+			state.ui_state.logistics_window = tab.get();
+			state.ui_state.root->add_child_to_back(std::move(tab));
+			return btn;
 		} else if(name == "button_speedup") {
 			return make_element_by_type<topbar_speedup_button>(state, id);
 		} else if(name == "button_speeddown") {
@@ -2286,6 +2424,26 @@ public:
 			return make_element_by_type<topbar_nation_militancy_text>(state, id);
 		} else if(name == "population_avg_con_value") {
 			return make_element_by_type<topbar_nation_consciousness_text>(state, id);
+		} else if(name == "icon_logistics") {
+			return make_element_by_type<image_element_base>(state, id);
+		} else if(name == "text_logistics") {
+			return make_element_by_type<simple_text_element_base>(state, id);
+		} else if(name == "topbar_army_logistics") {
+			return make_element_by_type<image_element_base>(state, id);
+		} else if(name == "logistics_army_value") {
+			return make_element_by_type<logistics_satisfaction_text<dcon::army_id>>(state, id);
+		} else if(name == "topbar_navy_logistics") {
+			return make_element_by_type<image_element_base>(state, id);
+		} else if(name == "logistics_navy_value") {
+			return make_element_by_type<logistics_satisfaction_text<dcon::navy_id>>(state, id);
+		} else if(name == "topbar_supply_loss_logistics") {
+			return make_element_by_type<image_element_base>(state, id);
+		} else if(name == "logistics_supply_loss_value") {
+			return make_element_by_type<logistics_supply_loss_text>(state, id);
+		} else if(name == "topbar_supply_throughput_logistics") {
+			return make_element_by_type<image_element_base>(state, id);
+		} else if(name == "logistics_supply_throughput_value") {
+			return make_element_by_type<logistics_supply_throughput_text>(state, id);
 		} else if(name == "diplomacy_status") {
 			auto ptr = make_element_by_type<topbar_at_peace_text>(state, id);
 			atpeacetext = ptr.get();

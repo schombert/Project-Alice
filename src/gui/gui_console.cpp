@@ -11,6 +11,9 @@
 #include "gui_element_base.hpp"
 #include "gui_templates.hpp"
 #include "constants_ui.hpp"
+#include "commands.hpp"
+#include "serialization.hpp"
+#include "game_scene.hpp"
 #define STB_IMAGE_WRITE_IMPLEMENTATION 1
 #include "stb_image_write.h"
 
@@ -542,6 +545,9 @@ int32_t* f_dump_oos(fif::state_stack& s, int32_t* p, fif::environment* e) {
 		ptr_in = sys::memcpy_serialize(ptr_in, state.national_definitions.occupied);
 		ptr_in = sys::memcpy_serialize(ptr_in, state.national_definitions.nationalism);
 		ptr_in = sys::memcpy_serialize(ptr_in, state.national_definitions.infrastructure);
+		ptr_in = sys::memcpy_serialize(ptr_in, state.national_definitions.province_militancy);
+		ptr_in = sys::memcpy_serialize(ptr_in, state.national_definitions.province_control);
+		ptr_in = sys::memcpy_serialize(ptr_in, state.national_definitions.civilian_port);
 		ptr_in = sys::memcpy_serialize(ptr_in, state.national_definitions.base_values);
 		ptr_in = sys::memcpy_serialize(ptr_in, state.national_definitions.war);
 		ptr_in = sys::memcpy_serialize(ptr_in, state.national_definitions.peace);
@@ -560,6 +566,10 @@ int32_t* f_dump_oos(fif::state_stack& s, int32_t* p, fif::environment* e) {
 		ptr_in = sys::memcpy_serialize(ptr_in, state.national_definitions.total_occupation);
 		ptr_in = sys::memcpy_serialize(ptr_in, state.national_definitions.total_blockaded);
 		ptr_in = sys::memcpy_serialize(ptr_in, state.national_definitions.in_bankrupcy);
+		ptr_in = sys::memcpy_serialize(ptr_in, state.national_definitions.fastest_land_unit_speed);
+		ptr_in = sys::memcpy_serialize(ptr_in, state.national_definitions.fastest_transport_unit_speed);
+		ptr_in = sys::memcpy_serialize(ptr_in, state.national_definitions.province_base);
+		ptr_in = sys::memcpy_serialize(ptr_in, state.national_definitions.nation_base);
 		ptr_in = sys::memcpy_serialize(ptr_in, state.national_definitions.num_allocated_national_variables);
 		ptr_in = sys::memcpy_serialize(ptr_in, state.national_definitions.num_allocated_national_flags);
 		ptr_in = sys::memcpy_serialize(ptr_in, state.national_definitions.num_allocated_global_flags);
@@ -1213,6 +1223,22 @@ int32_t* f_provid(fif::state_stack& s, int32_t* p, fif::environment* e) {
 	state->cheat_data.show_province_id_tooltip = toggle_state;
 	return p + 2;
 }
+int32_t* f_show_mil_routes(fif::state_stack& s, int32_t* p, fif::environment* e) {
+	if(fif::typechecking_mode(e->mode)) {
+		if(fif::typechecking_failed(e->mode))
+			return p + 2;
+		return p + 2;
+	}
+
+	auto state_global = fif::get_global_var(*e, "state-ptr");
+	sys::state* state = (sys::state*)(state_global->data);
+
+	bool toggle_state = s.main_data_back(0) != 0;
+	s.pop_main();
+
+	state->cheat_data.show_mil_routes = toggle_state;
+	return p + 2;
+}
 int32_t* f_uidebug(fif::state_stack& s, int32_t* p, fif::environment* e) {
 	if(fif::typechecking_mode(e->mode)) {
 		if(fif::typechecking_failed(e->mode))
@@ -1585,6 +1611,7 @@ void ui::initialize_console_fif_environment(sys::state& state) {
 	fif::add_import("save-map", nullptr, f_save_map, { fif::fif_i32 }, {}, * state.fif_environment);
 	fif::add_import("dump-econ", nullptr, f_dump_econ, {  }, {}, * state.fif_environment);
 	fif::add_import("provid", nullptr, f_provid, { fif::fif_bool }, {}, * state.fif_environment);
+	fif::add_import("show_mil_routes", nullptr, f_show_mil_routes, { fif::fif_bool }, {}, *state.fif_environment);
 	fif::add_import("ui-debug", nullptr, f_uidebug, { fif::fif_bool }, {}, *state.fif_environment);
 	fif::add_import("fire-event", nullptr, f_fire_event, { nation_id_type, fif::fif_i32 }, {}, * state.fif_environment);
 	fif::add_import("nation-name", nullptr, f_nation_name, { nation_id_type }, { state.type_text_key }, *state.fif_environment);

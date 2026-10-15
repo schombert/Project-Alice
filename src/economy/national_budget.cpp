@@ -125,12 +125,14 @@ budget_spending_details estimate_budget_detailed(sys::state& state, dcon::nation
 	auto education_budget = estimate_education_spending(state, n, available_funds * priority.education_wages);
 	auto overseas_budget = economy::estimate_overseas_penalty_spending(state, n) * priority.overseas_penalty;
 	auto subsidy_budget = state.world.nation_get_subsidy_token_total(n) == 0.f ? 0.f : budget_ratio(available_funds, priority.subsidy);
-	auto construction_budget = economy::estimate_construction_spending_from_budget(state, n, budget_ratio(available_funds, priority.construction_supplies));
-	auto land_budget = economy::estimate_land_spending(state, n) * priority.military_supplies_land;
-	auto naval_budget = economy::estimate_naval_spending(state, n) * priority.military_supplies_navy;
-	auto stockpile_budget = economy::estimate_stockpile_filling_spending(state, n) * priority.stockpile;
+	auto total_stockpiles_spending = economy::estimate_total_stockpile_spendings(state, n, budget_ratio(available_funds, priority.construction_supplies), budget_ratio(available_funds, priority.stockpile), budget_ratio(available_funds, priority.military_supplies_land), budget_ratio(available_funds, priority.military_supplies_navy));
 
-	auto total =
+	float construction_budget = total_stockpiles_spending.construction_spendings;
+	float land_budget = total_stockpiles_spending.army_stockpile_spendings;
+	float naval_budget = total_stockpiles_spending.navy_stockpile_spendings;
+	float stockpile_budget = total_stockpiles_spending.stockpile_filling_spendings;
+
+	float total =
 		social_budget
 		+ military_budget
 		+ domestic_investment
@@ -138,9 +140,10 @@ budget_spending_details estimate_budget_detailed(sys::state& state, dcon::nation
 		+ overseas_budget
 		+ subsidy_budget
 		+ construction_budget
-		+ land_budget
+		+ stockpile_budget
+		+ construction_budget
 		+ naval_budget
-		+ stockpile_budget;
+		+ land_budget;
 
 	auto scale = 1.f;
 	if(total > available_funds) {
@@ -218,7 +221,7 @@ value_per_budget_category get_current_priority(sys::state& state, dcon::nation_i
 	priority.construction_supplies = (float)(state.world.nation_get_construction_spending(n)) / 100.f;
 	priority.military_supplies_land = (float)(state.world.nation_get_land_spending(n)) / 100.f;
 	priority.military_supplies_navy = (float)(state.world.nation_get_naval_spending(n)) / 100.f;
-	priority.stockpile = 1.f;
+	priority.stockpile = (float)(state.world.nation_get_stockpile_spending(n)) / 100.f;
 
 	return priority;
 }

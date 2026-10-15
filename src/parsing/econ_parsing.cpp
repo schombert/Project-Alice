@@ -1,5 +1,6 @@
 #include "parsers_declarations.hpp"
 #include "text.hpp"
+#include "container_types_dcon.hpp"
 
 namespace parsers {
 
@@ -148,6 +149,22 @@ void building_file::result(std::string_view name, building_definition&& res, err
 			context.state.world.modifier_set_name(context.state.economy_definitions.building_definitions[int32_t(t)].province_modifier,
 					context.state.economy_definitions.building_definitions[int32_t(t)].name);
 		}
+	}
+}
+
+void building_file::finish(scenario_building_context& context) {
+	// Add port supply capacity to naval base modifier if define says so
+	auto& naval_base_mod = context.state.economy_definitions.building_definitions[uint8_t(economy::province_building_type::naval_base)].province_modifier;
+	auto naval_base_name = context.state.economy_definitions.building_definitions[uint8_t(economy::province_building_type::naval_base)].name;
+	if(context.state.defines.alice_naval_base_port_supply_capacity != 0.0f) {
+		if(!naval_base_mod) {
+			naval_base_mod = context.state.world.create_modifier();
+			context.state.world.modifier_set_icon(naval_base_mod, 0);
+			context.state.world.modifier_set_name(naval_base_mod, naval_base_name);
+		};
+		// Add
+		auto& mod_def = context.state.world.modifier_get_province_values(naval_base_mod);
+		mod_def.add_manual_modifier(sys::provincial_mod_offsets::port_supply_capacity_add, context.state.defines.alice_naval_base_port_supply_capacity);
 	}
 }
 

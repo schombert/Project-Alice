@@ -5952,7 +5952,7 @@ struct trigger_body {
 
 		}
 		// then check triggers expecting a float
-		std::optional<float> float_result = try_parse_float(value, line, err);
+		std::optional<float> float_result = try_parse_float(value);
 		if(float_result) {
 			float val = *float_result;
 			if(auto itc = context.outer_context.map_of_ideologies.find(str_label);

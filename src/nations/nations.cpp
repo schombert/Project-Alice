@@ -150,29 +150,57 @@ void update_cached_values(sys::state& state) {
 }
 
 void restore_unsaved_values(sys::state& state) {
-	for(auto n : state.world.in_nation)
-		n.set_is_great_power(false);
 
-	for(auto& gp : state.great_nations) {
-		state.world.nation_set_is_great_power(gp.nation, true);
-	}
+	concurrency::parallel_invoke(
+		[&]() {
+			for(auto n : state.world.in_nation)
+				n.set_is_great_power(false);
 
-	state.world.for_each_gp_relationship([&](dcon::gp_relationship_id rel) {
-		if((influence::level_mask & state.world.gp_relationship_get_status(rel)) == influence::level_in_sphere) {
-			auto t = state.world.gp_relationship_get_influence_target(rel);
-			auto gp = state.world.gp_relationship_get_great_power(rel);
-			state.world.nation_set_in_sphere_of(t, gp);
-			state.trade_route_cached_values_out_of_date = true;
+			for(auto& gp : state.great_nations) {
+				state.world.nation_set_is_great_power(gp.nation, true);
+			}
+		},
+		[&]() {
+			state.world.for_each_gp_relationship([&](dcon::gp_relationship_id rel) {
+				if((influence::level_mask & state.world.gp_relationship_get_status(rel)) == influence::level_in_sphere) {
+					auto t = state.world.gp_relationship_get_influence_target(rel);
+					auto gp = state.world.gp_relationship_get_great_power(rel);
+					state.world.nation_set_in_sphere_of(t, gp);
+					state.trade_route_cached_values_out_of_date = true;
+				}
+			});
+		},
+		[&]() {
+			state.world.execute_serial_over_nation([&](auto ids) {
+				auto treasury = state.world.nation_get_treasury(ids);
+				state.world.nation_set_last_treasury(ids, treasury);
+			});
+		},
+		[&]() {
+			state.world.for_each_war([&](dcon::war_id war) {
+				static std::vector<dcon::nation_id> attackers;
+				static std::vector<dcon::nation_id> defenders;
+				attackers.clear();
+				defenders.clear();
+				auto participants = state.world.war_get_war_participant(war);
+				for(auto participant : participants) {
+					(participant.get_is_attacker() ? attackers.push_back(participant.get_nation()) : defenders.push_back(participant.get_nation()));
+				}
+				for(auto attacker : attackers) {
+					for(auto defender : defenders) {
+						auto rel = state.world.get_diplomatic_relation_by_diplomatic_pair(attacker, defender);
+						if(!rel) {
+							rel = state.world.force_create_diplomatic_relation(attacker, defender);
+						}
+						state.world.diplomatic_relation_set_are_at_war(rel, true);
+					}
+				}
+			});
 		}
-	});
-
-	state.world.execute_serial_over_nation([&](auto ids) {
-		auto treasury = state.world.nation_get_stockpiles(ids, economy::money);
-		state.world.nation_set_last_treasury(ids, treasury);
-	});
-
+	);
 	restore_cached_values(state);
 }
+
 
 void recalculate_markets_distance(sys::state& state) {
 	state.world.execute_parallel_over_market([&](auto markets) {
@@ -709,6 +737,7 @@ void generate_initial_state_instances(sys::state& state) {
 	for(int32_t i = 0; i < state.province_definitions.first_sea_province.index(); ++i) {
 		dcon::province_id pid{dcon::province_id::value_base_t(i)};
 		auto owner = state.world.province_get_nation_from_province_ownership(pid);
+		auto controller = state.world.province_get_nation_from_province_control(pid);
 		if(owner && !(state.world.province_get_state_membership(pid))) {
 			auto state_instance = fatten(state.world, state.world.create_state_instance());
 			auto new_market = state.world.create_market();
@@ -719,6 +748,7 @@ void generate_initial_state_instances(sys::state& state) {
 			state_instance.set_definition(abstract_state);
 			state_instance.set_capital(pid);
 			state.world.force_create_state_ownership(state_instance, owner);
+			state.world.force_create_state_control(state_instance, controller);
 
 			for(auto mprov : state.world.state_definition_get_abstract_state_membership(abstract_state)) {
 				auto prov = mprov.get_province();
@@ -742,11 +772,9 @@ void generate_initial_state_instances(sys::state& state) {
 	}
 }
 
-bool is_commanding_subject_units(sys::state& state, dcon::nation_id subject, dcon::nation_id overlord) {
-	if(nations::is_nation_subject_of(state, subject, overlord)) {
-		return state.world.nation_get_overlord_commanding_units(subject);
-	}
-	return false;
+bool is_units_commanded_by_overlord(const sys::state& state, dcon::nation_id subject) {
+	auto rel = state.world.nation_get_overlord_as_subject(subject);
+	return state.world.overlord_get_commanding_units(rel);
 }
 
 bool can_release_as_vassal(sys::state const& state, dcon::nation_id n, dcon::national_identity_id releasable) {
@@ -771,8 +799,8 @@ bool identity_has_holder(sys::state const& state, dcon::national_identity_id ide
 	return bool(fat_ident.get_nation_from_identity_holder().id);
 }
 
-bool are_allied(sys::state& state, dcon::nation_id a, dcon::nation_id b) {
-	auto rel = state.world.get_diplomatic_relation_by_diplomatic_pair(a, b);
+bool are_allied(const sys::state& state, dcon::nation_id a, dcon::nation_id b) {
+	auto rel = const_cast<sys::state&>(state).world.get_diplomatic_relation_by_diplomatic_pair(a, b);
 	return state.world.diplomatic_relation_get_are_allied(rel);
 }
 
@@ -803,6 +831,52 @@ dcon::text_key name_from_tag(sys::state& state, dcon::national_identity_id tag) 
 	else
 		return state.world.national_identity_get_name(tag);
 }
+
+
+template<concepts::construction_type con_type>
+int8_t get_nation_construction_consumption_setting_by_type(const sys::state& state, dcon::nation_id nation) {
+	if constexpr(std::is_same_v<con_type, dcon::province_land_construction_id>) {
+		return state.world.nation_get_army_construction_consumption(nation);
+	} else if constexpr(std::is_same_v<con_type, dcon::province_naval_construction_id>) {
+		return state.world.nation_get_navy_construction_consumption(nation);
+	} else if constexpr(std::is_same_v<con_type, dcon::factory_construction_id>) {
+		return state.world.nation_get_factory_construction_consumption(nation);
+	} else if constexpr(std::is_same_v<con_type, dcon::province_building_construction_id>) {
+		return state.world.nation_get_building_construction_consumption(nation);
+	}
+}
+template int8_t get_nation_construction_consumption_setting_by_type<dcon::province_land_construction_id>(const sys::state& state, dcon::nation_id nation);
+template int8_t get_nation_construction_consumption_setting_by_type<dcon::province_naval_construction_id>(const sys::state& state, dcon::nation_id nation);
+template int8_t get_nation_construction_consumption_setting_by_type<dcon::factory_construction_id>(const sys::state& state, dcon::nation_id nation);
+template int8_t get_nation_construction_consumption_setting_by_type<dcon::province_building_construction_id>(const sys::state& state, dcon::nation_id nation);
+
+template<typename unit_type, military::unit_consumption_type consumption_type>
+requires(concepts::military_unit<unit_type> || concepts::military_subunit<unit_type>)
+int8_t get_nation_military_consumption_setting_by_type(const sys::state& state, dcon::nation_id nation) {
+	if constexpr(std::is_same_v<unit_type, dcon::army_id> || std::is_same_v<unit_type, dcon::regiment_id>) {
+		if constexpr(consumption_type == military::unit_consumption_type::supply) {
+			return state.world.nation_get_land_supply_consumption(nation);
+		}
+		else if constexpr(consumption_type == military::unit_consumption_type::reinforcement) {
+			return state.world.nation_get_land_reinforcement_consumption(nation);
+		}
+	} else if constexpr(std::is_same_v<unit_type, dcon::navy_id> || std::is_same_v<unit_type, dcon::ship_id>) {
+		if constexpr(consumption_type == military::unit_consumption_type::supply) {
+			return state.world.nation_get_naval_supply_consumption(nation);
+		} else if constexpr(consumption_type == military::unit_consumption_type::reinforcement) {
+			return state.world.nation_get_naval_reinforcement_consumption(nation);
+		}
+	}
+}
+template int8_t get_nation_military_consumption_setting_by_type<dcon::army_id, military::unit_consumption_type::supply>(const sys::state& state, dcon::nation_id nation);
+template int8_t get_nation_military_consumption_setting_by_type<dcon::army_id, military::unit_consumption_type::reinforcement>(const sys::state& state, dcon::nation_id nation);
+template int8_t get_nation_military_consumption_setting_by_type<dcon::navy_id, military::unit_consumption_type::supply>(const sys::state& state, dcon::nation_id nation);
+template int8_t get_nation_military_consumption_setting_by_type<dcon::navy_id, military::unit_consumption_type::reinforcement>(const sys::state& state, dcon::nation_id nation);
+template int8_t get_nation_military_consumption_setting_by_type<dcon::regiment_id, military::unit_consumption_type::supply>(const sys::state& state, dcon::nation_id nation);
+template int8_t get_nation_military_consumption_setting_by_type<dcon::regiment_id, military::unit_consumption_type::reinforcement>(const sys::state& state, dcon::nation_id nation);
+template int8_t get_nation_military_consumption_setting_by_type<dcon::ship_id, military::unit_consumption_type::supply>(const sys::state& state, dcon::nation_id nation);
+template int8_t get_nation_military_consumption_setting_by_type<dcon::ship_id, military::unit_consumption_type::reinforcement>(const sys::state& state, dcon::nation_id nation);
+
 
 // updates ONLY national admin
 void update_national_administrative_efficiency(sys::state& state) {
@@ -910,10 +984,10 @@ float control_shift_weight_mult(sys::state const& state, dcon::province_adjacenc
 	}
 
 	auto movement_A = 1.f + std::max(0.f, (
-		state.world.province_get_modifier_values(A, sys::provincial_mod_offsets::movement_cost) + 1.f
+		province::movement_cost(state, A)
 		));
 	auto movement_B = 1.f + std::max(0.f, (
-		state.world.province_get_modifier_values(B, sys::provincial_mod_offsets::movement_cost) + 1.f
+		province::movement_cost(state, B)
 		));
 	auto distance = state.world.province_adjacency_get_distance(adj) * (movement_A * movement_B);
 
@@ -1143,7 +1217,7 @@ void update_administrative_efficiency(sys::state& state) {
 		auto river_multiplier = ve::select(has_major_river, reduced_multiplier, normal_multiplier); // Rivers reduce decay by 20%
 		auto movement = ve::max(
 			0.f,
-			state.world.province_get_modifier_values(pids, sys::provincial_mod_offsets::movement_cost) + 1.f
+			province::movement_cost(state, pids)
 		); // High movement cost increases decay
 		auto attrition = ve::max(
 			0.f,
@@ -2028,7 +2102,7 @@ void update_monthly_points(sys::state& state) {
 }
 
 float get_treasury(sys::state& state, dcon::nation_id n) {
-	return state.world.nation_get_stockpiles(n, economy::money);
+	return state.world.nation_get_treasury(n);
 }
 
 float get_bank_funds(sys::state& state, dcon::nation_id n) {
@@ -2036,7 +2110,7 @@ float get_bank_funds(sys::state& state, dcon::nation_id n) {
 }
 
 float get_debt(sys::state& state, dcon::nation_id n) {
-	auto v = state.world.nation_get_stockpiles(n, economy::money);
+	auto v = state.world.nation_get_treasury(n);
 	return v < 0.0f ? -v : 0.0f;
 }
 
@@ -2124,7 +2198,7 @@ void switch_all_players(sys::state& state, dcon::nation_id new_n, dcon::nation_i
 	
 	if(state.current_scene.game_in_progress) {
 		// give back units if puppet becomes player controlled while the game is running. This is also done when the game starts and goes from lobby to game in progress
-		if(bool(state.world.nation_get_overlord_as_subject(new_n)) && state.world.nation_get_overlord_commanding_units(new_n)) {
+		if(is_vassal(state, new_n)) {
 			military::give_back_units(state, new_n);
 		}
 	}
@@ -2216,9 +2290,14 @@ void create_nation_based_on_template(sys::state& state, dcon::nation_id n, dcon:
 	state.world.nation_set_land_spending(n, int8_t(100));
 	state.world.nation_set_naval_spending(n, int8_t(100));
 	state.world.nation_set_construction_spending(n, int8_t(100));
-	state.world.nation_set_effective_land_spending(n, 1.0f);
-	state.world.nation_set_effective_naval_spending(n, 1.0f);
-	state.world.nation_set_effective_construction_spending(n, 1.0f);
+	state.world.nation_set_naval_supply_consumption(n, int8_t(100));
+	state.world.nation_set_naval_reinforcement_consumption(n, int8_t(100));
+	state.world.nation_set_land_supply_consumption(n, int8_t(100));
+	state.world.nation_set_naval_supply_consumption(n, int8_t(100));
+	state.world.nation_set_army_construction_consumption(n, int8_t(100));
+	state.world.nation_set_navy_construction_consumption(n, int8_t(100));
+	state.world.nation_set_factory_construction_consumption(n, int8_t(100));
+	state.world.nation_set_building_construction_consumption(n, int8_t(100));
 	state.world.nation_set_spending_level(n, 1.0f);
 	state.world.nation_set_poor_tax(n, int8_t(50));
 	state.world.nation_set_middle_tax(n, int8_t(50));
@@ -2264,15 +2343,13 @@ void create_nation_based_on_template(sys::state& state, dcon::nation_id n, dcon:
 	politics::update_displayed_identity(state, n);
 }
 
+bool exists(const sys::state& state, dcon::nation_id nation) {
+	return state.world.nation_get_owned_province_count(nation) > 0;
+}
+
 bool exists_or_is_utility_tag(sys::state& state, dcon::nation_id nation) {
-	return state.world.nation_get_owned_province_count(nation) > 0 || state.world.nation_get_utility_tag(nation);
+	return exists(state, nation) || state.world.nation_get_utility_tag(nation);
 }
-
-ve::mask_vector exists_or_is_utility_tag(sys::state& state, ve::contiguous_tags<dcon::nation_id> nations) {
-	return (state.world.nation_get_owned_province_count(nations) != 0) || state.world.nation_get_utility_tag(nations);
-}
-
-
 
 void run_gc(sys::state& state) {
 	//cleanup (will set gc pending)
@@ -2320,15 +2397,15 @@ void cleanup_nation(sys::state& state, dcon::nation_id n) {
 		release_vassal(state, ol);
 	}
 
-	//auto armies = state.world.nation_get_army_control(n);
-	//while(armies.begin() != armies.end()) {
-	//	military::cleanup_army(state, (*armies.begin()).get_army());
-	//}
+	auto armies = state.world.nation_get_army_control(n);
+	while(armies.begin() != armies.end()) {
+		military::cleanup_army(state, (*armies.begin()).get_army());
+	}
 
-	//auto navies = state.world.nation_get_navy_control(n);
-	//while(navies.begin() != navies.end()) {
-	//	military::cleanup_navy(state, (*navies.begin()).get_navy());
-	//}
+	auto navies = state.world.nation_get_navy_control(n);
+	while(navies.begin() != navies.end()) {
+		military::cleanup_navy(state, (*navies.begin()).get_navy());
+	}
 
 	//auto rebels = state.world.nation_get_rebellion_within(n);
 	//while(rebels.begin() != rebels.end()) {
@@ -3829,6 +3906,19 @@ void update_crisis(sys::state& state) {
 			});
 		}
 	}
+}
+
+void get_existing_nations(const sys::state& state, std::vector<dcon::nation_id>& vec_out) {
+	for(dcon::nation_id n : state.world.in_nation) {
+		if(exists(state, n)) {
+			vec_out.push_back(n);
+		}
+	}
+}
+std::vector<dcon::nation_id> get_existing_nations(const sys::state& state) {
+	std::vector<dcon::nation_id> nations{ };
+	get_existing_nations(state, nations);
+	return nations;
 }
 
 void update_pop_acceptance(sys::state& state, dcon::nation_id n) {

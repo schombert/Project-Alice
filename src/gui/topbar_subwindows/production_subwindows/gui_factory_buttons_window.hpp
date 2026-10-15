@@ -4,6 +4,7 @@
 #include "gui_commodity_filters_window.hpp"
 #include "gui_production_enum.hpp"
 #include "economy_factory_view.hpp"
+#include "culture_constants.hpp"
 
 namespace ui {
 

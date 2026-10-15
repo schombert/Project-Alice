@@ -4,6 +4,7 @@
 #include "prng.hpp"
 #include "system_state.hpp"
 #include "triggers.hpp"
+#include "nations_templates.hpp"
 
 namespace event {
 

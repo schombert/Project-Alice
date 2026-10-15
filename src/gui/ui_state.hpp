@@ -154,6 +154,7 @@ struct state {
 	element_base* army_combat_window = nullptr;
 	element_base* change_leader_window = nullptr;
 	element_base* macro_builder_window = nullptr;
+	element_base* logistics_window = nullptr;
 	element_base* request_topbar_listbox = nullptr;
 	element_base* build_province_unit_window = nullptr;
 	element_base* disband_unit_window = nullptr;
@@ -185,9 +186,12 @@ struct state {
 	bool ctrl_held_down = false;
 	bool shift_held_down = false;
 	military::special_army_order selected_army_order;
+	// Armies/navies which has shift-selected and will be set to selected when shift is not held down anymore
+	std::vector<dcon::army_id> pending_shift_selected_armies;
+	std::vector<dcon::navy_id> pending_shift_selected_navies;
 	ankerl::unordered_dense::map<dcon::gamerule_id, uint8_t, sys::gamerule_hash> gamerule_ui_settings;
 	network::chat_message_targets chat_message_recieve_targets; // Set all to true so that by default messages will reach everyone
-	rigtorp::SPSCQueue<std::pair<ui_function, ui_function_argument>> queued_invocations;
+	rigtorp::SPSCQueue<std::pair<ui_function, ui_function_argument>> queued_invocations; // Queued function invocations to UI thread
 	bool recently_pressed_resync = false; // flag to prevent clicking the resync button again after already pressing it once
 
 	float last_tick_investment_pool_change;
