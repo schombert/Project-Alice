@@ -2129,8 +2129,10 @@ float tariff_efficiency(sys::state const& state, dcon::nation_id n, dcon::market
 	auto sid = state.world.market_get_zone_from_local_market(m);
 	auto pid = state.world.state_instance_get_capital(sid);
 	auto eff_mod = state.world.nation_get_modifier_values(n, sys::national_mod_offsets::tariff_efficiency_modifier);
-	auto adm_eff = state.world.province_get_control_scale(pid);
-	return std::clamp((state.defines.base_tariff_efficiency + eff_mod) * adm_eff, 0.f, 1.f);
+	auto adm_eff = state.world.province_get_control_ratio(pid);
+	// Reasoning for treating control ratio as a tariff efficiency modifier: In base V2, pretty much the only source of tariff efficiency modifier is from buraucrats (admin efficiency). Since control replaces that, it should be treated similarly
+	// If it acted as a multiplicative modifier, the tariff efficiency would never exceed 20% in vanilla (the base tariff modifiers)
+	return std::clamp((state.defines.base_tariff_efficiency + eff_mod + adm_eff), 0.f, 1.f);
 }
 
 // Calculates all modifiers to tax efficiency from modifiers + base taxe efficiency
