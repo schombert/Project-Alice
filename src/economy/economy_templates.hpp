@@ -3,6 +3,7 @@
 #include "economy_constants.hpp"
 #include "adaptive_ve.hpp"
 #include "economy_common_api_containers.hpp"
+#include "construction.hpp"
 
 namespace economy {
 
