@@ -1,11 +1,8 @@
 #pragma once
 
-#include <string>
-
 
 namespace economy {
-//struct commodity_set;
-//struct small_commodity_set;
+
 }
 
 namespace military {

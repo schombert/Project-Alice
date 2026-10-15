@@ -9,6 +9,7 @@
 #include "advanced_province_buildings.hpp"
 #include "logistics.hpp"
 #include "nations_templates.hpp"
+#include "logistics_templates.hpp"
 
 namespace economy {
 
@@ -16,23 +17,23 @@ template<construction_completed completed, concepts::military_construction_type 
 void delete_unit_construction(sys::state& state, mil_construction_type c) {
 	float cost_mult = construction_build_cost_multiplier(state, c);
 	dcon::province_id location = construction_get_location(state, c);
-	dcon::nation_id location_controller = construction_get_controller(state, c);
 	auto state_inst = state.world.province_get_state_membership(location);
+	dcon::nation_id state_controller = state.world.state_instance_get_nation_from_state_control(state_inst);
 	auto market = state_inst.get_market_from_local_market();
 	const auto& fufilled_goods = construction_get_purchased_goods(state, c);
 	const auto& base_build_cost = construction_get_base_build_cost(state, c);
 	// Give back all of the purchased goods to the local stockpile if the construction was not completed. If it was completed, only give back the extra goods above what was needed
-	if(location_controller) {
+	if(state_controller) {
 		for(uint32_t i = 0; i < base_build_cost.set_size; i++) {
 			dcon::commodity_id com_id = base_build_cost.commodity_type[i];
 			assert(base_build_cost.commodity_type[i] == fufilled_goods.commodity_type[i]);
 			if(com_id) {
 				float fufilled_amount = fufilled_goods.commodity_amounts[i];
 				if constexpr(completed == construction_completed::no) {
-					add_government_stockpile(state, location_controller, market, com_id, fufilled_amount);
+					add_government_stockpile(state, state_controller, market, com_id, fufilled_amount);
 				} else if constexpr(completed == construction_completed::yes) {
 					float cost_amount = base_build_cost.commodity_amounts[i] * cost_mult;
-					add_government_stockpile(state, location_controller, market, com_id, std::max(fufilled_amount - cost_amount, 0.0f));
+					add_government_stockpile(state, state_controller, market, com_id, std::max(fufilled_amount - cost_amount, 0.0f));
 				}
 			}
 			else {
@@ -269,25 +270,18 @@ float factory_build_cost_multiplier(const sys::state& state, dcon::nation_id n, 
 		* (std::max(0.1f, state.world.nation_get_modifier_values(n, sys::national_mod_offsets::factory_owner_cost)));
 }
 
-
-template<concepts::construction_type con_type>
-bool construction_is_privately_owned(const sys::state& state, con_type construction) {
-	// military constructions are always considered not privately owned. Factories and province constructions depends on if it pop owned
-	if constexpr(std::is_same_v<con_type, dcon::province_land_construction_id>) {
-		return false; 
-	} else if constexpr(std::is_same_v<con_type, dcon::province_naval_construction_id>) {
-		return false;
-	} else if constexpr(std::is_same_v<con_type, dcon::factory_construction_id>) {
-		return state.world.factory_construction_get_is_pop_project(construction);
-	} else if constexpr(std::is_same_v<con_type, dcon::province_building_construction_id>) {
-		return state.world.province_building_construction_get_is_pop_project(construction);
-	}
+bool construction_is_privately_owned(const sys::state& state, dcon::province_land_construction_id construction) {
+	return false;
 }
-template bool construction_is_privately_owned(const sys::state& state, dcon::province_land_construction_id construction);
-template bool construction_is_privately_owned(const sys::state& state, dcon::province_naval_construction_id construction);
-template bool construction_is_privately_owned(const sys::state& state, dcon::factory_construction_id construction);
-template bool construction_is_privately_owned(const sys::state& state, dcon::province_building_construction_id construction);
-
+bool construction_is_privately_owned(const sys::state& state, dcon::province_naval_construction_id construction) {
+	return false;
+}
+bool construction_is_privately_owned(const sys::state& state, dcon::factory_construction_id construction) {
+	return state.world.factory_construction_get_is_pop_project(construction);
+}
+bool construction_is_privately_owned(const sys::state& state, dcon::province_building_construction_id construction) {
+	return state.world.province_building_construction_get_is_pop_project(construction);
+}
 
 
 float construction_build_cost_multiplier(const sys::state& state, dcon::province_land_construction_id con) {
@@ -309,41 +303,22 @@ float construction_build_cost_multiplier(const sys::state& state, dcon::factory_
 	return factory_build_cost_multiplier(state, owner, location, construction_is_privately_owned(state, con));
 }
 
-
-template<concepts::construction_type con_type>
-const economy::commodity_set& construction_get_base_build_cost(const sys::state& state, con_type construction) {
-	if constexpr(std::is_same_v<con_type, dcon::province_land_construction_id>) {
-		dcon::unit_type_id type = state.world.province_land_construction_get_type(construction);
-		return state.military_definitions.unit_base_definitions[type].build_cost;
-	}
-	else if constexpr(std::is_same_v<con_type, dcon::province_naval_construction_id>) {
-		dcon::unit_type_id type = state.world.province_naval_construction_get_type(construction);
-		return state.military_definitions.unit_base_definitions[type].build_cost;
-	}
-	else if constexpr(std::is_same_v<con_type, dcon::factory_construction_id>) {
-		dcon::factory_type_id type = state.world.factory_construction_get_type(construction);
-		return state.world.factory_type_get_construction_costs(type);
-	}
-	else if constexpr(std::is_same_v<con_type, dcon::province_building_construction_id>) {
-		uint8_t type = state.world.province_building_construction_get_type(construction);
-		return state.economy_definitions.building_definitions[type].cost;
-	}
+const economy::commodity_set& construction_get_base_build_cost(const sys::state& state, dcon::province_land_construction_id construction) {
+	dcon::unit_type_id type = construction_get_type(state, construction);
+	return state.military_definitions.unit_base_definitions[type].build_cost;
 }
-template const economy::commodity_set& construction_get_base_build_cost(const sys::state& state, dcon::province_land_construction_id construction);
-template const economy::commodity_set& construction_get_base_build_cost(const sys::state& state, dcon::province_naval_construction_id construction);
-template const economy::commodity_set& construction_get_base_build_cost(const sys::state& state, dcon::factory_construction_id construction);
-template const economy::commodity_set& construction_get_base_build_cost(const sys::state& state, dcon::province_building_construction_id construction);
-
-template<concepts::construction_type con_type>
-economy::commodity_set& construction_get_base_build_cost(sys::state& state, con_type construction) {
-	return const_cast<economy::commodity_set&>( construction_get_base_build_cost(static_cast<const sys::state&>(state), construction));
+const economy::commodity_set& construction_get_base_build_cost(const sys::state& state, dcon::province_naval_construction_id construction) {
+	dcon::unit_type_id type = construction_get_type(state, construction);
+	return state.military_definitions.unit_base_definitions[type].build_cost;
 }
-template economy::commodity_set& construction_get_base_build_cost(sys::state& state, dcon::province_land_construction_id construction);
-template economy::commodity_set& construction_get_base_build_cost(sys::state& state, dcon::province_naval_construction_id construction);
-template economy::commodity_set& construction_get_base_build_cost(sys::state& state, dcon::factory_construction_id construction);
-template economy::commodity_set& construction_get_base_build_cost(sys::state& state, dcon::province_building_construction_id construction);
-
-
+const economy::commodity_set& construction_get_base_build_cost(const sys::state& state, dcon::factory_construction_id construction) {
+	dcon::factory_type_id type = construction_get_type(state, construction);
+	return state.world.factory_type_get_construction_costs(type);
+}
+const economy::commodity_set& construction_get_base_build_cost(const sys::state& state, dcon::province_building_construction_id construction) {
+	uint8_t type = construction_get_type(state, construction);;
+	return state.economy_definitions.building_definitions[type].cost;
+}
 
 
 template<concepts::construction_type con_type>
@@ -367,36 +342,32 @@ economy::commodity_set construction_get_actual_build_cost(const sys::state& stat
 	});
 	return base_cost;
 }
-template economy::commodity_set construction_get_actual_build_cost(const sys::state& state, dcon::province_land_construction_id construction);
-template economy::commodity_set construction_get_actual_build_cost(const sys::state& state, dcon::province_naval_construction_id construction);
-template economy::commodity_set construction_get_actual_build_cost(const sys::state& state, dcon::factory_construction_id construction);
-template economy::commodity_set construction_get_actual_build_cost(const sys::state& state, dcon::province_building_construction_id construction);
 
-
-template<concepts::construction_type con_type>
-const economy::commodity_set& construction_get_purchased_goods(const sys::state& state, con_type construction) {
-	if constexpr(std::is_same_v<con_type, dcon::province_land_construction_id>) {
-		return state.world.province_land_construction_get_purchased_goods(construction);
-	} else if constexpr(std::is_same_v<con_type, dcon::province_naval_construction_id>) {
-		return state.world.province_naval_construction_get_purchased_goods(construction);
-	} else if constexpr(std::is_same_v<con_type, dcon::factory_construction_id>) {
-		return state.world.factory_construction_get_purchased_goods(construction);
-	} else if constexpr(std::is_same_v<con_type, dcon::province_building_construction_id>) {
-		return state.world.province_building_construction_get_purchased_goods(construction);
-	}
+const economy::commodity_set& construction_get_purchased_goods(const sys::state& state, dcon::province_land_construction_id construction) {
+	return state.world.province_land_construction_get_purchased_goods(construction);
 }
-template const economy::commodity_set& construction_get_purchased_goods(const sys::state& state, dcon::province_land_construction_id construction);
-template const economy::commodity_set& construction_get_purchased_goods(const sys::state& state, dcon::province_naval_construction_id construction);
-template const economy::commodity_set& construction_get_purchased_goods(const sys::state& state, dcon::factory_construction_id construction);
-template const economy::commodity_set& construction_get_purchased_goods(const sys::state& state, dcon::province_building_construction_id construction);
-template<concepts::construction_type con_type>
-economy::commodity_set& construction_get_purchased_goods(sys::state& state, con_type construction) {
+const economy::commodity_set& construction_get_purchased_goods(const sys::state& state, dcon::province_naval_construction_id construction) {
+	return state.world.province_naval_construction_get_purchased_goods(construction);
+}
+const economy::commodity_set& construction_get_purchased_goods(const sys::state& state, dcon::factory_construction_id construction) {
+	return state.world.factory_construction_get_purchased_goods(construction);
+}
+const economy::commodity_set& construction_get_purchased_goods(const sys::state& state, dcon::province_building_construction_id construction) {
+	return state.world.province_building_construction_get_purchased_goods(construction);
+}
+economy::commodity_set& construction_get_purchased_goods(sys::state& state, dcon::province_land_construction_id construction) {
 	return const_cast<economy::commodity_set&>(construction_get_purchased_goods(static_cast<const sys::state&>(state), construction));
 }
-template economy::commodity_set& construction_get_purchased_goods(sys::state& state, dcon::province_land_construction_id construction);
-template economy::commodity_set& construction_get_purchased_goods(sys::state& state, dcon::province_naval_construction_id construction);
-template economy::commodity_set& construction_get_purchased_goods(sys::state& state, dcon::factory_construction_id construction);
-template economy::commodity_set& construction_get_purchased_goods(sys::state& state, dcon::province_building_construction_id construction);
+economy::commodity_set& construction_get_purchased_goods(sys::state& state, dcon::province_naval_construction_id construction) {
+	return const_cast<economy::commodity_set&>(construction_get_purchased_goods(static_cast<const sys::state&>(state), construction));
+}
+economy::commodity_set& construction_get_purchased_goods(sys::state& state, dcon::factory_construction_id construction) {
+	return const_cast<economy::commodity_set&>(construction_get_purchased_goods(static_cast<const sys::state&>(state), construction));
+}
+economy::commodity_set& construction_get_purchased_goods(sys::state& state, dcon::province_building_construction_id construction) {
+	return const_cast<economy::commodity_set&>(construction_get_purchased_goods(static_cast<const sys::state&>(state), construction));
+}
+
 
 
 dcon::internal::const_iterator_province_land_construction_foreach_land_construction_supply_route_as_construction_generator construction_get_supply_routes(const sys::state& state, dcon::province_land_construction_id con) {
@@ -424,46 +395,31 @@ dcon::internal::iterator_province_building_construction_foreach_building_constru
 	return state.world.province_building_construction_get_building_construction_supply_route(con);
 }
 
-template<concepts::construction_type con_type>
-void construction_set_last_required_percent_base_cost(sys::state& state, con_type con, float val) {
-	if constexpr(std::is_same_v<con_type, dcon::province_land_construction_id>) {
-		state.world.province_land_construction_set_last_required_percent_base_cost(con, val);
-	}
-	else if constexpr(std::is_same_v<con_type, dcon::province_naval_construction_id>) {
-		state.world.province_naval_construction_set_last_required_percent_base_cost(con, val);
-	}
-	else if constexpr(std::is_same_v<con_type, dcon::factory_construction_id>) {
-		state.world.factory_construction_set_last_required_percent_base_cost(con, val);
-	}
-	else if constexpr(std::is_same_v<con_type, dcon::province_building_construction_id>) {
-		state.world.province_building_construction_set_last_required_percent_base_cost(con, val);
-	}
-	else {
-		static_assert(false, "Unknown type");
-	}
+void construction_set_last_required_percent_base_cost(sys::state& state, dcon::province_land_construction_id con, float val) {
+	state.world.province_land_construction_set_last_required_percent_base_cost(con, val);
 }
-template void construction_set_last_required_percent_base_cost(sys::state& state, dcon::province_land_construction_id con, float val);
-template void construction_set_last_required_percent_base_cost(sys::state& state, dcon::province_naval_construction_id con, float val);
-template void construction_set_last_required_percent_base_cost(sys::state& state, dcon::factory_construction_id con, float val);
-template void construction_set_last_required_percent_base_cost(sys::state& state, dcon::province_building_construction_id con, float val);
-
-template<concepts::construction_type con_type>
-float construction_get_last_required_percent_base_cost(const sys::state& state, con_type con) {
-	if constexpr(std::is_same_v<con_type, dcon::province_land_construction_id>) {
-		return state.world.province_land_construction_get_last_required_percent_base_cost(con);
-	} else if constexpr(std::is_same_v<con_type, dcon::province_naval_construction_id>) {
-		return state.world.province_naval_construction_get_last_required_percent_base_cost(con);
-	} else if constexpr(std::is_same_v<con_type, dcon::factory_construction_id>) {
-		return state.world.factory_construction_get_last_required_percent_base_cost(con);
-	} else if constexpr(std::is_same_v<con_type, dcon::province_building_construction_id>) {
-		return state.world.province_building_construction_get_last_required_percent_base_cost(con);
-	} 
+void construction_set_last_required_percent_base_cost(sys::state& state, dcon::province_naval_construction_id con, float val) {
+	state.world.province_naval_construction_set_last_required_percent_base_cost(con, val);
 }
-template float construction_get_last_required_percent_base_cost(const sys::state& state, dcon::province_land_construction_id con);
-template float construction_get_last_required_percent_base_cost(const sys::state& state, dcon::province_naval_construction_id con);
-template float construction_get_last_required_percent_base_cost(const sys::state& state, dcon::factory_construction_id con);
-template float construction_get_last_required_percent_base_cost(const sys::state& state, dcon::province_building_construction_id con);
+void construction_set_last_required_percent_base_cost(sys::state& state, dcon::factory_construction_id con, float val) {
+	state.world.factory_construction_set_last_required_percent_base_cost(con, val);
+}
+void construction_set_last_required_percent_base_cost(sys::state& state, dcon::province_building_construction_id con, float val) {
+	state.world.province_building_construction_set_last_required_percent_base_cost(con, val);
+}
 
+float construction_get_last_required_percent_base_cost(const sys::state& state, dcon::province_land_construction_id con) {
+	return state.world.province_land_construction_get_last_required_percent_base_cost(con);
+}
+float construction_get_last_required_percent_base_cost(const sys::state& state, dcon::province_naval_construction_id con) {
+	return state.world.province_naval_construction_get_last_required_percent_base_cost(con);
+}
+float construction_get_last_required_percent_base_cost(const sys::state& state, dcon::factory_construction_id con) {
+	return state.world.factory_construction_get_last_required_percent_base_cost(con);
+}
+float construction_get_last_required_percent_base_cost(const sys::state& state, dcon::province_building_construction_id con) {
+	return state.world.province_building_construction_get_last_required_percent_base_cost(con);
+}
 
 uint32_t land_unit_construction_time(
 	const sys::state& state,
@@ -500,28 +456,24 @@ uint32_t factory_building_construction_time(
 		* (is_upgrade ? 0.5f : 1.0f));
 }
 
-template<concepts::construction_type con_type>
-uint32_t construction_get_actual_construction_time(const sys::state& state, con_type con) {
+uint32_t construction_get_actual_construction_time(const sys::state& state, dcon::province_land_construction_id con) {
 	auto type = construction_get_type(state, con);
 	dcon::nation_id owner = construction_get_controller(state, con);
-	if constexpr(std::is_same_v<con_type, dcon::province_land_construction_id>) {
-		return land_unit_construction_time(state, type, owner);
-	}
-	else if constexpr(std::is_same_v<con_type, dcon::province_naval_construction_id>) {
-		return naval_unit_construction_time(state, type, owner);
-	}
-	else if constexpr(std::is_same_v<con_type, dcon::province_building_construction_id>) {
-		return province_building_construction_time(state, province_building_type(type));
-	}
-	else if constexpr(std::is_same_v<con_type, dcon::factory_construction_id>) {
-		return factory_building_construction_time(state, type, state.world.factory_construction_get_is_upgrade(con));
-	}
+	return land_unit_construction_time(state, type, owner);
 }
-template uint32_t construction_get_actual_construction_time(const sys::state& state, dcon::province_land_construction_id c);
-template uint32_t construction_get_actual_construction_time(const sys::state& state, dcon::province_naval_construction_id c);
-template uint32_t construction_get_actual_construction_time(const sys::state& state, dcon::factory_construction_id c);
-template uint32_t construction_get_actual_construction_time(const sys::state& state, dcon::province_building_construction_id c);
-
+uint32_t construction_get_actual_construction_time(const sys::state& state, dcon::province_naval_construction_id con) {
+	auto type = construction_get_type(state, con);
+	dcon::nation_id owner = construction_get_controller(state, con);
+	return naval_unit_construction_time(state, type, owner);
+}
+uint32_t construction_get_actual_construction_time(const sys::state& state, dcon::factory_construction_id con) {
+	auto type = construction_get_type(state, con);
+	return factory_building_construction_time(state, type, state.world.factory_construction_get_is_upgrade(con));
+}
+uint32_t construction_get_actual_construction_time(const sys::state& state, dcon::province_building_construction_id con) {
+	auto type = construction_get_type(state, con);
+	return province_building_construction_time(state, province_building_type(type));
+}
 
 // govt construction demand needs to be added seperately as it is handled through national stockpiles
 // it's registered as demand separately, do not add actual demand here
@@ -727,32 +679,13 @@ tagged_vector<float, dcon::commodity_id> get_last_required_construction_need(con
 template<concepts::construction_type con_type>
 tagged_vector<float, dcon::commodity_id> nation_get_last_required_construction_need(const sys::state& state, dcon::nation_id nation) {
 	tagged_vector<float, dcon::commodity_id> result(state.world.commodity_size());
-	if constexpr(std::is_same_v<con_type, dcon::province_land_construction_id>) {
-		state.world.nation_for_each_province_land_construction(nation, [&](dcon::province_land_construction_id con) {
-			get_last_required_construction_need(state, con, result);
-		});
-	}
-	else if constexpr(std::is_same_v<con_type, dcon::province_naval_construction_id>) {
-		state.world.nation_for_each_province_naval_construction(nation, [&](dcon::province_naval_construction_id con) {
-			get_last_required_construction_need(state, con, result);
-		});
-	}
-	else if constexpr(std::is_same_v<con_type, dcon::factory_construction_id>) {
-		state.world.nation_for_each_factory_construction(nation, [&](dcon::factory_construction_id con) {
-			get_last_required_construction_need(state, con, result);
-		});
-	}
-	else if constexpr(std::is_same_v<con_type, dcon::province_building_construction_id>) {
-		state.world.nation_for_each_province_building_construction(nation, [&](dcon::province_building_construction_id con) {
-			get_last_required_construction_need(state, con, result);
-		});
-	}
+
+	nations::nation_for_each_construction_by_type<con_type>(state, nation, [&](con_type con) {
+		get_last_required_construction_need(state, con, result);
+	});
 	return result;
 }
-template tagged_vector<float, dcon::commodity_id> nation_get_last_required_construction_need<dcon::province_land_construction_id>(const sys::state& state, dcon::nation_id nation);
-template tagged_vector<float, dcon::commodity_id> nation_get_last_required_construction_need<dcon::province_naval_construction_id>(const sys::state& state, dcon::nation_id nation);
-template tagged_vector<float, dcon::commodity_id> nation_get_last_required_construction_need<dcon::factory_construction_id>(const sys::state& state, dcon::nation_id nation);
-template tagged_vector<float, dcon::commodity_id> nation_get_last_required_construction_need<dcon::province_building_construction_id>(const sys::state& state, dcon::nation_id nation);
+
 
 // Internal function which takes the buffer as an out-param to smooth over accumulating a large amount of constructions
 template<concepts::construction_type con_type>
@@ -789,29 +722,12 @@ tagged_vector<float, dcon::commodity_id> get_last_fufilled_construction_need(con
 template<concepts::construction_type con_type>
 tagged_vector<float, dcon::commodity_id> nation_get_last_fufilled_construction_need(const sys::state& state, dcon::nation_id nation) {
 	tagged_vector<float, dcon::commodity_id> result(state.world.commodity_size());
-	if constexpr(std::is_same_v<con_type, dcon::province_land_construction_id>) {
-		state.world.nation_for_each_province_land_construction(nation, [&](dcon::province_land_construction_id con) {
-			get_last_fufilled_construction_need(state, con, result);
-		});
-	} else if constexpr(std::is_same_v<con_type, dcon::province_naval_construction_id>) {
-		state.world.nation_for_each_province_naval_construction(nation, [&](dcon::province_naval_construction_id con) {
-			get_last_fufilled_construction_need(state, con, result);
-		});
-	} else if constexpr(std::is_same_v<con_type, dcon::factory_construction_id>) {
-		state.world.nation_for_each_factory_construction(nation, [&](dcon::factory_construction_id con) {
-			get_last_fufilled_construction_need(state, con, result);
-		});
-	} else if constexpr(std::is_same_v<con_type, dcon::province_building_construction_id>) {
-		state.world.nation_for_each_province_building_construction(nation, [&](dcon::province_building_construction_id con) {
-			get_last_fufilled_construction_need(state, con, result);
-		});
-	}
+
+	nations::nation_for_each_construction_by_type<con_type>(state, nation, [&](con_type con) {
+		get_last_fufilled_construction_need(state, con, result);
+	});
 	return result;
 }
-template tagged_vector<float, dcon::commodity_id> nation_get_last_fufilled_construction_need<dcon::province_land_construction_id>(const sys::state& state, dcon::nation_id nation);
-template tagged_vector<float, dcon::commodity_id> nation_get_last_fufilled_construction_need<dcon::province_naval_construction_id>(const sys::state& state, dcon::nation_id nation);
-template tagged_vector<float, dcon::commodity_id> nation_get_last_fufilled_construction_need<dcon::factory_construction_id>(const sys::state& state, dcon::nation_id nation);
-template tagged_vector<float, dcon::commodity_id> nation_get_last_fufilled_construction_need<dcon::province_building_construction_id>(const sys::state& state, dcon::nation_id nation);
 
 
 template<concepts::construction_type con_type>
@@ -847,10 +763,7 @@ float construction_progress(const sys::state& state, con_type c) {
 
 	return construction_days_progress;
 }
-template float construction_progress(const sys::state& state, dcon::province_land_construction_id c);
-template float construction_progress(const sys::state& state, dcon::province_naval_construction_id c);
-template float construction_progress(const sys::state& state, dcon::factory_construction_id c);
-template float construction_progress(const sys::state& state, dcon::province_building_construction_id c);
+
 
 struct factory_construction_data {
 	bool can_be_advanced;
@@ -1032,10 +945,10 @@ tagged_vector<float, dcon::commodity_id> estimate_construction_stockpile_spendin
 void populate_government_construction_consumption(sys::state& state) {
 
 	// Nobody should be using this dcon buffer at this time, so we can re-use it.
-	auto demand_buffer_set = [&]<concepts::any_dcon_id_type<dcon::nation_id> nation_type, concepts::regular_or_ve_value_type<float> float_type>(nation_type nation, dcon::commodity_id com_id, float_type val) {
+	auto demand_buffer_set = [&](auto nation, dcon::commodity_id com_id, auto val) {
 		state.world.nation_set_commodity_float_buffer_2(nation, com_id, val);
 	};
-	auto demand_buffer_get = [&]<concepts::any_dcon_id_type<dcon::nation_id> nation_type>(nation_type nation, dcon::commodity_id com_id) {
+	auto demand_buffer_get = [&](auto nation, dcon::commodity_id com_id) {
 		return state.world.nation_get_commodity_float_buffer_2(nation, com_id);
 	};
 
@@ -1462,36 +1375,25 @@ void resolve_constructions(sys::state& state) {
 	});
 }
 
-// after usage of this function, construction demand becomes a stockpile for construction projects by finding the amount of goods which were able to be satisfied and bought
+// after usage of this function, private construction demand becomes a stockpile for construction projects by finding the amount of goods which were able to be satisfied and bought
 void update_private_construction_demand_satisfaction(sys::state& state, dcon::nation_id n) {
 	uint32_t total_commodities = state.world.commodity_size();
 	float p_spending = state.world.nation_get_private_investment_effective_fraction(n);
-	//float refund_amount = 0.0f;
+
 	state.world.nation_for_each_state_ownership(n, [&](auto soid) {
 		auto local_state = state.world.state_ownership_get_state(soid);
 		auto market = state.world.state_instance_get_market_from_local_market(local_state);
 
 		for(uint32_t i = 1; i < total_commodities; ++i) {
 			dcon::commodity_id c{ dcon::commodity_id::value_base_t(i) };
-			//auto nat_demand = state.world.market_get_construction_demand(market, c);
-			//auto com_price = price(state, market, c);
+
 			auto d_sat = state.world.market_get_actual_probability_to_buy(market, c);
-			/*refund_amount +=
-				nat_demand
-				* (1.0f - d_sat)
-				* com_price;
-			assert(refund_amount >= 0.0f);*/
 
-			//state.world.market_set_construction_demand(market, c, nat_demand * d_sat);
-
-			auto& private_demand = state.world.market_get_private_construction_demand(market, c);
+			auto private_demand = state.world.market_get_private_construction_demand(market, c);
 
 			state.world.market_set_private_construction_demand(market, c, private_demand * p_spending * d_sat);
 		}
 	});
-
-	/*auto& cur_money = state.world.nation_get_stockpiles(n, economy::money);
-	state.world.nation_set_stockpiles(n, economy::money, cur_money + std::min(refund_amount, total_spent_on_construction));*/
 }
 
 void advance_nation_private_constructions(sys::state& state, dcon::nation_id n, float total_spent_on_construction) {

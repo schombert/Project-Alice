@@ -4,6 +4,31 @@
 namespace logistics {
 
 
+template<concepts::any_dcon_id_type<dcon::army_supply_route_id> ID>
+auto supply_route_is_active(const sys::state& state, ID route) {
+	return state.world.army_supply_route_get_is_active(route);
+}
+template<concepts::any_dcon_id_type<dcon::navy_supply_route_id> ID>
+auto supply_route_is_active(const sys::state& state, ID route) {
+	return state.world.navy_supply_route_get_is_active(route);
+}
+template<concepts::any_dcon_id_type<dcon::land_construction_supply_route_id> ID>
+auto supply_route_is_active(const sys::state& state, ID route) {
+	return state.world.land_construction_supply_route_get_is_active(route);
+}
+template<concepts::any_dcon_id_type<dcon::naval_construction_supply_route_id> ID>
+auto supply_route_is_active(const sys::state& state, ID route) {
+	return state.world.naval_construction_supply_route_get_is_active(route);
+}
+template<concepts::any_dcon_id_type<dcon::factory_construction_supply_route_id> ID>
+auto supply_route_is_active(const sys::state& state, ID route) {
+	return state.world.factory_construction_supply_route_get_is_active(route);
+}
+template<concepts::any_dcon_id_type<dcon::building_construction_supply_route_id> ID>
+auto supply_route_is_active(const sys::state& state, ID route) {
+	return state.world.building_construction_supply_route_get_is_active(route);
+}
+
 template<typename F>
 void for_each_unit_supply_route(sys::state& state, F&& functor) {
 	state.world.for_each_army_supply_route(functor);
@@ -147,47 +172,55 @@ void parallel_for_each_supply_route_path_predicate(sys::state& state, P&& pred, 
 		functor(i);
 	});
 }
-
-
-
-
-
-
-template<typename F, typename army_container_type, typename navy_container_type, typename land_construction_container_type, typename naval_construction_container_type>
-void for_each_supply_route_container(sys::state& state, F&& functor, army_container_type& army_container, navy_container_type& navy_container, land_construction_container_type& land_construction_container, naval_construction_container_type& naval_construction_container) {
-	state.world.for_each_army_supply_route([&](auto route) {
-		functor(route, army_container);
+template<typename F>
+void construction_for_each_active_route(const sys::state& state, dcon::province_land_construction_id con, F&& func) {
+	state.world.province_land_construction_for_each_land_construction_supply_route(con, [&](auto route) {
+		if(logistics::supply_route_is_active(state, route)) {
+			func(route);
+		}
 	});
-	state.world.for_each_navy_supply_route([&](auto route) {
-		functor(route, navy_container);
+}
+template<typename F>
+void construction_for_each_active_route(const sys::state& state, dcon::province_naval_construction_id con, F&& func) {
+	state.world.province_naval_construction_for_each_naval_construction_supply_route(con, [&](auto route) {
+		if(logistics::supply_route_is_active(state, route)) {
+			func(route);
+		}
 	});
-	state.world.for_each_land_construction_supply_route([&](auto route) {
-		functor(route, land_construction_container);
+}
+template<typename F>
+void construction_for_each_active_route(const sys::state& state, dcon::factory_construction_id con, F&& func) {
+	state.world.factory_construction_for_each_factory_construction_supply_route(con, [&](auto route) {
+		if(logistics::supply_route_is_active(state, route)) {
+			func(route);
+		}
 	});
-	state.world.for_each_naval_construction_supply_route([&](auto route) {
-		functor(route, naval_construction_container);
+}
+template<typename F>
+void construction_for_each_active_route(const sys::state& state, dcon::province_building_construction_id con, F&& func) {
+	state.world.province_building_construction_for_each_building_construction_supply_route(con, [&](auto route) {
+		if(logistics::supply_route_is_active(state, route)) {
+			func(route);
+		}
+	});
+}
+template<typename F>
+void unit_for_each_active_route(const sys::state& state, dcon::army_id unit, F&& func) {
+	state.world.army_for_each_army_supply_route(unit, [&](dcon::army_supply_route_id route) {
+		if(logistics::supply_route_is_active(state, route)) {
+			func(route);
+		}
+	});
+}
+template<typename F>
+void unit_for_each_active_route(const sys::state& state, dcon::navy_id unit, F&& func) {
+	state.world.navy_for_each_navy_supply_route(unit, [&](dcon::navy_supply_route_id route) {
+		if(logistics::supply_route_is_active(state, route)) {
+			func(route);
+		}
 	});
 }
 
-template<typename F, typename army_container_type, typename navy_container_type, typename land_construction_container_type, typename naval_construction_container_type>
-void parallel_for_each_supply_route_container(sys::state& state, F&& functor, army_container_type& army_container, navy_container_type& navy_container, land_construction_container_type& land_construction_container, naval_construction_container_type& naval_construction_container) {
-	concurrency::parallel_for(uint32_t(0), state.world.army_supply_route_size(), [&](uint32_t i) {
-		dcon::army_supply_route_id route = dcon::army_supply_route_id{ dcon::army_supply_route_id::value_base_t(i) };
-		functor(route, army_container);
-	});
-	concurrency::parallel_for(uint32_t(0), state.world.navy_supply_route_size(), [&](uint32_t i) {
-		dcon::navy_supply_route_id route = dcon::navy_supply_route_id{ dcon::navy_supply_route_id::value_base_t(i) };
-		functor(route, navy_container);
-	});
-	concurrency::parallel_for(uint32_t(0), state.world.land_construction_supply_route_size(), [&](uint32_t i) {
-		dcon::land_construction_supply_route_id route = dcon::land_construction_supply_route_id{ dcon::land_construction_supply_route_id::value_base_t(i) };
-		functor(route, land_construction_container);
-	});
-	concurrency::parallel_for(uint32_t(0), state.world.naval_construction_supply_route_size(), [&](uint32_t i) {
-		dcon::naval_construction_supply_route_id route = dcon::naval_construction_supply_route_id{ dcon::naval_construction_supply_route_id::value_base_t(i) };
-		functor(route, naval_construction_container);
-	});
-}
 template<concepts::any_dcon_id_type<dcon::nation_id> nation_type>
 auto naval_supply_speed(const sys::state& state, nation_type nation_as) {
 	if constexpr(concepts::dcon_id_type<nation_type>) {

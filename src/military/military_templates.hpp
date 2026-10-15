@@ -461,8 +461,6 @@ void accumulate_subunit_daily_goods_requirements(const sys::state& state, dcon::
 	assert(owner);
 	dcon::unit_type_id type = subunit_get_type(state, subunit);
 
-	float supply_mod = military::get_supply_cost_modifiers(state, subunit);
-
 	float cost_mod = [&]() {
 		if constexpr(consume_type == unit_consumption_type::supply) {
 			return military::get_supply_cost_modifiers(state, subunit);
@@ -472,7 +470,7 @@ void accumulate_subunit_daily_goods_requirements(const sys::state& state, dcon::
 		}
 	}();
 
-	const economy::commodity_set& base_cost = unit_type_get_commodity_costs<consume_type>(state, type);
+	const economy::commodity_set& base_cost = unit_type_get_base_commodity_costs<consume_type>(state, type);
 	base_cost.for_each_commodity([&](dcon::commodity_id com_id, float required_amounts) {
 		acc_func(com_id, required_amounts * cost_mod);
 	});
@@ -527,20 +525,6 @@ void unit_for_each_subunit(const sys::state& state, unit_type unit, F&& func) {
 		func(subunit.id);
 	}
 }
-
-// Accumulates the daily consumption required for a unit (army or navy) using the functors for Supply consumption and Reinforcement consumption respectively
-// Functor signature is: (dcon::commodity_id, float)
-template<concepts::military_unit unit_type, typename FSupply, typename FReinf>
-void accumulate_unit_daily_consumption(sys::state& state, unit_type unit, FSupply&& acc_supply_func, FReinf&& acc_reinf_func) {
-	dcon::nation_id nation = military::unit_get_controller(state, unit);
-	unit_for_each_subunit(state, unit, [&](auto subunit) {
-		accumulate_subunit_daily_goods_requirements(state, nation, subunit, acc_supply_func, acc_reinf_func);
-	});
-}
-
-
-
-
 
 
 

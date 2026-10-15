@@ -21,6 +21,7 @@
 
 #include <set>
 #include "logistics.hpp"
+#include "logistics_templates.hpp"
 
 namespace map {
 
@@ -444,6 +445,7 @@ void load_map_text_glyphs(sys::state& state) {
 			state.font_collection.mfont.make_glyph(glyphid);
 		}
 	}
+	state.font_collection.mfont.upload_buffers();
 }
 
 void load_map_province_text_glyphs(sys::state& state) {
@@ -454,6 +456,7 @@ void load_map_province_text_glyphs(sys::state& state) {
 			state.font_collection.mfont.make_glyph(glyphid);
 		}
 	}
+	state.font_collection.mfont.upload_buffers();
 }
 
 void commit_text_lines(sys::state& state, display_data& map_data) {

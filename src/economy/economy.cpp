@@ -484,8 +484,8 @@ void get_closest_available_market_states(sys::state& state, std::vector<dcon::st
 	std::sort(out_buffer.begin(), out_buffer.end(), [&](auto state_instance_a, auto state_instance_b) {
 		auto si_a_capital = state.world.state_instance_get_capital(state_instance_a);
 		auto si_b_capital = state.world.state_instance_get_capital(state_instance_b);
-		float si_b_direct_dist = province::direct_distance(state, si_b_capital, location_from);
-		float si_a_direct_dist = province::direct_distance(state, si_a_capital, location_from);
+		float si_b_direct_dist = province::sorting_distance(state, si_b_capital, location_from);
+		float si_a_direct_dist = province::sorting_distance(state, si_b_capital, location_from);
 		auto st_a_idx = state_instance_a.index();
 		auto si_b_idx = state_instance_b.index();
 		return (si_b_direct_dist != si_a_direct_dist ? si_a_direct_dist < si_b_direct_dist : st_a_idx < si_b_idx);
@@ -499,8 +499,8 @@ void get_closest_available_market_states(sys::state& state, dcon::dcon_vv_fat_id
 	std::sort(out_buffer.begin(), out_buffer.end(), [&](auto state_instance_a, auto state_instance_b) {
 		auto si_a_capital = state.world.state_instance_get_capital(state_instance_a);
 		auto si_b_capital = state.world.state_instance_get_capital(state_instance_b);
-		float si_b_direct_dist = province::direct_distance(state, si_b_capital, location_from);
-		float si_a_direct_dist = province::direct_distance(state, si_a_capital, location_from);
+		float si_b_direct_dist = province::sorting_distance(state, si_b_capital, location_from);
+		float si_a_direct_dist = province::sorting_distance(state, si_a_capital, location_from);
 		auto st_a_idx = state_instance_a.index();
 		auto si_b_idx = state_instance_b.index();
 		return (si_b_direct_dist != si_a_direct_dist ? si_a_direct_dist < si_b_direct_dist : st_a_idx < si_b_idx);
@@ -556,10 +556,10 @@ float consume_from_government_stockpiles(sys::state& state, economy::commodity_s
 void update_government_stockpile_market_demand_weights(sys::state& state) {
 
 	// This buffer is free during this time
-	auto weights_buffer_get = [&]<concepts::any_dcon_id_type<dcon::nation_id> nation_type>(nation_type nation, dcon::commodity_id com_id) {
+	auto weights_buffer_get = [&](auto nation, dcon::commodity_id com_id) {
 		return state.world.nation_get_commodity_float_buffer_1(nation, com_id);
 	};
-	auto weights_buffer_set = [&]<concepts::any_dcon_id_type<dcon::nation_id> nation_type, concepts::regular_or_ve_value_type<float> float_type>(nation_type nation, dcon::commodity_id com_id, float_type val) {
+	auto weights_buffer_set = [&](auto nation, dcon::commodity_id com_id, auto val) {
 		state.world.nation_set_commodity_float_buffer_1(nation, com_id, val);
 	};
 	state.world.execute_serial_over_nation([&](auto nations) {
@@ -624,14 +624,6 @@ float get_estimated_stockpile_total_purchase_price(const sys::state& state, dcon
 	};
 	return get_estimated_stockpile_total_purchase_price<price_est>(state, for_nation, getter);
 }
-template float get_estimated_stockpile_total_purchase_price<price_estimation::capped_by_availability>(const sys::state& state, dcon::nation_id for_nation, const ve::vectorizable_buffer<float, dcon::commodity_id>& goods);
-template float get_estimated_stockpile_total_purchase_price<price_estimation::theoretical_max>(const sys::state& state, dcon::nation_id for_nation, const ve::vectorizable_buffer<float, dcon::commodity_id>& goods);
-template float get_estimated_stockpile_total_purchase_price<price_estimation::capped_by_availability>(const sys::state& state, dcon::nation_id for_nation, const ve::vectorizable_buffer<float, dcon::unit_build_commodity_id>& goods);
-template float get_estimated_stockpile_total_purchase_price<price_estimation::theoretical_max>(const sys::state& state, dcon::nation_id for_nation, const ve::vectorizable_buffer<float, dcon::unit_build_commodity_id>& goods);
-template float get_estimated_stockpile_total_purchase_price<price_estimation::capped_by_availability>(const sys::state& state, dcon::nation_id for_nation, const ve::vectorizable_buffer<float, dcon::unit_supply_commodity_id>& goods);
-template float get_estimated_stockpile_total_purchase_price<price_estimation::theoretical_max>(const sys::state& state, dcon::nation_id for_nation, const ve::vectorizable_buffer<float, dcon::unit_supply_commodity_id>& goods);
-template float get_estimated_stockpile_total_purchase_price<price_estimation::capped_by_availability>(const sys::state& state, dcon::nation_id for_nation, const ve::vectorizable_buffer<float, dcon::unit_supply_and_build_commodity_id>& goods);
-template float get_estimated_stockpile_total_purchase_price<price_estimation::theoretical_max>(const sys::state& state, dcon::nation_id for_nation, const ve::vectorizable_buffer<float, dcon::unit_supply_and_build_commodity_id>& goods);
 
 
 template<price_estimation price_est, concepts::any_commodity_type com_type>
@@ -641,14 +633,6 @@ float get_estimated_stockpile_total_purchase_price(const sys::state& state, dcon
 	};
 	return get_estimated_stockpile_total_purchase_price<price_est>(state, for_nation, getter);
 }
-template float get_estimated_stockpile_total_purchase_price<price_estimation::capped_by_availability>(const sys::state& state, dcon::nation_id for_nation, const tagged_vector<float, dcon::commodity_id>& goods);
-template float get_estimated_stockpile_total_purchase_price<price_estimation::theoretical_max>(const sys::state& state, dcon::nation_id for_nation, const tagged_vector<float, dcon::commodity_id>& goods);
-template float get_estimated_stockpile_total_purchase_price<price_estimation::capped_by_availability>(const sys::state& state, dcon::nation_id for_nation, const tagged_vector<float, dcon::unit_build_commodity_id>& goods);
-template float get_estimated_stockpile_total_purchase_price<price_estimation::theoretical_max>(const sys::state& state, dcon::nation_id for_nation, const tagged_vector<float, dcon::unit_build_commodity_id>& goods);
-template float get_estimated_stockpile_total_purchase_price<price_estimation::capped_by_availability>(const sys::state& state, dcon::nation_id for_nation, const tagged_vector<float, dcon::unit_supply_commodity_id>& goods);
-template float get_estimated_stockpile_total_purchase_price<price_estimation::theoretical_max>(const sys::state& state, dcon::nation_id for_nation, const tagged_vector<float, dcon::unit_supply_commodity_id>& goods);
-template float get_estimated_stockpile_total_purchase_price<price_estimation::capped_by_availability>(const sys::state& state, dcon::nation_id for_nation, const tagged_vector<float, dcon::unit_supply_and_build_commodity_id>& goods);
-template float get_estimated_stockpile_total_purchase_price<price_estimation::theoretical_max>(const sys::state& state, dcon::nation_id for_nation, const tagged_vector<float, dcon::unit_supply_and_build_commodity_id>& goods);
 
 
 template<price_estimation price_est, concepts::any_commodity_type com_type>
@@ -688,14 +672,6 @@ tagged_vector<float, com_type> get_estimated_stockpile_purchase_price_by_commodi
 	});
 	return prices;
 }
-template tagged_vector<float, dcon::commodity_id> get_estimated_stockpile_purchase_price_by_commodity<price_estimation::theoretical_max>(const sys::state& state, dcon::nation_id for_nation, const tagged_vector<float, dcon::commodity_id>& goods);
-template tagged_vector<float, dcon::commodity_id> get_estimated_stockpile_purchase_price_by_commodity<price_estimation::capped_by_availability>(const sys::state& state, dcon::nation_id for_nation, const tagged_vector<float, dcon::commodity_id>& goods);
-template tagged_vector<float, dcon::unit_build_commodity_id> get_estimated_stockpile_purchase_price_by_commodity<price_estimation::theoretical_max>(const sys::state& state, dcon::nation_id for_nation, const tagged_vector<float, dcon::unit_build_commodity_id>& goods);
-template tagged_vector<float, dcon::unit_build_commodity_id> get_estimated_stockpile_purchase_price_by_commodity<price_estimation::capped_by_availability>(const sys::state& state, dcon::nation_id for_nation, const tagged_vector<float, dcon::unit_build_commodity_id>& goods);
-template tagged_vector<float, dcon::unit_supply_commodity_id> get_estimated_stockpile_purchase_price_by_commodity<price_estimation::theoretical_max>(const sys::state& state, dcon::nation_id for_nation, const tagged_vector<float, dcon::unit_supply_commodity_id>& goods);
-template tagged_vector<float, dcon::unit_supply_commodity_id> get_estimated_stockpile_purchase_price_by_commodity<price_estimation::capped_by_availability>(const sys::state& state, dcon::nation_id for_nation, const tagged_vector<float, dcon::unit_supply_commodity_id>& goods);
-template tagged_vector<float, dcon::unit_supply_and_build_commodity_id> get_estimated_stockpile_purchase_price_by_commodity<price_estimation::theoretical_max>(const sys::state& state, dcon::nation_id for_nation, const tagged_vector<float, dcon::unit_supply_and_build_commodity_id>& goods);
-template tagged_vector<float, dcon::unit_supply_and_build_commodity_id> get_estimated_stockpile_purchase_price_by_commodity<price_estimation::capped_by_availability>(const sys::state& state, dcon::nation_id for_nation, const tagged_vector<float, dcon::unit_supply_and_build_commodity_id>& goods);
 
 
 float estimate_government_stockpile_filling_spending(const sys::state& state, dcon::nation_id nation, float budget) {
@@ -856,10 +832,10 @@ total_stockpile_spendings_by_commodity estimate_total_stockpile_spendings_by_com
 void populate_government_stockpile_demand(sys::state& state) {
 
 	// Nobody should be using this dcon buffer at this time, so we can re-use it.
-	auto demand_buffer_set = [&]<concepts::any_dcon_id_type<dcon::nation_id> nation_type, concepts::regular_or_ve_value_type<float> float_type>(nation_type nation, dcon::commodity_id com_id, float_type val) {
+	auto demand_buffer_set = [&](auto nation, dcon::commodity_id com_id, auto val) {
 		state.world.nation_set_commodity_float_buffer_1(nation, com_id, val);
 	};
-	auto demand_buffer_get = [&]<concepts::any_dcon_id_type<dcon::nation_id> nation_type>(nation_type nation, dcon::commodity_id com_id) {
+	auto demand_buffer_get = [&](auto nation, dcon::commodity_id com_id) {
 		return state.world.nation_get_commodity_float_buffer_1(nation, com_id);
 	};
 
@@ -1716,10 +1692,10 @@ void populate_army_consumption(sys::state& state) {
 		}
 	}
 	// Nobody should be using this dcon buffer at this time, so we can re-use it
-	auto demand_buffer_set = [&]<concepts::any_dcon_id_type<dcon::nation_id> nation_type, concepts::regular_or_ve_value_type<float> float_type>(nation_type nation, dcon::unit_supply_and_build_commodity_id com_id, float_type val) {
+	auto demand_buffer_set = [&](auto nation, dcon::unit_supply_and_build_commodity_id com_id, auto val) {
 		state.world.nation_set_unit_supply_and_build_commodity_float_buffer_1(nation, com_id, val);
 	};
-	auto demand_buffer_get = [&]<concepts::any_dcon_id_type<dcon::nation_id> nation_type>(nation_type nation, dcon::unit_supply_and_build_commodity_id com_id) {
+	auto demand_buffer_get = [&](auto nation, dcon::unit_supply_and_build_commodity_id com_id) {
 		return state.world.nation_get_unit_supply_and_build_commodity_float_buffer_1(nation, com_id);
 	};
 	// Set nation budget values and reset buffer
@@ -1799,10 +1775,10 @@ void populate_navy_consumption(sys::state& state) {
 		}
 	}
 	// Nobody should be using this dcon buffer at this time, so we can re-use it. Buffer 1 is already used in parallel by populating army demand...
-	auto demand_buffer_set = [&]<concepts::any_dcon_id_type<dcon::nation_id> nation_type, concepts::regular_or_ve_value_type<float> float_type>(nation_type nation, dcon::unit_supply_and_build_commodity_id com_id, float_type val) {
+	auto demand_buffer_set = [&](auto nation, dcon::unit_supply_and_build_commodity_id com_id, auto val) {
 		state.world.nation_set_unit_supply_and_build_commodity_float_buffer_2(nation, com_id, val);
 	};
-	auto demand_buffer_get = [&]<concepts::any_dcon_id_type<dcon::nation_id> nation_type>(nation_type nation, dcon::unit_supply_and_build_commodity_id com_id) {
+	auto demand_buffer_get = [&](auto nation, dcon::unit_supply_and_build_commodity_id com_id) {
 		return state.world.nation_get_unit_supply_and_build_commodity_float_buffer_2(nation, com_id);
 	};
 	// Set nation budget values and reset buffer
@@ -1967,19 +1943,7 @@ spending_cost full_spending_cost(sys::state& state, dcon::nation_id n, float bas
 	float total_navy_costs = 0.0f;
 	float total_army_costs = 0.0f;
 	float total_stockpiling_costs = 0.0f;
-	// Govt stockpiles & military demand is done in controlled states
-	/*state.world.nation_for_each_state_control(n, [&](auto soid) {
-		auto local_state = state.world.state_control_get_state(soid);
-		auto local_market = state.world.state_instance_get_market_from_local_market(local_state);
-		for(uint32_t i = 1; i < total_commodities; ++i) {
-			dcon::commodity_id cid{ dcon::commodity_id::value_base_t(i) };
-			auto v = combined_government_stockpile_demand(state, local_market, cid)
-				* price(state, local_market, cid);
-			assert(std::isfinite(v) && v >= 0.0f);
-			total += v;
-		}
-	});*/
-
+	// Govt stockpile demand is done in controlled states
 	state.world.nation_for_each_state_control(n, [&](auto soid) {
 		auto local_state = state.world.state_control_get_state(soid);
 		auto local_market = state.world.state_instance_get_market_from_local_market(local_state);

@@ -182,6 +182,8 @@ public:
 	// anti-aliasing. Value is relative to emSize.
 	float dilation = 0;
 
+	bool glyph_data_has_changed = false;
+
 	map_font(map_font const&) = delete;
 	map_font& operator=(map_font const&) = delete;
 	map_font(map_font&& o) noexcept = delete;

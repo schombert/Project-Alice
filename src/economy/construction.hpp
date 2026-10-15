@@ -104,21 +104,30 @@ float location_build_cost_multiplier(const sys::state& state, dcon::province_id 
 float global_factory_construction_time_modifier(const sys::state& state);
 uint32_t factory_building_construction_time(const sys::state& state, dcon::factory_type_id ftid, bool is_upgrade);
 
-template<concepts::construction_type con_type>
-uint32_t construction_get_actual_construction_time(const sys::state& state, con_type con);
+uint32_t construction_get_actual_construction_time(const sys::state& state, dcon::province_land_construction_id con);
+uint32_t construction_get_actual_construction_time(const sys::state& state, dcon::province_naval_construction_id con);
+uint32_t construction_get_actual_construction_time(const sys::state& state, dcon::factory_construction_id con);
+uint32_t construction_get_actual_construction_time(const sys::state& state, dcon::province_building_construction_id con);
 
 float factory_build_cost_multiplier(const sys::state& state, dcon::nation_id n, dcon::province_id location, bool privately_owned);
-template<concepts::construction_type con_type>
-const economy::commodity_set& construction_get_base_build_cost(const sys::state& state, con_type construction);
-template<concepts::construction_type con_type>
-economy::commodity_set& construction_get_base_build_cost(sys::state& state, con_type construction);
-template<concepts::construction_type con_type>
-const economy::commodity_set& construction_get_purchased_goods(const sys::state& state, con_type construction);
-template<concepts::construction_type con_type>
-economy::commodity_set& construction_get_purchased_goods(sys::state& state, con_type construction);
+const economy::commodity_set& construction_get_base_build_cost(const sys::state& state, dcon::province_land_construction_id construction);
+const economy::commodity_set& construction_get_base_build_cost(const sys::state& state, dcon::province_naval_construction_id construction);
+const economy::commodity_set& construction_get_base_build_cost(const sys::state& state, dcon::factory_construction_id construction);
+const economy::commodity_set& construction_get_base_build_cost(const sys::state& state, dcon::province_building_construction_id construction);
 
-template<concepts::construction_type con_type>
-bool construction_is_privately_owned(const sys::state& state, con_type construction);
+const economy::commodity_set& construction_get_purchased_goods(const sys::state& state, dcon::province_land_construction_id construction);
+const economy::commodity_set& construction_get_purchased_goods(const sys::state& state, dcon::province_naval_construction_id construction);
+const economy::commodity_set& construction_get_purchased_goods(const sys::state& state, dcon::factory_construction_id construction);
+const economy::commodity_set& construction_get_purchased_goods(const sys::state& state, dcon::province_building_construction_id construction);
+economy::commodity_set& construction_get_purchased_goods(sys::state& state, dcon::province_land_construction_id construction);
+economy::commodity_set& construction_get_purchased_goods(sys::state& state, dcon::province_naval_construction_id construction);
+economy::commodity_set& construction_get_purchased_goods(sys::state& state, dcon::factory_construction_id construction);
+economy::commodity_set& construction_get_purchased_goods(sys::state& state, dcon::province_building_construction_id construction);
+
+bool construction_is_privately_owned(const sys::state& state, dcon::province_land_construction_id construction);
+bool construction_is_privately_owned(const sys::state& state, dcon::province_naval_construction_id construction);
+bool construction_is_privately_owned(const sys::state& state, dcon::factory_construction_id construction);
+bool construction_is_privately_owned(const sys::state& state, dcon::province_building_construction_id construction);
 
 
 dcon::internal::const_iterator_province_land_construction_foreach_land_construction_supply_route_as_construction_generator construction_get_supply_routes(const sys::state& state, dcon::province_land_construction_id con);
@@ -130,11 +139,14 @@ dcon::internal::iterator_factory_construction_foreach_factory_construction_suppl
 dcon::internal::const_iterator_province_building_construction_foreach_building_construction_supply_route_as_construction_generator construction_get_supply_routes(const sys::state& state, dcon::province_building_construction_id con);
 dcon::internal::iterator_province_building_construction_foreach_building_construction_supply_route_as_construction_generator construction_get_supply_routes(sys::state& state, dcon::province_building_construction_id con);
 
-template<concepts::construction_type con_type>
-void construction_set_last_required_percent_base_cost(sys::state& state, con_type con, float val);
-
-template<concepts::construction_type con_type>
-float construction_get_last_required_percent_base_cost(const sys::state& state, con_type con);
+void construction_set_last_required_percent_base_cost(sys::state& state, dcon::province_land_construction_id con, float val);
+void construction_set_last_required_percent_base_cost(sys::state& state, dcon::province_naval_construction_id con, float val);
+void construction_set_last_required_percent_base_cost(sys::state& state, dcon::factory_construction_id con, float val);
+void construction_set_last_required_percent_base_cost(sys::state& state, dcon::province_building_construction_id con, float val);
+float construction_get_last_required_percent_base_cost(const sys::state& state, dcon::province_land_construction_id con);
+float construction_get_last_required_percent_base_cost(const sys::state& state, dcon::province_naval_construction_id con);
+float construction_get_last_required_percent_base_cost(const sys::state& state, dcon::factory_construction_id con);
+float construction_get_last_required_percent_base_cost(const sys::state& state, dcon::province_building_construction_id con);
 
 // Gets last days' required goods need for a specific construction.
 template<concepts::construction_type con_type>

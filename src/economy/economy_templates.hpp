@@ -200,20 +200,18 @@ float get_estimated_stockpile_total_purchase_price(const sys::state& state, dcon
 	return total_expected_price;
 }
 // How many goods do we need (or have in excess) in order to be at exactly the stockpile target? If return is negative, that means we excess commodities over the target. Positive means we need more commodities to reach the target
-template<concepts::any_dcon_id_type<dcon::nation_id> nation_type>
+template<typename nation_type>
 auto government_stockpile_target_balance(const sys::state& state, nation_type nation, dcon::commodity_id com_id) {
 	return state.world.nation_get_stockpile_targets(nation, com_id) - state.world.nation_get_total_stockpiles(nation, com_id);
 }
 
 // How many goods do we need in order to be at exactly the stockpile target? If we are at the target OR have goods in excess, then the result is 0
-template<concepts::any_dcon_id_type<dcon::nation_id> nation_type>
+template<typename nation_type>
 auto government_stockpile_desired_commodity_amount(const sys::state& state, nation_type nation, dcon::commodity_id com_id) {
-	if constexpr(std::is_same_v<nation_type, dcon::nation_id>) {
-		return std::max(government_stockpile_target_balance(state, nation, com_id), 0.0f);
-	} else {
-		return ve::max(government_stockpile_target_balance(state, nation, com_id), 0.0f);
-	}
+	using float_type = adaptive_ve::convert_to_float<nation_type>;
+	return adaptive_ve::max<float_type>(government_stockpile_target_balance(state, nation, com_id), 0.0f);
 }
+
 
 // Accumulates all construction good requirements via the "acc_func" functor of a given construction. Already-fufilled good requirements are subtracted and result passed as the "required_amount" argument, whereas the "total_required" argument is the amount required is the amount required if the construction has not accumulated any goods yet
 // Functor signatures:
