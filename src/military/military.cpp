@@ -10843,7 +10843,8 @@ bool can_set_army_supply_priority(const sys::state& state, dcon::nation_id sourc
 			return false;
 		}
 	}
-	if(military::get_effective_unit_commander(state, army) != source) {
+	dcon::nation_id controller = unit_get_controller(state, army);
+	if(controller != source) {
 		return false;
 	}
 	if(priority > unit_priority::high_priority || priority < unit_priority::low_priority) {
@@ -10868,7 +10869,8 @@ bool can_set_navy_supply_priority(const sys::state& state, dcon::nation_id sourc
 			return false;
 		}
 	}
-	if(military::get_effective_unit_commander(state, navy) != source) {
+	dcon::nation_id controller = unit_get_controller(state, navy);
+	if(controller != source) {
 		return false;
 	}
 	if(priority > unit_priority::high_priority || priority < unit_priority::low_priority) {

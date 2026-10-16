@@ -2688,12 +2688,36 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 			load_from_dir(subdir);
 		}
 	}
-
+	// Check each land province has an rgo, and no sea province or uncolonized provinces has any factories defined
 	province::for_each_land_province(*this, [&](dcon::province_id p) {
 		if(auto rgo = world.province_get_rgo(p); !rgo) {
 			auto name = world.province_get_name(p);
 			err.accumulated_errors += std::string("province ") + text::produce_simple_string(*this, name) + " is missing an rgo\n";
 			world.province_set_rgo(p, economy::money);
+		}
+		auto factories = world.province_get_factory_location(p);
+		bool has_owner = bool(world.province_get_nation_from_province_ownership(p));
+		if(!has_owner && factories.end() != factories.begin()) {
+			auto name = world.province_get_name(p);
+			err.accumulated_errors += std::string("Uncolonized province ") + text::produce_simple_string(*this, name) + " has factories defined\n";
+			while(factories.end() != factories.begin()) {
+				world.delete_factory((*factories.begin()).get_factory());
+			}
+		}
+	});
+	province::for_each_sea_province(*this, [&](dcon::province_id p) {
+		if(auto rgo = world.province_get_rgo(p); rgo) {
+			auto name = world.province_get_name(p);
+			err.accumulated_errors += std::string("Sea province ") + text::produce_simple_string(*this, name) + " has an rgo defined\n";
+			world.province_set_rgo(p, dcon::commodity_id{ });
+		}
+		auto factories = world.province_get_factory_location(p);
+		auto name = world.province_get_name(p);
+		if(factories.end() != factories.begin()) {
+			err.accumulated_errors += std::string("Sea province ") + text::produce_simple_string(*this, name) + " has factories defined\n";
+			while(factories.end() != factories.begin()) {
+				world.delete_factory((*factories.begin()).get_factory());
+			}
 		}
 	});
 	// check that all provinces are assigned to a state
