@@ -183,8 +183,8 @@ void subunit_set_last_required_supply_percent_base_cost(sys::state& state, dcon:
 template<unit_consumption_type consumption_type>
 const economy::commodity_set& unit_type_get_base_commodity_costs(const sys::state& state, dcon::unit_type_id type);
 
-template<unit_consumption_type consumption_type>
-economy::commodity_set& unit_type_get_base_commodity_costs(sys::state& state, dcon::unit_type_id type);
+//template<unit_consumption_type consumption_type>
+//economy::commodity_set& unit_type_get_base_commodity_costs(sys::state& state, dcon::unit_type_id type);
 
 
 

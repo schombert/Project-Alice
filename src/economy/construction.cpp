@@ -320,29 +320,6 @@ const economy::commodity_set& construction_get_base_build_cost(const sys::state&
 	return state.economy_definitions.building_definitions[type].cost;
 }
 
-
-template<concepts::construction_type con_type>
-economy::commodity_set construction_get_actual_build_cost(const sys::state& state, con_type construction) {
-	economy::commodity_set base_cost = [&]() -> economy::commodity_set {
-		// Special case for factory constructions: If refitting, then a custom cost must be calculated
-		if constexpr(std::is_same_v<con_type, dcon::factory_construction_id>) {
-			if(state.world.factory_construction_get_refit_target(construction)) {
-				dcon::nation_id owner = construction_get_controller(state, construction);
-				dcon::province_id location = construction_get_location(state, construction);
-				dcon::factory_type_id from = construction_get_type(state, construction);
-				dcon::factory_type_id to = state.world.factory_construction_get_refit_target(construction);
-				return calculate_factory_refit_goods_cost(state, owner, location, from, to );
-			}
-		}
-		return construction_get_base_build_cost(state, construction);
-	}();
-	float cost_mult = construction_build_cost_multiplier(state, construction);
-	base_cost.for_each_commodity([&](dcon::commodity_id, float& amount) {
-		amount *= cost_mult;
-	});
-	return base_cost;
-}
-
 const economy::commodity_set& construction_get_purchased_goods(const sys::state& state, dcon::province_land_construction_id construction) {
 	return state.world.province_land_construction_get_purchased_goods(construction);
 }
@@ -686,6 +663,11 @@ tagged_vector<float, dcon::commodity_id> nation_get_last_required_construction_n
 	return result;
 }
 
+template tagged_vector<float, dcon::commodity_id> nation_get_last_required_construction_need<dcon::province_land_construction_id>(const sys::state& state, dcon::nation_id nation);
+template tagged_vector<float, dcon::commodity_id> nation_get_last_required_construction_need<dcon::province_naval_construction_id>(const sys::state& state, dcon::nation_id nation);
+template tagged_vector<float, dcon::commodity_id> nation_get_last_required_construction_need<dcon::factory_construction_id>(const sys::state& state, dcon::nation_id nation);
+template tagged_vector<float, dcon::commodity_id> nation_get_last_required_construction_need<dcon::province_building_construction_id>(const sys::state& state, dcon::nation_id nation);
+
 
 // Internal function which takes the buffer as an out-param to smooth over accumulating a large amount of constructions
 template<concepts::construction_type con_type>
@@ -729,6 +711,11 @@ tagged_vector<float, dcon::commodity_id> nation_get_last_fufilled_construction_n
 	return result;
 }
 
+template tagged_vector<float, dcon::commodity_id> nation_get_last_fufilled_construction_need<dcon::province_land_construction_id>(const sys::state& state, dcon::nation_id nation);
+template tagged_vector<float, dcon::commodity_id> nation_get_last_fufilled_construction_need<dcon::province_naval_construction_id>(const sys::state& state, dcon::nation_id nation);
+template tagged_vector<float, dcon::commodity_id> nation_get_last_fufilled_construction_need<dcon::factory_construction_id>(const sys::state& state, dcon::nation_id nation);
+template tagged_vector<float, dcon::commodity_id> nation_get_last_fufilled_construction_need<dcon::province_building_construction_id>(const sys::state& state, dcon::nation_id nation);
+
 
 template<concepts::construction_type con_type>
 float nation_average_construction_satisfaction_by_type(const sys::state& state, dcon::nation_id nation) {
@@ -763,7 +750,10 @@ float construction_progress(const sys::state& state, con_type c) {
 
 	return construction_days_progress;
 }
-
+template float construction_progress<dcon::province_land_construction_id>(const sys::state& state, dcon::province_land_construction_id c);
+template float construction_progress<dcon::province_naval_construction_id>(const sys::state& state, dcon::province_naval_construction_id c);
+template float construction_progress<dcon::factory_construction_id>(const sys::state& state, dcon::factory_construction_id c);
+template float construction_progress<dcon::province_building_construction_id>(const sys::state& state, dcon::province_building_construction_id c);
 
 struct factory_construction_data {
 	bool can_be_advanced;

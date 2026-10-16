@@ -40,6 +40,7 @@
 #include "logistics.hpp"
 #include "logistics_templates.hpp"
 #include "math_fns.hpp"
+#include "trade_network.hpp"
 
 namespace sys {
 
@@ -3725,7 +3726,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 
 	economy::sanity_check(*this);
 
-	nations::generate_initial_trade_routes(*this);
+	trade_network::generate_initial_trade_routes(*this);
 
 	economy::sanity_check(*this);
 
@@ -5325,8 +5326,8 @@ void state::single_game_tick() {
 				}
 
 				ai::update_influence_priorities(*this);
-				nations::generate_sea_trade_routes(*this);
-				nations::recalculate_markets_distance(*this);
+				trade_network::generate_sea_trade_routes(*this);
+				trade_network::recalculate_markets_distance(*this);
 			}
 			if(ymd_date.month == 2) {
 				ai::upgrade_colonies(*this);
@@ -5354,7 +5355,7 @@ void state::single_game_tick() {
 			}
 			if(ymd_date.month == 7) {
 				ai::update_influence_priorities(*this);
-				nations::recalculate_markets_distance(*this);
+				trade_network::recalculate_markets_distance(*this);
 			}
 			if(ymd_date.month == 9 && !national_definitions.on_quarterly_pulse.empty()) {
 				for(auto n : world.in_nation) {

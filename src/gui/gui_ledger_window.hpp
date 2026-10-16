@@ -2295,7 +2295,7 @@ public:
 		});
 	}
 	void on_update(sys::state& state) noexcept override {
-		float min = 0.f;
+		float min = economy::price_properties::commodity::max;
 		float max = 0.f;
 
 		auto ptr = retrieve< price_toggle_list*>(state, parent);
@@ -2307,12 +2307,11 @@ public:
 			if((*ptr).data[commodity.index()]) {
 				for(uint32_t i = 0; i < graph_length; ++i) {
 					auto price = state.world.commodity_get_price_record(commodity, (newest_index + economy::price_history_length - graph_length + i + 1) % economy::price_history_length);
-					auto log_price = price + economy::price_properties::commodity::epsilon;
-					if(log_price > max) {
-						max = log_price;
+					if(price > max) {
+						max = price;
 					}
-					if (log_price < min) {
-						min = log_price;
+					if (price < min) {
+						min = price;
 					}
 				}
 			}
@@ -2328,9 +2327,9 @@ public:
 
 				for(uint32_t i = 0; i < graph_length; ++i) {
 					datapoints[i] = state.world.commodity_get_price_record(commodity, (newest_index + economy::price_history_length - graph_length + i + 1) % economy::price_history_length);
-					datapoints[i] = log(datapoints[i] + economy::price_properties::commodity::epsilon);
+					datapoints[i] = log(datapoints[i]);
 				}
-				graph_per_price[commodity.index()]->set_data_points(state, datapoints, min, max);
+				graph_per_price[commodity.index()]->set_data_points(state, datapoints, log(min), log(max));
 			}
 		});
 	}

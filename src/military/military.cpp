@@ -119,12 +119,12 @@ const economy::commodity_set& unit_type_get_base_commodity_costs(const sys::stat
 	}
 }
 
-template<unit_consumption_type consumption_type>
-economy::commodity_set& unit_type_get_base_commodity_costs(sys::state& state, dcon::unit_type_id type) {
-	return const_cast<economy::commodity_set&>( unit_type_get_base_commodity_costs<consumption_type>(static_cast<const sys::state&>(state), type));
-}
-template economy::commodity_set& unit_type_get_base_commodity_costs<unit_consumption_type::supply>(sys::state& state, dcon::unit_type_id type);
-template economy::commodity_set& unit_type_get_base_commodity_costs<unit_consumption_type::reinforcement>(sys::state& state, dcon::unit_type_id type);
+//template<unit_consumption_type consumption_type>
+//economy::commodity_set& unit_type_get_base_commodity_costs(sys::state& state, dcon::unit_type_id type) {
+//	return const_cast<economy::commodity_set&>( unit_type_get_base_commodity_costs<consumption_type>(static_cast<const sys::state&>(state), type));
+//}
+template const economy::commodity_set& unit_type_get_base_commodity_costs<unit_consumption_type::supply>(sys::state const& state, dcon::unit_type_id type);
+template const economy::commodity_set& unit_type_get_base_commodity_costs<unit_consumption_type::reinforcement>(sys::state const& state, dcon::unit_type_id type);
 
 
 // this function should be used

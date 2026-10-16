@@ -161,6 +161,7 @@ tagged_vector<float, dcon::commodity_id> get_last_fufilled_construction_need(con
 template<concepts::construction_type con_type>
 tagged_vector<float, dcon::commodity_id> nation_get_last_fufilled_construction_need(const sys::state& state, dcon::nation_id nation);
 
+
 uint32_t land_unit_construction_time(const sys::state& state, dcon::unit_type_id utid, dcon::nation_id builder);
 uint32_t naval_unit_construction_time(const sys::state& state, dcon::unit_type_id utid, dcon::nation_id builder);
 void populate_private_construction_consumption(sys::state& state);

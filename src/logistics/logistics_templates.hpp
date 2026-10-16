@@ -1,8 +1,19 @@
 #pragma once
 #include "system_state.hpp"
+#include "logistics.hpp"
 
 namespace logistics {
 
+template<concepts::military_supply_route_type route_type>
+float military_route_get_buffered_goods(const sys::state& state, route_type route, dcon::unit_supply_commodity_id commodity_id) {
+	auto fat_route = fatten(state.world, route);
+	return fat_route.get_buffered_supply_goods(commodity_id);
+}
+template<concepts::military_supply_route_type route_type>
+float military_route_get_buffered_goods(const sys::state& state, route_type route, dcon::unit_build_commodity_id commodity_id) {
+	auto fat_route = fatten(state.world, route);
+	return fat_route.get_buffered_reinforcement_goods(commodity_id);
+}
 
 template<concepts::any_dcon_id_type<dcon::army_supply_route_id> ID>
 auto supply_route_is_active(const sys::state& state, ID route) {
@@ -239,6 +250,18 @@ auto land_supply_speed(const sys::state& state, nation_type nation_as) {
 	else if constexpr(concepts::dcon_id_ve_type<nation_type, dcon::nation_id>) {
 		return ve::max(state.world.nation_get_modifier_values(nation_as, sys::national_mod_offsets::land_supply_speed_add) * state.world.nation_get_modifier_values(nation_as, sys::national_mod_offsets::land_supply_speed_mul) * (state.world.nation_get_modifier_values(nation_as, sys::national_mod_offsets::land_supply_speed_percent) + 1.0f), 0.0f);
 	}
+}
+
+template<concepts::supply_route_type route_type>
+float supply_route_get_supply_loss(const sys::state& state, route_type route) {
+	dcon::supply_route_path_id path = supply_route_get_path(state, route);
+	return state.world.supply_route_path_get_supply_loss(path);
+}
+
+template<concepts::supply_route_type route_type>
+float supply_route_get_throughput(const sys::state& state, route_type route) {
+	dcon::supply_route_path_id path = supply_route_get_path(state, route);
+	return state.world.supply_route_path_get_throughput(path);
 }
 
 }

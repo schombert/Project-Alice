@@ -553,7 +553,9 @@ void update_trade_routes_volume(
 			//if(ignore_reality) {
 				//change = change * 10.f;
 			//}
-			auto next = ve::select(reset_route_commodity, 0.f, ve::max(0.f, current_volume * decay + change));
+
+			auto historical_demand = state.world.market_get_aggregated_demand_history(target, c);
+			auto next = ve::select(reset_route_commodity, 0.f, ve::max(0.f, current_volume * decay + change + ve::min(ve::fp_vector{0.f}, historical_demand - 0.0001f) ));
 			state.world.trade_route_set_volume(trade_route, c, next);
 		}
 	});
@@ -947,10 +949,12 @@ void fill_trade_buffers(
 				auto target = state.world.trade_route_get_target(route);
 				auto owner = state.world.trade_route_get_owner(route);
 				auto cut = state.world.trade_route_get_origin_cut_rate(route);
-				auto export_rate = state.world.trade_route_get_is_tariff_applied_origin(route)
+				auto export_rate =
+					state.world.trade_route_get_is_tariff_applied_origin(route)
 					? export_tariff_buffer.get(origin) : 0.f;
-				auto import_rate = state.world.trade_route_get_is_tariff_applied_origin(route)
-					? import_tariff_buffer.get(origin) : 0.f;
+				auto import_rate =
+					state.world.trade_route_get_is_tariff_applied_target(route)
+					? import_tariff_buffer.get(target) : 0.f;
 
 
 				state.world.for_each_commodity([&](auto cid) {
@@ -982,10 +986,12 @@ void fill_trade_buffers(
 				auto target = state.world.trade_route_get_target(route);
 				auto owner = state.world.trade_route_get_owner(route);
 				auto cut = state.world.trade_route_get_origin_cut_rate(route);
-				auto export_rate = state.world.trade_route_get_is_tariff_applied_origin(route)
+				auto export_rate =
+					state.world.trade_route_get_is_tariff_applied_origin(route)
 					? export_tariff_buffer.get(origin) : 0.f;
-				auto import_rate = state.world.trade_route_get_is_tariff_applied_origin(route)
-					? import_tariff_buffer.get(origin) : 0.f;
+				auto import_rate = 
+					state.world.trade_route_get_is_tariff_applied_target(route)
+					? import_tariff_buffer.get(target) : 0.f;
 
 				state.world.for_each_commodity([&](auto cid) {
 					auto sat = state.world.market_get_actual_probability_to_buy(origin, cid);
