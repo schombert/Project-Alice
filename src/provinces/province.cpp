@@ -2170,7 +2170,16 @@ void update_colonization(sys::state& state) {
 
 		if(num_colonizers == 0 && d.get_colonization_stage() != 0) {
 			d.set_colonization_stage(uint8_t(0));
-		} else if(num_colonizers > 1 && d.get_colonization_stage() == uint8_t(2)) {
+		} else if(num_colonizers == 1) {
+			// If there is only a single colonizer which has atleast level 3 investment and is not at stage 3 yet, jump directly to the last colonization stage to allow protectorate
+			auto only_colony = (*colonizers.begin());
+			if(only_colony.get_level() >= 3 && d.get_colonization_stage() != 3) {
+				only_colony.set_level(5);
+				d.set_colonization_stage(3);
+			}
+		}
+
+		else if(num_colonizers > 1 && d.get_colonization_stage() == uint8_t(2)) {
 			/*
 			In phase 2 if there are competing colonizers, the "temperature" in the colony will rise by
 			define:COLONIAL_INFLUENCE_TEMP_PER_DAY + maximum-points-invested x define:COLONIAL_INFLUENCE_TEMP_PER_LEVEL +

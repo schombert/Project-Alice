@@ -3547,16 +3547,18 @@ void calculate_immigration_amount(sys::state& state, pop_type ids, F&& accumulat
 		1v(province-immigrant-push-modifier + 1) x define:IMMIGRATION_SCALE x pop-size to find out how many migrate.
 		*/
 
+	using float_type = adaptive_ve::convert_to_float<pop_type>;
+
 	auto loc = state.world.pop_get_province_from_pop_location(ids);
 	auto owners = state.world.province_get_nation_from_province_ownership(loc);
 	auto pop_sizes = state.world.pop_get_size(ids);
 	auto impush = (state.world.province_get_modifier_values(loc, sys::provincial_mod_offsets::immigrant_push) + 1.0f);
 	auto trigger_amount = trigger::evaluate_additive_modifier(state, state.culture_definitions.emigration_chance, trigger::to_generic(ids), trigger::to_generic(ids), 0);
-	trigger_amount = adaptive_ve::max<decltype(trigger_amount)>(trigger::evaluate_additive_modifier(state, state.culture_definitions.emigration_chance, trigger::to_generic(ids), trigger::to_generic(ids), 0), 0.0f);
+	trigger_amount = adaptive_ve::max<float_type>(trigger::evaluate_additive_modifier(state, state.culture_definitions.emigration_chance, trigger::to_generic(ids), trigger::to_generic(ids), 0), 0.0f);
 	auto amounts = trigger_amount
 		* pop_sizes
-		* adaptive_ve::max<decltype(impush)>(impush, 0.0f)
-		* adaptive_ve::max<decltype(impush)>(impush, 1.0f)
+		* adaptive_ve::max<float_type>(impush, 0.0f)
+		* adaptive_ve::max<float_type>(impush, 1.0f)
 		* state.defines.immigration_scale;
 	auto pops_can_immigrate =
 		amounts > 0.0f &&
@@ -3815,10 +3817,12 @@ void update_immigration(sys::state& state, uint32_t offset, uint32_t divisions, 
 
 		impl::calculate_immigration_amount(state, ids, [&](auto pops, auto locations, auto owners, auto amounts, auto pops_can_immigrate) {
 			ve::apply([&](dcon::pop_id pop, dcon::nation_id owner, float amount, bool pop_can_immigrate) {
-				auto ndest = impl::get_immigration_target(state, owner, pop, state.current_date);
-				auto dest = impl::get_province_target_in_nation(state, ndest, pop);
-				pbuf.destinations.set(pop, dest);
-				pbuf.amounts.set(pop, amount);
+				if(pop_can_immigrate) {
+					auto ndest = impl::get_immigration_target(state, owner, pop, state.current_date);
+					auto dest = impl::get_province_target_in_nation(state, ndest, pop);
+					pbuf.destinations.set(pop, dest);
+					pbuf.amounts.set(pop, amount);
+				}
 			}, pops, owners, amounts, pops_can_immigrate);
 		});
 	});

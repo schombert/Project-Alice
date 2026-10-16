@@ -537,9 +537,16 @@ void apply_base_unit_stat_modifiers(sys::state& state) {
 
 void invalidate_unowned_wargoals(sys::state& state) {
 	for(auto wg : state.world.in_wargoal) {
-		if(wg.get_war_from_wargoals_attached()) {
+		auto war = wg.get_war_from_wargoals_attached();
+		if(war) {
 			auto s = wg.get_associated_state();
 			if(s) {
+				auto colonization = s.get_colonization();
+				bool being_colonized = (colonization.end() != colonization.begin());
+				// If the war is a crisis war, and the targeted state is being colonized, then don't clean it up cause its a colonial crisis wargoal
+				if(war.get_is_crisis_war() && being_colonized) {
+					continue;
+				}
 				bool found_state = false;
 				for(auto si : wg.get_target_nation().get_state_ownership()) {
 					if(si.get_state().get_definition() == s) {
@@ -3298,6 +3305,8 @@ void add_wargoal(sys::state& state, dcon::war_id wfor, dcon::nation_id added_by,
 				else if(tag)
 					text::add_to_substitution_map(sub, text::variable_type::third, tag);
 				text::add_to_substitution_map(sub, text::variable_type::state, sd);
+				// Apprently some warogals in vanilla use $REGION$ instead of $STATE$ to denote target state in wargoal loc
+				text::add_to_substitution_map(sub, text::variable_type::region, sd);
 
 				auto box = text::open_layout_box(contents);
 				text::add_to_layout_box(state, contents, box, state.world.cb_type_get_shortest_desc(type), sub);
