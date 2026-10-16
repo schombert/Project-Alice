@@ -15,21 +15,21 @@ float budget_ratio(float budget, float priority) {
 	return budget * priority;
 }
 
-float estimate_education_spending(sys::state& state, dcon::nation_id n, float budget) {
+float estimate_education_spending(sys::state const& state, dcon::nation_id n) {
 	auto& def = advanced_province_buildings::definitions[advanced_province_buildings::list::schools_and_universities];
 	auto total = 0.f;
 	state.world.nation_for_each_province_ownership(n, [&](auto ownership) {
 		auto p = state.world.province_ownership_get_province(ownership);
 		auto local_hire = state.world.province_get_advanced_province_building_national_size(p, advanced_province_buildings::list::schools_and_universities);
 		auto local_wage = state.world.province_get_labor_price(p, def.throughput_labour_type);
-		auto sat = state.world.province_get_labor_demand_satisfaction(p, def.throughput_labour_type);
 
-		auto total_population = state.world.nation_get_demographics(n, demographics::primary_or_accepted);
-		auto local_population = state.world.province_get_demographics(p, demographics::primary_or_accepted);
-		auto weight = total_population == 0.f ? 0.f : local_population / total_population;
-		float local_education_budget = weight * budget;
+		//auto sat = state.world.province_get_labor_demand_satisfaction(p, def.throughput_labour_type);
+		//auto total_population = state.world.nation_get_demographics(n, demographics::primary_or_accepted);
+		//auto local_population = state.world.province_get_demographics(p, demographics::primary_or_accepted);
+		//auto weight = total_population == 0.f ? 0.f : local_population / total_population;
+		//float local_education_budget = weight * budget;
 
-		total = total + std::max(0.f, std::min(local_education_budget, local_hire * local_wage) * sat);
+		total = total + local_hire * local_wage;
 	});
 	return total;
 }
@@ -122,7 +122,7 @@ budget_spending_details estimate_budget_detailed(sys::state& state, dcon::nation
 	}
 	auto military_budget = estimate_pop_payouts_by_income_type(state, n, culture::income_type::military) * priority.military_wages;
 	auto domestic_investment = budget_ratio(available_funds, priority.domestic_investments);
-	auto education_budget = estimate_education_spending(state, n, available_funds * priority.education_wages);
+	auto education_budget = estimate_education_spending(state, n);
 	auto overseas_budget = economy::estimate_overseas_penalty_spending(state, n) * priority.overseas_penalty;
 	auto subsidy_budget = state.world.nation_get_subsidy_token_total(n) == 0.f ? 0.f : budget_ratio(available_funds, priority.subsidy);
 	auto total_stockpiles_spending = economy::estimate_total_stockpile_spendings(state, n, budget_ratio(available_funds, priority.construction_supplies), budget_ratio(available_funds, priority.stockpile), budget_ratio(available_funds, priority.military_supplies_land), budget_ratio(available_funds, priority.military_supplies_navy));

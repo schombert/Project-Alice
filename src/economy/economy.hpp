@@ -114,7 +114,6 @@ float nation_total_imports(sys::state& state, dcon::nation_id n);
 float estimate_gold_income(sys::state& state, dcon::nation_id n);
 float estimate_tariff_import_income(sys::state& state, dcon::nation_id n);
 float estimate_tariff_export_income(sys::state& state, dcon::nation_id n);
-float estimate_education_spending(sys::state& state, dcon::nation_id n);
 float estimate_subsidy_spending(sys::state& state, dcon::nation_id n);
 float estimate_diplomatic_balance(sys::state& state, dcon::nation_id n);
 float estimate_diplomatic_income(sys::state& state, dcon::nation_id n);

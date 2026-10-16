@@ -29,6 +29,7 @@
 #include "military_templates.hpp"
 #include "economy_templates.hpp"
 #include "nations_templates.hpp"
+#include "national_budget.hpp"
 
 namespace economy {
 
@@ -268,112 +269,98 @@ Need weight allows pops to not promise buying "hopeless" items and avoid generat
 There is base growth to avoid being stuck at 0
 It's modified by local availability and price
 */
-float need_weight_change(sys::state& state, dcon::market_id n, dcon::commodity_id c, float current, float base_wage, float priority, float base_amount) {
-	auto budget = economy::price_properties::labor::min + base_wage;
-	auto cost_per_person = base_amount * price(state, n, c) / state.defines.alice_needs_scaling_factor;
-	auto score_price = -cost_per_person / priority / budget;
-	auto score_availability = state.world.market_get_expected_probability_to_buy(n, c);
-	return (score_availability + 0.1f) / (current + 0.01f) + score_price;
+
+template<typename VALUE>
+constexpr VALUE need_weight_change(VALUE scale_min, VALUE scale_max, VALUE price, VALUE availability, VALUE current_weight, VALUE base_amount, VALUE total_cost, VALUE different_goods_count) {
+	return (2.f * availability - 20.f * base_amount * price / total_cost) + scale_min / total_cost - price * base_amount / scale_max;
 }
 
-// maximize sum of w_i
-// w_i * p_i * c_i = wage
-// 0 <= w_i <= 1
-// eliminate low weights
+void rebalance_needs_weights(sys::state& state) {
+	static ve::vectorizable_buffer<float, dcon::commodity_id> average_life_need = ve::vectorizable_buffer<float, dcon::commodity_id>(uint32_t(1));
+	static ve::vectorizable_buffer<float, dcon::commodity_id> average_everyday_need = ve::vectorizable_buffer<float, dcon::commodity_id>(uint32_t(1));
+	static ve::vectorizable_buffer<float, dcon::commodity_id> average_luxury_need = ve::vectorizable_buffer<float, dcon::commodity_id>(uint32_t(1));
+	static bool average_need_bool_buffer_ready = false;
 
-void rebalance_needs_weights(sys::state& state, dcon::market_id n) {
-	auto zone = state.world.market_get_zone_from_local_market(n);
-	auto nation = state.world.state_instance_get_nation_from_state_ownership(zone);
-	auto capital = state.world.state_instance_get_capital(zone);
+	static float life_count = 1.f;
+	static float everyday_count = 1.f;
+	static float luxury_count = 1.f;
 
-	auto wage =
-		state.world.province_get_labor_price(capital, labor::no_education)
-		+ state.world.province_get_labor_price(capital, labor::basic_education)
-		+ state.world.province_get_labor_price(capital, labor::high_education) * 0.5f;
+	if(!average_need_bool_buffer_ready) {
+		average_need_bool_buffer_ready = true;
+		average_life_need = state.world.commodity_make_vectorizable_float_buffer();
+		average_everyday_need = state.world.commodity_make_vectorizable_float_buffer();
+		average_luxury_need = state.world.commodity_make_vectorizable_float_buffer();
 
-	{
-		auto expected_cost = 0.f;
-		state.world.for_each_commodity([&](dcon::commodity_id c) {
-			auto needed = 0.f;
+		state.world.for_each_commodity([&](auto c) {
+			auto life_average = 0.f;
+			auto everyday_average = 0.f;
+			auto luxury_average = 0.f;
+
 			state.world.for_each_pop_type([&](auto t) {
-				needed += state.world.pop_type_get_life_needs(t, c);
+				life_average += state.world.pop_type_get_life_needs(t, c);
+				everyday_average += state.world.pop_type_get_everyday_needs(t, c);
+				luxury_average += state.world.pop_type_get_luxury_needs(t, c);
 			});
-			needed = needed / float(state.world.pop_type_size());
 
-			auto w = state.world.market_get_life_needs_weights(n, c);
-			auto dw = need_weight_change(state, n, c, w, wage, 1.f, needed);
-			w = std::max(0.f, w + dw * state.defines.alice_need_drift_speed);
-			assert(std::isfinite(w));
-			state.world.market_set_life_needs_weights(n, c, w);
-			expected_cost += w * needed * price(state, n, c) / state.defines.alice_needs_scaling_factor;
+			life_average /= float(state.world.pop_type_size());
+			everyday_average /= float(state.world.pop_type_size());
+			luxury_average /= float(state.world.pop_type_size());
+
+			average_life_need.set(c, life_average);
+			average_everyday_need.set(c, everyday_average);
+			average_luxury_need.set(c, luxury_average);
+
+			life_count += life_average;
+			everyday_count += everyday_average;
+			luxury_count += luxury_average;
 		});
-
-		// scale to wage
-		if(expected_cost > 0.f) {
-			state.world.for_each_commodity([&](dcon::commodity_id c) {
-				auto w = state.world.market_get_life_needs_weights(n, c);
-				w = w / expected_cost * wage;
-				w = std::clamp(w, 0.f, 1.f);
-				state.world.market_set_life_needs_weights(n, c, w);
-			});
-		}
 	}
 
-	{
-		auto expected_cost = 0.f;
-		state.world.for_each_commodity([&](dcon::commodity_id c) {
-			auto needed = 0.f;
-			state.world.for_each_pop_type([&](auto t) {
-				needed += state.world.pop_type_get_everyday_needs(t, c);
-			});
-			needed = needed / float(state.world.pop_type_size());
+	// todo: vectorize
+	state.world.execute_parallel_over_market([&](auto market){
+		ve::fp_vector local_cost_life { economy::price_properties::commodity::min };
+		ve::fp_vector local_cost_everyday{ economy::price_properties::commodity::min };
+		ve::fp_vector local_cost_luxury{ economy::price_properties::commodity::min };
+		state.world.for_each_commodity([&](auto cid) {
+			auto base_life = average_life_need.get(cid);
+			auto base_everyday = average_everyday_need.get(cid);
+			auto base_luxury = average_luxury_need.get(cid);
 
-			auto w = state.world.market_get_everyday_needs_weights(n, c);
-			auto dw = need_weight_change(state, n, c, w, wage, 1.f, needed);
-			w = std::max(0.f, w + dw * state.defines.alice_need_drift_speed);
-			assert(std::isfinite(w));
-			state.world.market_set_everyday_needs_weights(n, c, w);
-			expected_cost += w * needed * price(state, n, c) / state.defines.alice_needs_scaling_factor;
+			auto price = state.world.market_get_price(market, cid);
+
+			local_cost_life = local_cost_life + base_life * price;
+			local_cost_everyday = local_cost_everyday + base_everyday * price;
+			local_cost_luxury = local_cost_luxury + base_luxury * price;
 		});
 
-		// scale to wage
-		if(expected_cost > 0.f) {
-			state.world.for_each_commodity([&](dcon::commodity_id c) {
-				auto w = state.world.market_get_everyday_needs_weights(n, c);
-				w = w / expected_cost * wage;
-				w = std::clamp(w, 0.f, 1.f);
-				state.world.market_set_everyday_needs_weights(n, c, w);
-			});
-		}
-	}
-
-	{
-		auto expected_cost = 0.f;
 		state.world.for_each_commodity([&](dcon::commodity_id c) {
-			auto needed = 0.f;
-			state.world.for_each_pop_type([&](auto t) {
-				needed += state.world.pop_type_get_luxury_needs(t, c);
-			});
-			needed = needed / float(state.world.pop_type_size());
+			auto price = state.world.market_get_price(market, c);
+			auto available = state.world.market_get_expected_probability_to_buy(market, c);
 
-			auto w = state.world.market_get_luxury_needs_weights(n, c);
-			auto dw = need_weight_change(state, n, c, w, wage, 1.f, needed);
-			w = std::max(0.f, w + dw * state.defines.alice_need_drift_speed);
-			assert(std::isfinite(w));
-			state.world.market_set_luxury_needs_weights(n, c, w);
-			expected_cost += w * needed * price(state, n, c) / state.defines.alice_needs_scaling_factor;
+			auto w_life = state.world.market_get_life_needs_weights(market, c);
+			auto w_everyday = state.world.market_get_everyday_needs_weights(market, c);
+			auto w_luxury = state.world.market_get_luxury_needs_weights(market, c);
+
+			auto needed_life = average_life_need.get(c);
+			auto needed_everyday = average_everyday_need.get(c);
+			auto needed_luxury = average_luxury_need.get(c);
+
+			auto scale_min = local_cost_life * 10.f;
+			auto scale_max = local_cost_life * 100000.f;
+
+			auto dw_life = need_weight_change<ve::fp_vector>(scale_min, scale_max, price, available, w_life, needed_life, local_cost_life, life_count);
+			auto dw_everyday = need_weight_change<ve::fp_vector>(scale_min, scale_max, price, available, w_everyday, needed_everyday, local_cost_everyday, everyday_count);
+			auto dw_luxury = need_weight_change<ve::fp_vector>(scale_min, scale_max, price, available, w_luxury, needed_luxury, local_cost_luxury, luxury_count);
+
+			w_life = ve::max(ve::fp_vector{0.f}, ve::min(ve::fp_vector{1.f}, w_life + dw_life * 10.f * state.defines.alice_need_drift_speed));
+			w_everyday = ve::max(ve::fp_vector{ 0.f }, ve::min(ve::fp_vector{ 1.f }, w_everyday + dw_everyday * 10.f * state.defines.alice_need_drift_speed));
+			w_luxury = ve::max(ve::fp_vector{ 0.f }, ve::min(ve::fp_vector{ 1.f }, w_luxury + dw_luxury * 10.f * state.defines.alice_need_drift_speed));
+
+			state.world.market_set_life_needs_weights(market, c, w_life);
+			state.world.market_set_everyday_needs_weights(market, c, w_everyday);
+			state.world.market_set_luxury_needs_weights(market, c, w_luxury);
 		});
-
-		// scale to wage
-		if(expected_cost > 0.f) {
-			state.world.for_each_commodity([&](dcon::commodity_id c) {
-				auto w = state.world.market_get_luxury_needs_weights(n, c);
-				w = w / expected_cost * wage;
-				w = std::clamp(w, 0.f, 1.f);
-				state.world.market_set_luxury_needs_weights(n, c, w);
-			});
-		}
-	}
+	});
 }
 
 
@@ -625,6 +612,24 @@ float get_estimated_stockpile_total_purchase_price(const sys::state& state, dcon
 	return get_estimated_stockpile_total_purchase_price<price_est>(state, for_nation, getter);
 }
 
+template float get_estimated_stockpile_total_purchase_price <price_estimation::theoretical_max, dcon::commodity_id>
+(const sys::state& state, dcon::nation_id for_nation, const ve::vectorizable_buffer<float, dcon::commodity_id>& goods);
+template float get_estimated_stockpile_total_purchase_price <price_estimation::theoretical_max, dcon::unit_supply_commodity_id>
+(const sys::state& state, dcon::nation_id for_nation, const ve::vectorizable_buffer<float, dcon::unit_supply_commodity_id>& goods);
+template float get_estimated_stockpile_total_purchase_price <price_estimation::theoretical_max, dcon::unit_build_commodity_id>
+(const sys::state& state, dcon::nation_id for_nation, const ve::vectorizable_buffer<float, dcon::unit_build_commodity_id>& goods);
+template float get_estimated_stockpile_total_purchase_price <price_estimation::theoretical_max, dcon::unit_supply_and_build_commodity_id>
+(const sys::state& state, dcon::nation_id for_nation, const ve::vectorizable_buffer<float, dcon::unit_supply_and_build_commodity_id>& goods);
+
+template float get_estimated_stockpile_total_purchase_price <price_estimation::capped_by_availability, dcon::commodity_id>
+(const sys::state& state, dcon::nation_id for_nation, const ve::vectorizable_buffer<float, dcon::commodity_id>& goods);
+template float get_estimated_stockpile_total_purchase_price <price_estimation::capped_by_availability, dcon::unit_supply_commodity_id>
+(const sys::state& state, dcon::nation_id for_nation, const ve::vectorizable_buffer<float, dcon::unit_supply_commodity_id>& goods);
+template float get_estimated_stockpile_total_purchase_price <price_estimation::capped_by_availability, dcon::unit_build_commodity_id>
+(const sys::state& state, dcon::nation_id for_nation, const ve::vectorizable_buffer<float, dcon::unit_build_commodity_id>& goods);
+template float get_estimated_stockpile_total_purchase_price <price_estimation::capped_by_availability, dcon::unit_supply_and_build_commodity_id>
+(const sys::state& state, dcon::nation_id for_nation, const ve::vectorizable_buffer<float, dcon::unit_supply_and_build_commodity_id>& goods);
+
 
 template<price_estimation price_est, concepts::any_commodity_type com_type>
 float get_estimated_stockpile_total_purchase_price(const sys::state& state, dcon::nation_id for_nation, const tagged_vector<float, com_type>& goods) {
@@ -633,6 +638,24 @@ float get_estimated_stockpile_total_purchase_price(const sys::state& state, dcon
 	};
 	return get_estimated_stockpile_total_purchase_price<price_est>(state, for_nation, getter);
 }
+
+template float get_estimated_stockpile_total_purchase_price <price_estimation::theoretical_max, dcon::commodity_id>
+(const sys::state& state, dcon::nation_id for_nation, const tagged_vector<float, dcon::commodity_id>& goods);
+template float get_estimated_stockpile_total_purchase_price <price_estimation::theoretical_max, dcon::unit_supply_commodity_id>
+(const sys::state& state, dcon::nation_id for_nation, const tagged_vector<float, dcon::unit_supply_commodity_id>& goods);
+template float get_estimated_stockpile_total_purchase_price <price_estimation::theoretical_max, dcon::unit_build_commodity_id>
+(const sys::state& state, dcon::nation_id for_nation, const tagged_vector<float, dcon::unit_build_commodity_id>& goods);
+template float get_estimated_stockpile_total_purchase_price <price_estimation::theoretical_max, dcon::unit_supply_and_build_commodity_id>
+(const sys::state& state, dcon::nation_id for_nation, const tagged_vector<float, dcon::unit_supply_and_build_commodity_id>& goods);
+
+template float get_estimated_stockpile_total_purchase_price <price_estimation::capped_by_availability, dcon::commodity_id>
+(const sys::state& state, dcon::nation_id for_nation, const tagged_vector<float, dcon::commodity_id>& goods);
+template float get_estimated_stockpile_total_purchase_price <price_estimation::capped_by_availability, dcon::unit_supply_commodity_id>
+(const sys::state& state, dcon::nation_id for_nation, const tagged_vector<float, dcon::unit_supply_commodity_id>& goods);
+template float get_estimated_stockpile_total_purchase_price <price_estimation::capped_by_availability, dcon::unit_build_commodity_id>
+(const sys::state& state, dcon::nation_id for_nation, const tagged_vector<float, dcon::unit_build_commodity_id>& goods);
+template float get_estimated_stockpile_total_purchase_price <price_estimation::capped_by_availability, dcon::unit_supply_and_build_commodity_id>
+(const sys::state& state, dcon::nation_id for_nation, const tagged_vector<float, dcon::unit_supply_and_build_commodity_id>& goods);
 
 
 template<price_estimation price_est, concepts::any_commodity_type com_type>
@@ -1996,7 +2019,7 @@ spending_cost full_spending_cost(sys::state& state, dcon::nation_id n, float bas
 		total += base_budget * float(state.world.nation_get_social_spending(n)) / 100.0f;
 	}
 
-	total += base_budget * float(state.world.nation_get_education_spending(n)) / 100.0f;
+	total += economy::national_budget::estimate_education_spending(state, n);
 
 	state.world.nation_for_each_state_ownership(n, [&](auto soid) {
 		auto local_state = state.world.state_ownership_get_state(soid);
@@ -2617,7 +2640,7 @@ void run_private_investment(sys::state& state) {
 
 
 // AWESOME ECONOMY PROFILE TOOLS
-// static auto pf = fopen("performance_record", "w");
+ //static auto pf = fopen("performance_record", "w");
 // static inline int64_t GetTicks() {
 // 	LARGE_INTEGER ticks;
 // 	if(!QueryPerformanceCounter(&ticks)) {
@@ -2625,41 +2648,92 @@ void run_private_investment(sys::state& state) {
 // 	}
 // 	return ticks.QuadPart;
 // }
-
+//static auto pf = fopen("money_record", "w");
+/*
+static int columns = 0;
+static int column = 0;
+static bool no_more_columns = false;
 static float total_history;
+*/
+/*
+Funnily enough, this place is great to put logging into because of the passed name.
+*/
+static ankerl::unordered_dense::map<std::string, float> total_history_per_label;
+static ankerl::unordered_dense::map<std::string, nation_monetary_breakdown> total_history_full_per_label;
+static float previous_total;
 static void set_profile_point(sys::state& state, std::string name) {
-
 	/*
-	Funnily enough, this place is great to put logging into because of the passed name.
-	*/
+	nation_monetary_breakdown data{};
+	state.world.for_each_nation([&](auto n) {
+		auto money_pools = economy::breakdown_nation_monetary_structure(state, n);
+		data.total += money_pools.total;
+		data.artisans += money_pools.artisans;
+		data.bank += money_pools.bank;
+		data.educators += money_pools.educators;
+		data.factory += money_pools.factory;
+		data.investment_pool += money_pools.investment_pool;
+		data.landlords += money_pools.landlords;
+		data.market += money_pools.market;
+		data.nation += money_pools.nation;
+		data.pops += money_pools.pops;
+		data.ports += money_pools.ports;
+		data.rgo += money_pools.rgo;
+	});
+	auto it = total_history_per_label.find(name);
+	if(it == total_history_per_label.end()) {
+		if(columns == 0) {
+			fprintf(pf, "%s", name.c_str());
+		} else {
+			fprintf(pf, ";%s", name.c_str());
+		}
+		total_history_per_label[name] = 0.f;
+		columns++;
+	} else {
+		if(!no_more_columns) {
+			fprintf(pf, "\n");
+			no_more_columns = true;
+		}
+		auto diff = data.total - previous_total;
+		auto diff_diff = diff - it->second;
+		std::string logged_data = name + "\n"
+			+ std::to_string(data.total) + ","
+			+ std::to_string(data.nation) + ","
+			+ std::to_string(data.bank) + ","
+			+ std::to_string(data.investment_pool) + ","
+			+ std::to_string(data.rgo) + ","
+			+ std::to_string(data.factory) + ","
+			+ std::to_string(data.market) + ","
+			+ std::to_string(data.artisans) + ","
+			+ std::to_string(data.ports) + ","
+			+ std::to_string(data.landlords) + ","
+			+ std::to_string(data.educators) + ","
+			+ std::to_string(data.pops) + "\n"
+			+ std::to_string(int(diff_diff)) + "\n";
+			//+ "RGO sales: "+ std::to_string(int(data.rgo_sales)) + "\n"
+			//+ "RGO wages: "+ std::to_string(int(data.rgo_wages)) + "\n"
+			//+ "POP wages: "+ std::to_string(int(data.pops_wages)) + "\n"
+			//+ "POP purchase goods: "+ std::to_string(int(data.pops_spending_life + data.pops_spending_everyday + data.pops_spending_luxury)) + "\n"
+			//+ "POP education: " + std::to_string(int(data.pops_cashback_education)) + "/" + std::to_string(int(data.pops_spending_education)) + "\n"
+			//+ "POP housing: " + std::to_string(int(data.pops_cashback_housing)) + "/" + std::to_string(int(data.pops_spending_housing)) + "\n"
+		;
+		if(abs(diff_diff) > 0.5f) {
+			//state.console_log(logged_data);
+		} else {
+			//state.console_log(name + " OK!");
+		}
+		previous_total = data.total;
+		total_history_per_label[name] = diff;
 
-	/*
-	nation_monetary_breakdown data = breakdown_nation_monetary_structure(state, state.local_player_nation);
-	auto diff = data.total - total_history;
-	std::string logged_data = name + "\n"
-		+ std::to_string(data.total) + ","
-		+ std::to_string(data.nation) + ","
-		+ std::to_string(data.bank) + ","
-		+ std::to_string(data.investment_pool) + ","
-		+ std::to_string(data.rgo) + ","
-		+ std::to_string(data.factory) + ","
-		+ std::to_string(data.market) + ","
-		+ std::to_string(data.pops) + "\n"
-		+ std::to_string(int(diff)) + "\n"
-		+ "RGO sales: "+ std::to_string(int(data.rgo_sales)) + "\n"
-		+ "RGO wages: "+ std::to_string(int(data.rgo_wages)) + "\n"
-		+ "POP wages: "+ std::to_string(int(data.pops_wages)) + "\n"
-		+ "POP purchase goods: "+ std::to_string(int(data.pops_spending_life + data.pops_spending_everyday + data.pops_spending_luxury)) + "\n"
-		+ "POP education: " + std::to_string(int(data.pops_cashback_education)) + "/" + std::to_string(int(data.pops_spending_education)) + "\n"
-		+ "POP housing: " + std::to_string(int(data.pops_cashback_housing)) + "/" + std::to_string(int(data.pops_spending_housing)) + "\n"
-	;
-
-	if(abs(diff) > 0.5f) {
-		state.console_log(logged_data);
+		column = (column + 1) % columns;
+		if(column == 0) {
+			fprintf(pf, "%f\n", data.total);
+		} else {
+			fprintf(pf, "%f;", data.total);
+		}
 	}
-
-	total_history = data.total;
 	*/
+
+	//total_history = data.total;
 
 	/*
 	ve::fp_vector total_nations {};
@@ -2901,6 +2975,11 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 		});
 	});
 
+	if(presimulation) {
+		state.world.execute_serial_over_province([&](auto pid) {
+			state.world.province_set_artisan_bank(pid, 0.f);
+		});
+	}
 
 	if(state.trade_route_cached_values_out_of_date) {
 		state.trade_route_cached_values_out_of_date = false;
@@ -3833,7 +3912,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 
 		auto earn = ve::select(arbitrage > 0.f, arbitrage, 0.f) + export_gains + investments + unused_dividends + sales + reinvestment;
 
-		auto next_dividends = earn * economy::pops::trade_dividents_rate;
+		auto next_dividends = earn * economy::pops::trade_dividends_rate;
 		state.world.market_set_pop_dividends(market, next_dividends);
 		state.world.market_set_last_pop_dividends(market, next_dividends);
 
@@ -4319,7 +4398,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			auto current_weight = state.world.market_get_total_port_capacity_weight(mid);
 
 			auto bought_locally = current_weight == 0.f ? 0.f : local_weight / current_weight;
-			auto local_satisfied = state.world.province_get_service_satisfaction(pid, services::list::education);
+			auto local_satisfied = state.world.province_get_service_satisfaction(pid, services::list::port_capacity);
 
 			auto sat_contribution = bought_locally * local_satisfied;
 			total_sat = total_sat + sat_contribution;
@@ -5318,13 +5397,10 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 
 	set_profile_point(state, "tariffs");
 
-	// todo: vectorize
-	concurrency::parallel_for(uint32_t(0), state.world.market_size(), [&](auto raw_market_id) {
-		dcon::market_id mid{ dcon::market_id::value_base_t (raw_market_id) };
-		if(!state.world.market_is_valid(mid)) return;
+	
 
-		rebalance_needs_weights(state, mid);
-	});
+	rebalance_needs_weights(state);
+	
 
 	// rebalance new needs
 	if(state.world.consumption_category_size() > 0) {
@@ -5458,7 +5534,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 		state.world.for_each_commodity([&](dcon::commodity_id c) {
 			if(!state.world.commodity_get_money_rgo(c))
 				return;
-			state.world.market_set_price(ids, c, state.world.commodity_get_cost(c) * 0.1f);
+			state.world.market_set_price(ids, c, state.world.commodity_get_cost(c) * 0.02f);
 		});
 	});
 
@@ -5575,6 +5651,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 
 	sanity_check(state);
 
+	/*
 	if(state.cheat_data.ecodump) {
 		state.world.for_each_commodity([&](dcon::commodity_id c) {
 			float states_count = 0.f;
@@ -5598,6 +5675,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 		state.cheat_data.supply_dump_buffer += "\n";
 		state.cheat_data.demand_dump_buffer += "\n";
 	}
+	*/
 
 	/*
 	DIPLOMATIC EXPENSES
@@ -5667,6 +5745,37 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 
 	//write gdp and total savings to file
 	if(state.cheat_data.ecodump) {
+		nation_monetary_breakdown total_money {};
+		state.world.for_each_nation([&](auto n){
+			auto money_pools = economy::breakdown_nation_monetary_structure(state, n);
+			total_money.total += money_pools.total;
+			total_money.artisans += money_pools.artisans;
+			total_money.bank += money_pools.bank;
+			total_money.educators += money_pools.educators;
+			total_money.factory += money_pools.factory;
+			total_money.investment_pool += money_pools.investment_pool;
+			total_money.landlords += money_pools.landlords;
+			total_money.market += money_pools.market;
+			total_money.nation += money_pools.nation;
+			total_money.pops += money_pools.pops;
+			total_money.ports += money_pools.ports;
+			total_money.rgo += money_pools.rgo;
+		});
+
+		state.cheat_data.savings_buffer += std::to_string(total_money.total) + ";";
+		state.cheat_data.savings_buffer += std::to_string(total_money.artisans) + ";";
+		state.cheat_data.savings_buffer += std::to_string(total_money.bank) + ";";
+		state.cheat_data.savings_buffer += std::to_string(total_money.educators) + ";";
+		state.cheat_data.savings_buffer += std::to_string(total_money.factory) + ";";
+		state.cheat_data.savings_buffer += std::to_string(total_money.investment_pool) + ";";
+		state.cheat_data.savings_buffer += std::to_string(total_money.landlords) + ";";
+		state.cheat_data.savings_buffer += std::to_string(total_money.market) + ";";
+		state.cheat_data.savings_buffer += std::to_string(total_money.nation) + ";";
+		state.cheat_data.savings_buffer += std::to_string(total_money.pops) + ";";
+		state.cheat_data.savings_buffer += std::to_string(total_money.ports) + ";";
+		state.cheat_data.savings_buffer += std::to_string(total_money.rgo) + "\n";
+
+		/*
 		float total_savings_pops[20] = { };
 
 		for(int i = 0; i < 20; i++) {
@@ -5700,6 +5809,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			state.cheat_data.savings_buffer += std::to_string(total_investment_pool);
 			state.cheat_data.savings_buffer += "\n";
 		}
+		*/
 	}
 
 	set_profile_point(state, "random data");

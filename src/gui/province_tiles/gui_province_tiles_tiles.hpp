@@ -15,6 +15,7 @@
 #include "economy_government.hpp"
 #include "military_templates.hpp"
 #include "province.hpp"
+#include "trade_network.hpp"
 
 namespace ui {
 
@@ -242,6 +243,8 @@ public:
 	}
 };
 
+
+
 class province_port_tile : public tile_type_logic {
 public:
 	dcon::text_key get_name(sys::state& state, province_tile target) noexcept override {
@@ -264,6 +267,13 @@ public:
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents, province_tile target) noexcept override {
 		text::add_line(state, contents, "civilian_port");
 		text::add_line(state, contents, "civilian_port_size", text::variable_type::val, text::fp_one_place { state.world.province_get_advanced_province_building_max_private_size(target.province, advanced_province_buildings::list::civilian_ports) });
+
+		auto sid  = state.world.province_get_state_membership(target.province);
+		auto coast = province::state_get_coastal_capital(state, sid);
+		auto population_origin = state.world.state_instance_get_demographics(sid, demographics::total);
+		auto base_distance = trade_network::local_base_trade_distance(state, sid, coast, population_origin);
+		text::add_line(state, contents, "trade_route_base_distance", text::variable_type::val, text::prettify_float(base_distance));
+		text::add_line(state, contents, "trade_route_local_average_population", text::variable_type::val, text::prettify_float(trade_network::get_local_average_population(state, sid, coast, population_origin, base_distance)));
 	}
 };
 

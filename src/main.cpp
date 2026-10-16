@@ -35,6 +35,7 @@
 #include "economy_government.cpp"
 #include "economy_production.cpp"
 #include "national_budget.cpp"
+#include "trade_network.cpp"
 #include "construction.cpp"
 #include "advanced_province_buildings.cpp"
 #include "demographics.cpp"

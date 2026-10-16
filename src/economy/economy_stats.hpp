@@ -469,6 +469,6 @@ struct nation_monetary_breakdown {
 	float pops_cashback_education = 0.f;
 };
 
-nation_monetary_breakdown breakdown_nation_monetary_structure(sys::state& state, dcon::nation_id n);
+nation_monetary_breakdown breakdown_nation_monetary_structure(sys::state const& state, dcon::nation_id n);
 
 }

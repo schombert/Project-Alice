@@ -2267,8 +2267,7 @@ dcon::province_id state_get_coastal_capital(sys::state const& state, dcon::state
 	return result;
 }
 
-
-bool state_is_coastal(sys::state& state, dcon::state_instance_id s) {
+bool state_is_coastal(sys::state const& state, dcon::state_instance_id s) {
 	auto d = state.world.state_instance_get_definition(s);
 	auto o = state.world.state_instance_get_nation_from_state_ownership(s);
 	for(auto p : state.world.state_definition_get_abstract_state_membership(d)) {
@@ -2376,7 +2375,7 @@ float distance(sys::state& state, dcon::province_adjacency_id pair) {
 }
 
 // distance in kilometers between to adjacent provinces
-float distance_km(sys::state& state, dcon::province_adjacency_id pair) {
+float distance_km(sys::state const& state, dcon::province_adjacency_id pair) {
 	return state.world.province_adjacency_get_distance_km(pair);
 }
 

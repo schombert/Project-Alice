@@ -40,7 +40,7 @@ inline void dump_month(sys::state& state, FILE* nations_csv, FILE* prices_csv, F
 				state.world.nation_get_prestige(n), float(state.world.nation_get_industrial_score(n)),
 				float(state.world.nation_get_military_score(n)), int(state.world.nation_get_rank(n)),
 				int(state.world.nation_get_is_great_power(n)), int(state.world.nation_get_is_civilized(n)),
-				state.world.nation_get_stockpiles(n, economy::money), state.world.nation_get_demographics(n, demographics::total),
+				state.world.nation_get_treasury(n), state.world.nation_get_demographics(n, demographics::total),
 				int(state.world.nation_get_owned_province_count(n)), state.world.nation_get_infamy(n),
 				state.world.nation_get_war_exhaustion(n));
 	});
