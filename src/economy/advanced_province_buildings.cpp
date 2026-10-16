@@ -116,7 +116,7 @@ const advanced_building_definition definitions[services::list::total] = {
 {
 	.throughput_labour_type = economy::labor::high_education,
 	.output = services::list::education,
-	.output_amount = 30.f,
+	.output_amount = 100.f,
 },
 // ports
 {
@@ -509,12 +509,13 @@ void update_private_size(sys::state& state) {
 				/ (state.world.province_get_demographics(pids, demographics::total) + 1.f)
 			);
 
-			auto wage = state.world.province_get_labor_price(pids, def.throughput_labour_type);
+			auto wage = state.world.province_get_labor_price(pids, def.throughput_labour_type) * 2.5f;
 			auto cost_of_output = state.world.province_get_service_price(pids, def.output) * local_education_efficiency * tmod * nmod * def.output_amount;
 			auto current_private_size = state.world.province_get_advanced_province_building_private_size(pids, bid);
 			auto sat = state.world.province_get_labor_demand_satisfaction(pids, def.throughput_labour_type);
+			auto sold = state.world.province_get_service_sold(pids, def.output) * 0.25f + 0.75f;
 			auto gradient = economy::gradient_employment_i<ve::fp_vector>(cost_of_output, ve::fp_vector{0.f}, ve::fp_vector{1.f}, wage);
-			auto employment_change = economy::gradient_to_employment_change<ve::fp_vector>(gradient, wage, current_private_size, sat);
+			auto employment_change = economy::gradient_to_employment_change<ve::fp_vector>(gradient, wage, current_private_size, sat * sold);
 			auto new_private_size = current_private_size + employment_change;
 			state.world.province_set_advanced_province_building_private_size(pids, bid, ve::max(0.f, new_private_size));
 		});
@@ -580,6 +581,7 @@ void update_private_size(sys::state& state) {
 			auto new_private_size = current_private_size + ve::min(margin, 100.f) + ve::min(ve::max(margin, -0.01f), 0.01f) * current_private_size;
 			new_private_size = ve::min(max_size, new_private_size);
 			state.world.province_set_advanced_province_building_private_size(pid, bid, ve::max(0.f, new_private_size));
+			//state.world.province_set_advanced_province_building_private_size(pid, bid, 0.f);
 		});
 	}
 }

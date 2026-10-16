@@ -2060,7 +2060,7 @@ void update_employment(sys::state& state, bool ignore_reality, float presim_empl
 	// note: markets are independent, so nations are independent:
 	// so we can execute in parallel over nations but not over provinces
 
-	auto workers_optimism = 0.1f;
+	auto workers_optimism = 0.01f;
 
 	concurrency::parallel_for(uint32_t(0), state.world.commodity_size(), [&](uint32_t k) {
 		dcon::commodity_id c{ dcon::commodity_id::value_base_t(k) };
@@ -2104,13 +2104,21 @@ void update_employment(sys::state& state, bool ignore_reality, float presim_empl
 			}
 			auto spending_per_worker_perception = wage_per_worker * (1.f + aristocrats_greed);
 			auto gradient = gradient_employment_i<ve::fp_vector>(
-				(workers_optimism + (1.f - workers_optimism) * workers_availability) * output_per_worker * current_price * (sales_optimism + (1.f - sales_optimism) * sales_expected_rate),
+				(workers_optimism + (1.f - workers_optimism) * workers_availability)
+				* output_per_worker
+				* current_price
+				* sales_expected_rate,
 				0.f,
 				1.f,
 				spending_per_worker_perception
 			);
 
-			auto employment_change = gradient_to_employment_change(presim_employment_mult * gradient, spending_per_worker_perception, current_employment_target, workers_availability);
+			auto employment_change = gradient_to_employment_change(
+				presim_employment_mult * gradient,
+				spending_per_worker_perception,
+				current_employment_target,
+				workers_availability * sales_expected_rate
+			);
 
 			auto new_employment = ve::max((current_employment_target + employment_change), 0.0f);
 			

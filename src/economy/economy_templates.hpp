@@ -3,6 +3,7 @@
 #include "economy_constants.hpp"
 #include "adaptive_ve.hpp"
 #include "economy_common_api_containers.hpp"
+#include "construction.hpp"
 
 namespace economy {
 
@@ -212,6 +213,27 @@ auto government_stockpile_desired_commodity_amount(const sys::state& state, nati
 	return adaptive_ve::max<float_type>(government_stockpile_target_balance(state, nation, com_id), 0.0f);
 }
 
+template<concepts::construction_type con_type>
+economy::commodity_set construction_get_actual_build_cost(const sys::state& state, con_type construction) {
+	economy::commodity_set base_cost = [&]() -> economy::commodity_set {
+		// Special case for factory constructions: If refitting, then a custom cost must be calculated
+		if constexpr(std::is_same_v<con_type, dcon::factory_construction_id>) {
+			if(state.world.factory_construction_get_refit_target(construction)) {
+				dcon::nation_id owner = construction_get_controller(state, construction);
+				dcon::province_id location = construction_get_location(state, construction);
+				dcon::factory_type_id from = construction_get_type(state, construction);
+				dcon::factory_type_id to = state.world.factory_construction_get_refit_target(construction);
+				return calculate_factory_refit_goods_cost(state, owner, location, from, to);
+			}
+		}
+		return construction_get_base_build_cost(state, construction);
+		}();
+	float cost_mult = construction_build_cost_multiplier(state, construction);
+	base_cost.for_each_commodity([&](dcon::commodity_id, float& amount) {
+		amount *= cost_mult;
+	});
+	return base_cost;
+}
 
 // Accumulates all construction good requirements via the "acc_func" functor of a given construction. Already-fufilled good requirements are subtracted and result passed as the "required_amount" argument, whereas the "total_required" argument is the amount required is the amount required if the construction has not accumulated any goods yet
 // Functor signatures:

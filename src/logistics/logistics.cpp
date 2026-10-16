@@ -305,18 +305,6 @@ dcon::province_id supply_route_get_destination(const sys::state& state, dcon::bu
 	return state.world.province_building_construction_get_province(construction);
 }
 
-template<concepts::supply_route_type route_type>
-float supply_route_get_supply_loss(const sys::state& state, route_type route) {
-	dcon::supply_route_path_id path = supply_route_get_path(state, route);
-	return state.world.supply_route_path_get_supply_loss(path);
-}
-
-template<concepts::supply_route_type route_type>
-float supply_route_get_throughput(const sys::state& state, route_type route) {
-	dcon::supply_route_path_id path = supply_route_get_path(state, route);
-	return state.world.supply_route_path_get_throughput(path);
-}
-
 dcon::province_id supply_route_path_get_origin_prov(const sys::state& state, dcon::supply_route_path_id path) {
 	auto origin = state.world.supply_route_path_get_origin(path);
 	auto state_inst = state.world.market_get_zone_from_local_market(origin);
@@ -451,16 +439,7 @@ static bool adj_province_pair_valid(const sys::state& state, dcon::province_adja
 	dcon::province_id adj_prov_2 = state.world.province_adjacency_get_connected_provinces(prov_adj, 1);
 	return (prov_1 != prov_2) && (adj_prov_1 == prov_1 || adj_prov_1 == prov_2) && (adj_prov_2 == prov_1 || adj_prov_2 == prov_2);
 }
-template<concepts::military_supply_route_type route_type>
-float military_route_get_buffered_goods(const sys::state& state, route_type route, dcon::unit_supply_commodity_id commodity_id) {
-	auto fat_route = fatten(state.world, route);
-	return fat_route.get_buffered_supply_goods(commodity_id);
-}
-template<concepts::military_supply_route_type route_type>
-float military_route_get_buffered_goods(const sys::state& state, route_type route, dcon::unit_build_commodity_id commodity_id) {
-	auto fat_route = fatten(state.world, route);
-	return fat_route.get_buffered_reinforcement_goods(commodity_id);
-}
+
 
 dcon::nation_id supply_route_get_owner(const sys::state& state, dcon::army_supply_route_id route) {
 	return state.world.army_get_controller_from_army_control(state.world.army_supply_route_get_army(route));

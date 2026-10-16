@@ -1900,6 +1900,8 @@ ports_size;Size of ports
 urban_size;Urban size
 civilian_port;Civilian port
 civilian_port_size;Size: ?Y$val$?!
+trade_route_base_distance;Base trade distance: ?Y$val$?! km. Used to estimate if two states should be connected with a trade route.
+trade_route_local_average_population;Local average population per state: ?Y$val$?! male adults. Used to estimate local importance of the port.
 private_education_owners;Private educators ?Y$val$?!
 port_owners;Local port ?Y$val$?!
 housing_owners;Landlords ?Y$val$?!

@@ -9,8 +9,6 @@ enum class crisis_state : uint32_t;
 
 namespace nations {
 
-inline float naval_base_level_to_market_attractiveness = 0.25f;
-
 inline uint32_t tag_to_int(char first, char second, char third) {
 	return (uint32_t(first) << 16) | (uint32_t(second) << 8) | (uint32_t(third) << 0);
 }
@@ -167,10 +165,7 @@ dcon::nation_id get_relationship_partner(sys::state const& state, dcon::diplomat
 void update_cached_values(sys::state& state);
 void restore_unsaved_values(sys::state& state);
 void restore_state_instances(sys::state& state);
-void generate_initial_trade_routes(sys::state& state);
 void generate_initial_state_instances(sys::state& state);
-void generate_sea_trade_routes(sys::state& state);
-void recalculate_markets_distance(sys::state& state);
 
 dcon::text_key name_from_tag(sys::state& state, dcon::national_identity_id tag);
 
