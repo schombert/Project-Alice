@@ -795,6 +795,7 @@
 	LUA_DEFINES_LIST_ELEMENT(alice_civilian_port_throughput_capacity , 0.2) \
 	LUA_DEFINES_LIST_ELEMENT(alice_supply_throughput_from_movement_cost_mult, 2.5) \
 	LUA_DEFINES_LIST_ELEMENT(alice_supply_throughput_from_movement_cost_max_penalty, -0.95) \
+	LUA_DEFINES_LIST_ELEMENT(alice_trade_route_score_multiplier, 1.0) \
 
 // scales the needs values so that they are needs per this many pops
 // this value was arrived at by looking at farmers: 40'000 farmers produces enough grain to satisfy about 2/3

@@ -97,6 +97,8 @@ void conquer_province(sys::state& state, dcon::province_id id, dcon::nation_id n
 void update_crimes(sys::state& state);
 void update_nationalism(sys::state& state);
 
+void reset_all_state_capitals(sys::state& state);
+
 bool can_start_colony(sys::state& state, dcon::nation_id n, dcon::state_definition_id d);
 bool fast_can_start_colony(sys::state& state, dcon::nation_id n, dcon::state_definition_id d, int32_t free_points, dcon::province_id coastal_target, bool& adjacent);
 bool can_invest_in_colony(sys::state& state, dcon::nation_id n, dcon::state_definition_id d);
