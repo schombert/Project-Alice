@@ -326,7 +326,7 @@ void generate_sea_trade_routes(sys::state& state) {
 		world_population += state.world.nation_get_demographics(nation, demographics::total);
 	});
 	//state.console_log("WORLD POP : " + std::to_string(world_population));
-	const float global_multiplier = 0.1f + 0.9f * world_pop_1836 / world_population;
+	const float global_multiplier = (0.1f + 0.9f * world_pop_1836 / world_population) * state.defines.alice_trade_route_score_multiplier;
 
 
 	state.world.for_each_state_instance([&](auto candidate) {
