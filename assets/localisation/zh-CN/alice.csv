@@ -266,8 +266,8 @@ a_cultural_union;文化联盟
 union_for_pop;人群的文化联盟
 union_for_nation;国家的文化联盟
 the_rebel_ind_nation;宣布独立的国
-capitalists_can_build;允许资本家建造工厂
-capitalists_cannot_build;禁止资本家建造工厂
+capitalists_can_build;允许资本家建设工厂
+capitalists_cannot_build;禁止资本家建设工厂
 at_war;战时
 total_blockade;全面封锁
 owns;有
@@ -502,7 +502,7 @@ factory_stats_wage;工资：
 factory_stats_expenses;总支出
 factory_stats_desired_income;目标收入（101%支出）
 speed;$val$ km/h
-shift_to_hold_open;按住 ?YShift?W 保持本窗口打开，?Y点击右shift?W 在每个州建造（但不扩建）
+shift_to_hold_open;按住 ?YShift?W 保持本窗口打开，?Y点击右shift?W 在每个州建设（但不扩建）
 factory_upgrade_shortcuts;?YSHIFT+左键?W升级?G所有?W在此地区的工厂\n?YSHIFT+右键?W升级?G所有盈利的?W在此地区的工厂\n?YCTRL+左键?W升级?G所有?W在此国的工厂\n?YCTRL+右键?W升级?G所有盈利的?W在此国的工厂\n?YCTRL+SHIFT+左键?W升级?G所有盈利且满员的?W在此地区的工厂\n?YCTRL+SHIFT+右键?W升级?G所有盈利且满员的?W在此地区的工厂
 blank_org_gain;组织度获得
 plurality_change_reason;（基于平均觉醒度）
@@ -958,7 +958,7 @@ alice_state_select_title;选择地区
 press_esc_to_cancel;按下 ?YESC?! 以取消
 fort_build_tt_1;当地正在你控制下
 fort_build_tt_2;当地未被围攻
-fort_build_tt_3;当前等级 $x$，+当地建造困难修正 $n$，低于最高等级 $y$
+fort_build_tt_3;当前等级 $x$，+当地建设困难修正 $n$，低于最高等级 $y$
 nb_build_tt_1;当地是沿海省份
 nb_build_tt_2;此地区没有海军基地
 rr_build_tt_1;我国执政党允许政府建设铁路
@@ -978,7 +978,7 @@ alice_unit_disable_rebel_hunt;停止围剿叛军
 alice_regiment_battle_info;$m$ $name$ ?Y$type$?!\n组织度：?Y$organisation$?W\n兵力：?Y$strength$?W
 understaffed_regiment;?RT这个团人手不足并且只有 $value$ 名士兵!?W
 tech_queue_explain;按?YSHIFT?W 加入队列，?Y右键?W 移除
-alice_province_building_build;?YSHIFT?W 建造在整个 ?G地区?W。\n?YSHIFT-右键?W 建造在整个?G国家?W。
+alice_province_building_build;?YSHIFT?W 建设在整个 ?G地区?W。\n?YSHIFT-右键?W 建设在整个?G国家?W。
 commodity_shortage;?R此商品不足
 commodity_surplus;?G此商品过剩
 alice_trade_flow_produced;?Y国内生产
@@ -1004,7 +1004,7 @@ macro_warn_overseas;?R无法在海外省份组建此单位!?!
 macro_warn_culture;?R只能使用主体民族人群组建！?!
 macro_warn_unlocked;?R此单位尚未解锁!?!
 macro_select_province;请选一省在地图上
-macro_warn_insuff;?R不能建造 $x$ $name$（仅 $y$）?!
+macro_warn_insuff;?R不能建设 $x$ $name$（仅 $y$）?!
 macro_warn_invalid_province;?R不属于此地区的省份?!
 shortcut_tooltip;热键：?Y$x$?!
 filter_all;选择?Y所有?!国家。
@@ -1020,7 +1020,7 @@ is_primary_religion;?Y$NAME$?!是国教
 tt_can_use_nation;使用本目标需要的条件：
 et_on_add;将本战争目标添加到战争中会产生以下效果：
 et_on_po_accepted;接受有此战争目标的和平提议会产生以下效果：
-alice_no_possible_units;没有可用的单位能够被建造，并且没有正在建造的单位
+alice_no_possible_units;没有可用的单位能够被建设，并且没有正在建设的单位
 alice_debt_spending;取消或启用债务消费
 alice_loan_size;我们当前的最大贷款是$x$ 贷款规模超越它会导致我们走向破产
 alice_currently_bankrupt;我国正处于破产状态（直到$x$）
@@ -1070,7 +1070,7 @@ alice_spending_unit_1;此单位总花费：?R$cost$?W
 alice_spending_total;?Y总费用：?W
 alice_spending_commodity;?R$cost$?W - 需要 $name$（$val$）的$need$
 alice_spending_commodity_2;?R$cost$?W - 买入 $need$ 的 $name$（以 $val$ 为单位相乘）。进度：$x$/$y$
-alice_recommended_build;?G建议建造此工厂?W
+alice_recommended_build;?G建议建设此工厂?W
 alice_factory_bonus;将获得 ?Y$x$?W 奖励，如果：
 alice_factory_inputs;投入所需：
 alice_factory_input_item;?R$cost$?W - 需要$name$（$val$）的$need$
@@ -1103,7 +1103,7 @@ alice_factory_worker_1;雇佣：?G$x$?W
 alice_factory_worker_2;失业：?R$x$?W
 alice_rgo_unemployment_country_alert;下列地区有失业者：
 pop_promote_info_on_sel_2;$val$ 下月预计 $who$ 到 $where$
-alice_readme;?G欢迎来到 Project Alice！?W\nProject Alice 是你最喜欢的维多利亚时代游戏的重新构想。我们调整了一些机制，游戏更加动态性和娱乐性。\n?G新功能!?W\n?Y地球仪?W：?G褒?W?R贬?W不一，如果你不喜欢就关掉吧！\n?Y科技队列?W：SHIFT+右键将科技加入研发队列！（单击右键取消）\n?Y国内投资?W：与其在单个项目上投资，不如一气呵成\n?Y性能?W：10 倍 每秒滴答数（不是FPS）\n?Y检查器?W：在您的模组中获取覆盖错误和警告，轻松发现错误和错字\n?Y部队模板?W：使用我们的部队模板构建由不同兵种组成的部队模板\n?Y11 种新的地图模式?W：宗教，要塞，职业情况，诸如此类\n?Y全国建造?W：SHIFT+右键在全国进行建造！\n?G控制?W：\n?YTAB?W：打开聊天窗口\n?YESC?W：打开主菜单和设置菜单\n?Y波浪符（`或~）?W：打开控制台\n?G享受游戏吧！=^w^=?W
+alice_readme;?G欢迎来到 Project Alice！?W\nProject Alice 是你最喜欢的维多利亚时代游戏的重新构想。我们调整了一些机制，游戏更加动态性和娱乐性。\n?G新功能!?W\n?Y地球仪?W：?G褒?W?R贬?W不一，如果你不喜欢就关掉吧！\n?Y科技队列?W：SHIFT+右键将科技加入研发队列！（单击右键取消）\n?Y国内投资?W：与其在单个项目上投资，不如一气呵成\n?Y性能?W：10 倍 每秒滴答数（不是FPS）\n?Y检查器?W：在您的模组中获取覆盖错误和警告，轻松发现错误和错字\n?Y部队模板?W：使用我们的部队模板构建由不同兵种组成的部队模板\n?Y11 种新的地图模式?W：宗教，要塞，职业情况，诸如此类\n?Y全国建设?W：SHIFT+右键在全国进行建设！\n?G控制?W：\n?YTAB?W：打开聊天窗口\n?YESC?W：打开主菜单和设置菜单\n?Y波浪符（`或~）?W：打开控制台\n?G享受游戏吧！=^w^=?W
 alice_nf_controls;?Y左键点击?W以选择或替代\n?Y右键点击?W以移除
 unit_controls_tooltip_1;?Y左键?W选择（取消选择其它）\n?YSHIFT+左键?W增加到选择中
 unit_controls_tooltip_2;?Y右键点击一个省份?W以局部撤退（?G循环/轮流?W）到当地
@@ -1246,7 +1246,7 @@ method_input;投入成本
 method_output;产出成本
 method_profit;期望利润
 method_margin;利润率
-method_cost;建造成本
+method_cost;建设成本
 method_payback;投资回收
 change_pname_to;$x$党派名称变成 $text$
 change_rpname_to;执政党名称变成 $text$
@@ -1305,7 +1305,7 @@ unit_upgrade_button;改变兵种
 subjectpayments_income;收款：?G$VAL$?W
 subjectpayments_income_row;?G$VAL$?W 来自 ?Y$country$?W
 subjectpayments_expense;付款：?R$VAL$?W
-alice_unit_builder_apply_button;在所选省份建造
+alice_unit_builder_apply_button;在所选省份建设
 unit_macro_template_tooltip;部队模板
 alice_factory_type_viewer_priority;专精重点
 alice_factory_type_viewer_priority_national;国内专精重点：
@@ -1496,9 +1496,9 @@ nation_id;爱丽丝 国家 ID
 province_colonisation_temperature;地区移民热度：?R$val$?W
 alice_unit_target;===> $x$
 change_factory_limit_by;将 $good$ 工厂 潜力 变成 $value$
-build_factory;建造工厂
+build_factory;建设工厂
 upgrade_factory;升级工厂
-build_province_building;建造省份工厂
+build_province_building;建设省份工厂
 resource_potential;潜在资源
 available_potential;当地资源允许 ?Y$val$?W 生产等级于 $what$ 建筑
 factory_level;工厂等级 ?Y$val$
@@ -1507,7 +1507,7 @@ provinceview_max_employment;可能最多雇工数：?Y$value$
 province_rgo_efficiency_inputs;投入效率：
 province_rgo_efficiency_input;?Y$good$?W ：?Y$value$
 factory_condition_8;殖民地允许的工厂类型
-alice_has_possible_units;可以建造一些单位。
+alice_has_possible_units;可以建设一些单位。
 CANBUILD_FORCEDISARM;国家尚未解除武装。
 alice_naval_coordination_penalty;$x$ 因超过敌舰规模而受到 ?R$y$?W 的海军协调惩罚，使其目标选择减少了 ?R$val$?W 。
 alice_naval_coordination_bonus;$x$ 因低于敌舰规模而受到 ?R$y$?W 的海军协调加成，使其目标选择增加了 ?R$val$?W 。
@@ -1577,7 +1577,7 @@ factory_stats_1;当前生产规模：?Y$val$?W
 factory_stats_2;目标生产规模：?Y$val$?W
 factory_stats_3;昨天它生产了 ?Y$val$ $good$?W，卖了 ?Y$x$?W
 alice_building_modifier;建筑产生以下效果：
-alice_new_building_modifier;建造将产生以下效果：
+alice_new_building_modifier;建设将产生以下效果：
 alice_building_level;建筑等级：?Y$val$?W
 alice_building_conditions;建筑所需以下条件：
 trade_centre_trade_volume;贸易量：?Y$val$
@@ -1904,7 +1904,7 @@ directive_description_fmoney;利润优先
 directive_description_fpeople;雇佣优先
 directive_description_fspecial;专业化领先工厂优先
 directive_description_fupgrade;升级现有工厂优先
-directive_description_fnone;不建造升级工厂
+directive_description_fnone;不建设升级工厂
 directive_description_rail;尽力建设升级铁路
 directive_description_naval;尽力建设升级海军基地
 directive_description_forts;尽力建设升级边界要塞
@@ -2001,7 +2001,7 @@ pop_project_target_label;投资目标
 no_factory_type;无
 subsidies_label;补贴
 effective_output_tooltip;有效产出（产出 ÷ 基础产出）
-subsidies_explanation_tooltip;补贴总量来自国家预算。工厂依有效产出按比例受到补贴。你可设置补贴在更新的生产界面通过指令。
+subsidies_explanation_tooltip;补贴总量来自政府预算。工厂依有效产出按比例受到补贴。你可设置补贴在更新的生产界面通过指令。
 factory_investments_header;投资
 total_investments_label;总计
 investment_efficiency_tooltip;工具、效率输入和机器
@@ -2085,7 +2085,7 @@ supply_loss_add_convoy_raiding_modifier;护航袭击
 supply_loss_add_hostile_armies_modifier;敌军
 port_supply_capacity_total_tooltip;港口补给总量：?Y$value$?W
 port_supply_capacity_mul_blockaded_modifier;港口被封锁
-port_supply_capacity_mul_access_modifier;Port access
+port_supply_capacity_mul_access_modifier;港口可达性
 port_supply_capacity_mul_hostile_units_modifier;敌军
 alice_mvstatecap_1;将市场中心及其地区首府库存移至此省份
 alice_mvstatecap_2;此地区归我方所有
@@ -2121,14 +2121,14 @@ government_stockpiles_title;政府库存
 only_military_goods_label;仅显示军需品
 prio_armies_in_battle_label;优先保障作战部队补给
 prio_navies_in_battle_label;优先保障作战舰队补给
-consumption_section_army_supply_info_tooltip;Decides how big a percentage of army ?Gsupply?W requirements will be routed from national stockpiles to them.\nA value of 100 means armies will attempt to draw 100% of their ?Gsupply?W need from stockpiles, and a value of 0 means armies will not draw any goods.\n?GSupply?W satisfaction dictates organization regain.
-consumption_section_army_reinforcement_info_tooltip;Decides how big a percentage of army ?Oreinforcement?W requirements will be routed from national stockpiles to them.\nA value of 100 means armies will attempt to draw 100% of their ?Oreinforcement?W need from stockpiles, and a value of 0 means armies will not draw any goods.\n?Oreinforcement?W satisfaction dictates how fast a unit can reinforce if below 100% strength.
-consumption_section_navy_supply_info_tooltip;Decides how big a percentage of navy ?Gsupply?W requirements will be routed from national stockpiles to them.\nA value of 100 means navies will attempt to draw 100% of their ?Gsupply?W need from stockpiles, and a value of 0 means armies will not draw any goods.\n?GSupply?W satisfaction dictates organization regain.
-consumption_section_navy_reinforcement_info_tooltip;Decides how big a percentage of navy ?Oreinforcement?W requirements will be routed from national stockpiles to them.\nA value of 100 means navies will attempt to draw 100% of their ?Oreinforcement?W need from stockpiles, and a value of 0 means armies will not draw any goods.\n?Oreinforcement?W satisfaction dictates how fast a unit can repair if below 100% strength and is in a naval base province.
-consumption_section_army_construction_info_tooltip;Decides how big a percentage of daily army construction requirements will be routed from national stockpiles to them.\nA value of 100 means army constructions will attempt to draw 100% of their daily construction need from stockpiles, and a value of 0 means armies will not draw any goods.\nThis setting also affects the amount purchased for army constructions from the construction budget in the budget window.
-consumption_section_navy_construction_info_tooltip;Decides how big a percentage of daily navy construction requirements will be routed from national stockpiles to them.\nA value of 100 means navy constructions will attempt to draw 100% of their daily construction need from stockpiles, and a value of 0 means armies will not draw any goods.\nThis setting also affects the amount purchased for navy constructions from the construction budget in the budget window.
-consumption_section_factory_construction_info_tooltip;Decides how big a percentage of daily government factory construction requirements will be routed from national stockpiles to them.\nA value of 100 means government factory constructions will attempt to draw 100% of their daily construction need from stockpiles, and a value of 0 means armies will not draw any goods.\nThis setting also affects the amount purchased for government factory constructions from the construction budget in the budget window.
-consumption_section_building_construction_info_tooltip;Decides how big a percentage of daily government province building construction requirements will be routed from national stockpiles to them.\nA value of 100 means government province building constructions will attempt to draw 100% of their daily construction need from stockpiles, and a value of 0 means armies will not draw any goods.\nThis setting also affects the amount purchased for government province building constructions from the construction budget in the budget window.
+consumption_section_army_supply_info_tooltip;决定从政府库存中分配到陆军?G补给?W需求比例。\n满则表示陆军将尝试从库存中获取其100%的?G补给?W需求，零则表示陆军不会获取任何物资。\n?G补给?W的满足度决定组织度恢复度。
+consumption_section_army_reinforcement_info_tooltip;决定从政府库存中分配到陆军?O增援?W需求比例。\n满则表示陆军将尝试从库存中获取其100%的?O增援?W需求，零则表示陆军不会获取任何物资。\n?O增援?W的满足度决定部队兵力恢复度。
+consumption_section_navy_supply_info_tooltip;决定从政府库存中调配至海军?G补给?W需求的比例。\n数值为100表示海军将尝试从库存中获取其100%的?G补给?W需求，数值为0则表示海军不会获取任何物资。\n?G补给?W的满足程度决定组织度的恢复速度。
+consumption_section_navy_reinforcement_info_tooltip;决定从政府库存中调配至海军?O增援?W需求的比例。\n数值为100表示海军将尝试从库存中获取其100%的?O增援?W需求，数值为0则表示海军不会获取任何物资。\n?O增援?W的满足程度决定单位在兵力低于100%且位于海军基地省份时的修复速度。
+consumption_section_army_construction_info_tooltip;决定每日部队建设需求在政府库存的分配比例。\n满则表示部队建设将尝试从库存中获取其100%的每日建设需求，零则表示部队建设不会获取任何物资，也会影响预算窗口的建设支出的部队建设费。
+consumption_section_navy_construction_info_tooltip;决定每日海军建设需求在政府库存的分配比例。\n满则表示舰队建设将尝试从库存中获取其100%的每日建设需求，零则表示舰队建设不会获取任何物资，也会影响预算窗口的建设支出的舰队建设费。
+consumption_section_factory_construction_info_tooltip;决定每日政府工厂建设需求在政府库存的分配比例。\n满则表示政府工厂建设将尝试从库存中获取其100%的每日建设需求，零则表示工厂建设不会获取任何物资，也会影响预算窗口的建设支出的政府工厂建设费。
+consumption_section_building_construction_info_tooltip;决定每日政府省份建筑建设需求在政府库存的分配比例。\n满则表示省份建筑建设将尝试从库存中获取其100%的每日建设需求，零则表示省份建筑建设不会获取任何物资。也会影响预算窗口的建设支出的省份建筑建设费。
 logistics_topbar_army_tooltip;部队当前获得补给与增援占其总需求的 ?Y$total$?W。\n供应满足：?Y$x$?W\n增援满足：?Y$y$?W
 logistics_topbar_navy_tooltip;舰队当前获得补给与增援占其总需求的 ?Y$total$?W。\n供应满足：?Y$x$?W\n增援满足：?Y$y$?W
 logistics_topbar_supply_loss_tooltip;补给线平均运输损失 ?Y$total$?W。\n陆军物资损失：?Y$x$?W\n舰队物资损失：?Y$y$?W\n补给线建设损失：?Y$val$?W
