@@ -1078,6 +1078,26 @@ void upgrade_colonial_state(sys::state& state, dcon::nation_id source, dcon::sta
 	}
 }
 
+void reset_all_state_capitals(sys::state& state) {
+	state.world.for_each_state_instance([&](dcon::state_instance_id s) {
+		auto owner = state.world.state_instance_get_nation_from_state_ownership(s);
+		state.world.nation_set_owned_state_count(owner, uint16_t(state.world.nation_get_owned_state_count(owner) + uint16_t(1)));
+		dcon::province_id p;
+
+		int16_t min_priority = (int16_t)state.world.abstract_state_membership_size();
+
+		for(auto prv : state.world.state_definition_get_abstract_state_membership(state.world.state_instance_get_definition(s))) {
+			auto priority = state.world.abstract_state_membership_get_priority(prv);
+			if(priority < min_priority && state.world.province_get_nation_from_province_ownership(prv.get_province()) == owner) {
+				p = prv.get_province().id;
+				min_priority = priority;
+			}
+		}
+
+		state.world.state_instance_set_capital(s, p);
+	});
+}
+
 void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation_id new_owner) {
 	assert(id);
 	auto state_def = state.world.province_get_state_from_abstract_state_membership(id);
