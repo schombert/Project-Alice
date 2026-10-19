@@ -4136,8 +4136,13 @@ bool can_retreat_move_or_stop_army(sys::state& state, dcon::nation_id source, dc
 		return false;
 	}
 	auto army_loc = state.world.army_get_location_from_army_location(a);
-	if(army_loc == dest && command::can_stop_army_movement(state, source, a)) {
-		return true;
+	if(army_loc == dest) {
+		if(state.world.army_get_navy_from_army_transport(a) && province::is_land(state, army_loc)) {
+			return command::can_embark_army(state, source, a);
+		}
+		else {
+			return command::can_stop_army_movement(state, source, a);
+		}
 	}
 	auto battle = state.world.army_get_battle_from_army_battle_participation(a);
 	if(bool(battle)) {
@@ -4169,7 +4174,12 @@ void move_retreat_or_stop_army(sys::state& state, dcon::nation_id source, dcon::
 	auto army_loc = state.world.army_get_location_from_army_location(a);
 	auto battle = state.world.army_get_battle_from_army_battle_participation(a);
 	if(army_loc == dest) {
-		command::stop_army_movement(state, source, a);
+		if(state.world.army_get_navy_from_army_transport(a) && province::is_land(state, army_loc)) {
+			command::embark_army(state, source, a);
+		} else {
+			command::stop_army_movement(state, source, a);
+		}
+		
 	}
 	else {
 		if(bool(battle)) {
