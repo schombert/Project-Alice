@@ -2541,9 +2541,6 @@ void run_private_investment(sys::state& state) {
 						new_up.set_is_upgrade(r.is_upgrade);
 						new_up.set_type(r.type);
 						const auto& base_cost = state.world.factory_type_get_construction_costs(r.type);
-						auto& purchased_goods = economy::construction_get_purchased_goods(state, new_up.id);
-						// init types in new set
-						base_cost.copy_types_to(purchased_goods);
 
 						est_private_const_spending += r.cost;
 					}
@@ -2582,9 +2579,6 @@ void run_private_investment(sys::state& state) {
 						new_up.set_is_upgrade(r.is_upgrade);
 						new_up.set_type(r.type);
 						const auto& base_cost = state.world.factory_type_get_construction_costs(r.type);
-						auto& purchased_goods = economy::construction_get_purchased_goods(state, new_up.id);
-						// init types in new set
-						base_cost.copy_types_to(purchased_goods);
 						est_private_const_spending += r.cost;
 					}
 				}
@@ -2603,9 +2597,6 @@ void run_private_investment(sys::state& state) {
 					const auto& base_cost = state.economy_definitions.building_definitions[uint8_t(r.type)].cost;
 					new_rr.set_is_pop_project(r.is_pop_project);
 					new_rr.set_type(uint8_t(r.type));
-					auto& purchased_goods = construction_get_purchased_goods(state, new_rr.id);
-					// init types in new set
-					base_cost.copy_types_to(purchased_goods);
 					est_private_const_spending += r.cost;
 				}
 
@@ -6181,7 +6172,7 @@ construction_status province_building_construction(sys::state& state, dcon::prov
 			float total = 0.0f;
 			float purchased = 0.0f;
 			for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
-				auto current = pb_con.get_purchased_goods().commodity_amounts[i];
+				auto current = pb_con.get_purchased_goods()[i];
 				auto required = state.economy_definitions.building_definitions[int32_t(t)].cost.commodity_amounts[i]
 					* modifier;
 
@@ -6206,7 +6197,7 @@ construction_status factory_upgrade(sys::state& state, dcon::factory_id f) {
 			auto& goods = state.world.factory_type_get_construction_costs(fac_type);
 			for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
 				total += goods.commodity_amounts[i] * modifier;
-				purchased += st_con.get_purchased_goods().commodity_amounts[i];
+				purchased += st_con.get_purchased_goods()[i];
 			}
 			return construction_status{ total > 0.0f ? purchased / total : 0.0f, true };
 		}
