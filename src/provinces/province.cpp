@@ -507,6 +507,11 @@ void set_province_controller(sys::state& state, dcon::province_id p, dcon::natio
 	if(!curr_owner) {
 		return;
 	}
+	auto rebel_nation = state.world.national_identity_get_nation_from_identity_holder(state.national_definitions.rebel_id);
+	if(n == rebel_nation) {
+		// Intercept attempts to change controller to the rebel nation, and change it to the invalid nation. Tons of code assumes invalid nation id == rebels, and some mods like to be funny and set controllership to REB directly
+		n = dcon::nation_id{ };
+	}
 	if(old_con != n) {
 		auto state_inst = state.world.province_get_state_membership(p);
 		// Check if the state needs to also change controller
@@ -1084,9 +1089,14 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 	auto old_si = state.world.province_get_state_membership(id);
 	auto old_market = state.world.state_instance_get_market_from_local_market(old_si);
 	auto old_owner = state.world.province_get_nation_from_province_ownership(id);
-
-	if(new_owner == old_owner)
+	// Some mods are lazy and use secede_province = REB when they actually mean to change controllership. REB shouldn't own any provinces anyway so intecept this call and change controller instead
+	if(new_owner == state.world.national_identity_get_nation_from_identity_holder(state.national_definitions.rebel_id)) {
+		set_province_controller(state, id, dcon::nation_id{ });
 		return;
+	}
+	else if(new_owner == old_owner) {
+		return;
+	}
 
 	if (new_owner) state.map_state.map_data.national_group_is_clean[map::nation_to_group(state, new_owner, false)] = false;
 	if (old_owner) state.map_state.map_data.national_group_is_clean[map::nation_to_group(state, old_owner, false)] = false;

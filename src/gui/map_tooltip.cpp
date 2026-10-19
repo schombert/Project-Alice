@@ -798,11 +798,21 @@ void migration_map_tt_box(sys::state& state, text::columnar_layout& contents, dc
 
 			display_data.insert_or_assign(owner, std::move(local_mig_data));
 		}
-
 		const migration_display_data& migration_display = display_data.at(owner);
+		{ 
+			float net_change = migration_display.total_pos + migration_display.total_neg;
+			text::text_color net_change_color = (net_change > 0.0f ? text::text_color::green : text::text_color::red);
+			auto box = text::open_layout_box(contents);
+			text::add_line_break_to_layout_box(state, contents, box);
+			text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, "monthly_net_migration_lab"));
+			text::add_space_to_layout_box(state, contents, box);
+			text::add_to_layout_box(state, contents, box, int64_t(net_change), net_change_color);
+			text::close_layout_box(contents, box);
+		}
 
 		text::add_line_break_to_layout(state, contents);
 		text::add_line(state, contents, "monthly_immigration_lab");
+		text::add_line_break_to_layout(state, contents);
 		float total_accounted_for = 0.0f;
 		for(uint32_t i = 0; i < migration_display.positive_migration.size() && i < 10; ++i) {
 			total_accounted_for += migration_display.positive_migration[i].v;

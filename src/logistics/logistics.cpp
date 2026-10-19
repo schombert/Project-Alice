@@ -10,10 +10,9 @@
 #include "economy_templates.hpp"
 #include "military_templates.hpp"
 #include "nations_templates.hpp"
+#include "logistics_constants.hpp"
 
 namespace logistics {
-
-constexpr float construction_route_transport_leeway = 0.001f; // The minimum % of the total cost a route will attempt to consume and transport per day as extra leeway. This makes it so that constructions arent "stuck" for abit due to supply loss. Should be low enough that it isn't noticable.
 
 constexpr uint32_t supply_route_pathfinding_batches = 30; // The desired amount of batches for processing pathfinding in parallel. Less batches = better performance when under heavy load, but the pathfinding is not able to take other potentially overlapping paths into account in the pathfinding logic.
 
