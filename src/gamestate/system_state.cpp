@@ -1175,7 +1175,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 	/*render_semaphore.release();*/
 }
 
-void state::on_window_create() {
+void state::on_create() {
 	// lua ui environment
 
 	lua_alice_api::setup_ui_environment(*this);

@@ -3539,7 +3539,7 @@ dcon::nation_id get_immigration_target(sys::state& state, dcon::nation_id owner,
 
 
 template<concepts::any_dcon_id_type<dcon::pop_id> pop_type, typename F>
-void calculate_immigration_amount(sys::state& state, pop_type ids, F&& result_func) {
+void calculate_emigration_amount(sys::state& state, pop_type ids, F&& result_func) {
 	/*
 		pops in a civ nation that are not in a colony any which do not belong to an `overseas` culture group in provinces with a
 		total population > 100 may emigrate. This is done by calculating the emigration migration chance factor *additively*. If
@@ -3561,7 +3561,7 @@ void calculate_immigration_amount(sys::state& state, pop_type ids, F&& result_fu
 		* adaptive_ve::max<float_type>(impush, 1.0f)
 		* state.defines.immigration_scale;
 	auto pops_can_immigrate =
-		adaptive_ve::id_is_nonzero(owners) &&
+		owners != decltype(owners){} &&
 		state.world.nation_get_is_civilized(owners) &&
 		state.world.pop_get_poptype(ids) != state.culture_definitions.slaves &&
 		state.world.culture_group_get_is_overseas(state.world.culture_get_group_from_culture_group_membership(state.world.pop_get_culture(ids)));
@@ -3814,7 +3814,7 @@ void update_immigration(sys::state& state, uint32_t offset, uint32_t divisions, 
 	pexecute_staggered_blocks(offset, divisions, state.world.pop_size(), [&](auto ids) {
 		pbuf.amounts.set(ids, 0.0f);
 
-		impl::calculate_immigration_amount(state, ids, [&](auto pops, auto locations, auto owners, auto amounts) {
+		impl::calculate_emigration_amount(state, ids, [&](auto pops, auto locations, auto owners, auto amounts) {
 			ve::apply([&](dcon::pop_id pop, dcon::nation_id owner, float amount) {
 				if(amount > 0.0f) {
 					auto ndest = impl::get_immigration_target(state, owner, pop, state.current_date);
@@ -3877,7 +3877,7 @@ void estimate_directed_immigration(sys::state& state, dcon::nation_id n, tagged_
 float get_estimated_emigration(sys::state& state, dcon::pop_id ids) {
 
 	float total_amount = 0.0f;
-	impl::calculate_immigration_amount(state, ids, [&](dcon::pop_id pop, dcon::province_id location, dcon::nation_id owner, float amount) {
+	impl::calculate_emigration_amount(state, ids, [&](dcon::pop_id pop, dcon::province_id location, dcon::nation_id owner, float amount) {
 		total_amount += amount;
 	});
 	return total_amount;

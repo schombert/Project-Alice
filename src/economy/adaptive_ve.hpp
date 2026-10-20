@@ -94,15 +94,4 @@ RELEASE_INLINE VALUE select(const MASK mask, const VALUE a, const VALUE b) {
 	return ve::select<VALUE::wrapped_value>(mask, a, b);
 }
 
-template<concepts::dcon_id_type VALUE>
-RELEASE_INLINE bool id_is_nonzero(const VALUE id) {
-	return bool(id);
-}
-template<typename VALUE>
-RELEASE_INLINE ve::mask_vector id_is_nonzero(const VALUE ids) {
-	return ve::apply([&](auto id) {
-		return bool(id);
-	}, ids);
-}
-
 }
