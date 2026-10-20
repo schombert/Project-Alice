@@ -39,7 +39,6 @@ struct state {
 	std::chrono::microseconds time_since_last_render{ };
 	bool scrollbar_continuous_movement = false;
 	float last_fps = 0.f;
-	bool lazy_load_in_game = false;
 	element_base* scroll_target = nullptr;
 	element_base* drag_target = nullptr;
 	element_base* edit_target_internal = nullptr;

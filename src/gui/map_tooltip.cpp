@@ -758,7 +758,7 @@ void migration_map_tt_box(sys::state& state, text::columnar_layout& contents, dc
 			dcon::nation_id n;
 		};
 		struct migration_display_data {
-			std::vector<float> total_migration;
+			tagged_vector<float, dcon::nation_id> total_migration;
 			std::vector<nation_and_value> positive_migration;
 			std::vector<nation_and_value> negative_migration;
 			float total_neg = 0;
@@ -780,12 +780,12 @@ void migration_map_tt_box(sys::state& state, text::columnar_layout& contents, dc
 			demographics::estimate_directed_immigration(state, owner, local_mig_data.total_migration);
 			for(uint32_t i = uint32_t(local_mig_data.total_migration.size()); i-- > 0; ) {
 				dcon::nation_id in{ dcon::nation_id::value_base_t(i) };
-				if(local_mig_data.total_migration[i] > 0.0f) {
-					local_mig_data.positive_migration.push_back(nation_and_value{ local_mig_data.total_migration[i],in });
-					local_mig_data.total_pos += local_mig_data.total_migration[i];
-				} else if(local_mig_data.total_migration[i] < 0.0f) {
-					local_mig_data.negative_migration.push_back(nation_and_value{ local_mig_data.total_migration[i],in });
-					local_mig_data.total_neg += local_mig_data.total_migration[i];
+				if(local_mig_data.total_migration[in] > 0.0f) {
+					local_mig_data.positive_migration.push_back(nation_and_value{ local_mig_data.total_migration[in],in });
+					local_mig_data.total_pos += local_mig_data.total_migration[in];
+				} else if(local_mig_data.total_migration[in] < 0.0f) {
+					local_mig_data.negative_migration.push_back(nation_and_value{ local_mig_data.total_migration[in],in });
+					local_mig_data.total_neg += local_mig_data.total_migration[in];
 				}
 			}
 
@@ -798,11 +798,21 @@ void migration_map_tt_box(sys::state& state, text::columnar_layout& contents, dc
 
 			display_data.insert_or_assign(owner, std::move(local_mig_data));
 		}
-
 		const migration_display_data& migration_display = display_data.at(owner);
+		{ 
+			float net_change = migration_display.total_pos + migration_display.total_neg;
+			text::text_color net_change_color = (net_change > 0.0f ? text::text_color::green : text::text_color::red);
+			auto box = text::open_layout_box(contents);
+			text::add_line_break_to_layout_box(state, contents, box);
+			text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, "monthly_net_migration_lab"));
+			text::add_space_to_layout_box(state, contents, box);
+			text::add_to_layout_box(state, contents, box, int64_t(net_change), net_change_color);
+			text::close_layout_box(contents, box);
+		}
 
 		text::add_line_break_to_layout(state, contents);
 		text::add_line(state, contents, "monthly_immigration_lab");
+		text::add_line_break_to_layout(state, contents);
 		float total_accounted_for = 0.0f;
 		for(uint32_t i = 0; i < migration_display.positive_migration.size() && i < 10; ++i) {
 			total_accounted_for += migration_display.positive_migration[i].v;

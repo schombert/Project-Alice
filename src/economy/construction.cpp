@@ -10,6 +10,7 @@
 #include "logistics.hpp"
 #include "nations_templates.hpp"
 #include "logistics_templates.hpp"
+#include "logistics_constants.hpp"
 
 namespace economy {
 
@@ -981,8 +982,11 @@ void populate_government_construction_consumption(sys::state& state) {
 
 
 		auto accumulate_func = [&](dcon::commodity_id com_id, float required_amount, float total_required) {
-			float demand_amount = std::min(total_required / construction_days * construction_consumption, required_amount); // Tie the demand amount to add to the construction consumption setting of the nation. Low consumption setting -> we won't try to purchase as much
-			demand_buffer_set(conc_owner, com_id, demand_buffer_get(conc_owner, com_id) + demand_amount);
+			// Tie the demand amount to add to the construction consumption setting of the nation. Low consumption setting -> we won't try to purchase as much
+			float actual_demanded = std::min(total_required / construction_days * construction_consumption, required_amount);
+			float minimum_demand = std::max(actual_demanded, total_required * logistics::construction_route_transport_leeway);
+			actual_demanded = (actual_demanded == 0.0f ? actual_demanded : minimum_demand); // If some amount of goods are still required, then at minimum attempt to demand some percent of the total cost (default: 0.1%) to avoid slowdowns due to potential loss
+			demand_buffer_set(conc_owner, com_id, demand_buffer_get(conc_owner, com_id) + actual_demanded);
 		};
 		accumulate_construction_daily_goods_requirements(state, con, accumulate_func);
 	});
@@ -1168,16 +1172,17 @@ void advance_constructions_progress(sys::state& state) {
 		const economy::commodity_set actual_build_cost = construction_get_actual_build_cost(state, c);
 		const economy::commodity_set& purchased_goods = construction_get_purchased_goods(state, c);
 
-		float total = 0.0f;
+		float total_required = 0.0f;
 		float purchased = 0.0f;
-
-		for(uint32_t i = 0; i < actual_build_cost.set_size; ++i) {
-			total += actual_build_cost.commodity_amounts[i];
-			purchased += purchased_goods.commodity_amounts[i];
-		}
+		actual_build_cost.for_each_valid_index([&](uint32_t i) {
+			float cost_amount = actual_build_cost.commodity_amounts[i];
+			float purchased_amount = purchased_goods.commodity_amounts[i];
+			total_required += cost_amount;
+			purchased += std::min(purchased_amount, cost_amount); // Dont count excess goods which aren't needed
+		});
 
 		float construction_days_progress = economy::construction_progress(state, construction.id);
-		float goods_progress = (total == 0.0f ? 1.0f : purchased / total);
+		float goods_progress = (total_required == 0.0f ? 1.0f : purchased / total_required);
 		if(goods_progress > construction_days_progress) {
 			construction.set_construction_days(construction.get_construction_days() + 1);
 		}

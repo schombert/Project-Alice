@@ -752,6 +752,16 @@ float priority_private(sys::state& state, dcon::nation_id n, dcon::factory_type_
 	}
 }
 
+float cb_generation_speed_modifier(const sys::state& state, dcon::nation_id nation) {
+	return std::max(state.world.nation_get_modifier_values(nation, sys::national_mod_offsets::cb_generation_speed_modifier) + 1.0f, 0.01f); // Can't go below 1% efficiency
+}
+
+float cb_justification_speed(const sys::state& state, dcon::nation_id nation, dcon::cb_type_id cb) {
+	float cb_speed = state.world.cb_type_get_construction_speed(cb);
+	float mods = cb_generation_speed_modifier(state, nation);
+	return state.defines.cb_generation_base_speed * cb_speed * mods;
+}
+
 void update_research_points(sys::state& state) {
 	/*
 	Let pop-sum = for each pop type (research-points-from-type x 1^(fraction of population / optimal fraction))
@@ -1588,8 +1598,10 @@ float tariff_efficiency(sys::state const& state, dcon::nation_id n, dcon::market
 	auto sid = state.world.market_get_zone_from_local_market(m);
 	auto pid = state.world.state_instance_get_capital(sid);
 	auto eff_mod = state.world.nation_get_modifier_values(n, sys::national_mod_offsets::tariff_efficiency_modifier);
-	auto adm_eff = state.world.province_get_control_scale(pid);
-	return std::clamp((state.defines.base_tariff_efficiency + eff_mod) * adm_eff, 0.f, 1.f);
+	auto adm_eff = state.world.province_get_control_ratio(pid);
+	// Reasoning for treating control ratio as a tariff efficiency modifier: In base V2, pretty much the only source of tariff efficiency modifier is from buraucrats (admin efficiency). Since control replaces that, it should be treated similarly
+	// If it acted as a multiplicative modifier, the tariff efficiency would never exceed 20% in vanilla (the base tariff modifiers)
+	return std::clamp((state.defines.base_tariff_efficiency + eff_mod + adm_eff), 0.f, 1.f);
 }
 
 // Calculates all modifiers to tax efficiency from modifiers + base taxe efficiency

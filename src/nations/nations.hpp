@@ -191,6 +191,8 @@ float admin_cost_of_province(sys::state const& state, dcon::province_id pid);
 float priority_national(sys::state& state, dcon::nation_id n, dcon::factory_type_id ftid);
 float priority_private(sys::state& state, dcon::nation_id n, dcon::factory_type_id ftid);
 
+float cb_justification_speed(const sys::state& state, dcon::nation_id nation, dcon::cb_type_id cb);
+
 float daily_research_points(sys::state& state, dcon::nation_id n);
 void update_research_points(sys::state& state);
 

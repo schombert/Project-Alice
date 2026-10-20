@@ -507,6 +507,11 @@ void set_province_controller(sys::state& state, dcon::province_id p, dcon::natio
 	if(!curr_owner) {
 		return;
 	}
+	auto rebel_nation = state.world.national_identity_get_nation_from_identity_holder(state.national_definitions.rebel_id);
+	if(n == rebel_nation) {
+		// Intercept attempts to change controller to the rebel nation, and change it to the invalid nation. Tons of code assumes invalid nation id == rebels, and some mods like to be funny and set controllership to REB directly
+		n = dcon::nation_id{ };
+	}
 	if(old_con != n) {
 		auto state_inst = state.world.province_get_state_membership(p);
 		// Check if the state needs to also change controller
@@ -1111,9 +1116,14 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 	auto old_si = state.world.province_get_state_membership(id);
 	auto old_market = state.world.state_instance_get_market_from_local_market(old_si);
 	auto old_owner = state.world.province_get_nation_from_province_ownership(id);
-
-	if(new_owner == old_owner)
+	// Some mods are lazy and use secede_province = REB when they actually mean to change controllership. REB shouldn't own any provinces anyway so intecept this call and change controller instead
+	if(new_owner == state.world.national_identity_get_nation_from_identity_holder(state.national_definitions.rebel_id)) {
+		set_province_controller(state, id, dcon::nation_id{ });
 		return;
+	}
+	else if(new_owner == old_owner) {
+		return;
+	}
 
 	if (new_owner) state.map_state.map_data.national_group_is_clean[map::nation_to_group(state, new_owner, false)] = false;
 	if (old_owner) state.map_state.map_data.national_group_is_clean[map::nation_to_group(state, old_owner, false)] = false;
@@ -1419,6 +1429,11 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 				p.get_pop().set_is_primary_or_accepted_culture(false);
 			}();
 		}
+		uint16_t prev_prov_count = state.world.nation_get_owned_province_count(new_owner);
+		if(prev_prov_count == 0) {
+			// If the nation just popped into existance, give it an arbitrary capital for now to prevent logic failures. Later effects may change it
+			state.world.nation_set_capital(new_owner, id);
+		}
 		state.world.nation_set_owned_province_count(new_owner, uint16_t(state.world.nation_get_owned_province_count(new_owner) + uint16_t(1)));
 	} else {
 		state.world.province_set_state_membership(id, dcon::state_instance_id{});
@@ -1536,6 +1551,10 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 		auto lprovs = state.world.nation_get_province_ownership(old_owner);
 		if(!nations::exists_or_is_utility_tag(state, old_owner) ) {
 			state.world.nation_set_marked_for_gc(old_owner, true);
+		}
+		// Set new capital if this province was the prev. owner's capital
+		if(id == state.world.nation_get_capital(old_owner) && nations::exists(state, old_owner)) {
+			state.world.nation_set_capital(old_owner, pick_capital(state, old_owner));
 		}
 	}
 
@@ -2188,7 +2207,8 @@ void update_colonization(sys::state& state) {
 
 		if(num_colonizers == 0 && d.get_colonization_stage() != 0) {
 			d.set_colonization_stage(uint8_t(0));
-		} else if(num_colonizers > 1 && d.get_colonization_stage() == uint8_t(2)) {
+		}
+		else if(num_colonizers > 1 && d.get_colonization_stage() == uint8_t(2)) {
 			/*
 			In phase 2 if there are competing colonizers, the "temperature" in the colony will rise by
 			define:COLONIAL_INFLUENCE_TEMP_PER_DAY + maximum-points-invested x define:COLONIAL_INFLUENCE_TEMP_PER_LEVEL +
@@ -2263,6 +2283,14 @@ void update_colonization(sys::state& state) {
 				while(colonizers.begin() != colonizers.end()) {
 					state.world.delete_colonization(*colonizers.begin());
 				}
+			}
+		}
+		else if(num_colonizers == 1 && d.get_colonization_stage() != 3) {
+			// If there is only a single colonizer which has atleast level 3 investment and is not at stage 3 yet, jump directly to the last colonization stage to allow protectorate
+			auto only_colony = (*colonizers.begin());
+			if(only_colony.get_level() >= 3) {
+				only_colony.set_level(std::max(uint8_t(5), only_colony.get_level()));
+				d.set_colonization_stage(3);
 			}
 		}
 	}

@@ -537,9 +537,16 @@ void apply_base_unit_stat_modifiers(sys::state& state) {
 
 void invalidate_unowned_wargoals(sys::state& state) {
 	for(auto wg : state.world.in_wargoal) {
-		if(wg.get_war_from_wargoals_attached()) {
+		auto war = wg.get_war_from_wargoals_attached();
+		if(war) {
 			auto s = wg.get_associated_state();
 			if(s) {
+				auto colonization = s.get_colonization();
+				bool being_colonized = (colonization.end() != colonization.begin());
+				// If the war is a crisis war, and the targeted state is being colonized, then don't clean it up cause its a colonial crisis wargoal
+				if(war.get_is_crisis_war() && being_colonized) {
+					continue;
+				}
 				bool found_state = false;
 				for(auto si : wg.get_target_nation().get_state_ownership()) {
 					if(si.get_state().get_definition() == s) {
@@ -1726,7 +1733,7 @@ void update_cbs(sys::state& state) {
 			(national-cb-construction-speed-modifiers + technology-cb-construction-speed-modifier + 1).
 			*/
 
-			auto eff_speed = state.defines.cb_generation_base_speed * n.get_constructing_cb_type().get_construction_speed() * (n.get_modifier_values(sys::national_mod_offsets::cb_generation_speed_modifier) + 1.0f);
+			auto eff_speed = nations::cb_justification_speed(state, n, n.get_constructing_cb_type());
 
 			n.set_constructing_cb_progress(n.get_constructing_cb_progress() + std::max(eff_speed, 0.0f));
 
@@ -3298,6 +3305,8 @@ void add_wargoal(sys::state& state, dcon::war_id wfor, dcon::nation_id added_by,
 				else if(tag)
 					text::add_to_substitution_map(sub, text::variable_type::third, tag);
 				text::add_to_substitution_map(sub, text::variable_type::state, sd);
+				// Apprently some warogals in vanilla use $REGION$ instead of $STATE$ to denote target state in wargoal loc
+				text::add_to_substitution_map(sub, text::variable_type::region, sd);
 
 				auto box = text::open_layout_box(contents);
 				text::add_to_layout_box(state, contents, box, state.world.cb_type_get_shortest_desc(type), sub);
@@ -10834,7 +10843,8 @@ bool can_set_army_supply_priority(const sys::state& state, dcon::nation_id sourc
 			return false;
 		}
 	}
-	if(military::get_effective_unit_commander(state, army) != source) {
+	dcon::nation_id controller = unit_get_controller(state, army);
+	if(controller != source) {
 		return false;
 	}
 	if(priority > unit_priority::high_priority || priority < unit_priority::low_priority) {
@@ -10859,7 +10869,8 @@ bool can_set_navy_supply_priority(const sys::state& state, dcon::nation_id sourc
 			return false;
 		}
 	}
-	if(military::get_effective_unit_commander(state, navy) != source) {
+	dcon::nation_id controller = unit_get_controller(state, navy);
+	if(controller != source) {
 		return false;
 	}
 	if(priority > unit_priority::high_priority || priority < unit_priority::low_priority) {
