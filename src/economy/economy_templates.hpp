@@ -154,6 +154,15 @@ void ve_parallel_for_each_construction(const sys::state& state, F&& func) {
 	ve_parallel_for_each_unit_construction(state, func);
 	ve_parallel_for_each_building_construction(state, func);
 }
+template<typename unit_commodity_type, typename F>
+void for_each_unit_commodity_by_type(const sys::state& state, F&& func) {
+	if constexpr(std::is_same_v<unit_commodity_type, dcon::unit_supply_commodity_id>) {
+		state.world.for_each_unit_supply_commodity(func);
+	}
+	else if constexpr(std::is_same_v<unit_commodity_type, dcon::unit_build_commodity_id>) {
+		state.world.for_each_unit_build_commodity(func);
+	}
+}
 
 template<price_estimation price_est, concepts::any_dcon_id_type<dcon::market_id> market_type, concepts::regular_or_ve_value_type<float> float_type>
 auto get_estimated_state_stockpile_purchase_price(const sys::state& state, market_type market, dcon::commodity_id com_id, float_type goods_desired) {

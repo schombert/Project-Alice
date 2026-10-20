@@ -2386,6 +2386,12 @@ object {
 		tag{ save }
 	}
 	property{
+		name{ desired_num_stockpile_goods }
+		type{ float }
+		tag{ keep_after_state_reload }
+		tag { mp_checksum_excluded }
+	}
+	property{
 		name{ needs_supply_goods }
 		type{ bitfield }
 		tag{ keep_after_state_reload }
@@ -2485,6 +2491,12 @@ object {
 		name{ ai_activity }
 		type{ uint8_t }
 		tag{ save }
+	}
+	property{
+		name{ desired_num_stockpile_goods }
+		type{ float }
+		tag{ keep_after_state_reload }
+		tag { mp_checksum_excluded }
 	}
 	property{
 		name{ needs_supply_goods }
@@ -5711,6 +5723,13 @@ relationship{
 	}
 
 	property{
+		name{ desired_num_stockpile_goods }
+		type{ float }
+		tag{ keep_after_state_reload }
+		tag { mp_checksum_excluded }
+	}
+
+	property{
 		name{ needs_construction_goods }
 		type{ bitfield }
 		tag{ keep_after_state_reload }
@@ -5780,6 +5799,12 @@ relationship{
 		tag{ save }
 	}
 	property{
+		name{ desired_num_stockpile_goods }
+		type{ float }
+		tag{ keep_after_state_reload }
+		tag { mp_checksum_excluded }
+	}
+	property{
 		name{ needs_construction_goods }
 		type{ bitfield }
 		tag{ keep_after_state_reload }
@@ -5842,6 +5867,12 @@ relationship{
 		name{ last_required_percent_base_cost }
 		type{ float }
 		tag{ save }
+	}
+	property{
+		name{ desired_num_stockpile_goods }
+		type{ float }
+		tag{ keep_after_state_reload }
+		tag { mp_checksum_excluded }
 	}
 	property{
 		name{ needs_construction_goods }
@@ -5918,6 +5949,12 @@ relationship{
 		name{ last_required_percent_base_cost }
 		type{ float }
 		tag{ save }
+	}
+	property{
+		name{ desired_num_stockpile_goods }
+		type{ float }
+		tag{ keep_after_state_reload }
+		tag { mp_checksum_excluded }
 	}
 	property{
 		name{ needs_construction_goods }
