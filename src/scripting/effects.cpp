@@ -663,6 +663,9 @@ uint32_t es_middle_strata_scope_province(EFFECT_PARAMTERS) {
 			}
 		}
 	}
+
+	for(auto p : plist)
+		i += apply_subeffects(tval, ws, trigger::to_generic(p), this_slot, from_slot, r_hi, r_lo + i, els);
 	return i;
 }
 uint32_t es_rich_strata_scope_nation(EFFECT_PARAMTERS) {
