@@ -878,8 +878,15 @@ bool can_build_province_building(sys::state& state, dcon::province_id id, dcon::
 
 	int32_t current_lvl = state.world.province_get_building_level(id, uint8_t(t));
 	int32_t max_local_lvl = state.world.nation_get_max_building_level(n, uint8_t(t));
-	int32_t min_build = int32_t(state.world.province_get_modifier_values(id, sys::provincial_mod_offsets::min_build_railroad));
-	return (max_local_lvl - current_lvl - min_build > 0) && !has_railroads_being_built(state, id);
+	int32_t min_build = 0;
+	if(t == economy::province_building_type::railroad) {
+		min_build = int32_t(state.world.province_get_modifier_values(id, sys::provincial_mod_offsets::min_build_railroad));
+	} else if(t == economy::province_building_type::bank) {
+		min_build = int32_t(state.world.province_get_modifier_values(id, sys::provincial_mod_offsets::min_build_bank));
+	} else if(t == economy::province_building_type::university) {
+		min_build = int32_t(state.world.province_get_modifier_values(id, sys::provincial_mod_offsets::min_build_university));
+	}
+	return (max_local_lvl - current_lvl - min_build > 0) && !has_province_building_being_built(state, id, t);
 }
 
 bool has_an_owner(sys::state& state, dcon::province_id id) {
