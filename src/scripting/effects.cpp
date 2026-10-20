@@ -3242,7 +3242,7 @@ uint32_t ef_activate_technology(EFFECT_PARAMTERS) {
 	return 0;
 }
 uint32_t ef_activate_invention(EFFECT_PARAMTERS) {
-	if(ws.world.nation_get_active_inventions(trigger::to_nation(primary_slot), trigger::payload(tval[1]).invt_id) == true)
+	if(ws.world.nation_get_active_inventions(trigger::to_nation(primary_slot), trigger::payload(tval[1]).invt_id) == false)
 		culture::apply_invention(ws, trigger::to_nation(primary_slot), trigger::payload(tval[1]).invt_id);
 	return 0;
 }
