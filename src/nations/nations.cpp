@@ -2242,7 +2242,7 @@ void make_substate(sys::state& state, dcon::nation_id subject, dcon::nation_id o
 		state.trade_route_cached_values_out_of_date = true;
 		state.world.nation_set_is_substate(subject, true);
 		state.world.nation_get_vassals_count(overlord)++;
-		state.world.nation_get_substates_count(current_ruler)++;
+		state.world.nation_get_substates_count(overlord)++;
 		// clear alliances of subject to prevent potential tomfoolery by the subject
 		clear_alliances(state, subject);
 		clear_all_embargoes(state, subject);
