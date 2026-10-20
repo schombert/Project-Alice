@@ -1444,7 +1444,7 @@ pop_migration_attraction_1;迁移因子：
 pop_migration_attraction_2;地区修正：$x$
 pop_migration_attraction_3;目标因子：$x$
 alice_technology_leadership_points;领导力：
-alice_reserve_reg_count;$x$ 当前有 ?Y$y$?W 预备队战斗中
+alice_reserve_reg_count;$x$ 当前有 ?Y$y$?W 预备队作战
 provid;内容 省份 ID
 used_throughput_tooltip;省内路线总用量 ?Y$val$
 max_throughput_tooltip;省内路线最大量 ?Y$val$
@@ -2033,9 +2033,9 @@ trade_particles_count;粒子数
 land_battle_supply_satisfaction_header_tooltip;每月士兵增援预计 ?Y$val$?W，满足如下：
 battle_supply_satisfaction_tooltip;供应满足：?Y$val$?W
 battle_reinforcement_satisfaction_tooltip;增援满足：?Y$val$?W
-unit_current_supply_high;: ?Y$val$?W/?Y$value$?! ?l（?W?G$total$%?W?l 满足） （?Y$x$?W 补给线损失） （?Y$y$?W 吞吐）
-unit_current_supply_mid;: ?Y$val$?!/?Y$value$?! ?l（?O$total$%?W?l 满足） （?Y$x$?W 补给线损失） （?Y$y$?W 吞吐）
-unit_current_supply_low;: ?Y$val$?!/?Y$value$?! ?l（?R$total$%?W?l 满足） （?Y$x$?W 补给线损失） （?Y$y$?W 吞吐）
+unit_current_supply_high;: ?Y$val$?W/?Y$value$?! ?l（?W?G$total$%?W?l 满足）（?Y$x$?W 补给线损失）（?Y$y$?W 吞吐）
+unit_current_supply_mid;: ?Y$val$?!/?Y$value$?! ?l（?O$total$%?W?l 满足）（?Y$x$?W 补给线损失）（?Y$y$?W 吞吐）
+unit_current_supply_low;: ?Y$val$?!/?Y$value$?! ?l（?R$total$%?W?l 满足）（?Y$x$?W 补给线损失）（?Y$y$?W 吞吐）
 unit_current_reinforcement_land;此单位昨天获得所需增援的 ?Y$val$%?W。\n当前可用增援：
 unit_current_reinforcement_naval;此单位昨天获得所需增援的 ?Y$val$%?W。\n当前可用维修：
 province_market_government_stockpiles;政府库存：?Y$val$?!
@@ -2045,13 +2045,13 @@ government_stockpiles;政府库存
 unit_supply_priority_low_tooltip_1;此单位当前补给优先 ?R低?W
 unit_supply_priority_normal_tooltip_1;此单位当前补给优先 ?Y中?W
 unit_supply_priority_high_tooltip_1;此单位当前补给优先 ?G高?W
-unit_priority_tooltip_2;提高优先 ?Y左击?W，降低优先 ?Y右击?W
-unit_priority_tooltip_3;（此单位战斗中，优先补给）
+unit_priority_tooltip_2;?Y左击?W提高优先，?Y右击?W降低优先。
+unit_priority_tooltip_3;（此单位作战，优先补给）
 selected_units_supply_priority_low_tooltip_1;所有选择单位补给优先 ?R低?W
 selected_units_supply_priority_normal_tooltip_1;所有选择单位补给优先 ?Y中?W
 selected_units_supply_priority_high_tooltip_1;所有选择单位补给优先 ?G高?W
 selected_units_supply_priority_unknown_tooltip_1;所有选择单位补给优先 ?O任意?W
-selected_units_priority_tooltip_2;所有选择单位提高优先 ?Y左击?W，降低优先 ?Y右击?W
+selected_units_priority_tooltip_2;?Y左击?W提高所有选择单位优先，?Y右击?W降低优先。
 military_title;军事
 budget_military_satisfaction_label;部队满足：
 land_reinforcement_consumption;陆军增援：
@@ -2101,7 +2101,7 @@ stockpile_change;$val$/天
 stockpile_change_tooltip;每日库存变化：?Y$val$?W
 stockpile_days_left;$days$ 天剩余
 stockpile_days_left_tooltip;按当前消耗水平算，剩余物资可维持 ?Y$days$?W 天
-mlitary_stockpile_commodity_tooltip;?G左击?W选择商品，?R右击?W 取消。
+mlitary_stockpile_commodity_tooltip;?G左击?W选择商品，?R右击?W取消。
 mlitary_stockpile_target_error;?R无效输入?W
 confirm_stockpile_target_tooltip;确认库存目标
 stockpile_target_set_label;设置库存目标：
@@ -2139,3 +2139,4 @@ logistics_supply_throughput_label;吞吐：
 logistics_satisfaction_tooltip;此区域所需物资平均满足：?Y$val$?W
 logistics_supply_loss_tooltip;此区域物资平均运输损失率：?Y$val$?W
 logistics_supply_throughput_tooltip;此区域物资运输吞吐率：?Y$val$?W
+monthly_net_migration_lab;每月净迁移：
