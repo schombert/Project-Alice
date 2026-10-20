@@ -1,6 +1,7 @@
 #pragma once
 #include "system_state.hpp"
 #include "province.hpp"
+#include "adaptive_ve.hpp"
 
 namespace province {
 
@@ -124,7 +125,7 @@ void ve_for_each_adjacency_and_province(const sys::state& state, dcon::province_
 			auto other_prov = (p0 == prov ? p1 : p0);
 			adj_out.set(i, adj);
 			prov_out.set(i, other_prov);
-			cur_adj++;
+			cur_adj += 1;
 			if(cur_adj == adj_end) {
 				break;
 			}
@@ -240,6 +241,173 @@ bool make_path_to_prov(const sys::state& state, dcon::province_id start, dcon::p
 		return true;
 
 	// Initialize to-province state on the last province, and run the check function for the end province to see if it is valid in the first place
+	if constexpr(!std::is_same_v<StateType, std::monostate>) {
+		stateinit_to_prov_func(end, local_state);
+	}
+	bool prov_check = [&]() {
+		if constexpr(std::is_same_v<StateType, std::monostate>) {
+			return to_prov_predicate(end);
+		} else {
+			return to_prov_predicate(end, local_state);
+		}
+		}();
+	if(!prov_check) { //  or if the end province would fail the province check
+		return false;
+	}
+
+
+	static thread_local std::vector<dcon::province_id> open_queue; // prioity queue of nodes to be processed, ordered by computed distance. Smallest distance goes first
+	open_queue.clear();
+	// contains nodes for all provinces, including if they are in the open queue, are closed and its parent for constructing path later. It is allocated as a static thread local buffer, as it is possible both the UI and update thread will calculate paths
+	static thread_local tagged_vector<path_node_heuristic, dcon::province_id> path_node_container;
+
+	path_node_container.resize(state.world.province_size());
+	std::memset(path_node_container.data(), 0, sizeof(path_node_heuristic) * path_node_container.size()); // memset incase it was used earlier
+
+
+	auto province_comparer = [&](dcon::province_id a, dcon::province_id b) {
+		return path_node_container[a] > path_node_container[b];
+		};
+
+	auto fill_path_result = [&](dcon::province_id i) {
+		while(i && i != start) {
+			path_result.push_back(i);
+			i = path_node_container[i].parent;
+		}
+		};
+	auto assert_path_result = [](std::vector<dcon::province_id>& v) {
+		for(auto const e : v)
+			assert(bool(e));
+		};
+	auto& start_node = path_node_container[start];
+	start_node.distance_covered = 0.0f;
+	start_node.distance_to_target = 0.0f;
+	start_node.is_in_closed_list = false;
+	start_node.is_in_open_list = true;
+	start_node.parent = dcon::province_id{ };
+	start_node.province = start;
+
+	open_queue.push_back(start);
+	while(!open_queue.empty()) {
+		std::pop_heap(open_queue.begin(), open_queue.end(), province_comparer);
+		auto current_prov = open_queue.back();
+		open_queue.pop_back();
+		auto& current_node = path_node_container[current_prov];
+		// Its a duplicate we have already been through, skip
+		if(current_node.is_in_closed_list) {
+			continue;
+		}
+		// check if we have reached the end
+		if(current_prov == end) {
+			fill_path_result(current_prov);
+			assert_path_result(path_result);
+			return true;
+		}
+		// add current to closed list immediately
+		current_node.is_in_open_list = false;
+		current_node.is_in_closed_list = true;
+
+		// Init the local state for the from-province only once a new from-province is chosen
+		if constexpr(!std::is_same_v<StateType, std::monostate>) {
+			stateinit_from_prov_func(current_prov, local_state);
+		}
+
+		for(auto adj : state.world.province_get_province_adjacency(current_prov)) {
+			auto other_prov =
+				adj.get_connected_provinces(0) == current_prov ? adj.get_connected_provinces(1) : adj.get_connected_provinces(0);
+			auto distance = adj.get_distance();
+
+
+			auto& neighbor_node = path_node_container[other_prov];
+
+			// check if not present in the closed list
+			if(!neighbor_node.is_in_closed_list) {
+				if constexpr(std::is_same_v<StateType, std::monostate>) {
+					prov_check = to_prov_predicate(other_prov);
+				} else {
+					stateinit_to_prov_func(other_prov, local_state);
+					prov_check = to_prov_predicate(other_prov, local_state);
+				}
+				// check if province check passes (aka province isnt impassable from all directions). If not, add to closed list as this will stay impassable
+				if(prov_check) {
+					bool adj_check;
+					if constexpr(std::is_same_v<StateType, std::monostate>) {
+						adj_check = adj_predicate(other_prov, current_prov, adj);
+					} else {
+						stateinit_adj_func(other_prov, current_prov, adj, distance, local_state);
+						adj_check = adj_predicate(other_prov, current_prov, adj, local_state);
+					}
+					// and passes the adjacency check(aka the specific adjacency is passable).It is not added to the closed list if the adj check fails as it may be passable from a diffrent adjacency
+					if(adj_check) {
+						float actual_dist = [&]() {
+							// to and from province
+							if constexpr(std::is_same_v<StateType, std::monostate>) {
+								return movementcost_func(other_prov, current_prov, adj, distance);
+							} else {
+								return movementcost_func(other_prov, current_prov, adj, distance, local_state);
+							}
+							}();
+
+						float distance_to_neighbor = current_node.distance_covered + actual_dist; // computes net distance to neighbor from the start province
+						// if not present in the open queue add it to the open queue for processing later
+						if(!neighbor_node.is_in_open_list) {
+							// set distance and parent, then add it to the open queue
+							neighbor_node.distance_covered = distance_to_neighbor;
+							neighbor_node.distance_to_target = direct_distance(state, other_prov, end) * HeuristicModifier;
+							neighbor_node.parent = current_prov;
+							neighbor_node.province = other_prov; // set province now, before it is added to the open queue
+							open_queue.push_back(other_prov);
+							std::push_heap(open_queue.begin(), open_queue.end(), province_comparer);
+							neighbor_node.is_in_open_list = true;
+						} else if(distance_to_neighbor < neighbor_node.distance_covered) {
+							// this is a better path; update distance covered and parent
+							neighbor_node.distance_covered = distance_to_neighbor;
+							neighbor_node.parent = current_prov;
+							// Add it to the heap again to update it with the new distance information. The old one is kept, but ignored when it is popped
+							open_queue.push_back(other_prov);
+							std::push_heap(open_queue.begin(), open_queue.end(), province_comparer);
+						}
+
+
+					} else {
+						// Nothing, it can be tried again if it fails adjacency check
+					}
+				} else {
+					neighbor_node.is_in_closed_list = true;// exclude it from being checked again
+				}
+			}
+		}
+	}
+	assert_path_result(path_result);
+	return false;
+
+}
+
+
+
+
+
+
+
+// Creates a path from start province to end province,with given template functions to decide various factors. Returns the path in the passed-in buffer, and can thusly be used with static buffers. Expects the buffer to be empty
+// Returns true if a valid path was found, false if not
+// HeuristicModifier: Modifier to the heuristic used (direct distance). The higher this value is, the less accurate but more performant the pathfinding will be. If 0.0f, it will always find the optimal path
+// StateType: Type of the local state to be used and passed to other lambdas. If it is std::monostate, it will be ignored and not passed to any function
+// AdjPred: Lambda which takes the following as parameters (to_prov, from_prov, adjacency, local_state)  and returns a bool. Decides if the passage between the two provinces is possible.
+// ToProvPred: Lambda which takes the following as parameter (to_prov, local_state)  and returns a bool. Decides if the given province is passable from any direction
+// MovementCostFunc: Lambda which takes the following as parameters (to_prov, from_prov, adjacency, distance, local_state) and returns a float. The returned value is used as movement cost in pathfinding
+// StateInitToProvFunc: Lambda which takes the following as parameters (to_prov, local_state) and returns void. This will be called once per to-province iteration and can be used to initialize the local state to be used in ToProvFunc
+// StateInitAdjFunc: Lambda which takes the following as parameters (to_prov, from_prov, adjacency, distance, local_state) and returns void. This will be called once per adjacency iteration and can be used to initialize the local state to be used in other functions
+// StateInitFromProvFunc: Lambda which takes the following as parameters (from_prov, local_state) and returns void. This will be called once per from-province iteration and can be used to initialize the local state relavent to the from-province 
+template<float HeuristicModifier, typename StateType, typename AdjPred, typename ToProvPred, typename MovementCostFunc, typename StateInitToProvFunc, typename StateInitAdjFunc, typename StateInitFromProvFunc>
+bool ve_make_path_to_prov(const sys::state& state, dcon::province_id start, dcon::province_id end, std::vector<dcon::province_id>& path_result, AdjPred&& adj_predicate, ToProvPred&& to_prov_predicate, MovementCostFunc&& movementcost_func, StateInitToProvFunc&& stateinit_to_prov_func, StateInitAdjFunc&& stateinit_adj_func, StateInitFromProvFunc&& stateinit_from_prov_func) {
+
+	// uses an A* implementation with direct distance as heuristic
+	StateType local_state{ };
+	if(start == end) // early exit if start is already at destination
+		return true;
+
+	// Initialize to-province state on the last province, and run the check function for the end province to see if it is valid in the first place
 	ve::tagged_vector<dcon::province_id> ve_end{ };
 	ve_end.set(0, end);
 	if constexpr(!std::is_same_v<StateType, std::monostate>) {
@@ -251,7 +419,7 @@ bool make_path_to_prov(const sys::state& state, dcon::province_id start, dcon::p
 		} else {
 			return to_prov_predicate(ve_end, local_state);
 		}
-	}();
+		}();
 	if(!prov_check) { //  or if the end province would fail the province check
 		return false;
 	}
@@ -274,7 +442,7 @@ bool make_path_to_prov(const sys::state& state, dcon::province_id start, dcon::p
 		auto a_idx = a.index();
 		auto b_idx = b.index();
 		return (a_dist_covered != b_dist_covered ? a_dist_covered + a_dist_to_targ > b_dist_covered + b_dist_to_targ : a_idx > b_idx);
-	};
+		};
 
 	auto fill_path_result = [&](dcon::province_id i) {
 		while(i && i != start) {
@@ -287,10 +455,10 @@ bool make_path_to_prov(const sys::state& state, dcon::province_id start, dcon::p
 			assert(bool(e));
 		};
 	path_node_container.distance_covered.set(start, 0.0f);
-	path_node_container.distance_to_target.set(start, 0.0f); 
-	path_node_container.is_in_closed_list.set(start, false); 
+	path_node_container.distance_to_target.set(start, 0.0f);
+	path_node_container.is_in_closed_list.set(start, false);
 	path_node_container.is_in_open_list.set(start, true);;
-	path_node_container.parent.set(start, dcon::province_id{ }); 
+	path_node_container.parent.set(start, dcon::province_id{ });
 
 	open_queue.push_back(start);
 	while(!open_queue.empty()) {
@@ -309,13 +477,13 @@ bool make_path_to_prov(const sys::state& state, dcon::province_id start, dcon::p
 			return true;
 		}
 		// add current to closed list immediately
-	 	path_node_container.is_in_open_list.set(current_prov, false);
+		path_node_container.is_in_open_list.set(current_prov, false);
 		path_node_container.is_in_closed_list.set(current_prov, true);
 
 		// Init the local state for the from-province only once a new from-province is chosen
 		if constexpr(!std::is_same_v<StateType, std::monostate>) {
 			stateinit_from_prov_func(current_prov, local_state);
-		} 
+		}
 		ve_for_each_adjacency_and_province(state, current_prov, [&](ve::tagged_vector<dcon::province_adjacency_id> adjacencies, ve::tagged_vector<dcon::province_id> other_provs) {
 			auto distance = state.world.province_adjacency_get_distance(adjacencies);
 			ve::mask_vector is_not_in_closed_list = (path_node_container.is_in_closed_list.get(other_provs) != true);
@@ -329,7 +497,7 @@ bool make_path_to_prov(const sys::state& state, dcon::province_id start, dcon::p
 						stateinit_to_prov_func(other_provs, local_state);
 						return to_prov_predicate(other_provs, local_state);
 					}
-				}();
+					}();
 				ve::mask_vector adj_check = [&]() {
 					if constexpr(std::is_same_v<StateType, std::monostate>) {
 						return adj_predicate(other_provs, current_prov, adjacencies);
@@ -337,7 +505,7 @@ bool make_path_to_prov(const sys::state& state, dcon::province_id start, dcon::p
 						stateinit_adj_func(other_provs, current_prov, adjacencies, distance, local_state);
 						return adj_predicate(other_provs, current_prov, adjacencies, local_state);
 					}
-				}();
+					}();
 				ve::fp_vector actual_dist = [&]() {
 					// to and from province
 					if constexpr(std::is_same_v<StateType, std::monostate>) {
@@ -345,7 +513,7 @@ bool make_path_to_prov(const sys::state& state, dcon::province_id start, dcon::p
 					} else {
 						return movementcost_func(other_provs, current_prov, adjacencies, distance, local_state);
 					}
-				}();
+					}();
 				ve::mask_vector add_to_closed_list = valid_ids && is_not_in_closed_list && !prov_check;
 				path_node_container.is_in_closed_list.set(other_provs, ve::select(add_to_closed_list, true, path_node_container.is_in_closed_list.get(other_provs)));
 				ve::mask_vector passes_checks = is_not_in_closed_list && valid_ids && prov_check && adj_check;
@@ -369,83 +537,15 @@ bool make_path_to_prov(const sys::state& state, dcon::province_id start, dcon::p
 							std::push_heap(open_queue.begin(), open_queue.end(), province_comparer);
 						}
 					}
-				}, other_provs, passes_checks, is_open_list, better_paths );
+				}, other_provs, passes_checks, is_open_list, better_paths);
 			}
 		});
-		//for(auto adj : state.world.province_get_province_adjacency(current_prov)) {
-		//	auto other_prov =
-		//		adj.get_connected_provinces(0) == current_prov ? adj.get_connected_provinces(1) : adj.get_connected_provinces(0);
-		//	auto distance = adj.get_distance();
-
-
-		//	auto& neighbor_node = path_node_container[other_prov];
-
-		//	// check if not present in the closed list
-		//	if(!neighbor_node.is_in_closed_list) {
-		//		if constexpr(std::is_same_v<StateType, std::monostate>) {
-		//			prov_check = to_prov_predicate(other_prov);
-		//		}
-		//		else {
-		//			stateinit_to_prov_func(other_prov, local_state);
-		//			prov_check = to_prov_predicate(other_prov, local_state);
-		//		}
-		//		// check if province check passes (aka province isnt impassable from all directions). If not, add to closed list as this will stay impassable
-		//		if(prov_check) {
-		//			bool adj_check;
-		//			if constexpr(std::is_same_v<StateType, std::monostate>) {
-		//				adj_check = adj_predicate(other_prov, current_prov, adj);
-		//			}
-		//			else {
-		//				stateinit_adj_func(other_prov, current_prov, adj, distance, local_state);
-		//				adj_check = adj_predicate(other_prov, current_prov, adj, local_state);
-		//			}
-		//			// and passes the adjacency check(aka the specific adjacency is passable).It is not added to the closed list if the adj check fails as it may be passable from a diffrent adjacency
-		//			if(adj_check) {
-		//				float actual_dist = [&]() {
-		//					// to and from province
-		//					if constexpr(std::is_same_v<StateType, std::monostate>) {
-		//						return movementcost_func(other_prov, current_prov, adj, distance);
-		//					}
-		//					else {
-		//						return movementcost_func(other_prov, current_prov, adj, distance, local_state); 
-		//					}
-		//				}();
-
-		//				float distance_to_neighbor = current_node.distance_covered + actual_dist; // computes net distance to neighbor from the start province
-		//				// if not present in the open queue add it to the open queue for processing later
-		//				if(!neighbor_node.is_in_open_list) {
-		//					// set distance and parent, then add it to the open queue
-		//					neighbor_node.distance_covered = distance_to_neighbor;
-		//					neighbor_node.distance_to_target = direct_distance(state, other_prov, end) * HeuristicModifier;
-		//					neighbor_node.parent = current_prov;
-		//					neighbor_node.province = other_prov; // set province now, before it is added to the open queue
-		//					open_queue.push_back(other_prov);
-		//					std::push_heap(open_queue.begin(), open_queue.end(), province_comparer);
-		//					neighbor_node.is_in_open_list = true;
-		//				} else if(distance_to_neighbor < neighbor_node.distance_covered) {
-		//					// this is a better path; update distance covered and parent
-		//					neighbor_node.distance_covered = distance_to_neighbor;
-		//					neighbor_node.parent = current_prov;
-		//					// Add it to the heap again to update it with the new distance information. The old one is kept, but ignored when it is popped
-		//					open_queue.push_back(other_prov);
-		//					std::push_heap(open_queue.begin(), open_queue.end(), province_comparer);
-		//				}
-
-
-		//			} else {
-		//				// Nothing, it can be tried again if it fails adjacency check
-		//			}
-		//		}
-		//		else {
-		//			neighbor_node.is_in_closed_list = true;// exclude it from being checked again
-		//		}
-		//	}
-		//}
 	}
 	assert_path_result(path_result);
 	return false;
 
 }
+
 
 
 
