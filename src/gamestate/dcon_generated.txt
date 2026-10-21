@@ -6705,6 +6705,11 @@ relationship{
 		tag{ save }
 	}
 	property{
+		name{ active_days }
+		type{ uint8_t }
+		tag{ save }
+	}
+	property{
 		name{ supply_loss }
 		type{float}
 		tag{ save }

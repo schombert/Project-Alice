@@ -14,7 +14,6 @@
 
 namespace logistics {
 
-constexpr uint32_t supply_route_pathfinding_batches = 30; // The desired amount of batches for processing pathfinding in parallel. Less batches = better performance when under heavy load, but the pathfinding is not able to take other potentially overlapping paths into account in the pathfinding logic.
 
 // union of either a army or navy. Used for type erasure when prioritizing supplies between military units
 struct unit {
@@ -680,21 +679,6 @@ void schedule_nation_supply_paths_update(sys::state& state, dcon::nation_id nati
 	state.world.nation_set_supply_routes_requires_path_update(nation, true);
 }
 
-constexpr float ineffective_supply_path_throughput_cutoff = 0.9f;
-constexpr float ineffective_supply_path_loss_cutoff = 0.35f;
-
-void schedule_active_ineffective_supply_paths_update(sys::state& state) {
-	state.world.for_each_supply_route_path([&](dcon::supply_route_path_id path_id) {
-		float throughput = state.world.supply_route_path_get_throughput(path_id);
-		float loss = state.world.supply_route_path_get_supply_loss(path_id);
-		bool active = state.world.supply_route_path_get_is_active(path_id);
-		// update it if throughput is less than 90%, or if loss is greater than 35%
-		if(active && (throughput < ineffective_supply_path_throughput_cutoff || loss > ineffective_supply_path_loss_cutoff)) {
-			schedule_immediate_supply_path_update(state, path_id);
-		}
-	});
-}
-
 float compute_efficiency(float consumed, float available) {
 	if(consumed == 0.0f) {
 		if(available == 0.0f) {
@@ -705,6 +689,12 @@ float compute_efficiency(float consumed, float available) {
 	} else {
 		return std::min(available / consumed, 1.0f);
 	}
+}
+// This will get the percentage of potential throughput the current route delivers as a value from 0.0 to 1.0.
+// It also takes volentary reduction in throughput to avoid congestion into account. Due to this, it should NOT be used as a multiplier to buffered goods to see the amount delivered (without loss)
+template<typename supply_path_type>
+auto supply_route_path_potential_throughput(const sys::state& state, supply_path_type path) {
+	return state.world.supply_route_path_get_throughput(path) * state.world.supply_route_path_get_expected_throughput(path);
 }
 
 void regenerate_unsaved_values(sys::state& state) {
@@ -1593,9 +1583,6 @@ uint32_t supply_route_path_get_connected_routes(const sys::state& state, dcon::s
 	auto building_construction_routes = state.world.supply_route_path_get_building_construction_route_path(path);
 	return uint32_t((army_routes.end() - army_routes.begin()) + (navy_routes.end() - navy_routes.begin()) + (land_construction_routes.end() - land_construction_routes.begin()) + (naval_construction_routes.end() - naval_construction_routes.begin()) + (factory_construction_routes.end() - factory_construction_routes.begin()) + (building_construction_routes.end() - building_construction_routes.begin()));
 }
-
-constexpr uint32_t supply_route_inactive_days_before_deletion = 10;
-constexpr uint32_t supply_path_inactive_days_before_deletion = 50;
 
 template<concepts::supply_route_type route_type>
 bool should_delete_route(const sys::state& state, route_type route) {
@@ -2582,7 +2569,23 @@ void update_supply_routes_daily(sys::state& state) {
 
 	// STEP 6: update the paths of any supply routes which are deemed out-of-date or has no path. They are deemed out of date if anything significant happens to disrupt it and an update is scheduled. 
 	// Weekly province updates are issued once per week, and things like moving into an enemy province will schedule a weekly update on enemy routes through said province.
+	// Updates are done to routes which are deemed inefficient, and they have been active for some time
 	// Updates on army/navy routes are done daily if the army/navy completes a movement to a diffrent province
+
+	parallel_for_each_supply_route_path(state, [&](dcon::supply_route_path_id path) {
+		// update every x days of consecutive activity if other requirements are also met
+		auto active_days = state.world.supply_route_path_get_active_days(path);
+		auto time_interval_fufilled = (active_days != 0 && active_days % ineffective_supply_path_update_interval == uint8_t(0));
+		auto potential_throughput = supply_route_path_potential_throughput(state, path);
+		auto loss = state.world.supply_route_path_get_supply_loss(path);
+		auto active = state.world.supply_route_path_get_is_active(path);
+		// update it if it meets the requirements
+		auto ineffective_route_update = time_interval_fufilled && active && (potential_throughput < ineffective_supply_path_throughput_cutoff || loss > ineffective_supply_path_loss_cutoff);
+		if(ineffective_route_update) {
+			schedule_immediate_supply_path_update(state, path);
+		}
+	});
+
 
 	auto day_of_week = state.current_date.value % 7;
 	if(day_of_week == 0) {
@@ -2640,7 +2643,7 @@ void update_supply_routes_daily(sys::state& state) {
 
 
 	// step 7: Do a bunch of mostly unrelated things in parallel:
-	// Increment the amount of days a route or path has been inactive,
+	// Increment the amount of days a route or path has been inactive or active,
 	// add the volume used by some supply routes unto each adjacency,
 	// set the recently_created flag to false
 	// setup the path batch container in the meantime as it can also run in parallel with these things
@@ -2650,17 +2653,27 @@ void update_supply_routes_daily(sys::state& state) {
 	concurrency::parallel_invoke(
 		[&]() {
 			ve_for_each_supply_route(state, [&](auto routes) {
+				auto currently_active = supply_route_is_active(state, routes);
 				auto cur_inactive_days = supply_route_get_inactive_days(state, routes);
-				auto new_inactive_days = ve::select(supply_route_is_active(state, routes), cur_inactive_days, cur_inactive_days + uint8_t(1));
+				auto is_max_inactive_days = (cur_inactive_days == uint8_t(255));
+				auto new_inactive_days = ve::select(currently_active, uint8_t(0), cur_inactive_days + uint8_t(1));
+				new_inactive_days = ve::select(is_max_inactive_days, cur_inactive_days, new_inactive_days);
 				supply_route_set_inactive_days(state, routes, new_inactive_days);
 			});
 		},
 		[&]() {
 			state.world.execute_serial_over_supply_route_path([&](auto paths) {
+				auto currently_active = state.world.supply_route_path_get_is_active(paths);
 				auto cur_inactive_days = state.world.supply_route_path_get_inactive_days(paths);
-				auto new_inactive_days = ve::select(state.world.supply_route_path_get_is_active(paths), cur_inactive_days, cur_inactive_days + uint8_t(1));
+				auto is_max_inactive_days = (cur_inactive_days == uint8_t(255));
+				auto new_inactive_days = ve::select(currently_active, uint8_t(0), cur_inactive_days + uint8_t(1));
+				new_inactive_days = ve::select(is_max_inactive_days, cur_inactive_days, new_inactive_days);
 				state.world.supply_route_path_set_inactive_days(paths, new_inactive_days);
 				state.world.supply_route_path_set_recently_created(paths, ve::vbitfield_type{ 0 });
+				// active_days is a modulo-counter incrementing by one each day the path is active and may wrap-around to 0. Is used for determining updates done on a consistent basis every x number of days
+				auto cur_active_days = state.world.supply_route_path_get_active_days(paths);
+				auto new_active_days = ve::select(currently_active, cur_active_days + uint8_t(1), cur_active_days);
+				state.world.supply_route_path_set_active_days(paths, new_active_days);
 			});
 		},
 		[&]() {
