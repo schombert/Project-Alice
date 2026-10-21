@@ -24,7 +24,6 @@ void update_trade_routes_consumption(sys::state& state);
 struct trade_route_volume_change_reasons {
 	float export_price = 0.f;
 	float import_price = 0.f;
-	float export_profit = 0.f;
 
 	//float max_expansion = 0.f;
 	//float max_shrinking = 0.f;
@@ -49,6 +48,13 @@ struct trade_route_volume_change_reasons {
 	bool trade_blocked = 0.f;
 	bool commodity_is_not_tradable = 0.f;
 	bool commodity_is_not_discovered = 0.f;
+
+	float export_tariff = 0.f;
+	float import_tariff = 0.f;
+	float transport_cost = 0.f;
+	float budget = 0.f;
+	float trade_good_loss_mult = 0.f;
+	float merchant_cut = 0.f;
 };
 
 bool is_trade_route_relevant(sys::state& state, dcon::trade_route_id trade_route, dcon::nation_id n);

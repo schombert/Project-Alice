@@ -47,7 +47,7 @@ VALUE change(VALUE current_price, VALUE supply, VALUE demand) {
 	*/
 
 	auto delta = exp_minus_one(probability_to_sell - probability_to_buy);
-	return current_price * delta * 0.01f;
+	return current_price * delta * 0.1f;
 }
 }
 
@@ -57,7 +57,7 @@ VALUE change(VALUE current_price, VALUE supply, VALUE demand) {
 // min price prevents singularity at zero
 
 namespace commodity {
-inline constexpr float min = 0.00000000000001f;
+inline constexpr float min = 0.000000000001f;
 inline constexpr float max = 1'000'000'000'000.f;
 inline constexpr float epsilon = min * 0.1f;
 inline constexpr float speed_multiplier = 0.01f;
@@ -72,7 +72,7 @@ VALUE change_fast(VALUE current_price, VALUE supply, VALUE demand) {
 }
 }
 namespace labor {
-inline constexpr float min = 0.00000000000001f;
+inline constexpr float min = 0.000000000001f;
 inline constexpr float max = 1'000'000'000'000.f;
 inline constexpr float epsilon = min * 0.1f;
 inline constexpr float speed_multiplier = 0.0015f;
@@ -87,7 +87,7 @@ VALUE change_fast(VALUE current_price, VALUE supply, VALUE demand) {
 }
 }
 namespace service {
-inline constexpr float min = 0.00000000000001f;
+inline constexpr float min = 0.000000000001f;
 inline constexpr float max = 1'000'000'000'000.f;
 inline constexpr float epsilon = min * 0.1f;
 inline constexpr float speed_multiplier = 0.0015f;

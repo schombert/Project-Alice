@@ -91,4 +91,17 @@ struct vectorized_pops_budget {
 };
 }
 
+template<typename VALUE_IN>
+auto need_weight_change(
+	VALUE_IN cost_life,
+	VALUE_IN price,
+	VALUE_IN availability,
+	VALUE_IN current_weight,
+	VALUE_IN base_amount,
+	VALUE_IN total_cost,
+	VALUE_IN total_count
+) {
+	return (2.f * availability - total_count * base_amount * price / total_cost) + (cost_life * 10.f) / total_cost - price * base_amount / (cost_life * 100'000.f);
+}
+
 }
