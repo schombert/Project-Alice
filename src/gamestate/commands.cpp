@@ -884,7 +884,7 @@ void execute_start_naval_unit_construction(sys::state& state, dcon::nation_id so
 	auto c = fatten(state.world, state.world.try_create_province_naval_construction(location, source));
 	auto& fufilled_goods = c.get_purchased_goods();
 	const auto& build_cost = state.military_definitions.unit_base_definitions[type].build_cost;
-	for(uint32_t i = 0; i < economy::commodity_set::set_size; i++) {
+	for(uint32_t i = 0; i < build_cost.set_size; i++) {
 		fufilled_goods[i] = 0.0f;
 	}
 	c.set_type(type);
