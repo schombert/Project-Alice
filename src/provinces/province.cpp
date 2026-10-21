@@ -883,8 +883,15 @@ bool can_build_province_building(sys::state& state, dcon::province_id id, dcon::
 
 	int32_t current_lvl = state.world.province_get_building_level(id, uint8_t(t));
 	int32_t max_local_lvl = state.world.nation_get_max_building_level(n, uint8_t(t));
-	int32_t min_build = int32_t(state.world.province_get_modifier_values(id, sys::provincial_mod_offsets::min_build_railroad));
-	return (max_local_lvl - current_lvl - min_build > 0) && !has_railroads_being_built(state, id);
+	int32_t min_build = 0;
+	if(t == economy::province_building_type::railroad) {
+		min_build = int32_t(state.world.province_get_modifier_values(id, sys::provincial_mod_offsets::min_build_railroad));
+	} else if(t == economy::province_building_type::bank) {
+		min_build = int32_t(state.world.province_get_modifier_values(id, sys::provincial_mod_offsets::min_build_bank));
+	} else if(t == economy::province_building_type::university) {
+		min_build = int32_t(state.world.province_get_modifier_values(id, sys::provincial_mod_offsets::min_build_university));
+	}
+	return (max_local_lvl - current_lvl - min_build > 0) && !has_province_building_being_built(state, id, t);
 }
 
 bool has_an_owner(sys::state& state, dcon::province_id id) {
@@ -1081,6 +1088,26 @@ void upgrade_colonial_state(sys::state& state, dcon::nation_id source, dcon::sta
 			return;
 		}
 	}
+}
+
+void reset_all_state_capitals(sys::state& state) {
+	state.world.for_each_state_instance([&](dcon::state_instance_id s) {
+		auto owner = state.world.state_instance_get_nation_from_state_ownership(s);
+		state.world.nation_set_owned_state_count(owner, uint16_t(state.world.nation_get_owned_state_count(owner) + uint16_t(1)));
+		dcon::province_id p;
+
+		int16_t min_priority = (int16_t)state.world.abstract_state_membership_size();
+
+		for(auto prv : state.world.state_definition_get_abstract_state_membership(state.world.state_instance_get_definition(s))) {
+			auto priority = state.world.abstract_state_membership_get_priority(prv);
+			if(priority < min_priority && state.world.province_get_nation_from_province_ownership(prv.get_province()) == owner) {
+				p = prv.get_province().id;
+				min_priority = priority;
+			}
+		}
+
+		state.world.state_instance_set_capital(s, p);
+	});
 }
 
 void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation_id new_owner) {

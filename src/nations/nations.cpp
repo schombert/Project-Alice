@@ -941,7 +941,7 @@ void update_rankings(sys::state& state) {
 				}
 				if(fa.get_is_civilized() != fb.get_is_civilized())
 					return fa.get_is_civilized();
-				if(bool(fa.get_overlord_as_subject().get_ruler()) != bool(fa.get_overlord_as_subject().get_ruler()))
+				if(bool(fa.get_overlord_as_subject().get_ruler()) != bool(fb.get_overlord_as_subject().get_ruler()))
 					return !bool(fa.get_overlord_as_subject().get_ruler());
 				auto a_score = fa.get_military_score() + fa.get_industrial_score() + prestige_score(state, a);
 				auto b_score = fb.get_military_score() + fb.get_industrial_score() + prestige_score(state, b);
@@ -975,9 +975,9 @@ void update_ui_rankings(sys::state& state) {
 					return true;
 				if(!fa.get_is_civilized() && fb.get_is_civilized())
 					return false;
-				if(bool(fa.get_overlord_as_subject()) && !bool(fa.get_overlord_as_subject()))
+				if(bool(fa.get_overlord_as_subject()) && !bool(fb.get_overlord_as_subject()))
 					return false;
-				if(!bool(fa.get_overlord_as_subject()) && bool(fa.get_overlord_as_subject()))
+				if(!bool(fa.get_overlord_as_subject()) && bool(fb.get_overlord_as_subject()))
 					return true;
 				auto a_score = fa.get_industrial_score();
 				auto b_score = fb.get_industrial_score();
@@ -993,9 +993,9 @@ void update_ui_rankings(sys::state& state) {
 					return true;
 				if(!fa.get_is_civilized() && fb.get_is_civilized())
 					return false;
-				if(bool(fa.get_overlord_as_subject()) && !bool(fa.get_overlord_as_subject()))
+				if(bool(fa.get_overlord_as_subject()) && !bool(fb.get_overlord_as_subject()))
 					return false;
-				if(!bool(fa.get_overlord_as_subject()) && bool(fa.get_overlord_as_subject()))
+				if(!bool(fa.get_overlord_as_subject()) && bool(fb.get_overlord_as_subject()))
 					return true;
 				auto a_score = fa.get_military_score();
 				auto b_score = fb.get_military_score();
@@ -1011,9 +1011,9 @@ void update_ui_rankings(sys::state& state) {
 					return true;
 				if(!fa.get_is_civilized() && fb.get_is_civilized())
 					return false;
-				if(bool(fa.get_overlord_as_subject()) && !bool(fa.get_overlord_as_subject()))
+				if(bool(fa.get_overlord_as_subject()) && !bool(fb.get_overlord_as_subject()))
 					return false;
-				if(!bool(fa.get_overlord_as_subject()) && bool(fa.get_overlord_as_subject()))
+				if(!bool(fa.get_overlord_as_subject()) && bool(fb.get_overlord_as_subject()))
 					return true;
 				auto a_score = prestige_score(state, a);
 				auto b_score = prestige_score(state, b);
@@ -2254,7 +2254,7 @@ void make_substate(sys::state& state, dcon::nation_id subject, dcon::nation_id o
 		state.trade_route_cached_values_out_of_date = true;
 		state.world.nation_set_is_substate(subject, true);
 		state.world.nation_get_vassals_count(overlord)++;
-		state.world.nation_get_substates_count(current_ruler)++;
+		state.world.nation_get_substates_count(overlord)++;
 		// clear alliances of subject to prevent potential tomfoolery by the subject
 		clear_alliances(state, subject);
 		clear_all_embargoes(state, subject);

@@ -663,6 +663,9 @@ uint32_t es_middle_strata_scope_province(EFFECT_PARAMTERS) {
 			}
 		}
 	}
+
+	for(auto p : plist)
+		i += apply_subeffects(tval, ws, trigger::to_generic(p), this_slot, from_slot, r_hi, r_lo + i, els);
 	return i;
 }
 uint32_t es_rich_strata_scope_nation(EFFECT_PARAMTERS) {
@@ -3242,7 +3245,7 @@ uint32_t ef_activate_technology(EFFECT_PARAMTERS) {
 	return 0;
 }
 uint32_t ef_activate_invention(EFFECT_PARAMTERS) {
-	if(ws.world.nation_get_active_inventions(trigger::to_nation(primary_slot), trigger::payload(tval[1]).invt_id) == true)
+	if(ws.world.nation_get_active_inventions(trigger::to_nation(primary_slot), trigger::payload(tval[1]).invt_id) == false)
 		culture::apply_invention(ws, trigger::to_nation(primary_slot), trigger::payload(tval[1]).invt_id);
 	return 0;
 }
@@ -4913,7 +4916,7 @@ uint32_t ef_move_issue_percentage_nation(EFFECT_PARAMTERS) {
 			auto s = pop_demographics::get_demo(ws, pop.get_pop(), from_issue);
 			pop_demographics::set_demo(ws, pop.get_pop(), from_issue, s - s * amount);
 			auto s2 = pop_demographics::get_demo(ws, pop.get_pop(), to_issue);
-			pop_demographics::set_demo(ws, pop.get_pop(), from_issue, s2 + s * amount);
+			pop_demographics::set_demo(ws, pop.get_pop(), to_issue, s2 + s * amount);
 		}
 	}
 
@@ -4929,7 +4932,7 @@ uint32_t ef_move_issue_percentage_state(EFFECT_PARAMTERS) {
 			auto s = pop_demographics::get_demo(ws, pop.get_pop(), from_issue);
 			pop_demographics::set_demo(ws, pop.get_pop(), from_issue, s - s * amount);
 			auto s2 = pop_demographics::get_demo(ws, pop.get_pop(), to_issue);
-			pop_demographics::set_demo(ws, pop.get_pop(), from_issue, s2 + s * amount);
+			pop_demographics::set_demo(ws, pop.get_pop(), to_issue, s2 + s * amount);
 		}
 	});
 
@@ -4944,7 +4947,7 @@ uint32_t ef_move_issue_percentage_province(EFFECT_PARAMTERS) {
 		auto s = pop_demographics::get_demo(ws, pop.get_pop(), from_issue);
 		pop_demographics::set_demo(ws, pop.get_pop(), from_issue, s - s * amount);
 		auto s2 = pop_demographics::get_demo(ws, pop.get_pop(), to_issue);
-		pop_demographics::set_demo(ws, pop.get_pop(), from_issue, s2 + s * amount);
+		pop_demographics::set_demo(ws, pop.get_pop(), to_issue, s2 + s * amount);
 	}
 
 	return 0;
@@ -4957,7 +4960,7 @@ uint32_t ef_move_issue_percentage_pop(EFFECT_PARAMTERS) {
 	auto s = pop_demographics::get_demo(ws, trigger::to_pop(primary_slot), from_issue);
 	pop_demographics::set_demo(ws, trigger::to_pop(primary_slot), from_issue, s - s * amount);
 	auto s2 = pop_demographics::get_demo(ws, trigger::to_pop(primary_slot), to_issue);
-	pop_demographics::set_demo(ws, trigger::to_pop(primary_slot), from_issue, s2 + s * amount);
+	pop_demographics::set_demo(ws, trigger::to_pop(primary_slot), to_issue, s2 + s * amount);
 
 	return 0;
 }
