@@ -566,13 +566,6 @@ struct commodity_set_base {
 		}
 	}
 
-	void copy_types_to(commodity_set_base& dest) const {
-		std::memcpy(&dest.commodity_type, this->commodity_type, sizeof(commodity_set_base::commodity_type));
-	}
-	void copy_amounts_to(commodity_set_base& dest) const {
-		std::memcpy(&dest.commodity_amounts, this->commodity_amounts, sizeof(commodity_set_base::commodity_amounts));
-	}
-
 };
 
 using commodity_set = commodity_set_base<normal_set_size>;

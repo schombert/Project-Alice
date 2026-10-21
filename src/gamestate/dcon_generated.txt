@@ -5693,7 +5693,7 @@ relationship{
 
 	property{
 		name{ purchased_goods }
-		type{ economy::commodity_set }
+		type{ economy::commodity_amounts }
 		tag{ save }
 	}
 	property{
@@ -5770,7 +5770,7 @@ relationship{
 
 	property{
 		name{ purchased_goods }
-		type{ economy::commodity_set }
+		type{ economy::commodity_amounts }
 		tag{ save }
 	}
 	property{
@@ -5845,7 +5845,7 @@ relationship{
 
 	property{
 		name{ purchased_goods }
-		type{ economy::commodity_set }
+		type{ economy::commodity_amounts }
 		tag{ save }
 	}
 	property{
@@ -5917,7 +5917,7 @@ relationship{
 
 	property{
 		name{ purchased_goods }
-		type{ economy::commodity_set }
+		type{ economy::commodity_amounts }
 		tag{ save }
 	}
 	property{

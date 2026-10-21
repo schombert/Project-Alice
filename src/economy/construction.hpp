@@ -115,14 +115,14 @@ const economy::commodity_set& construction_get_base_build_cost(const sys::state&
 const economy::commodity_set& construction_get_base_build_cost(const sys::state& state, dcon::factory_construction_id construction);
 const economy::commodity_set& construction_get_base_build_cost(const sys::state& state, dcon::province_building_construction_id construction);
 
-const economy::commodity_set& construction_get_purchased_goods(const sys::state& state, dcon::province_land_construction_id construction);
-const economy::commodity_set& construction_get_purchased_goods(const sys::state& state, dcon::province_naval_construction_id construction);
-const economy::commodity_set& construction_get_purchased_goods(const sys::state& state, dcon::factory_construction_id construction);
-const economy::commodity_set& construction_get_purchased_goods(const sys::state& state, dcon::province_building_construction_id construction);
-economy::commodity_set& construction_get_purchased_goods(sys::state& state, dcon::province_land_construction_id construction);
-economy::commodity_set& construction_get_purchased_goods(sys::state& state, dcon::province_naval_construction_id construction);
-economy::commodity_set& construction_get_purchased_goods(sys::state& state, dcon::factory_construction_id construction);
-economy::commodity_set& construction_get_purchased_goods(sys::state& state, dcon::province_building_construction_id construction);
+const economy::commodity_amounts& construction_get_purchased_goods(const sys::state& state, dcon::province_land_construction_id construction);
+const economy::commodity_amounts& construction_get_purchased_goods(const sys::state& state, dcon::province_naval_construction_id construction);
+const economy::commodity_amounts& construction_get_purchased_goods(const sys::state& state, dcon::factory_construction_id construction);
+const economy::commodity_amounts& construction_get_purchased_goods(const sys::state& state, dcon::province_building_construction_id construction);
+economy::commodity_amounts& construction_get_purchased_goods(sys::state& state, dcon::province_land_construction_id construction);
+economy::commodity_amounts& construction_get_purchased_goods(sys::state& state, dcon::province_naval_construction_id construction);
+economy::commodity_amounts& construction_get_purchased_goods(sys::state& state, dcon::factory_construction_id construction);
+economy::commodity_amounts& construction_get_purchased_goods(sys::state& state, dcon::province_building_construction_id construction);
 
 bool construction_is_privately_owned(const sys::state& state, dcon::province_land_construction_id construction);
 bool construction_is_privately_owned(const sys::state& state, dcon::province_naval_construction_id construction);
