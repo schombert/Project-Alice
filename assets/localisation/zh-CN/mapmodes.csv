@@ -164,7 +164,7 @@ aml_rec_s3;无
 mapmode_45;供应损失
 mapmode_46;供应吞吐
 mapmode_47;港口供应量
-mapmode_48;供应吞吐效率
+mapmode_48;供应吞吐率
 legend_min_mapmode_45;高 供应损失
 legend_min_mapmode_46;低 供应吞吐
 legend_min_mapmode_47;低 容量
