@@ -487,7 +487,7 @@ bool ve_make_path_to_prov(const sys::state& state, dcon::province_id start, dcon
 		ve_for_each_adjacency_and_province(state, current_prov, [&](ve::tagged_vector<dcon::province_adjacency_id> adjacencies, ve::tagged_vector<dcon::province_id> other_provs) {
 			auto distance = state.world.province_adjacency_get_distance(adjacencies);
 			ve::mask_vector is_not_in_closed_list = (path_node_container.is_in_closed_list.get(other_provs) != true);
-			ve::mask_vector valid_ids = adaptive_ve::id_is_nonzero(adjacencies);
+			ve::mask_vector valid_ids =  adjacencies != decltype(adjacencies){};
 			ve::mask_vector is_open_list = (path_node_container.is_in_open_list.get(other_provs) == true);
 			if(ve::compress_mask(is_not_in_closed_list).v != 0) { // Is any neighboring province not in the closed list?
 				ve::mask_vector prov_check = [&]() {

@@ -4728,6 +4728,19 @@ object {
 		tag{ save }
 	}
 	property {
+		name{ is_at_war_with }
+		type{ array{nation_id}{bitfield} }
+	}
+	property {
+		name{ has_military_access_from }
+		type{ array{nation_id}{bitfield} }
+	}
+	property {
+		name{ allied_in_war_with }
+		type{ array{nation_id}{bitfield} }
+	}
+
+	property {
 		name{ commodity_float_buffer_1 } 
 		type{ array{commodity_id}{float} }
 		tag{ keep_after_state_reload }
@@ -5385,10 +5398,6 @@ relationship{
 		name{ are_allied }
 		type{ bitfield }
 		tag{ save }
-	}
-	property{
-		name{ are_at_war }
-		type{ bitfield }
 	}
 	property{
 		name{ truce_until }

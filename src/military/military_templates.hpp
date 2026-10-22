@@ -25,6 +25,10 @@ auto battle_is_ongoing_in_province(sys::state const& state, T ids) {
 			ids);
 	return false;
 }
+template<typename target_nation_type>
+adaptive_ve::convert_to_bool<target_nation_type> has_military_access_to(const sys::state& state, dcon::nation_id accessing_nation, target_nation_type to) {
+	return state.world.nation_get_has_military_access_from(to, accessing_nation);
+}
 
 
 enum class battle_included : uint8_t {

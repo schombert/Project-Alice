@@ -997,18 +997,12 @@ uint32_t state_railroad_level(sys::state const& state, dcon::state_instance_id s
 }
 // wrapper for are_at_war which also returns true if one of the tags is rebel, and the other is not
 bool are_enemies(sys::state const& state, dcon::nation_id a, dcon::nation_id b) {
-	if((!b && a) || (b && !a)) {
-		return true;
-	} else {
-		return are_at_war(state, a, b);
-	}
+	return (!b && a) || (b && !a) || are_at_war(state, a, b);
 }
 
 bool are_at_war(sys::state const& state, dcon::nation_id a, dcon::nation_id b) {
-	if(!state.world.nation_get_is_at_war(a) || !state.world.nation_get_is_at_war(b))
-		return false;
-	auto diplo_rel = state.world.get_diplomatic_relation_by_diplomatic_pair(a, b);
-	return diplo_rel && state.world.diplomatic_relation_get_are_at_war(diplo_rel);
+	bool at_war_with = state.world.nation_get_is_at_war_with(a, b);
+	return at_war_with;
 }
 
 bool are_allied_in_war(sys::state const& state, dcon::nation_id a, dcon::nation_id b) {
@@ -2820,12 +2814,14 @@ void give_military_access(sys::state& state, dcon::nation_id accessing_nation, d
 		ur = state.world.force_create_unilateral_relationship(target, accessing_nation);
 	}
 	state.world.unilateral_relationship_set_military_access(ur, true);
+	state.world.nation_set_has_military_access_from(target, accessing_nation, true);
 	logistics::schedule_nation_supply_paths_update(state, accessing_nation); // Schedule supply route updates to all routes owned by the accessing nation
 }
 void remove_military_access(sys::state& state, dcon::nation_id accessing_nation, dcon::nation_id target) {
 	auto ur = state.world.get_unilateral_relationship_by_unilateral_pair(target, accessing_nation);
 	if(ur) {
 		state.world.unilateral_relationship_set_military_access(ur, false);
+		state.world.nation_set_has_military_access_from(target, accessing_nation, false);
 	}
 	// Schedule supply route updates in routes owned by the accessor, in provinces controlled by the target
 	for(auto p : state.world.nation_get_province_control(target)) {
@@ -2884,11 +2880,9 @@ void add_to_war(sys::state& state, dcon::war_id w, dcon::nation_id n, bool as_at
 
 	for(auto war_par : state.world.war_get_war_participant(w)) {
 		if(war_par.get_is_attacker() != as_attacker) {
-			auto diplo_rel = state.world.get_diplomatic_relation_by_diplomatic_pair(war_par.get_nation(), n);
-			if(!diplo_rel) {
-				diplo_rel = state.world.force_create_diplomatic_relation(war_par.get_nation(), n);
-			}
-			state.world.diplomatic_relation_set_are_at_war(diplo_rel,true);
+			state.world.nation_set_is_at_war_with(war_par.get_nation(), n, true);
+			state.world.nation_set_is_at_war_with(n, war_par.get_nation(), true);
+
 		}
 	}
 
@@ -3390,11 +3384,8 @@ void remove_from_war(sys::state& state, dcon::war_id w, dcon::nation_id n, bool 
 	// update diplo relationship
 	for(auto war_par : state.world.war_get_war_participant(w)) {
 		if(war_par.get_is_attacker() != was_attacker) {
-			auto diplo_rel = state.world.get_diplomatic_relation_by_diplomatic_pair(war_par.get_nation(), n);
-			if(!diplo_rel) {
-				diplo_rel = state.world.force_create_diplomatic_relation(war_par.get_nation(), n);
-			}
-			state.world.diplomatic_relation_set_are_at_war(diplo_rel, false);
+			state.world.nation_set_is_at_war_with(war_par.get_nation(), n, false);
+			state.world.nation_set_is_at_war_with(n, war_par.get_nation(), false);
 		}
 	}
 

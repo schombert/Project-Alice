@@ -188,13 +188,18 @@ void restore_unsaved_values(sys::state& state) {
 				}
 				for(auto attacker : attackers) {
 					for(auto defender : defenders) {
-						auto rel = state.world.get_diplomatic_relation_by_diplomatic_pair(attacker, defender);
-						if(!rel) {
-							rel = state.world.force_create_diplomatic_relation(attacker, defender);
-						}
-						state.world.diplomatic_relation_set_are_at_war(rel, true);
+						state.world.nation_set_is_at_war_with(attacker, defender, true);
+						state.world.nation_set_is_at_war_with(defender, attacker, true);
 					}
 				}
+			});
+		},
+		[&]() {
+			state.world.for_each_unilateral_relationship([&](dcon::unilateral_relationship_id rid) {
+				auto source = state.world.unilateral_relationship_get_source(rid);
+				auto target = state.world.unilateral_relationship_get_target(rid);
+				bool mil_access = state.world.unilateral_relationship_get_military_access(rid);
+				state.world.nation_set_has_military_access_from(target, source, mil_access);
 			});
 		}
 	);
@@ -1912,6 +1917,12 @@ void cleanup_nation(sys::state& state, dcon::nation_id n) {
 	while(movements.begin() != movements.end()) {
 		state.world.delete_movement((*movements.begin()).get_movement());
 	}
+	// Reset cached bitfields pointing to this nation
+	state.world.execute_serial_over_nation([&](auto nations) {
+		state.world.nation_set_is_at_war_with(nations, n, ve::vbitfield_type{ 0 });
+		state.world.nation_set_has_military_access_from(nations, n, ve::vbitfield_type{ 0 });
+		state.world.nation_set_allied_in_war_with(nations, n, ve::vbitfield_type{ 0 });
+	});
 
 	// transfer flags and variables to new holder
 	state.world.delete_nation(n);
