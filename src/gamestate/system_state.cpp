@@ -4647,10 +4647,14 @@ void state::fill_unsaved_data() { // reconstructs derived values that are not di
 	world.nation_resize_allied_in_war_with(world.nation_size());
 
 	world.army_resize_unit_build_commodity_float_buffer_1(world.unit_build_commodity_size());
+	world.army_resize_unit_build_commodity_float_buffer_2(world.unit_build_commodity_size());
 	world.army_resize_unit_supply_commodity_float_buffer_1(world.unit_supply_commodity_size());
+	world.army_resize_unit_supply_commodity_float_buffer_2(world.unit_supply_commodity_size());
 
 	world.navy_resize_unit_build_commodity_float_buffer_1(world.unit_build_commodity_size());
+	world.navy_resize_unit_build_commodity_float_buffer_2(world.unit_build_commodity_size());
 	world.navy_resize_unit_supply_commodity_float_buffer_1(world.unit_supply_commodity_size());
+	world.navy_resize_unit_supply_commodity_float_buffer_2(world.unit_supply_commodity_size());
 
 	province::restore_distances(*this);
 

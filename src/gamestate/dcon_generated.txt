@@ -2386,12 +2386,6 @@ object {
 		tag{ save }
 	}
 	property{
-		name{ desired_num_stockpile_goods }
-		type{ float }
-		tag{ keep_after_state_reload }
-		tag { mp_checksum_excluded }
-	}
-	property{
 		name{ needs_supply_goods }
 		type{ bitfield }
 		tag{ keep_after_state_reload }
@@ -2410,7 +2404,19 @@ object {
 		tag { mp_checksum_excluded }
 	}
 	property{
+		name{ unit_build_commodity_float_buffer_2 }
+		type{ array{unit_build_commodity_id}{float} }
+		tag{ keep_after_state_reload }
+		tag { mp_checksum_excluded }
+	}
+	property{
 		name{ unit_supply_commodity_float_buffer_1 }
+		type{ array{unit_supply_commodity_id}{float} }
+		tag{ keep_after_state_reload }
+		tag { mp_checksum_excluded }
+	}
+	property{
+		name{ unit_supply_commodity_float_buffer_2 }
 		type{ array{unit_supply_commodity_id}{float} }
 		tag{ keep_after_state_reload }
 		tag { mp_checksum_excluded }
@@ -2493,12 +2499,6 @@ object {
 		tag{ save }
 	}
 	property{
-		name{ desired_num_stockpile_goods }
-		type{ float }
-		tag{ keep_after_state_reload }
-		tag { mp_checksum_excluded }
-	}
-	property{
 		name{ needs_supply_goods }
 		type{ bitfield }
 		tag{ keep_after_state_reload }
@@ -2517,7 +2517,19 @@ object {
 		tag { mp_checksum_excluded }
 	}
 	property{
+		name{ unit_build_commodity_float_buffer_2 }
+		type{ array{unit_build_commodity_id}{float} }
+		tag{ keep_after_state_reload }
+		tag { mp_checksum_excluded }
+	}
+	property{
 		name{ unit_supply_commodity_float_buffer_1 }
+		type{ array{unit_supply_commodity_id}{float} }
+		tag{ keep_after_state_reload }
+		tag { mp_checksum_excluded }
+	}
+	property{
+		name{ unit_supply_commodity_float_buffer_2 }
 		type{ array{unit_supply_commodity_id}{float} }
 		tag{ keep_after_state_reload }
 		tag { mp_checksum_excluded }
@@ -5730,14 +5742,6 @@ relationship{
 		type{ float }
 		tag{ save }
 	}
-
-	property{
-		name{ desired_num_stockpile_goods }
-		type{ float }
-		tag{ keep_after_state_reload }
-		tag { mp_checksum_excluded }
-	}
-
 	property{
 		name{ needs_construction_goods }
 		type{ bitfield }
@@ -5746,6 +5750,12 @@ relationship{
 	}
 	property{
 		name{ commodity_amounts_buffer_1 }
+		type{ economy::commodity_amounts }
+		tag{ keep_after_state_reload }
+		tag { mp_checksum_excluded }
+	}
+	property{
+		name{ commodity_amounts_buffer_2 }
 		type{ economy::commodity_amounts }
 		tag{ keep_after_state_reload }
 		tag { mp_checksum_excluded }
@@ -5808,12 +5818,6 @@ relationship{
 		tag{ save }
 	}
 	property{
-		name{ desired_num_stockpile_goods }
-		type{ float }
-		tag{ keep_after_state_reload }
-		tag { mp_checksum_excluded }
-	}
-	property{
 		name{ needs_construction_goods }
 		type{ bitfield }
 		tag{ keep_after_state_reload }
@@ -5821,6 +5825,12 @@ relationship{
 	}
 	property{
 		name{ commodity_amounts_buffer_1 }
+		type{ economy::commodity_amounts }
+		tag{ keep_after_state_reload }
+		tag { mp_checksum_excluded }
+	}
+	property{
+		name{ commodity_amounts_buffer_2 }
 		type{ economy::commodity_amounts }
 		tag{ keep_after_state_reload }
 		tag { mp_checksum_excluded }
@@ -5878,12 +5888,6 @@ relationship{
 		tag{ save }
 	}
 	property{
-		name{ desired_num_stockpile_goods }
-		type{ float }
-		tag{ keep_after_state_reload }
-		tag { mp_checksum_excluded }
-	}
-	property{
 		name{ needs_construction_goods }
 		type{ bitfield }
 		tag{ keep_after_state_reload }
@@ -5891,6 +5895,12 @@ relationship{
 	}
 	property{
 		name{ commodity_amounts_buffer_1 }
+		type{ economy::commodity_amounts }
+		tag{ keep_after_state_reload }
+		tag { mp_checksum_excluded }
+	}
+	property{
+		name{ commodity_amounts_buffer_2 }
 		type{ economy::commodity_amounts }
 		tag{ keep_after_state_reload }
 		tag { mp_checksum_excluded }
@@ -5960,12 +5970,6 @@ relationship{
 		tag{ save }
 	}
 	property{
-		name{ desired_num_stockpile_goods }
-		type{ float }
-		tag{ keep_after_state_reload }
-		tag { mp_checksum_excluded }
-	}
-	property{
 		name{ needs_construction_goods }
 		type{ bitfield }
 		tag{ keep_after_state_reload }
@@ -5973,6 +5977,12 @@ relationship{
 	}
 	property{
 		name{ commodity_amounts_buffer_1 }
+		type{ economy::commodity_amounts }
+		tag{ keep_after_state_reload }
+		tag { mp_checksum_excluded }
+	}
+	property{
+		name{ commodity_amounts_buffer_2 }
 		type{ economy::commodity_amounts }
 		tag{ keep_after_state_reload }
 		tag { mp_checksum_excluded }
