@@ -181,16 +181,19 @@ float max_loan(sys::state& state, dcon::nation_id n) {
 	return std::max(0.0f, (total_tax_base + state.world.nation_get_national_bank(n)) * mod);
 }
 
-int32_t most_recent_price_record_index(sys::state& state) {
-	return (state.current_date.value >> 4) % price_history_length;
+int32_t most_recent_price_record_index(sys::state& state, int offset_days) {
+	auto offset_positive = (offset_days % (price_history_length << 4) + (price_history_length << 4));
+	return ((state.current_date.value + offset_positive) >> 4) % price_history_length;
 }
 int32_t previous_price_record_index(sys::state& state) {
 	return ((state.current_date.value >> 4) + price_history_length - 1) % price_history_length;
 }
 
-int32_t most_recent_gdp_record_index(sys::state& state) {
+int32_t most_recent_gdp_record_index(sys::state& state, int offset_days) {
 	auto date = state.current_date.to_ymd(state.start_date);
-	return (date.year * 4 + date.month / 3) % gdp_history_length;
+	auto quarter_offset = (offset_days / 90);
+	quarter_offset = (quarter_offset % gdp_history_length + gdp_history_length);
+	return (date.year * 4 + date.month / 3 + quarter_offset) % gdp_history_length;
 }
 int32_t previous_gdp_record_index(sys::state& state) {
 	auto date = state.current_date.to_ymd(state.start_date);
@@ -338,9 +341,9 @@ void rebalance_needs_weights(sys::state& state) {
 			auto needed_everyday = average_everyday_need.get(c);
 			auto needed_luxury = average_luxury_need.get(c);
 
-			ve::fp_vector dw_life = need_weight_change<ve::fp_vector>(local_cost_life, price, available, w_life, needed_life, local_cost_life, life_count);
-			ve::fp_vector dw_everyday = need_weight_change<ve::fp_vector>(local_cost_life, price, available, w_everyday, needed_everyday, local_cost_everyday, everyday_count);
-			ve::fp_vector dw_luxury = need_weight_change<ve::fp_vector>(local_cost_life, price, available, w_luxury, needed_luxury, local_cost_luxury, luxury_count);
+			ve::fp_vector dw_life = need_weight_change<ve::fp_vector, ve::fp_vector>(local_cost_life + local_cost_everyday * 0.000'000'1f, price, available, w_life, needed_life, local_cost_life, life_count);
+			ve::fp_vector dw_everyday = need_weight_change<ve::fp_vector, ve::fp_vector>(local_cost_life + local_cost_everyday * 0.000'000'1f, price, available, w_everyday, needed_everyday, local_cost_everyday, everyday_count);
+			ve::fp_vector dw_luxury = need_weight_change<ve::fp_vector, ve::fp_vector>(local_cost_life + local_cost_everyday * 0.000'000'1f, price, available, w_luxury, needed_luxury, local_cost_luxury, luxury_count);
 
 			w_life = ve::max(ve::fp_vector{0.f}, ve::min(ve::fp_vector{1.f}, w_life + dw_life * 10.f * state.defines.alice_need_drift_speed));
 			w_everyday = ve::max(ve::fp_vector{ 0.f }, ve::min(ve::fp_vector{ 1.f }, w_everyday + dw_everyday * 10.f * state.defines.alice_need_drift_speed));
@@ -699,7 +702,7 @@ float estimate_government_stockpile_filling_spending(const sys::state& state, dc
 		expected_demand.set(com_id, demand);
 	});
 
-	float total_expected_price = get_estimated_stockpile_total_purchase_price<price_estimation::capped_by_availability>(state, nation, expected_demand);
+	float total_expected_price = get_estimated_stockpile_total_purchase_price<price_estimation::theoretical_max>(state, nation, expected_demand);
 	// Scale with how much we think we can afford, or attempt to buy everything if the budget allows
 	auto can_afford_mult = (total_expected_price == 0.0f ? 1.0f : std::min(budget / total_expected_price, 1.0f));
 	return total_expected_price * can_afford_mult;
@@ -716,8 +719,8 @@ tagged_vector<float, dcon::commodity_id> estimate_government_stockpile_filling_s
 		float demand = desired_amount * stockpile_targets_demand_mult;
 		expected_demand[com_id] = demand;
 	});
-	float total_expected_price = get_estimated_stockpile_total_purchase_price<price_estimation::capped_by_availability>(state, nation, expected_demand);
-	auto total_expected_prices = get_estimated_stockpile_purchase_price_by_commodity<price_estimation::capped_by_availability>(state, nation, expected_demand);
+	float total_expected_price = get_estimated_stockpile_total_purchase_price<price_estimation::theoretical_max>(state, nation, expected_demand);
+	auto total_expected_prices = get_estimated_stockpile_purchase_price_by_commodity<price_estimation::theoretical_max>(state, nation, expected_demand);
 	// Scale with how much we think we can afford, or attempt to buy everything if the budget allows
 	auto can_afford_mult = (total_expected_price == 0.0f ? 1.0f : std::min(budget / total_expected_price, 1.0f));
 	for(auto& price : total_expected_prices) {
@@ -782,15 +785,15 @@ tagged_vector<float, dcon::unit_supply_and_build_commodity_id> estimate_nation_n
 float estimate_navy_stockpile_spending(const sys::state& state, dcon::nation_id nation, float budget) {
 	auto goods_consumption = estimate_nation_navy_consumption(state, nation);
 	// We are using both here since the id's we are iterating over is the union of BOTH supply and reinforcement(build) goods
-	float total_expected_price = get_estimated_stockpile_total_purchase_price<price_estimation::capped_by_availability>(state, nation, goods_consumption);
+	float total_expected_price = get_estimated_stockpile_total_purchase_price<price_estimation::theoretical_max>(state, nation, goods_consumption);
 	float can_afford_mult = (total_expected_price == 0 ? max_navy_required_spend : std::min(budget / total_expected_price, max_navy_required_spend));
 	return total_expected_price * can_afford_mult;
 }
 tagged_vector<float, dcon::unit_supply_and_build_commodity_id> estimate_navy_stockpile_spending_by_commodity(const sys::state& state, dcon::nation_id nation, float budget) {
 	auto goods_consumption = estimate_nation_navy_consumption(state, nation);
 	// We are using both here since the id's we are iterating over is the union of BOTH supply and reinforcement(build) goods
-	float total_expected_price = get_estimated_stockpile_total_purchase_price<price_estimation::capped_by_availability>(state, nation, goods_consumption);
-	auto total_expected_prices = get_estimated_stockpile_purchase_price_by_commodity<price_estimation::capped_by_availability>(state, nation, goods_consumption);
+	float total_expected_price = get_estimated_stockpile_total_purchase_price<price_estimation::theoretical_max>(state, nation, goods_consumption);
+	auto total_expected_prices = get_estimated_stockpile_purchase_price_by_commodity<price_estimation::theoretical_max>(state, nation, goods_consumption);
 	float can_afford_mult = (total_expected_price == 0 ? max_navy_required_spend : std::min(budget / total_expected_price, max_navy_required_spend));
 	for(auto& price : total_expected_prices) {
 		price = price * can_afford_mult;
@@ -801,15 +804,15 @@ tagged_vector<float, dcon::unit_supply_and_build_commodity_id> estimate_navy_sto
 float estimate_army_stockpile_spending(const sys::state& state, dcon::nation_id nation, float budget) {
 	auto goods_consumption = estimate_nation_army_consumption(state, nation);
 	// We are using both here since the id's we are iterating over is the union of BOTH supply and reinforcement(build) goods
-	float total_expected_price = get_estimated_stockpile_total_purchase_price<price_estimation::capped_by_availability>(state, nation, goods_consumption);
+	float total_expected_price = get_estimated_stockpile_total_purchase_price<price_estimation::theoretical_max>(state, nation, goods_consumption);
 	float can_afford_mult = (total_expected_price == 0 ? max_army_required_spend : std::min(budget / total_expected_price, max_army_required_spend));
 	return total_expected_price * can_afford_mult;
 }
 tagged_vector<float, dcon::unit_supply_and_build_commodity_id> estimate_army_stockpile_spending_by_commodity(const sys::state& state, dcon::nation_id nation, float budget) {;
 	auto goods_consumption = estimate_nation_army_consumption(state, nation);
 	// We are using both here since the id's we are iterating over is the union of BOTH supply and reinforcement(build) goods
-	float total_expected_price = get_estimated_stockpile_total_purchase_price<price_estimation::capped_by_availability>(state, nation, goods_consumption);
-	auto total_expected_prices = get_estimated_stockpile_purchase_price_by_commodity<price_estimation::capped_by_availability>(state, nation, goods_consumption);
+	float total_expected_price = get_estimated_stockpile_total_purchase_price<price_estimation::theoretical_max>(state, nation, goods_consumption);
+	auto total_expected_prices = get_estimated_stockpile_purchase_price_by_commodity<price_estimation::theoretical_max>(state, nation, goods_consumption);
 	float can_afford_mult = (total_expected_price == 0 ? max_army_required_spend : std::min(budget / total_expected_price, max_army_required_spend));
 	for(auto& price : total_expected_prices) {
 		price = price * can_afford_mult;
@@ -933,7 +936,7 @@ void presimulate(sys::state& state) {
 		float presim_completion = float(i) / float(steps);
 		float employment_gradient_mult = 500.0f - 499.f * presim_completion;
 		update_employment(state, true, employment_gradient_mult);
-		daily_update(state, true, (float)i / (float)steps);
+		daily_update(state, true, std::min(1.f, 2.f * (float)i / (float)steps), i - steps);
 		ai::update_budget(state, true);
 	}
 }
@@ -1962,14 +1965,16 @@ spending_cost full_spending_cost(sys::state& state, dcon::nation_id n, float bas
 		auto local_market = state.world.state_instance_get_market_from_local_market(local_state);
 		for(uint32_t i = 1; i < total_commodities; ++i) {
 			dcon::commodity_id cid{ dcon::commodity_id::value_base_t(i) };
-			total_army_costs += state.world.market_get_army_demand(local_market, cid) * price(state, local_market, cid);
-			total_navy_costs += state.world.market_get_navy_demand(local_market, cid) * price(state, local_market, cid);
-			total_construction_costs += state.world.market_get_government_construction_demand(local_market, cid) * price(state, local_market, cid);
-			total_stockpiling_costs += state.world.market_get_government_stockpile_demand(local_market, cid) * price(state, local_market, cid);
+			total_army_costs += state.world.market_get_army_demand(local_market, cid) * state.world.market_get_price(local_market, cid);
+			total_navy_costs += state.world.market_get_navy_demand(local_market, cid) * state.world.market_get_price(local_market, cid);
+			total_construction_costs += state.world.market_get_government_construction_demand(local_market, cid) * state.world.market_get_price(local_market, cid);
+			total_stockpiling_costs += state.world.market_get_government_stockpile_demand(local_market, cid) * state.world.market_get_price(local_market, cid);
 		}
 	});
-	costs.construction = std::min(construction_budget, total_construction_costs);
-	total += (std::min(land_budget, total_army_costs) + std::min(navy_budget, total_navy_costs) + costs.construction + std::min(stockpile_budget, total_stockpiling_costs));
+	//costs.construction = std::min(construction_budget, total_construction_costs);
+	//total += (std::min(land_budget, total_army_costs) + std::min(navy_budget, total_navy_costs) + costs.construction + std::min(stockpile_budget, total_stockpiling_costs));
+	costs.construction = total_construction_costs;
+	total += (total_army_costs + total_navy_costs + costs.construction + total_stockpiling_costs);
 
 	auto capital_state = state.world.province_get_state_membership(state.world.nation_get_capital(n));
 	auto capital_market = state.world.state_instance_get_market_from_local_market(capital_state);
@@ -1982,7 +1987,7 @@ spending_cost full_spending_cost(sys::state& state, dcon::nation_id n, float bas
 			for(uint32_t i = 1; i < total_commodities; ++i) {
 				dcon::commodity_id cid{ dcon::commodity_id::value_base_t(i) };
 				if(state.world.commodity_get_overseas_penalty(cid) && (state.world.commodity_get_is_available_from_start(cid) || state.world.nation_get_unlocked_commodities(n, cid))) {
-					total += overseas_factor * price(state, capital_market, cid) * o_spending;
+					total += overseas_factor * state.world.market_get_price(capital_market, cid) * o_spending;
 				}
 			}
 		}
@@ -2072,8 +2077,8 @@ float estimate_overseas_penalty_spending(sys::state& state, dcon::nation_id n) {
 				if(state.world.commodity_get_overseas_penalty(cid) && (state.world.commodity_get_is_available_from_start(cid) || state.world.nation_get_unlocked_commodities(n, cid))) {
 					total +=
 						overseas_factor
-						* price(state, market, cid)
-						* state.world.market_get_actual_probability_to_buy(market, cid);
+						* state.world.market_get_price(market, cid);
+						//* state.world.market_get_actual_probability_to_buy(market, cid);
 				}
 			}
 		}
@@ -2093,7 +2098,7 @@ float full_private_investment_cost(sys::state& state, dcon::nation_id n) {
 			dcon::commodity_id cid{ dcon::commodity_id::value_base_t(i) };
 			total +=
 				state.world.market_get_private_construction_demand(market, cid)
-				* price(state, market, cid);
+				* state.world.market_get_price(market, cid);
 		}
 	});
 	return total;
@@ -2112,7 +2117,8 @@ void update_private_consumption(sys::state& state, dcon::nation_id n, float priv
 				market,
 				cid,
 				state.world.market_get_private_construction_demand(market, cid)
-				* private_investment_scale);
+				* private_investment_scale
+			);
 		}
 	});
 }
@@ -2155,7 +2161,7 @@ void update_national_consumption(sys::state& state, dcon::nation_id n, float spe
 				dcon::commodity_id cid{ dcon::commodity_id::value_base_t(i) };
 				if(state.world.commodity_get_overseas_penalty(cid) && (state.world.commodity_get_is_available_from_start(cid) || state.world.nation_get_unlocked_commodities(n, cid))) {
 					auto sat = state.world.market_get_expected_probability_to_buy(market, cid);
-					auto sat_importance = std::min(1.f, 1.f / (price(state, market, cid) + 0.001f));
+					auto sat_importance = std::min(1.f, 1.f / (state.world.market_get_price(market, cid) + 0.001f));
 					auto sat_coefficient = (sat_importance + (1.f - sat_importance) * sat);
 
 					register_demand(
@@ -2273,7 +2279,7 @@ std::vector<full_construction_factory> estimate_private_investment_upgrade(sys::
 				if(costs.commodity_type[i]) {
 					added_cost +=
 						costs.commodity_amounts[i]
-						* price(state, market, costs.commodity_type[i])
+						* state.world.market_get_price(market, costs.commodity_type[i])
 						* cm
 						/ float(time) ;
 				} else {
@@ -2410,7 +2416,7 @@ std::vector<full_construction_factory> estimate_private_investment_construct(sys
 			if(costs.commodity_type[i]) {
 				added_cost +=
 					costs.commodity_amounts[i]
-					* price(state, market, costs.commodity_type[i])
+					* state.world.market_get_price(market, costs.commodity_type[i])
 					/ float(time);
 			} else {
 				break;
@@ -2491,7 +2497,7 @@ std::vector<full_construction_province> estimate_private_investment_province(sys
 			if(costs.commodity_type[i]) {
 				added_cost +=
 					costs.commodity_amounts[i]
-					* price(state, market, costs.commodity_type[i])
+					* state.world.market_get_price(market, costs.commodity_type[i])
 					/ float(time);
 			} else {
 				break;
@@ -2638,19 +2644,20 @@ void run_private_investment(sys::state& state) {
 // 	}
 // 	return ticks.QuadPart;
 // }
-//static auto pf = fopen("money_record", "w");
+
 /*
+static auto pf = fopen("money_record", "w");
 static int columns = 0;
 static int column = 0;
 static bool no_more_columns = false;
 static float total_history;
+static ankerl::unordered_dense::map<std::string, float> total_history_per_label;
+static ankerl::unordered_dense::map<std::string, nation_monetary_breakdown> total_history_full_per_label;
+static float previous_total;
 */
 /*
 Funnily enough, this place is great to put logging into because of the passed name.
 */
-static ankerl::unordered_dense::map<std::string, float> total_history_per_label;
-static ankerl::unordered_dense::map<std::string, nation_monetary_breakdown> total_history_full_per_label;
-static float previous_total;
 static void set_profile_point(sys::state& state, std::string name) {
 	/*
 	nation_monetary_breakdown data{};
@@ -2721,8 +2728,8 @@ static void set_profile_point(sys::state& state, std::string name) {
 			fprintf(pf, "%f;", data.total);
 		}
 	}
+	
 	*/
-
 	//total_history = data.total;
 
 	/*
@@ -2774,7 +2781,7 @@ void decay_government_stockpiles(sys::state& state) {
 	});
 }
 
-void daily_update(sys::state& state, bool presimulation, float presimulation_stage) {
+void daily_update(sys::state& state, bool presimulation, float presimulation_stage, int date_offset) {
 	sanity_check(state);
 
 	set_profile_point(state, "start");
@@ -3552,7 +3559,11 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 				state.world.for_each_commodity([&](dcon::commodity_id c) {
 					auto old_demand = state.world.market_get_demand(markets, c);
 					auto old_aggregated_demand = state.world.market_get_aggregated_demand_history(markets, c);
-					state.world.market_set_aggregated_demand_history(markets, c, old_aggregated_demand * 0.95f + old_demand * 0.05f);
+					if(presimulation) {
+						state.world.market_set_aggregated_demand_history(markets, c, old_aggregated_demand * 0.05f + old_demand * 0.95f);
+					} else {
+						state.world.market_set_aggregated_demand_history(markets, c, old_aggregated_demand * 0.95f + old_demand * 0.05f);
+					}
 
 					state.world.market_set_demand(markets, c, ve::fp_vector{});
 					state.world.market_set_intermediate_demand(markets, c, ve::fp_vector{});
@@ -4322,7 +4333,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 						combined_stockpile_demand
 						* (1.0f - sat)
 						* nations_commodity_spending
-						* price(state, market, c);
+						* state.world.market_get_price(market, c);
 					assert(delta >= 0.f);
 					refund += delta;
 				}
@@ -4352,9 +4363,9 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 					if(state.world.commodity_get_overseas_penalty(c) && valid_need(state, n, c)) {
 						auto sat = state.world.market_get_actual_probability_to_buy(capital_market, c);
 						overseas_budget_satisfaction = std::min(sat, overseas_budget_satisfaction);
-						auto price_of = price(state, capital_market, c);
+						auto price_of = state.world.market_get_price(capital_market, c);
 						auto delta = overseas_factor
-							* (1.0f - sat) * nations_commodity_spending * price_of;
+							* (1.0f - sat) * nations_commodity_spending * price_of * overseas_budget;
 						assert(delta >= 0.f);
 						refund += delta;
 					}
@@ -4892,7 +4903,11 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 				state.world.execute_serial_over_market([&](auto markets) {
 					auto old_supply = state.world.market_get_supply(markets, c);
 					auto old_aggregated_supply = state.world.market_get_aggregated_supply_history(markets, c);
-					state.world.market_set_aggregated_supply_history(markets, c, old_supply * 0.05f + old_aggregated_supply * 0.95f);
+					if(presimulation) {
+						state.world.market_set_aggregated_supply_history(markets, c, old_aggregated_supply * 0.05f + old_supply * 0.95f);
+					} else {
+						state.world.market_set_aggregated_supply_history(markets, c, old_aggregated_supply * 0.95f + old_supply * 0.05f);
+					}
 
 					state.world.market_set_supply(markets, c, ve::fp_vector{});
 					state.world.market_set_import(markets, c, ve::fp_vector{});
@@ -5524,7 +5539,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 		state.world.for_each_commodity([&](dcon::commodity_id c) {
 			if(!state.world.commodity_get_money_rgo(c))
 				return;
-			state.world.market_set_price(ids, c, state.world.commodity_get_cost(c) * 0.02f);
+			state.world.market_set_price(ids, c, state.world.commodity_get_cost(c) * 0.05f);
 		});
 	});
 
@@ -5598,7 +5613,8 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			auto current_price = ve_price(state, ids, cid);
 			auto next_price = current_price;
 			if(presimulation) {
-				next_price = current_price + price_properties::commodity::change_fast<ve::fp_vector>(current_price, supply, demand);
+				next_price = current_price + price_properties::commodity::change_fast<ve::fp_vector>(current_price, supply, demand);				
+				//next_price = ve::select(demand <= supply, next_price * (demand + 0.000'001f) / (supply + 0.000'002f), next_price);
 			} else {
 				next_price = current_price + price_properties::commodity::change<ve::fp_vector>(current_price, supply, demand);
 			}
@@ -5628,16 +5644,6 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 
 	set_profile_point(state, "update services prices");
 
-	// update median prices
-
-	if(state.current_date.value % 60 == 0) {
-		concurrency::parallel_for(uint32_t(1), total_commodities, [&](uint32_t k) {
-			dcon::commodity_id cid{ dcon::commodity_id::value_base_t(k) };
-			state.world.commodity_set_median_price(cid, median_price(state, cid));
-		});
-	}
-
-	set_profile_point(state, "update median prices");
 
 	sanity_check(state);
 
@@ -5728,6 +5734,24 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 	}
 
 	sanity_check(state);
+
+	if(((state.current_date.value + 16 + (date_offset % 16)) % 16) == 0) {
+		auto index = economy::most_recent_price_record_index(state, date_offset);
+		concurrency::parallel_for(uint32_t(1), total_commodities, [&](uint32_t k) {
+			dcon::commodity_id cid{ dcon::commodity_id::value_base_t(k) };
+			auto median_price = economy::median_price_slow(state, cid);
+			state.world.commodity_set_median_price(cid, median_price);
+			state.world.commodity_set_price_record(cid, index, median_price);
+		});
+	}
+
+	auto ymd_date = state.current_date.to_ymd(state.start_date + 365 + (date_offset % 365));
+	if(((ymd_date.month % 3) == 0) && (ymd_date.day == 1)) {
+		auto index = economy::most_recent_gdp_record_index(state, date_offset);
+		for(auto n : state.world.in_nation) {
+			n.set_gdp_record(index, economy::gdp::value_nation_adjusted(state, n));
+		}
+	}
 
 	// ####################
 	// # STATS COLLECTION #
@@ -5924,7 +5948,7 @@ float nation_total_imports(sys::state& state, dcon::nation_id n) {
 		state.world.nation_for_each_state_ownership(n, [&](auto soid) {
 			auto local_state = state.world.state_ownership_get_state(soid);
 			auto market = state.world.state_instance_get_market_from_local_market(local_state);
-			t_total += price(state, market, cid) * state.world.market_get_import(market, cid);
+			t_total += state.world.market_get_price(market, cid) * state.world.market_get_import(market, cid);
 		});
 	}
 
@@ -5941,7 +5965,7 @@ float nation_total_exports(sys::state& state, dcon::nation_id n) {
 		state.world.nation_for_each_state_ownership(n, [&](auto soid) {
 			auto local_state = state.world.state_ownership_get_state(soid);
 			auto market = state.world.state_instance_get_market_from_local_market(local_state);
-			t_total += price(state, market, cid) * state.world.market_get_export(market, cid);
+			t_total += state.world.market_get_price(market, cid) * state.world.market_get_export(market, cid);
 		});
 	}
 
@@ -6086,8 +6110,8 @@ float estimate_today_land_spending(sys::state& state, dcon::nation_id n) {
 			dcon::commodity_id cid{ dcon::commodity_id::value_base_t(i) };
 			total +=
 				state.world.market_get_army_demand(market, cid)
-				* price(state, market, cid)
-				* state.world.market_get_actual_probability_to_buy(market, cid);
+				* state.world.market_get_price(market, cid);
+				//* state.world.market_get_actual_probability_to_buy(market, cid);
 		}
 	});
 	return total;
@@ -6102,8 +6126,8 @@ float estimate_today_naval_spending(sys::state& state, dcon::nation_id n) {
 		for(uint32_t i = 1; i < total_commodities; ++i) {
 			dcon::commodity_id cid{ dcon::commodity_id::value_base_t(i) };
 			total += state.world.market_get_navy_demand(market, cid)
-				* price(state, market, cid)
-				* state.world.market_get_actual_probability_to_buy(market, cid);
+				* state.world.market_get_price(market, cid);
+				//* state.world.market_get_actual_probability_to_buy(market, cid);
 		}
 	});
 	return total;

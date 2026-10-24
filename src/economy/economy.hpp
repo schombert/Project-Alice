@@ -103,7 +103,7 @@ float pop_min_wage_factor(sys::state& state, dcon::nation_id n);
 float farmer_min_wage(sys::state& state, dcon::market_id m, float min_wage_factor);
 float laborer_min_wage(sys::state& state, dcon::market_id m, float min_wage_factor);
 
-void daily_update(sys::state& state, bool presimulation, float presimulation_stage);
+void daily_update(sys::state& state, bool presimulation, float presimulation_stage, int offset_days);
 
 std::vector<dcon::factory_type_id> commodity_get_factory_types_as_output(sys::state const& state, dcon::commodity_id output_good);
 
@@ -174,9 +174,9 @@ construction_status factory_upgrade(sys::state& state, dcon::factory_id f);
 void try_add_factory_to_state(sys::state& state, dcon::state_instance_id s, dcon::factory_type_id t);
 void bound_budget_settings(sys::state& state, dcon::nation_id n);
 
-int32_t most_recent_price_record_index(sys::state& state);
+int32_t most_recent_price_record_index(sys::state& state, int offset);
 int32_t previous_price_record_index(sys::state& state);
-int32_t most_recent_gdp_record_index(sys::state& state);
+int32_t most_recent_gdp_record_index(sys::state& state, int offset);
 int32_t previous_gdp_record_index(sys::state& state);
 
 void prune_factories(sys::state& state); // get rid of closed factories in full states

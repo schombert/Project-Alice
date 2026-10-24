@@ -630,8 +630,8 @@ void  market_trade_report_body_list_t::update(sys::state& state, layout_window_e
 						int8_t result = 0;
 // BEGIN body::list::trade::sort::price
 						if(state.selected_trade_good) {
-							auto price_a = economy::price(state, a.other, state.selected_trade_good);
-							auto price_b = economy::price(state, b.other, state.selected_trade_good);
+							auto price_a = economy::price_slow(state, a.other, state.selected_trade_good);
+							auto price_b = economy::price_slow(state, b.other, state.selected_trade_good);
 
 							result = cmp3(price_a, price_b);
 						} else {
@@ -1613,7 +1613,7 @@ void market_trade_report_trade_item_trade_item_c_t::on_update(sys::state& state)
 		set_volume_text(state, text::format_float(volume * mult, 2));
 		auto median_price = state.world.commodity_get_median_price(state.selected_trade_good);
 		set_value_text(state, text::format_money(median_price * volume * mult));
-		set_price_text(state, text::format_money(economy::price(state, other, state.selected_trade_good)));
+		set_price_text(state, text::format_money(economy::price_slow(state, other, state.selected_trade_good)));
 	} else {
 		set_volume_text(state, "");
 

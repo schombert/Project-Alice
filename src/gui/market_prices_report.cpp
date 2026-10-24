@@ -301,8 +301,8 @@ void  market_prices_report_body_price_list_t::update(sys::state& state, layout_w
 						auto pid = state.map_state.get_selected_province();
 						auto sid = state.world.province_get_state_membership(pid);
 						auto mid = state.world.state_instance_get_market_from_local_market(sid);
-						float local_a = economy::price(state, sid, a.cid);
-						float local_b = economy::price(state, sid, b.cid);
+						float local_a = economy::price_slow(state, sid, a.cid);
+						float local_b = economy::price_slow(state, sid, b.cid);
 						result = cmp3(local_a, local_b);
 // END
 						return -result == table_source->list_local_price_sort_direction;
@@ -333,8 +333,8 @@ void  market_prices_report_body_price_list_t::update(sys::state& state, layout_w
 						auto pid = state.map_state.get_selected_province();
 						auto sid = state.world.province_get_state_membership(pid);
 						auto mid = state.world.state_instance_get_market_from_local_market(sid);
-						float value_a = economy::price(state, sid, a.cid) / state.world.commodity_get_median_price(a.cid);
-						float value_b = economy::price(state, sid, b.cid) / state.world.commodity_get_median_price(b.cid);
+						float value_a = economy::price_slow(state, sid, a.cid) / state.world.commodity_get_median_price(a.cid);
+						float value_b = economy::price_slow(state, sid, b.cid) / state.world.commodity_get_median_price(b.cid);
 						result = cmp3(value_a, value_b);
 // END
 						return -result == table_source->list_ratio_price_sort_direction;
@@ -353,8 +353,8 @@ void  market_prices_report_body_price_list_t::update(sys::state& state, layout_w
 						auto supply_b = economy::supply(state, mid, b.cid);
 						auto demand_a = economy::demand(state, mid, a.cid);
 						auto demand_b = economy::demand(state, mid, b.cid);
-						float local_a = economy::price(state, sid, a.cid);
-						float local_b = economy::price(state, sid, b.cid);
+						float local_a = economy::price_slow(state, sid, a.cid);
+						float local_b = economy::price_slow(state, sid, b.cid);
 						float value_a = economy::price_properties::commodity::change(local_a, supply_a, demand_a);
 						float value_b = economy::price_properties::commodity::change(local_b, supply_b, demand_b);
 						result = cmp3(value_a, value_b);
@@ -1438,7 +1438,7 @@ void market_prices_report_list_item_bg_t::on_update(sys::state& state) noexcept 
 	auto mid = state.world.state_instance_get_market_from_local_market(sid);
 	float supply = state.world.market_get_aggregated_supply_history(mid, list_item.cid);
 	float demand = state.world.market_get_aggregated_demand_history(mid, list_item.cid);
-	float local = economy::price(state, sid, list_item.cid);
+	float local = economy::price_slow(state, sid, list_item.cid);
 	float median = state.world.commodity_get_median_price(list_item.cid);
 
 	set_name_text(state, text::produce_simple_string(state, state.world.commodity_get_name(list_item.cid)));

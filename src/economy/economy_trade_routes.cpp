@@ -364,7 +364,9 @@ void make_trade_volume_tooltip(
 	auto box = text::open_layout_box(contents, 15);
 	//auto origin = state.world.trade_route_get_origin(state, nullptr, value);
 	//term::evaluate_string(state, contents, box, "", false, value_computed);
+
 	term::evaluate_derivative(state, contents, box, "", value_computed, term::value_t_result ( term::value_t{ prediction.export_tariff, "export_tariff", text::text_color::dark_red }));
+	term::evaluate_derivative(state, contents, box, "", value_computed, term::value_t_result(term::value_t{ prediction.export_tariff, "import_tariff", text::text_color::dark_red }));
 
 	text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, "(a + b) * (a + b) at a = 1 b = 2"));
 	term::value_t a{ 1.f, "a", text::text_color::dark_green };
@@ -372,11 +374,11 @@ void make_trade_volume_tooltip(
 
 	text::add_line_break_to_layout_box(state, contents, box);
 
-	auto result = a * a * a + b;
-	auto result_computed = term::compute(state, nullptr, result);
-	term::evaluate_string(state, contents, box, "", false, result_computed);
-	term::evaluate_derivative(state, contents, box, "", result_computed, term::value_t_result (a));
-	term::evaluate_derivative(state, contents, box, "", result_computed, term::value_t_result (b));
+	//auto result = a * a * a + b;
+	//auto result_computed = term::compute(state, nullptr, result);
+	//term::evaluate_string(state, contents, box, "", false, result_computed);
+	//term::evaluate_derivative(state, contents, box, "", result_computed, term::value_t_result (a));
+	//term::evaluate_derivative(state, contents, box, "", result_computed, term::value_t_result (b));
 
 
 	text::close_layout_box(contents, box);
@@ -559,10 +561,10 @@ trade_route_volume_change_reasons predict_trade_route_volume_change(
 		state.world.commodity_get_rgo_amount(cid) > 0.f
 		&& !state.world.commodity_get_actually_exists_in_nature(cid);
 
-	auto price_export_adjusted = price(state, A, cid) * (1.f + export_tariff + merchant_cut);
+	auto price_export_adjusted = state.world.market_get_price(A, cid) * (1.f + export_tariff + merchant_cut);
 	result.export_price = price_export_adjusted;
 
-	auto price_import_adjusted = price(state, B, cid) * (1.f - import_tariff) * trade_good_loss_mult;
+	auto price_import_adjusted = state.world.market_get_price(B, cid) * (1.f - import_tariff) * trade_good_loss_mult;
 	result.import_price = price_import_adjusted;
 
 	auto c = cid;
@@ -581,8 +583,8 @@ trade_route_volume_change_reasons predict_trade_route_volume_change(
 	result.export_price_confidence = confidence_export;
 	result.import_price_confidence = confidence_import;
 
-	auto price_export = price(state, A, c) / confidence_export;
-	auto price_import = price(state, B, c) * confidence_import;
+	auto price_export = state.world.market_get_price(A, c) / confidence_export;
+	auto price_import = state.world.market_get_price(B, c) * confidence_import;
 
 	auto transport_availability = is_sea_route
 		? state.world.market_get_naval_transportation_demand_satisfaction(owner)
@@ -958,8 +960,8 @@ trade_and_tariff<dcon::trade_route_id> explain_trade_route_commodity(sys::state 
 	auto export_tariff = origin_apply_tariff ? effective_tariff_export_rate(state, controller_capital_origin, origin) : 0.f;
 	auto import_tariff = target_apply_tariff ? effective_tariff_import_rate(state, controller_capital_target, target) : 0.f;
 
-	auto price_origin = price(state, origin, cid);
-	auto price_target = price(state, target, cid);
+	auto price_origin = state.world.market_get_price(origin, cid);
+	auto price_target = state.world.market_get_price(target, cid);
 
 	auto merchant_cut = controller_capital_origin == controller_capital_target ? economy::merchant_cut_domestic : economy::merchant_cut_foreign;
 

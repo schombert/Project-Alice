@@ -1,6 +1,6 @@
 // BEGIN prelude
-#include "economy_templates_pure.hpp"
 #include "terms.hpp"
+#include "economy_templates_pure.hpp"
 // END
 
 namespace alice_ui {
@@ -4927,26 +4927,57 @@ void pop_details_needs_row_content_t::update_tooltip(sys::state& state, int32_t 
 	text::add_line(state, contents, "need_weight_local_cost_everyday", text::variable_type::x, pretty_scale, text::variable_type::y, text::prettify_currency(local_cost_everyday));
 	text::add_line(state, contents, "need_weight_local_cost_luxury", text::variable_type::x, pretty_scale, text::variable_type::y, text::prettify_currency(local_cost_luxury));
 
-	auto dw_life_graph = economy::need_weight_change<term::value_t>(
-		term::value_t{ local_cost_life, "need_weight_base_cost_short", text::text_color::yellow },
-		term::value_t{ price, "need_weight_price_short", text::text_color::yellow },
-		term::value_t{ available, "need_weight_available_short", text::text_color::yellow },
-		term::value_t{ w_life, "need_weight_w_life_short", text::text_color::yellow },
-		term::value_t{ needed_life, "need_weight_needed_life_short", text::text_color::yellow },
-		term::value_t{ local_cost_life, "need_weight_local_cost_life_short", text::text_color::yellow },
-		term::value_t{ life_count, "need_weight_life_count_short", text::text_color::yellow }
-	);
+	auto type = state.world.pop_get_poptype(main.for_pop);
 
-	//auto dw_everyday = economy::need_weight_change<term::value_t>((term::value_t)scale_min, (term::value_t)scale_max, (term::value_t)price, available, (term::value_t)w_everyday, (term::value_t)needed_everyday, (term::value_t)local_cost_everyday, (term::value_t)everyday_count);
-	//auto dw_luxury = economy::need_weight_change<term::value_t>((term::value_t)scale_min, (term::value_t)scale_max, (term::value_t)price, available, (term::value_t)w_luxury, (term::value_t)needed_luxury, (term::value_t)local_cost_luxury, (term::value_t)luxury_count);
-	auto dw_life_computed = term::compute(state, nullptr, dw_life_graph);
+	term::value_t term_inflation_indicator { local_cost_life + local_cost_everyday * 0.000'000'1f, "need_weight_base_cost_short", text::text_color::yellow };
+	term::value_t term_price{ price, "need_weight_price_short", text::text_color::yellow };
+	term::value_t term_available{ available, "need_weight_available_short", text::text_color::yellow };
+
 	auto box = text::open_layout_box(contents, 15);
-	term::evaluate_string(state, contents, box, "", false, dw_life_computed);
-	text::add_line_break_to_layout_box(state, contents, box);
-	//term::evaluate_string(state, contents, box, "", false, dw_everyday);
-	//text::add_line_break_to_layout_box(state, contents, box);
-	//term::evaluate_string(state, contents, box, "", false, dw_luxury);
-	//text::add_line_break_to_layout_box(state, contents, box);
+
+	if (w_life == needs_row.weight && needs_row.amount == state.world.pop_type_get_life_needs(type, c)) {
+		auto expression = economy::need_weight_change<term::value_t, float>(
+			term_inflation_indicator,
+			term_price,
+			term_available,
+			term::value_t{ w_life, "need_weight_w_life_short", text::text_color::yellow },
+			term::value_t{ needed_life, "need_weight_needed_life_short", text::text_color::yellow },
+			term::value_t{ local_cost_life, "need_weight_local_cost_life_short", text::text_color::yellow },
+			term::value_t{ life_count, "need_weight_life_count_short", text::text_color::yellow }
+		);
+		auto computed_expression = term::compute(state, nullptr, expression);
+		term::evaluate_string(state, contents, box, "", false, computed_expression);
+		text::add_line_break_to_layout_box(state, contents, box);
+	}
+	if(w_everyday == needs_row.weight && needs_row.amount == state.world.pop_type_get_everyday_needs(type, c)) {
+		auto expression = economy::need_weight_change<term::value_t, float>(
+			term_inflation_indicator,
+			term_price,
+			term_available,
+			term::value_t{ w_everyday, "need_weight_w_everyday_short", text::text_color::yellow },
+			term::value_t{ needed_everyday, "need_weight_needed_everyday_short", text::text_color::yellow },
+			term::value_t{ local_cost_everyday, "need_weight_local_cost_everyday_short", text::text_color::yellow },
+			term::value_t{ everyday_count, "need_weight_everyday_count_short", text::text_color::yellow }
+		);
+		auto computed_expression = term::compute(state, nullptr, expression);
+		term::evaluate_string(state, contents, box, "", false, computed_expression);
+		text::add_line_break_to_layout_box(state, contents, box);
+	}
+	if(w_luxury == needs_row.weight && needs_row.amount == state.world.pop_type_get_luxury_needs(type, c)) {
+		auto expression = economy::need_weight_change<term::value_t, float>(
+			term_inflation_indicator,
+			term_price,
+			term_available,
+			term::value_t{ w_luxury, "need_weight_w_luxury_short", text::text_color::yellow },
+			term::value_t{ needed_luxury, "need_weight_needed_luxury_short", text::text_color::yellow },
+			term::value_t{ local_cost_luxury, "need_weight_local_cost_luxury_short", text::text_color::yellow },
+			term::value_t{ luxury_count, "need_weight_luxury_count_short", text::text_color::yellow }
+		);
+		auto computed_expression = term::compute(state, nullptr, expression);
+		term::evaluate_string(state, contents, box, "", false, computed_expression);
+		text::add_line_break_to_layout_box(state, contents, box);
+	}
+
 	text::close_layout_box(contents, box);
 // END
 	}

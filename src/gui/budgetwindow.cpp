@@ -1157,7 +1157,7 @@ void  budgetwindow_main_espenses_table_t::update(sys::state& state, layout_windo
 
 				if(state.world.commodity_get_overseas_penalty(cid) && (state.world.commodity_get_is_available_from_start(cid) || state.world.nation_get_unlocked_commodities(state.local_player_nation, cid))) {
 					auto amount =
-						overseas_factor * economy::price(state, market, cid) * state.world.market_get_actual_probability_to_buy(market, cid) * float(state.world.nation_get_overseas_spending(state.local_player_nation)) / 100.0f;
+						overseas_factor * state.world.market_get_price(market, cid) * state.world.market_get_actual_probability_to_buy(market, cid) * float(state.world.nation_get_overseas_spending(state.local_player_nation)) / 100.0f;
 					add_budget_row(text::produce_simple_string(state, state.world.commodity_get_name(cid)), amount);
 				}
 			}

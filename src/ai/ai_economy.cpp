@@ -107,11 +107,11 @@ void update_factory_types_priority(sys::state& state) {
 
 			//check if there are "rivals" which would push you away from the industry
 			auto output_c = state.world.factory_type_get_output(factory_type_id);
-			auto local_price = economy::price(state, n, output_c);
+			auto local_price = economy::price_slow(state, n, output_c);
 			auto rival_price = local_price * 2.f;
 			for(auto adj : state.world.nation_get_nation_adjacency(n)) {
 				auto other = adj.get_connected_nations(0) != n ? adj.get_connected_nations(0) : adj.get_connected_nations(1);
-				rival_price = std::min(rival_price, economy::price(state, other, output_c));
+				rival_price = std::min(rival_price, economy::price_slow(state, other, output_c));
 			}
 
 			auto rival_modifier = (rival_price + 0.01f) / (local_price + 0.01f);
@@ -462,7 +462,7 @@ void update_ai_econ_construction(sys::state& state) {
 								if(costs.commodity_type[i]) {
 									expected_item_cost +=
 										costs.commodity_amounts[i]
-										* economy::price(state, market, costs.commodity_type[i])
+										* state.world.market_get_price(market, costs.commodity_type[i])
 										/ float(time)
 										* days_prepaid;
 								} else {
@@ -546,7 +546,7 @@ void update_ai_econ_construction(sys::state& state) {
 					if(costs.commodity_type[i]) {
 						expected_item_cost +=
 							costs.commodity_amounts[i]
-							* economy::price(state, market, costs.commodity_type[i])
+							* state.world.market_get_price(market, costs.commodity_type[i])
 							/ float(time)
 							* days_prepaid;
 					} else {
@@ -618,7 +618,7 @@ void update_ai_econ_construction(sys::state& state) {
 						if(costs.commodity_type[k]) {
 							expected_item_cost +=
 								costs.commodity_amounts[k]
-								* economy::price(state, market, costs.commodity_type[k])
+								* state.world.market_get_price(market, costs.commodity_type[k])
 								/ float(time)
 								* days_prepaid;
 						} else {
@@ -691,7 +691,7 @@ void update_ai_econ_construction(sys::state& state) {
 					if(costs.commodity_type[k]) {
 						expected_item_cost +=
 							costs.commodity_amounts[k]
-							* economy::price(state, market, costs.commodity_type[k])
+							* state.world.market_get_price(market, costs.commodity_type[k])
 							* days_prepaid
 							* 100000.f;
 						// forts are very bad investment and demand volatile goods,
