@@ -146,7 +146,7 @@ public:
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		economy::commodity_set satisfied_commodities{};
+		economy::commodity_amounts satisfied_commodities{};
 		economy::commodity_set needed_commodities{};
 		if(std::holds_alternative<dcon::province_building_construction_id>(content)) {
 			factory_icon->set_visible(state, false);
@@ -182,7 +182,7 @@ public:
 				if(bool(needed_commodities.commodity_type[i]))
 					input_listbox->row_contents.push_back(production_project_input_data{
 							needed_commodities.commodity_type[i],				// cid
-							satisfied_commodities.commodity_amounts[i], // satisfied
+							satisfied_commodities[i], // satisfied
 							needed_commodities.commodity_amounts[i]			// needed
 					});
 			input_listbox->update(state);
@@ -194,7 +194,7 @@ public:
 		for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
 			dcon::commodity_id cid = needed_commodities.commodity_type[i];
 			if(bool(cid))
-				purchased_cost += economy::price(state, s, cid) * satisfied_commodities.commodity_amounts[i];
+				purchased_cost += economy::price(state, s, cid) * satisfied_commodities[i];
 		}
 		float total_cost = get_cost(state, needed_commodities);
 		cost_text->set_text(state, text::format_money(purchased_cost) + "/" + text::format_money(total_cost));

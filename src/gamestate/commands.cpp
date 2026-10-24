@@ -568,9 +568,6 @@ void execute_begin_province_building_construction(sys::state& state, dcon::natio
 	auto new_rr = fatten(state.world, state.world.force_create_province_building_construction(p, source));
 	new_rr.set_is_pop_project(false);
 	new_rr.set_type(uint8_t(type));
-	auto& purchased_goods = economy::construction_get_purchased_goods(state, new_rr.id);
-	// init types in new set
-	base_cost.copy_types_to(purchased_goods);
 }
 
 
@@ -815,10 +812,6 @@ void execute_begin_factory_building_construction(sys::state& state, dcon::nation
 	new_up.set_refit_target(refit_target);
 	const auto& base_cost = state.world.factory_type_get_construction_costs(type);
 
-	auto& purchased_goods = economy::construction_get_purchased_goods(state, new_up.id);
-	// init types in new set
-	base_cost.copy_types_to(purchased_goods);
-
 	if(source != state.world.province_get_nation_from_province_ownership(location)) {
 		float amount = 0.0f;
 		for(uint32_t j = 0; j < economy::commodity_set::set_size; ++j) {
@@ -891,11 +884,8 @@ void execute_start_naval_unit_construction(sys::state& state, dcon::nation_id so
 	auto c = fatten(state.world, state.world.try_create_province_naval_construction(location, source));
 	auto& fufilled_goods = c.get_purchased_goods();
 	const auto& build_cost = state.military_definitions.unit_base_definitions[type].build_cost;
-	// Initialize the commodity types in the fufilled goods buffer to have identical types as build cost
-	for(uint32_t i = 0; i < economy::commodity_set::set_size; i++) {
-		fufilled_goods.commodity_type[i] = build_cost.commodity_type[i];
-		fufilled_goods.commodity_amounts[i] = 0.0f;
-
+	for(uint32_t i = 0; i < build_cost.set_size; i++) {
+		fufilled_goods[i] = 0.0f;
 	}
 	c.set_type(type);
 	c.set_start_date(state.current_date);
@@ -957,10 +947,8 @@ void execute_start_land_unit_construction(sys::state& state, dcon::nation_id sou
 	auto c = fatten(state.world, state.world.try_create_province_land_construction(soldier, source));
 	auto& fufilled_goods = c.get_purchased_goods();
 	const auto& build_cost = state.military_definitions.unit_base_definitions[type].build_cost;
-	// Initialize the commodity types in the fufilled goods buffer to have identical types as build cost
-	for(uint32_t i = 0; i < economy::commodity_set::set_size; i++) {
-		fufilled_goods.commodity_type[i] = build_cost.commodity_type[i];
-		fufilled_goods.commodity_amounts[i] = 0.0f;
+	for(uint32_t i = 0; i < build_cost.set_size; i++) {
+		fufilled_goods[i] = 0.0f;
 
 	}
 	c.set_start_date(state.current_date);

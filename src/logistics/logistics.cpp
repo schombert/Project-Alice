@@ -1772,7 +1772,7 @@ void update_construction_commodity_satisfaction(sys::state& state, construction_
 	dcon::province_id location = economy::construction_get_location(state, c);
 	auto routes = economy::construction_get_supply_routes(state, c);
 	dcon::nation_id nation = economy::construction_get_controller(state, c);
-	economy::commodity_set& current_fufilled = economy::construction_get_purchased_goods(state, c);
+	economy::commodity_amounts& current_fufilled = economy::construction_get_purchased_goods(state, c);
 	const economy::commodity_set& build_costs = economy::construction_get_base_build_cost(state, c);
 	for(auto route : routes) {
 		if(supply_route_is_active(state, route.id)) {
@@ -1781,11 +1781,10 @@ void update_construction_commodity_satisfaction(sys::state& state, construction_
 			const economy::commodity_amounts& route_goods = route.get_buffered_goods();
 			for(uint32_t j = 0; j < build_costs.set_size; j++) {
 				dcon::commodity_id com_id = build_costs.commodity_type[j];
-				assert(build_costs.commodity_type[j] == current_fufilled.commodity_type[j]);
 				if(com_id) {
 					float com_supply_loss_mult = state.world.commodity_get_supply_loss_rate(com_id);
 					float loss_mult = supply_loss_to_loss_multiplier(state, supply_loss, com_supply_loss_mult);
-					float& current_amount = current_fufilled.commodity_amounts[j];
+					float& current_amount = current_fufilled[j];
 					float route_amount = route_goods[j] * throughput * loss_mult;
 					current_amount += route_amount;
 				} else {
