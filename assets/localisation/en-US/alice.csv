@@ -2206,3 +2206,4 @@ trade_budget;Merchants budget
 trade_good_loss_mult;Losses along the route
 merchant_cut;Merchants cut
 term_derivative;Derivative along term
+refund_explanation;Ratio of desired goods and services which was actually purchased at the given day.

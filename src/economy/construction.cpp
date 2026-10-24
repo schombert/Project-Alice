@@ -913,25 +913,49 @@ tagged_vector<float, dcon::commodity_id> estimate_nation_construction_consumptio
 	
 }
 
-float estimate_construction_stockpile_spending(const sys::state& state, dcon::nation_id nation, float budget) {
+
+tagged_vector<float, dcon::commodity_id> estimate_construction_stockpile_spending_by_commodity_after_refund(const sys::state& state, dcon::nation_id nation, float budget) {
 	auto goods_consumption = estimate_nation_construction_consumption(state, nation);
-	float total_expected_price = get_estimated_stockpile_total_purchase_price<price_estimation::theoretical_max>(state, nation, goods_consumption);
-	float can_afford_mult = (total_expected_price == 0 ? max_con_required_spend : std::min(budget / total_expected_price, max_con_required_spend));
-	return total_expected_price * can_afford_mult;
-}
-tagged_vector<float, dcon::commodity_id> estimate_construction_stockpile_spending_by_commodity(const sys::state& state, dcon::nation_id nation, float budget) {
-	auto goods_consumption = estimate_nation_construction_consumption(state, nation);
-	float total_expected_price = get_estimated_stockpile_total_purchase_price<price_estimation::theoretical_max>(state, nation, goods_consumption);
-	auto total_expected_prices = get_estimated_stockpile_purchase_price_by_commodity<price_estimation::theoretical_max>(state, nation, goods_consumption);
+	float total_expected_price = estimate_stockpile_total_purchase_cost<price_estimation::theoretical_max>(state, nation, goods_consumption);
+	auto total_expected_prices = estimate_stockpile_purchase_cost_by_commodity<price_estimation::capped_by_availability>(state, nation, goods_consumption);
 	float can_afford_mult = (total_expected_price == 0 ? max_con_required_spend : std::min(budget / total_expected_price, max_con_required_spend));
 	for(auto& price : total_expected_prices) {
 		price = price * can_afford_mult;
 	}
 	return total_expected_prices;
 }
-
-
-
+tagged_vector<float, dcon::commodity_id> estimate_construction_stockpile_spending_by_commodity_before_refund(const sys::state& state, dcon::nation_id nation, float budget) {
+	auto goods_consumption = estimate_nation_construction_consumption(state, nation);
+	float total_expected_price = estimate_stockpile_total_purchase_cost<price_estimation::theoretical_max>(state, nation, goods_consumption);
+	auto total_expected_prices = estimate_stockpile_purchase_cost_by_commodity<price_estimation::theoretical_max>(state, nation, goods_consumption);
+	float can_afford_mult = (total_expected_price == 0 ? max_con_required_spend : std::min(budget / total_expected_price, max_con_required_spend));
+	for(auto& price : total_expected_prices) {
+		price = price * can_afford_mult;
+	}
+	return total_expected_prices;
+}
+float estimate_construction_stockpile_spending_after_refund(const sys::state& state, dcon::nation_id nation, float budget) {
+	auto goods_consumption = estimate_nation_construction_consumption(state, nation);
+	float total_expected_price = estimate_stockpile_total_purchase_cost<price_estimation::theoretical_max>(state, nation, goods_consumption);
+	auto total_expected_prices = estimate_stockpile_purchase_cost_by_commodity<price_estimation::capped_by_availability>(state, nation, goods_consumption);
+	float can_afford_mult = (total_expected_price == 0 ? max_con_required_spend : std::min(budget / total_expected_price, max_con_required_spend));
+	float total = 0.f;
+	for(auto& price : total_expected_prices) {
+		total += price * can_afford_mult;
+	}
+	return total;
+}
+float estimate_construction_stockpile_spending_before_refund(const sys::state& state, dcon::nation_id nation, float budget) {
+	auto goods_consumption = estimate_nation_construction_consumption(state, nation);
+	float total_expected_price = estimate_stockpile_total_purchase_cost<price_estimation::theoretical_max>(state, nation, goods_consumption);
+	auto total_expected_prices = estimate_stockpile_purchase_cost_by_commodity<price_estimation::theoretical_max>(state, nation, goods_consumption);
+	float can_afford_mult = (total_expected_price == 0 ? max_con_required_spend : std::min(budget / total_expected_price, max_con_required_spend));
+	float total = 0.f;
+	for(auto& price : total_expected_prices) {
+		total += price * can_afford_mult;
+	}
+	return total;
+}
 
 
 void populate_government_construction_consumption(sys::state& state) {

@@ -17,11 +17,13 @@ float count_active_administrations(sys::state const& state, dcon::nation_id n);
 // these functions estimate spendings for given budget priority
 
 // estimate "imperial administration" spendings which are based on total population of the realm
-float estimate_spendings_administration_capital(sys::state const& state, dcon::nation_id n, float budget);
+float estimate_spendings_administration_capital_after_refund(sys::state const& state, dcon::nation_id n, float budget);
+float estimate_spendings_administration_capital_before_refund(sys::state const& state, dcon::nation_id n, float budget);
 // estimate total spendings for your administration
-float estimate_spendings_administration(sys::state const& state, dcon::nation_id n, float budget);
+float estimate_spendings_administration_after_refund(sys::state const& state, dcon::nation_id n, float budget);
+float estimate_spendings_administration_before_refund(sys::state const& state, dcon::nation_id n, float budget);
 // total current spendings
-float full_spendings_administration(sys::state const& state, dcon::nation_id n, float budget);
+float full_spendings_administration_before_refund(sys::state const& state, dcon::nation_id n, float budget);
 // register demand on labor or produce control
 void update_consumption_administration(sys::state& state, dcon::nation_id n, float total_budget);
 

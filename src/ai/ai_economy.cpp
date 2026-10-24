@@ -400,7 +400,7 @@ void update_ai_econ_construction(sys::state& state) {
 		// treasury is out budget
 		float treasury = n.get_treasury();
 		//Note for later parallelization: This function may read from markets which the nation do not own (but does control)!
-		float estimated_construction_costs = economy::estimate_construction_stockpile_spending(state, n, std::max(treasury, 1'000'000'000'000.f));
+		float estimated_construction_costs = economy::estimate_construction_stockpile_spending_after_refund(state, n, std::max(treasury, 1'000'000'000'000.f));
 
 		//if our army is too small, ignore buildings:
 		if(calculate_desired_army_size(state, n) * 0.4f > n.get_active_regiments())
@@ -837,7 +837,7 @@ void update_budget(sys::state& state, bool presim) {
 		n.set_subsidies_spending(3);
 
 		float max_soldiers_budget = 1.f + economy::national_budget::estimate_pop_payouts_by_income_type(state, n, culture::income_type::military);
-		float max_overseas_budget = 1.f + economy::estimate_overseas_penalty_spending(state, n);
+		float max_overseas_budget = 1.f + economy::estimate_overseas_penalty_spending_before_refund(state, n);
 
 		n.set_education_spending(int8_t(education_budget_ratio * 100.f));
 		n.set_construction_spending(int8_t(construction_budget_ratio * 100.f));

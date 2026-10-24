@@ -7,7 +7,8 @@ namespace economy {
 
 namespace national_budget {
 
-float estimate_education_spending(sys::state const& state, dcon::nation_id n);
+float estimate_education_spending_before_refund(sys::state const& state, dcon::nation_id n);
+float estimate_education_spending_after_refund(sys::state const& state, dcon::nation_id n);
 float estimate_pop_payouts_by_income_type(sys::state& state, dcon::nation_id n, culture::income_type in);
 
 struct budget_spending_category {
