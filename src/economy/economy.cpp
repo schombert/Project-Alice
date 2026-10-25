@@ -3099,6 +3099,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 	if(presimulation) {
 		state.world.execute_serial_over_province([&](auto pid) {
 			state.world.province_set_artisan_bank(pid, 0.f);
+			state.world.province_set_factory_bank(pid, 0.f);
 		});
 	}
 
@@ -3684,7 +3685,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 					auto old_demand = state.world.market_get_demand(markets, c);
 					auto old_aggregated_demand = state.world.market_get_aggregated_demand_history(markets, c);
 					if(presimulation) {
-						state.world.market_set_aggregated_demand_history(markets, c, old_aggregated_demand * 0.05f + old_demand * 0.95f);
+						state.world.market_set_aggregated_demand_history(markets, c, old_aggregated_demand * 0.001f + old_demand * 0.999f);
 					} else {
 						state.world.market_set_aggregated_demand_history(markets, c, old_aggregated_demand * 0.95f + old_demand * 0.05f);
 					}
@@ -5028,7 +5029,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 					auto old_supply = state.world.market_get_supply(markets, c);
 					auto old_aggregated_supply = state.world.market_get_aggregated_supply_history(markets, c);
 					if(presimulation) {
-						state.world.market_set_aggregated_supply_history(markets, c, old_aggregated_supply * 0.05f + old_supply * 0.95f);
+						state.world.market_set_aggregated_supply_history(markets, c, old_aggregated_supply * 0.001f + old_supply * 0.999f);
 					} else {
 						state.world.market_set_aggregated_supply_history(markets, c, old_aggregated_supply * 0.95f + old_supply * 0.05f);
 					}
@@ -5737,8 +5738,8 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			auto current_price = ve_price(state, ids, cid);
 			auto next_price = current_price;
 			if(presimulation) {
-				next_price = current_price + price_properties::commodity::change_fast<ve::fp_vector>(current_price, supply, demand);				
-				//next_price = ve::select(demand <= supply, next_price * (demand + 0.000'001f) / (supply + 0.000'002f), next_price);
+				next_price = current_price + price_properties::commodity::change_fast<ve::fp_vector>(current_price, supply, demand) / (1.f + 100.f * presimulation_stage) ;				
+				next_price = ve::select(demand <= supply, next_price * (demand + 0.000'001f) / (supply + 0.000'002f), next_price);
 			} else {
 				next_price = current_price + price_properties::commodity::change<ve::fp_vector>(current_price, supply, demand);
 			}
@@ -5850,6 +5851,9 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 
 	// essentially upper bound on wealth in the system
 	state.inflation = 1.f;
+	if(presimulation) {
+		state.inflation = 0.99f;
+	}
 
 	sanity_check(state);
 

@@ -68,7 +68,7 @@ VALUE change(VALUE current_price, VALUE supply, VALUE demand) {
 }
 template<typename VALUE>
 VALUE change_fast(VALUE current_price, VALUE supply, VALUE demand) {
-	return common::change<VALUE, min, speed_multiplier * 10.f, additive_smoothing>(current_price, supply, demand);
+	return common::change<VALUE, min, speed_multiplier * 200.f, additive_smoothing>(current_price, supply, demand);
 }
 }
 namespace labor {

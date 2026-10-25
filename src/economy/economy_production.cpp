@@ -2209,6 +2209,12 @@ void update_employment(sys::state& state, bool ignore_reality, float presim_empl
 			//* (sales_optimism + (1.f - sales_optimism) )
 			//* (purchase_optimism + (1.f - purchase_optimism) * min_expected_input);
 
+		if(ignore_reality) {
+			profit_per_worker = output_per_worker * (1.f + presim_employment_mult);
+			sold_expectation = 1.f;
+			min_expected_input = 1.f;
+		}
+
 		//auto unstable_market_conditions_indicator = ve::min(ve::fp_vector{1.f}, (sales_optimism + sold_expectation) * (purchase_optimism + min_expected_input));
 		auto input_cost_per_worker = state.world.factory_get_input_expected_cost_per_worker(facids);
 		auto unstable_market_conditions_indicator = sold_expectation * min_expected_input;
@@ -2317,15 +2323,17 @@ void update_employment(sys::state& state, bool ignore_reality, float presim_empl
 #endif // !NDEBUG
 
 		// we want to preserve starting factories at all costs
-		if(ignore_reality) {
-			state.world.factory_set_unqualified_employment(facids, ve::min(ve::to_float(base_size), state.world.factory_get_size(facids)));
-			state.world.factory_set_primary_employment(facids, 0.f);
-			state.world.factory_set_secondary_employment(facids, 0.f);
-		} else {
+		//if(ignore_reality) {
+		//	auto bad_factory = (output_per_worker * price_output < 0.1f * input_cost_per_worker);
+		//	//state.world.factory_set_unqualified_employment(facids, ve::select (bad_factory, ve::fp_vector{0.f}, ve::min(ve::to_float(base_size), state.world.factory_get_size(facids))));
+		//	state.world.factory_set_unqualified_employment(facids, ve::select(bad_factory, ve::fp_vector{ 0.f }, state.world.factory_get_size(facids)));
+		//	state.world.factory_set_primary_employment(facids, 0.f);
+		//	state.world.factory_set_secondary_employment(facids, 0.f);
+		//} else {
 			state.world.factory_set_unqualified_employment(facids, unqualified_next * scaler);
 			state.world.factory_set_primary_employment(facids, primary_next * scaler);
 			state.world.factory_set_secondary_employment(facids, secondary_next * scaler);
-		}
+		//}
 	});
 
 	auto const csize = state.world.commodity_size();
