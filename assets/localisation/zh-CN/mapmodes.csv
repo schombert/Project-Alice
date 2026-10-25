@@ -1,101 +1,101 @@
 #Powered_by_ParaTranz;
-mapmode_1;地形地图
-mapmode_2;政治地图
-mapmode_3;叛乱地图
-mapmode_4;外交地图
-mapmode_5;地区地图
+mapmode_1;地形
+mapmode_2;政治
+mapmode_3;叛乱
+mapmode_4;外交
+mapmode_5;地区
 mapmode_6;基础设施
-mapmode_7;殖民地图
-mapmode_8;行政地图
-mapmode_9;征兵地图
+mapmode_7;殖民
+mapmode_8;行政
+mapmode_9;征兵
 mapmode_10;国家焦点
-mapmode_11;RGO地图
-mapmode_12;人口密度地图
-mapmode_13;民族地图
-mapmode_14;势力范围地图
-mapmode_15;补给上限地图
-mapmode_16;政党支持地图
-mapmode_17;国家排名地图
-mapmode_18;移民地图
-mapmode_19;开化程度地图
-mapmode_20;外交关系地图
-mapmode_21;危机地图
-mapmode_22;海军地图
-mapmode_23;宗教地图
-mapmode_24;要塞地图
-mapmode_25;意识形态地图
-mapmode_26;收入地图
-mapmode_27;觉醒度地图
-mapmode_28;斗争性地图
-mapmode_29;识字率地图
-mapmode_30;就业率地图
-mapmode_31;工厂地图
-mapmode_32;政见地图
-mapmode_33;发展地图
-mapmode_34;玩家地图
-mapmode_35;必需品满足地图
-mapmode_36;日用品满足地图
-mapmode_37;奢侈品满足地图
-mapmode_38;军官地图
-mapmode_39;职员-技工比例地图
-mapmode_40;生活条件地图
-mapmode_41;犯罪地图
-mapmode_42;集结点地图
-mapmode_43;劳力地图
-mapmode_44;动员地图
-legend_min_mapmode_8;低行政
+mapmode_11;RGO
+mapmode_12;人口密度
+mapmode_13;民族
+mapmode_14;势力范围
+mapmode_15;补给上限
+mapmode_16;政党支持
+mapmode_17;国家排名
+mapmode_18;移民
+mapmode_19;开化程度
+mapmode_20;外交关系
+mapmode_21;危机
+mapmode_22;海军
+mapmode_23;宗教
+mapmode_24;要塞
+mapmode_25;意识形态
+mapmode_26;收入
+mapmode_27;觉醒度
+mapmode_28;斗争性
+mapmode_29;识字率
+mapmode_30;就业率
+mapmode_31;工厂
+mapmode_32;政见
+mapmode_33;发展
+mapmode_34;玩家
+mapmode_35;必需品满足
+mapmode_36;日用品满足
+mapmode_37;奢侈品满足
+mapmode_38;军官
+mapmode_39;职员-技工比例
+mapmode_40;生活条件
+mapmode_41;犯罪
+mapmode_42;集结点
+mapmode_43;劳力
+mapmode_44;动员
+legend_min_mapmode_8;低 行政
 legend_min_mapmode_19;未开化
 legend_min_mapmode_7;未殖民
-legend_min_mapmode_21;低紧张
+legend_min_mapmode_21;低 紧张
 legend_min_mapmode_18;迁出
-legend_min_mapmode_12;低密度
-legend_min_mapmode_17;低排名
-legend_min_mapmode_20;低关系
-legend_min_mapmode_3;低叛乱风险
-legend_min_mapmode_11;低原料输出
-legend_min_mapmode_15;低供应
-legend_min_mapmode_26;低收入
-legend_min_mapmode_27;低觉醒度
-legend_min_mapmode_28;低斗争
-legend_min_mapmode_29;低识字率
-legend_min_mapmode_30;低就业率
+legend_min_mapmode_12;低 密度
+legend_min_mapmode_17;低 排名
+legend_min_mapmode_20;低 关系
+legend_min_mapmode_3;低 叛乱风险
+legend_min_mapmode_11;低 原料输出
+legend_min_mapmode_15;低 供应
+legend_min_mapmode_26;低 收入
+legend_min_mapmode_27;低 觉醒度
+legend_min_mapmode_28;低 斗争
+legend_min_mapmode_29;低 识字率
+legend_min_mapmode_30;低 就业率
 legend_min_mapmode_33;低人口增长
-legend_min_mapmode_35;低需求
-legend_min_mapmode_36;低需求
-legend_min_mapmode_37;低需求
-legend_min_mapmode_38;低军官
-legend_min_mapmode_39;低职员-技工比例
-legend_min_mapmode_40;低生活条件
-legend_min_mapmode_44;低部队数
-legend_max_mapmode_8;高行政
+legend_min_mapmode_35;低 需求
+legend_min_mapmode_36;低 需求
+legend_min_mapmode_37;低 需求
+legend_min_mapmode_38;低 军官
+legend_min_mapmode_39;低 职员-技工比例
+legend_min_mapmode_40;低 生活条件
+legend_min_mapmode_44;低 部队数
+legend_max_mapmode_8;高 行政
 legend_max_mapmode_19;开化
 legend_max_mapmode_7;殖民
 legend_max_mapmode_21;高紧张
 legend_max_mapmode_18;迁入
-legend_max_mapmode_12;高密度
-legend_max_mapmode_17;高排名
-legend_max_mapmode_20;高关系
-legend_max_mapmode_3;高叛乱风险
-legend_max_mapmode_11;高原料输出
-legend_max_mapmode_15;高供应
-legend_max_mapmode_26;高收入
-legend_max_mapmode_27;高觉醒度
-legend_max_mapmode_28;高斗争
-legend_max_mapmode_29;高识字率
-legend_max_mapmode_30;高就业率
-legend_max_mapmode_33;高人口增长
-legend_max_mapmode_35;高满足
-legend_max_mapmode_36;高满足
-legend_max_mapmode_37;高满足
-legend_max_mapmode_38;高军官
-legend_max_mapmode_39;高职员-技工比例
-legend_max_mapmode_40;高生活条件
-legend_max_mapmode_44;高部队数
+legend_max_mapmode_12;高 密度
+legend_max_mapmode_17;高 排名
+legend_max_mapmode_20;高 关系
+legend_max_mapmode_3;高 叛乱风险
+legend_max_mapmode_11;高 原料输出
+legend_max_mapmode_15;高 供应
+legend_max_mapmode_26;高 收入
+legend_max_mapmode_27;高 觉醒度
+legend_max_mapmode_28;高 斗争
+legend_max_mapmode_29;高 识字率
+legend_max_mapmode_30;高 就业率
+legend_max_mapmode_33;高 人口增长
+legend_max_mapmode_35;高 满足
+legend_max_mapmode_36;高 满足
+legend_max_mapmode_37;高 满足
+legend_max_mapmode_38;高 军官
+legend_max_mapmode_39;高 职员-技工比例
+legend_max_mapmode_40;高 生活条件
+legend_max_mapmode_44;高 部队数
 mapmode_tooltip_34;玩家：$x$
 mapmode_tooltip_34_you_sp;这是你！
 mapmode_tooltip_34_you;玩家：$x$（这是你！）
 mapmode_tooltip_34_ai;AI 控制
-mapmode_tooltip_34_no_ai;非AI控制
+mapmode_tooltip_34_no_ai;非 AI控制
 mapmode_tooltip_35;必需品满足：$x$
 mapmode_tooltip_36;日用品满足：$x$
 mapmode_tooltip_37;奢侈品满足：$x$
@@ -161,3 +161,15 @@ aml_rank_s4;未开化国家
 aml_rec_s1;可用
 aml_rec_s2;已满
 aml_rec_s3;无
+mapmode_45;供应损失
+mapmode_46;供应吞吐
+mapmode_47;港口供应量
+mapmode_48;供应吞吐率
+legend_min_mapmode_45;高 供应损失
+legend_min_mapmode_46;低 供应吞吐
+legend_min_mapmode_47;低 容量
+legend_min_mapmode_48;低 效率
+legend_max_mapmode_45;低 供应损失
+legend_max_mapmode_46;高 供应吞吐
+legend_max_mapmode_47;高 容量
+legend_max_mapmode_48;高 效率

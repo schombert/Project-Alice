@@ -195,6 +195,8 @@ class diplomacy_request_desc_text : public scrollable_text {
 				else if(state.world.wargoal_get_associated_tag(wg))
 					text::add_to_substitution_map(sub, text::variable_type::third, state.world.wargoal_get_associated_tag(wg));
 				text::add_to_substitution_map(sub, text::variable_type::state, state.world.wargoal_get_associated_state(wg));
+				// Apprently some warogals in vanilla use $REGION$ instead of $STATE$ to denote target state in wargoal loc
+				text::add_to_substitution_map(sub, text::variable_type::region, state.world.wargoal_get_associated_state(wg));
 
 				auto box = text::open_layout_box(contents);
 				text::add_to_layout_box(state, contents, box, state.world.cb_type_get_shortest_desc(cbt), sub);
@@ -220,6 +222,8 @@ class diplomacy_request_desc_text : public scrollable_text {
 				else if(diplomacy_request.data.crisis_offer.wg_tag)
 					text::add_to_substitution_map(sub, text::variable_type::third, diplomacy_request.data.crisis_offer.wg_tag);
 				text::add_to_substitution_map(sub, text::variable_type::state, diplomacy_request.data.crisis_offer.state);
+				// Apprently some warogals in vanilla use $REGION$ instead of $STATE$ to denote target state in wargoal loc
+				text::add_to_substitution_map(sub, text::variable_type::region, diplomacy_request.data.crisis_offer.state);
 
 				auto box = text::open_layout_box(contents);
 				text::add_to_layout_box(state, contents, box, state.world.cb_type_get_shortest_desc(cbt), sub);
@@ -249,6 +253,8 @@ class diplomacy_request_desc_text : public scrollable_text {
 				else if(state.world.wargoal_get_associated_tag(wg))
 					text::add_to_substitution_map(sub, text::variable_type::third, state.world.wargoal_get_associated_tag(wg));
 				text::add_to_substitution_map(sub, text::variable_type::state, state.world.wargoal_get_associated_state(wg));
+				// Apprently some warogals in vanilla use $REGION$ instead of $STATE$ to denote target state in wargoal loc
+				text::add_to_substitution_map(sub, text::variable_type::region, state.world.wargoal_get_associated_state(wg));
 
 				auto box = text::open_layout_box(contents);
 				text::add_to_layout_box(state, contents, box, state.world.cb_type_get_shortest_desc(cbt), sub);

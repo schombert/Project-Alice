@@ -22,7 +22,7 @@ void for_each_new_factory(sys::state& state, dcon::province_id s, F&& func) {
 
 			for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
 				total += goods.commodity_amounts[i] * admin_cost_factor;
-				purchased += st_con.get_purchased_goods().commodity_amounts[i];
+				purchased += st_con.get_purchased_goods()[i];
 			}
 
 			func(new_factory{total > 0.0f ? purchased / total : 0.0f, st_con.get_type().id});
@@ -46,7 +46,7 @@ void for_each_upgraded_factory(sys::state& state, dcon::province_id s, F&& func)
 
 			for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
 				total += goods.commodity_amounts[i] * admin_cost_factor * refit_discount;
-				purchased += st_con.get_purchased_goods().commodity_amounts[i];
+				purchased += st_con.get_purchased_goods()[i];
 			}
 
 			func(upgraded_factory{total > 0.0f ? purchased / total : 0.0f, st_con.get_type().id, st_con.get_refit_target().id});
@@ -245,12 +245,12 @@ template<concepts::construction_type construction_type, typename FAccumulate>
 void accumulate_construction_daily_goods_requirements(const sys::state& state, construction_type c, FAccumulate& acc_func) {
 	const economy::commodity_set actual_cost = construction_get_actual_build_cost(state, c);
 
-	const economy::commodity_set& currently_fufilled = construction_get_purchased_goods(state, c);
+	const economy::commodity_amounts& currently_fufilled = construction_get_purchased_goods(state, c);
 	for(uint32_t i = 0; i < actual_cost.set_size; i++) {
 		dcon::commodity_id cid = actual_cost.commodity_type[i];
 		if(cid) {
 			float total_required = actual_cost.commodity_amounts[i];
-			float fufilled_amount = currently_fufilled.commodity_amounts[i];
+			float fufilled_amount = currently_fufilled[i];
 			float required = std::max(total_required - fufilled_amount, 0.0f);
 			if constexpr(std::is_invocable_r_v<void, FAccumulate, dcon::commodity_id, float>) {
 				acc_func(cid, required);

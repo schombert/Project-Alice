@@ -92,6 +92,8 @@ public:
 		else if(state.world.wargoal_get_associated_tag(wg))
 			text::add_to_substitution_map(sub, text::variable_type::third, state.world.wargoal_get_associated_tag(wg));
 		text::add_to_substitution_map(sub, text::variable_type::state, state.world.wargoal_get_associated_state(wg));
+		// Apprently some warogals in vanilla use $REGION$ instead of $STATE$ to denote target state in wargoal loc
+		text::add_to_substitution_map(sub, text::variable_type::region, state.world.wargoal_get_associated_state(wg));
 
 		set_text(state, text::resolve_string_substitution(state, state.world.cb_type_get_shortest_desc(cbt), sub));
 	}
@@ -540,6 +542,8 @@ public:
 		else if(wg.wg_tag)
 			text::add_to_substitution_map(sub, text::variable_type::third, wg.wg_tag);
 		text::add_to_substitution_map(sub, text::variable_type::state, wg.state);
+		// Apprently some warogals in vanilla use $REGION$ instead of $STATE$ to denote target state in wargoal loc
+		text::add_to_substitution_map(sub, text::variable_type::region, wg.state);
 
 		set_text(state, text::resolve_string_substitution(state, state.world.cb_type_get_shortest_desc(cbt), sub));
 	}

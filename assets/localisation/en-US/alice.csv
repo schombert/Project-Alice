@@ -1133,6 +1133,7 @@ auto_save_3;Yearly
 auto_save_0;None
 monthly_emigration_lab;Monthly emigration to (top 10)
 monthly_immigration_lab;Monthly immigration from (top 10)
+monthly_net_migration_lab;Monthly net migration:
 im_em_header;Predicted immigration/emigration for 
 alice_unit_relative_attrition;$m$ $n$/$x$/$y$ = ?R$val$?W attrition
 unit_arrival_time_text;(arrive on $date$)

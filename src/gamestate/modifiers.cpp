@@ -874,6 +874,9 @@ void recreate_single_land_province_modifiers(sys::state& state, prov_type provin
 	if(state.national_definitions.has_siege) {
 		ve_apply_modifier(state.national_definitions.has_siege, prov_valid_mask && military::province_is_under_siege(state, province));
 	}
+	if(state.national_definitions.occupied) {
+		ve_apply_modifier(state.national_definitions.occupied, prov_valid_mask && province::is_occupied(state, province));
+	}
 	if(state.national_definitions.blockaded) {
 		ve_apply_modifier(state.national_definitions.blockaded, prov_valid_mask && military::province_is_blockaded(state, province));
 	}

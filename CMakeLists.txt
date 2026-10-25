@@ -361,7 +361,7 @@ if(WIN32)
 	set(CMAKE_CXX_FLAGS_RELEASE "")
 	if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
 	# All common flags for all Clang Windows builds
-	set(CommonClangWinFlags /bigobj /wd4100 /wd4189 /wd4065 /wd4201 /wd4324 /GR- /W4 /permissive- /WX /GF /w34388 /w34389 -Wno-unused-macros -Wno-array-bounds-pointer-arithmetic -Wno-unused-lambda-capture -Wno-zero-length-array -Wno-switch-default -Wno-reserved-identifier -Wno-unused-parameter -Wno-unused-variable -Wno-unused-private-field /Z7 -Wno-invalid-offsetof -Wno-deprecated-volatile -Wno-missing-prototypes -Wno-implicit-int-float-conversion -Wno-unsafe-buffer-usage -Wno-float-equal -Wno-shadow-field-in-constructor -Wno-gnu-anonymous-struct -Wno-nested-anon-types -Wno-double-promotion -Wno-shadow-uncaptured-local -Wno-nonportable-system-include-path -Wno-format-nonliteral -Wno-shorten-64-to-32 -Wno-ctad-maybe-unsupported -Wno-implicit-int-conversion -Wno-disabled-macro-expansion -Wno-comma -Wno-cast-function-type-strict -Wno-cast-function-type -Wno-invalid-offsetof -Wno-microsoft-cast -Wno-unused-but-set-variable -Wno-padded -Wno-unique-object-duplication -Wno-nrvo -Wno-declaration-after-statement -Wno-undefined-func-template -Wno-bad-function-cast -Wno-unused-function -Wno-cast-qual -Wno-format-security -Wno-overriding-option -Wno-suggest-destructor-override -Wno-lifetime-safety-invalidation -Wno-lifetime-safety-cross-tu-suggestions -Wno-lifetime-safety-intra-tu-suggestions -Wno-unused-template -Wno-lifetime-safety-use-after-scope-moved -Wno-lifetime-safety-dangling-field-moved -Wno-lifetime-safety-return-stack-addr-moved)
+	set(CommonClangWinFlags /bigobj /wd4100 /wd4189 /wd4065 /wd4201 /wd4324 /GR- /W4 /permissive- /WX /GF /w34388 /w34389 -fstrict-aliasing -Wno-unused-macros -Wno-array-bounds-pointer-arithmetic -Wno-unused-lambda-capture -Wno-zero-length-array -Wno-switch-default -Wno-reserved-identifier -Wno-unused-parameter -Wno-unused-variable -Wno-unused-private-field /Z7 -Wno-invalid-offsetof -Wno-deprecated-volatile -Wno-missing-prototypes -Wno-implicit-int-float-conversion -Wno-unsafe-buffer-usage -Wno-float-equal -Wno-shadow-field-in-constructor -Wno-gnu-anonymous-struct -Wno-nested-anon-types -Wno-double-promotion -Wno-shadow-uncaptured-local -Wno-nonportable-system-include-path -Wno-format-nonliteral -Wno-shorten-64-to-32 -Wno-ctad-maybe-unsupported -Wno-implicit-int-conversion -Wno-disabled-macro-expansion -Wno-comma -Wno-cast-function-type-strict -Wno-cast-function-type -Wno-invalid-offsetof -Wno-microsoft-cast -Wno-unused-but-set-variable -Wno-padded -Wno-unique-object-duplication -Wno-nrvo -Wno-declaration-after-statement -Wno-undefined-func-template -Wno-bad-function-cast -Wno-unused-function -Wno-cast-qual -Wno-format-security -Wno-overriding-option -Wno-suggest-destructor-override -Wno-lifetime-safety-invalidation -Wno-lifetime-safety-cross-tu-suggestions -Wno-lifetime-safety-intra-tu-suggestions -Wno-unused-template -Wno-lifetime-safety-use-after-scope-moved -Wno-lifetime-safety-dangling-field-moved -Wno-lifetime-safety-return-stack-addr-moved)
 		if(OPTIMIZE_MODE STREQUAL "On")
 			message(STATUS "Optimizing with PGO data")
 			target_compile_options(AliceCommon INTERFACE
@@ -441,15 +441,19 @@ else() # GCC or CLANG
 	target_link_options(Alice INTERFACE -rdynamic -Wl,-E)
 	target_link_options(AliceIncremental INTERFACE -rdynamic -Wl,-E)
 	target_link_options(AliceCommon INTERFACE -rdynamic -Wl,-E)
+	# common flags for all linux builds
+	set(CommonLinuxFlags -Wall -Wextra -Wpedantic -fstrict-aliasing -Wno-unused-parameter -Wno-unused-variable -Wno-switch -Wdangling-else -Wno-unused-private-field -Wno-invalid-offsetof -Wno-unused-but-set-variable -Wno-microsoft-cast -Wno-declaration-after-statement)
 	# See for FMA support: https://stackoverflow.com/questions/21001388/fma3-in-gcc-how-to-enable
+	#Clang
 	if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
 		target_compile_options(AliceCommon INTERFACE
-			-Wall -Wextra -Wpedantic -Wno-unused-parameter -Wno-unused-variable -Wno-switch -Wdangling-else -Wno-unused-private-field -Wno-invalid-offsetof -Wno-unused-but-set-variable -Wno-microsoft-cast -Wno-declaration-after-statement  #-Werror
+			${CommonLinuxFlags}
 			$<$<CONFIG:Debug>:			-g -pipe>
 			$<$<NOT:$<CONFIG:Debug>>: 	-O3 -pipe -fno-rtti -DNDEBUG>)
+	#GCC
 	else()
 		target_compile_options(AliceCommon INTERFACE
-										# -Wall -Wextra -Wpedantic -Werror -Wno-unused-parameter -Wno-unused-variable -Wno-switch -Wno-unused-private-field -Wno-unused-but-set-variable -Wno-parentheses
+			${CommonLinuxFlags}
 			$<$<CONFIG:Debug>:			-g -pipe>
 			$<$<NOT:$<CONFIG:Debug>>: 	-O3 -pipe -fno-rtti -DNDEBUG>)
 	endif()

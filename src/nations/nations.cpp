@@ -752,6 +752,16 @@ float priority_private(sys::state& state, dcon::nation_id n, dcon::factory_type_
 	}
 }
 
+float cb_generation_speed_modifier(const sys::state& state, dcon::nation_id nation) {
+	return std::max(state.world.nation_get_modifier_values(nation, sys::national_mod_offsets::cb_generation_speed_modifier) + 1.0f, 0.01f); // Can't go below 1% efficiency
+}
+
+float cb_justification_speed(const sys::state& state, dcon::nation_id nation, dcon::cb_type_id cb) {
+	float cb_speed = state.world.cb_type_get_construction_speed(cb);
+	float mods = cb_generation_speed_modifier(state, nation);
+	return state.defines.cb_generation_base_speed * cb_speed * mods;
+}
+
 void update_research_points(sys::state& state) {
 	/*
 	Let pop-sum = for each pop type (research-points-from-type x 1^(fraction of population / optimal fraction))
@@ -931,7 +941,7 @@ void update_rankings(sys::state& state) {
 				}
 				if(fa.get_is_civilized() != fb.get_is_civilized())
 					return fa.get_is_civilized();
-				if(bool(fa.get_overlord_as_subject().get_ruler()) != bool(fa.get_overlord_as_subject().get_ruler()))
+				if(bool(fa.get_overlord_as_subject().get_ruler()) != bool(fb.get_overlord_as_subject().get_ruler()))
 					return !bool(fa.get_overlord_as_subject().get_ruler());
 				auto a_score = fa.get_military_score() + fa.get_industrial_score() + prestige_score(state, a);
 				auto b_score = fb.get_military_score() + fb.get_industrial_score() + prestige_score(state, b);
@@ -965,9 +975,9 @@ void update_ui_rankings(sys::state& state) {
 					return true;
 				if(!fa.get_is_civilized() && fb.get_is_civilized())
 					return false;
-				if(bool(fa.get_overlord_as_subject()) && !bool(fa.get_overlord_as_subject()))
+				if(bool(fa.get_overlord_as_subject()) && !bool(fb.get_overlord_as_subject()))
 					return false;
-				if(!bool(fa.get_overlord_as_subject()) && bool(fa.get_overlord_as_subject()))
+				if(!bool(fa.get_overlord_as_subject()) && bool(fb.get_overlord_as_subject()))
 					return true;
 				auto a_score = fa.get_industrial_score();
 				auto b_score = fb.get_industrial_score();
@@ -983,9 +993,9 @@ void update_ui_rankings(sys::state& state) {
 					return true;
 				if(!fa.get_is_civilized() && fb.get_is_civilized())
 					return false;
-				if(bool(fa.get_overlord_as_subject()) && !bool(fa.get_overlord_as_subject()))
+				if(bool(fa.get_overlord_as_subject()) && !bool(fb.get_overlord_as_subject()))
 					return false;
-				if(!bool(fa.get_overlord_as_subject()) && bool(fa.get_overlord_as_subject()))
+				if(!bool(fa.get_overlord_as_subject()) && bool(fb.get_overlord_as_subject()))
 					return true;
 				auto a_score = fa.get_military_score();
 				auto b_score = fb.get_military_score();
@@ -1001,9 +1011,9 @@ void update_ui_rankings(sys::state& state) {
 					return true;
 				if(!fa.get_is_civilized() && fb.get_is_civilized())
 					return false;
-				if(bool(fa.get_overlord_as_subject()) && !bool(fa.get_overlord_as_subject()))
+				if(bool(fa.get_overlord_as_subject()) && !bool(fb.get_overlord_as_subject()))
 					return false;
-				if(!bool(fa.get_overlord_as_subject()) && bool(fa.get_overlord_as_subject()))
+				if(!bool(fa.get_overlord_as_subject()) && bool(fb.get_overlord_as_subject()))
 					return true;
 				auto a_score = prestige_score(state, a);
 				auto b_score = prestige_score(state, b);
@@ -1589,6 +1599,8 @@ float tariff_efficiency(sys::state const& state, dcon::nation_id n, dcon::market
 	auto pid = state.world.state_instance_get_capital(sid);
 	auto eff_mod = state.world.nation_get_modifier_values(n, sys::national_mod_offsets::tariff_efficiency_modifier);
 	auto adm_eff = state.world.province_get_control_ratio(pid);
+	// Reasoning for treating control ratio as a tariff efficiency modifier: In base V2, pretty much the only source of tariff efficiency modifier is from buraucrats (admin efficiency). Since control replaces that, it should be treated similarly
+	// If it acted as a multiplicative modifier, the tariff efficiency would never exceed 20% in vanilla (the base tariff modifiers)
 	return std::clamp((state.defines.base_tariff_efficiency + eff_mod + adm_eff), 0.f, 1.f);
 }
 
@@ -2242,7 +2254,7 @@ void make_substate(sys::state& state, dcon::nation_id subject, dcon::nation_id o
 		state.trade_route_cached_values_out_of_date = true;
 		state.world.nation_set_is_substate(subject, true);
 		state.world.nation_get_vassals_count(overlord)++;
-		state.world.nation_get_substates_count(current_ruler)++;
+		state.world.nation_get_substates_count(overlord)++;
 		// clear alliances of subject to prevent potential tomfoolery by the subject
 		clear_alliances(state, subject);
 		clear_all_embargoes(state, subject);
