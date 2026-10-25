@@ -4112,6 +4112,7 @@ void main_menu_graphics_vassal_color_dropdown_t::on_selection(sys::state& state,
 // BEGIN graphics::vassal_color_dropdown::on_selection
 	state.user_settings.vassal_color = sys::map_vassal_color_mode(list_contents[id].index);
 	state.user_setting_changed = true;
+	state.game_state_updated.store(true, std::memory_order::release); //update ui
 // END
 }
 void main_menu_graphics_vassal_color_dropdown_t::clear_list() {	list_contents.clear();

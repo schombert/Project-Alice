@@ -20,6 +20,10 @@ template<typename T>
 concept abs_is_defined = requires (T x) {
 	std::abs(x);
 };
+template<typename T>
+concept ceil_is_defined = requires (T x) {
+	std::ceil(x);
+};
 
 template<typename T>
 concept is_vector = (std::same_as<T, ve::fp_vector> || std::same_as<T, ve::int_vector> || std::same_as<T, ve::mask_vector> || std::same_as<T, ve::vbitfield_type>);
@@ -41,14 +45,23 @@ RELEASE_INLINE VALUE min(const VALUE a, const VALUE b) {
 	return ve::min(a, b);
 }
 
-template<typename VALUE> requires has_default_order<VALUE>
+template<typename VALUE> requires std::integral<VALUE> || std::floating_point<VALUE>
 RELEASE_INLINE VALUE max(const VALUE a, const VALUE b) {
 	return std::max(a, b);
 }
 
-template<typename VALUE>
+template<typename VALUE> requires is_vector<VALUE>
 RELEASE_INLINE VALUE max(const VALUE a, const VALUE b) {
 	return ve::max(a, b);
+}
+template<typename VALUE> requires ceil_is_defined<VALUE>
+RELEASE_INLINE VALUE ceil(const VALUE a) {
+	return std::ceil(a);
+}
+
+template<typename VALUE>
+RELEASE_INLINE VALUE ceil(const VALUE a) {
+	return ve::ceil(a);
 }
 
 template<typename VALUE> requires abs_is_defined<VALUE>

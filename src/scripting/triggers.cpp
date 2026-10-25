@@ -730,6 +730,12 @@ TRIGGER_FUNCTION(tf_x_core_scope_nation) {
 				auto nid = fatten(ws.world, to_nation(p_slot));
 				auto ident = nid.get_identity_holder_as_nation().get_identity();
 
+				auto cores = ident.get_core();
+				// For compliance with expected v2 trigger behaviour
+				if(cores.end() == cores.begin()) {
+					return false;
+				}
+
 				if(*tval & trigger::is_existence_scope) {
 					auto accumulator = existence_accumulator(ws, tval, t_slot, f_slot);
 

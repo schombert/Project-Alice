@@ -2541,9 +2541,6 @@ void run_private_investment(sys::state& state) {
 						new_up.set_is_upgrade(r.is_upgrade);
 						new_up.set_type(r.type);
 						const auto& base_cost = state.world.factory_type_get_construction_costs(r.type);
-						auto& purchased_goods = economy::construction_get_purchased_goods(state, new_up.id);
-						// init types in new set
-						base_cost.copy_types_to(purchased_goods);
 
 						est_private_const_spending += r.cost;
 					}
@@ -2582,9 +2579,6 @@ void run_private_investment(sys::state& state) {
 						new_up.set_is_upgrade(r.is_upgrade);
 						new_up.set_type(r.type);
 						const auto& base_cost = state.world.factory_type_get_construction_costs(r.type);
-						auto& purchased_goods = economy::construction_get_purchased_goods(state, new_up.id);
-						// init types in new set
-						base_cost.copy_types_to(purchased_goods);
 						est_private_const_spending += r.cost;
 					}
 				}
@@ -2603,9 +2597,6 @@ void run_private_investment(sys::state& state) {
 					const auto& base_cost = state.economy_definitions.building_definitions[uint8_t(r.type)].cost;
 					new_rr.set_is_pop_project(r.is_pop_project);
 					new_rr.set_type(uint8_t(r.type));
-					auto& purchased_goods = construction_get_purchased_goods(state, new_rr.id);
-					// init types in new set
-					base_cost.copy_types_to(purchased_goods);
 					est_private_const_spending += r.cost;
 				}
 
@@ -4694,9 +4685,9 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 				en_swbp = ve::select(ideal_en_wbp > 0.f, en_swbp / ideal_en_wbp, 1.f);
 				lx_swbp = ve::select(ideal_lx_wbp > 0.f, lx_swbp / ideal_lx_wbp, 1.f);
 
-				auto ln_q = ve::select(ln_N == 0.f, 1.f, ve::select(ln_ww_summed > 0.f, ln_w_summed * ln_w_summed * ln_sw / ln_ww_summed / ln_N / ln_N, 0.f));
-				auto en_q = ve::select(en_N == 0.f, 1.f, ve::select(en_ww_summed > 0.f, en_w_summed * en_w_summed *  en_sw / en_ww_summed / en_N / en_N, 0.f));
-				auto lx_q = ve::select(lx_N == 0.f, 1.f, ve::select(lx_ww_summed > 0.f, lx_w_summed * lx_w_summed *  lx_sw / lx_ww_summed / lx_N / lx_N, 0.f));
+				auto ln_q = ve::min( ve::select(ln_N == 0.f, 1.f, ve::select(ln_ww_summed > 0.f, ln_w_summed * ln_w_summed * ln_sw / ln_ww_summed / ln_N / ln_N, 0.f)), 1.0f);
+				auto en_q = ve::min( ve::select(en_N == 0.f, 1.f, ve::select(en_ww_summed > 0.f, en_w_summed * en_w_summed *  en_sw / en_ww_summed / en_N / en_N, 0.f)), 1.0f);
+				auto lx_q = ve::min( ve::select(lx_N == 0.f, 1.f, ve::select(lx_ww_summed > 0.f, lx_w_summed * lx_w_summed *  lx_sw / lx_ww_summed / lx_N / lx_N, 0.f)), 1.0f);
 
 #ifndef NDEBUG
 				ve::apply([](float life, float everyday, float luxury) {
@@ -6181,7 +6172,7 @@ construction_status province_building_construction(sys::state& state, dcon::prov
 			float total = 0.0f;
 			float purchased = 0.0f;
 			for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
-				auto current = pb_con.get_purchased_goods().commodity_amounts[i];
+				auto current = pb_con.get_purchased_goods()[i];
 				auto required = state.economy_definitions.building_definitions[int32_t(t)].cost.commodity_amounts[i]
 					* modifier;
 
@@ -6206,7 +6197,7 @@ construction_status factory_upgrade(sys::state& state, dcon::factory_id f) {
 			auto& goods = state.world.factory_type_get_construction_costs(fac_type);
 			for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
 				total += goods.commodity_amounts[i] * modifier;
-				purchased += st_con.get_purchased_goods().commodity_amounts[i];
+				purchased += st_con.get_purchased_goods()[i];
 			}
 			return construction_status{ total > 0.0f ? purchased / total : 0.0f, true };
 		}

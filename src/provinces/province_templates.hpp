@@ -11,6 +11,10 @@ auto is_overseas(sys::state const& state, T ids) {
 	return (state.world.province_get_continent(ids) != state.world.province_get_continent(owner_cap)) &&
 				 (state.world.province_get_connected_region_id(ids) != state.world.province_get_connected_region_id(owner_cap));
 }
+template<typename province_type>
+auto is_occupied(const sys::state& state, province_type prov) {
+	return state.world.province_get_nation_from_province_control(prov) != state.world.province_get_nation_from_province_ownership(prov);
+}
 
 template<typename F>
 void for_each_land_province(sys::state& state, F const& func) {

@@ -568,9 +568,6 @@ void execute_begin_province_building_construction(sys::state& state, dcon::natio
 	auto new_rr = fatten(state.world, state.world.force_create_province_building_construction(p, source));
 	new_rr.set_is_pop_project(false);
 	new_rr.set_type(uint8_t(type));
-	auto& purchased_goods = economy::construction_get_purchased_goods(state, new_rr.id);
-	// init types in new set
-	base_cost.copy_types_to(purchased_goods);
 }
 
 
@@ -815,10 +812,6 @@ void execute_begin_factory_building_construction(sys::state& state, dcon::nation
 	new_up.set_refit_target(refit_target);
 	const auto& base_cost = state.world.factory_type_get_construction_costs(type);
 
-	auto& purchased_goods = economy::construction_get_purchased_goods(state, new_up.id);
-	// init types in new set
-	base_cost.copy_types_to(purchased_goods);
-
 	if(source != state.world.province_get_nation_from_province_ownership(location)) {
 		float amount = 0.0f;
 		for(uint32_t j = 0; j < economy::commodity_set::set_size; ++j) {
@@ -891,11 +884,8 @@ void execute_start_naval_unit_construction(sys::state& state, dcon::nation_id so
 	auto c = fatten(state.world, state.world.try_create_province_naval_construction(location, source));
 	auto& fufilled_goods = c.get_purchased_goods();
 	const auto& build_cost = state.military_definitions.unit_base_definitions[type].build_cost;
-	// Initialize the commodity types in the fufilled goods buffer to have identical types as build cost
-	for(uint32_t i = 0; i < economy::commodity_set::set_size; i++) {
-		fufilled_goods.commodity_type[i] = build_cost.commodity_type[i];
-		fufilled_goods.commodity_amounts[i] = 0.0f;
-
+	for(uint32_t i = 0; i < build_cost.set_size; i++) {
+		fufilled_goods[i] = 0.0f;
 	}
 	c.set_type(type);
 	c.set_start_date(state.current_date);
@@ -957,10 +947,8 @@ void execute_start_land_unit_construction(sys::state& state, dcon::nation_id sou
 	auto c = fatten(state.world, state.world.try_create_province_land_construction(soldier, source));
 	auto& fufilled_goods = c.get_purchased_goods();
 	const auto& build_cost = state.military_definitions.unit_base_definitions[type].build_cost;
-	// Initialize the commodity types in the fufilled goods buffer to have identical types as build cost
-	for(uint32_t i = 0; i < economy::commodity_set::set_size; i++) {
-		fufilled_goods.commodity_type[i] = build_cost.commodity_type[i];
-		fufilled_goods.commodity_amounts[i] = 0.0f;
+	for(uint32_t i = 0; i < build_cost.set_size; i++) {
+		fufilled_goods[i] = 0.0f;
 
 	}
 	c.set_start_date(state.current_date);
@@ -2288,6 +2276,8 @@ bool can_enact_reform(sys::state& state, dcon::nation_id source, dcon::reform_op
 }
 void execute_enact_reform(sys::state& state, dcon::nation_id source, dcon::reform_option_id r) {
 	nations::enact_reform(state, source, r);
+	// Run nations garbage collection incase any nations were made non-existant in the effect
+	nations::run_gc(state);
 	event::update_future_events(state);
 }
 
@@ -2315,6 +2305,8 @@ bool can_enact_issue(sys::state& state, dcon::nation_id source, dcon::issue_opti
 }
 void execute_enact_issue(sys::state& state, dcon::nation_id source, dcon::issue_option_id i) {
 	nations::enact_issue(state, source, i);
+	// Run nations garbage collection incase any nations were made non-existant in the effect
+	nations::run_gc(state);
 	event::update_future_events(state);
 }
 
@@ -2465,6 +2457,8 @@ bool can_take_decision(sys::state& state, dcon::nation_id source, dcon::decision
 void execute_take_decision(sys::state& state, dcon::nation_id source, dcon::decision_id d) {
 	nations::take_decision(state, source, d);
 	if(auto e = state.world.decision_get_effect(d); e) {
+		// Run nations garbage collection incase any nations were made non-existant in the effect
+		nations::run_gc(state);
 		event::update_future_events(state);
 	}
 }
@@ -2574,10 +2568,14 @@ void make_event_choice(sys::state& state, event::pending_human_f_p_event const& 
 void execute_make_event_choice(sys::state& state, dcon::nation_id source, pending_human_n_event_data const& e) {
 	event::take_option(state,
 			event::pending_human_n_event {e.r_lo, e.r_hi, e.primary_slot, e.from_slot, e.date, e.e, source, e.pt, e.ft}, e.opt_choice);
+	// Run nations garbage collection incase any nations were made non-existant in the effect
+	nations::run_gc(state);
 	event::update_future_events(state);
 }
 void execute_make_event_choice(sys::state& state, dcon::nation_id source, pending_human_f_n_event_data const& e) {
 	event::take_option(state, event::pending_human_f_n_event {e.r_lo, e.r_hi, e.date, e.e, source}, e.opt_choice);
+	// Run nations garbage collection incase any nations were made non-existant in the effect
+	nations::run_gc(state);
 	event::update_future_events(state);
 }
 void execute_make_event_choice(sys::state& state, dcon::nation_id source, pending_human_p_event_data const& e) {
@@ -2585,6 +2583,8 @@ void execute_make_event_choice(sys::state& state, dcon::nation_id source, pendin
 		return;
 
 	event::take_option(state, event::pending_human_p_event {e.r_lo, e.r_hi, e.from_slot, e.date, e.e, e.p, e.ft}, e.opt_choice);
+	// Run nations garbage collection incase any nations were made non-existant in the effect
+	nations::run_gc(state);
 	event::update_future_events(state);
 }
 void execute_make_event_choice(sys::state& state, dcon::nation_id source, pending_human_f_p_event_data const& e) {
@@ -2592,6 +2592,8 @@ void execute_make_event_choice(sys::state& state, dcon::nation_id source, pendin
 		return;
 
 	event::take_option(state, event::pending_human_f_p_event {e.r_lo, e.r_hi, e.date, e.e, e.p}, e.opt_choice);
+	// Run nations garbage collection incase any nations were made non-existant in the effect
+	nations::run_gc(state);
 	event::update_future_events(state);
 }
 
@@ -4122,8 +4124,13 @@ bool can_retreat_move_or_stop_army(sys::state& state, dcon::nation_id source, dc
 		return false;
 	}
 	auto army_loc = state.world.army_get_location_from_army_location(a);
-	if(army_loc == dest && command::can_stop_army_movement(state, source, a)) {
-		return true;
+	if(army_loc == dest) {
+		if(state.world.army_get_navy_from_army_transport(a) && province::is_land(state, army_loc)) {
+			return command::can_embark_army(state, source, a);
+		}
+		else {
+			return command::can_stop_army_movement(state, source, a);
+		}
 	}
 	auto battle = state.world.army_get_battle_from_army_battle_participation(a);
 	if(bool(battle)) {
@@ -4155,7 +4162,12 @@ void move_retreat_or_stop_army(sys::state& state, dcon::nation_id source, dcon::
 	auto army_loc = state.world.army_get_location_from_army_location(a);
 	auto battle = state.world.army_get_battle_from_army_battle_participation(a);
 	if(army_loc == dest) {
-		command::stop_army_movement(state, source, a);
+		if(state.world.army_get_navy_from_army_transport(a) && province::is_land(state, army_loc)) {
+			command::embark_army(state, source, a);
+		} else {
+			command::stop_army_movement(state, source, a);
+		}
+		
 	}
 	else {
 		if(bool(battle)) {
@@ -4183,6 +4195,68 @@ void move_retreat_or_stop_navy(sys::state& state, dcon::nation_id source, dcon::
 	}
 }
 
+void embark_army(sys::state& state, dcon::nation_id source, dcon::army_id a) {
+
+	command_data p{ command_type::embark_army, state.local_player_id };
+	auto data = army_movement_data{ };
+	data.a = a;
+	p << data;
+	add_to_command_queue(state, p);
+}
+
+bool can_embark_army(sys::state& state, dcon::nation_id source, dcon::army_id a) {
+	if(!state.current_scene.game_in_progress) {
+		return false;
+	}
+	auto army_owner = state.world.army_get_controller_from_army_control(a);
+	if(source != military::get_effective_unit_commander(state, a))
+		return false;
+	if(state.world.army_get_is_retreating(a))
+		return false;
+
+	auto location = state.world.army_get_location_from_army_location(a);
+	if(location.index() >= state.province_definitions.first_sea_province.index())
+		return false;
+
+	if(state.world.army_get_battle_from_army_battle_participation(a))
+		return false;
+
+	if(state.world.army_get_navy_from_army_transport(a)) {
+		return true;
+	} else {
+		return military::can_embark_onto_sea_tile(state, army_owner, location, a);
+	}
+}
+
+void execute_embark_army(sys::state& state, dcon::nation_id source, dcon::army_id a) {
+	auto army_owner = state.world.army_get_controller_from_army_control(a);
+	if(source != military::get_effective_unit_commander(state, a))
+		return;
+	if(state.world.army_get_is_retreating(a))
+		return;
+
+	if(state.world.army_get_battle_from_army_battle_participation(a))
+		return;
+
+	auto location = state.world.army_get_location_from_army_location(a);
+	if(location.index() >= state.province_definitions.first_sea_province.index())
+		return;
+
+	if(state.world.army_get_navy_from_army_transport(a)) {
+		state.world.army_set_navy_from_army_transport(a, dcon::navy_id{});
+		military::army_arrives_in_province(state, a, location, military::crossing_type::none);
+	} else {
+		auto to_navy = military::find_embark_target(state, army_owner, location, a);
+		if(to_navy) {
+			state.world.army_set_navy_from_army_transport(a, to_navy);
+			state.world.army_set_black_flag(a, false);
+		}
+	}
+	state.world.army_set_is_rebel_hunter(a, false);
+	state.world.army_set_dig_in(a, 0);
+	military::stop_army_movement(state, a);
+}
+
 std::vector<dcon::province_id> can_move_army(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::province_id dest, bool reset) {
 	if(!state.current_scene.game_in_progress) {
 		return std::vector<dcon::province_id>{};
@@ -4195,10 +4269,16 @@ std::vector<dcon::province_id> can_move_army(sys::state& state, dcon::nation_id 
 	if(state.world.army_get_battle_from_army_battle_participation(a)) {
 		return std::vector<dcon::province_id>{};
 	}
+	auto army_location = state.world.army_get_location_from_army_location(a);
+	// If embarked in a land province, the army must be able to disembark before moving
+	if(state.world.army_get_navy_from_army_transport(a) && province::is_land(state, army_location)) {
+		if(!command::can_embark_army(state, source, a)) {
+			return std::vector<dcon::province_id>{};
+		}
+	}
 
 	// Behavior for shift+click movement. Otherwise - path is cleared beforehand
 	// the "reset" param dictaties whether or not it checks if you can move from the armies *current position* (reset is true), or from the province the army is currently queued to walk to (reset is false)
-	auto last_province = state.world.army_get_location_from_army_location(a);
 	auto retreating = state.world.army_get_is_retreating(a);
 	// pass army owner directly instead of source nation for path calculation, as the army owner may be diffrent than source if commanding a subject's units
 	auto army_owner = state.world.army_get_controller_from_army_control(a);
@@ -4207,9 +4287,9 @@ std::vector<dcon::province_id> can_move_army(sys::state& state, dcon::nation_id 
 		if(retreating) {
 			auto movement = state.world.army_get_path(a);
 			if(movement.size() > 0) {
-				last_province = movement.at(movement.size() - 1);
-				auto path = province::make_land_unit_path(state, last_province, dest, source, a);
-				path.push_back(last_province);
+				army_location = movement.at(movement.size() - 1);
+				auto path = province::make_land_unit_path(state, army_location, dest, source, a);
+				path.push_back(army_location);
 				return path;
 			}
 			// If for some reason the retreating unit does not have a path (it may be garbage collected) do not allow movement
@@ -4219,18 +4299,18 @@ std::vector<dcon::province_id> can_move_army(sys::state& state, dcon::nation_id 
 
 		}
 		else {
-			return province::make_land_unit_path(state, last_province, dest, source, a);
+			return province::make_land_unit_path(state, army_location, dest, source, a);
 		}		
 	}
 	else { // !reset
 		auto movement = state.world.army_get_path(a);
 		if(movement.size() > 0) {
-			last_province = movement.at(0);
+			army_location = movement.at(0);
 		}
 		// Special case: If reset is false and the current path destination is adjacent to the new destiatnion then we skip pathfinding and directly check province validity and return the 1 province path if valid
 		// This is done because with shift-click movement we want to go straight to the destination without pathing though any other provinces. With normal pathfinding, its possible that there is a faster indrect route even when moving to an adjacent prov
-		if(province::provinces_are_adjacent(state, dest, last_province)) {
-			auto adj = state.world.get_province_adjacency_by_province_pair(dest, last_province);
+		if(province::provinces_are_adjacent(state, dest, army_location)) {
+			auto adj = state.world.get_province_adjacency_by_province_pair(dest, army_location);
 			if(state.world.army_get_black_flag(a)) {
 				if(province::make_land_unit_path_adjacency_valid(state, army_owner, adj, a) && province::make_land_unit_path_province_valid<province::blackflagged_state::blackflagged>(state, army_owner, dest, a)) {
 					return std::vector<dcon::province_id>{ dest };
@@ -4241,7 +4321,7 @@ std::vector<dcon::province_id> can_move_army(sys::state& state, dcon::nation_id 
 				}
 			}
 		}
-		return province::make_land_unit_path(state, last_province, dest, source, a);
+		return province::make_land_unit_path(state, army_location, dest, source, a);
 	}
 
 }
@@ -4255,6 +4335,11 @@ void execute_move_army(sys::state& state, dcon::nation_id source, dcon::army_id 
 
 	// Build new path
 	auto path = can_move_army(state, source, a, dest, reset);
+
+	// If embarked in a land province, disembark first before moving
+	if(state.world.army_get_navy_from_army_transport(a) && province::is_land(state, state.world.army_get_location_from_army_location(a))) {
+		command::execute_embark_army(state, source, a);
+	}
 
 	if(military::set_army_path(state, a, path, army_owner, reset)) {
 		state.world.army_set_is_rebel_hunter(a, false);
@@ -4338,66 +4423,6 @@ void execute_move_navy(sys::state& state, dcon::nation_id source, dcon::navy_id 
 	state.world.navy_set_moving_to_merge(n, false);
 }
 
-void embark_army(sys::state& state, dcon::nation_id source, dcon::army_id a) {
-
-	command_data p{ command_type::embark_army, state.local_player_id };
-	auto data = army_movement_data{ };
-	data.a = a;
-	p << data;
-	add_to_command_queue(state, p);
-}
-
-bool can_embark_army(sys::state& state, dcon::nation_id source, dcon::army_id a) {
-	if(!state.current_scene.game_in_progress) {
-		return false;
-	}
-	auto army_owner = state.world.army_get_controller_from_army_control(a);
-	if(source != military::get_effective_unit_commander(state, a))
-		return false;
-	if(state.world.army_get_is_retreating(a))
-		return false;
-
-	auto location = state.world.army_get_location_from_army_location(a);
-	if(location.index() >= state.province_definitions.first_sea_province.index())
-		return false;
-
-	if(state.world.army_get_battle_from_army_battle_participation(a))
-		return false;
-
-	if(state.world.army_get_navy_from_army_transport(a)) {
-		return true;
-	} else {
-		return military::can_embark_onto_sea_tile(state, army_owner, location, a);
-	}
-}
-
-void execute_embark_army(sys::state& state, dcon::nation_id source, dcon::army_id a) {
-	auto army_owner = state.world.army_get_controller_from_army_control(a);
-	if(source != military::get_effective_unit_commander(state, a))
-		return;
-	if(state.world.army_get_is_retreating(a))
-		return;
-
-	if(state.world.army_get_battle_from_army_battle_participation(a))
-		return;
-
-	auto location = state.world.army_get_location_from_army_location(a);
-	if(location.index() >= state.province_definitions.first_sea_province.index())
-		return;
-
-	if(state.world.army_get_navy_from_army_transport(a)) {
-		state.world.army_set_navy_from_army_transport(a, dcon::navy_id{});
-		military::army_arrives_in_province(state, a, location, military::crossing_type::none);
-	} else {
-		auto to_navy = military::find_embark_target(state, army_owner, location, a);
-		if(to_navy) {
-			state.world.army_set_navy_from_army_transport(a, to_navy);
-			state.world.army_set_black_flag(a, false);
-		}
-	}
-	state.world.army_set_is_rebel_hunter(a, false);
-	state.world.army_set_dig_in(a, 0);
-}
 
 void merge_armies(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::army_id b) {
 
@@ -6298,6 +6323,8 @@ void execute_notify_start_game(sys::state& state, dcon::nation_id source) {
 
 		// take ai decisions on start incase important ai decisions need to fire exactly at the start, and not later
 		ai::take_ai_decisions(state);
+		// Run nations garbage collection incase any nations were made non-existant in the effects
+		nations::run_gc(state);
 		// update any events which were queued, so that they appear for players as soon as the game has started
 		event::update_future_events(state);
 	}

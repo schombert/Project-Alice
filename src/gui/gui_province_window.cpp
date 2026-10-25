@@ -947,7 +947,7 @@ public:
 					auto box = text::open_layout_box(contents, 0);
 
 					auto required = goods.commodity_amounts[i];
-					auto current = cgoods.commodity_amounts[i];
+					auto current = cgoods[i];
 
 					std::string padding = cid.index() < 10 ? "0" : "";
 					std::string description = "@$" + padding + std::to_string(cid.index());
@@ -1800,7 +1800,7 @@ public:
 					auto& current_purchased = lc.get_purchased_goods();
 					for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
 						if(base_cost.commodity_type[i]) {
-							amount += current_purchased.commodity_amounts[i];
+							amount += current_purchased[i];
 							total += base_cost.commodity_amounts[i] * details.cost_multiplier;
 						} else {
 							break;
@@ -1844,7 +1844,7 @@ public:
 			for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
 				auto details = economy::explain_naval_unit_construction(state, nc);
 				if(base_cost.commodity_type[i]) {
-					amount += current_purchased.commodity_amounts[i];
+					amount += current_purchased[i];
 					total += base_cost.commodity_amounts[i] * details.cost_multiplier;
 				} else {
 					break;
@@ -1879,7 +1879,7 @@ public:
 					auto& current_purchased = lc.get_purchased_goods();
 					for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
 						if(base_cost.commodity_type[i]) {
-							amount += current_purchased.commodity_amounts[i];
+							amount += current_purchased[i];
 							total += base_cost.commodity_amounts[i];
 						} else {
 							break;
@@ -1903,7 +1903,7 @@ public:
 			auto& current_purchased = nc.get_purchased_goods();
 			for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
 				if(base_cost.commodity_type[i]) {
-					amount += current_purchased.commodity_amounts[i];
+					amount += current_purchased[i];
 					total += base_cost.commodity_amounts[i];
 				} else {
 					break;

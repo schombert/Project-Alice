@@ -277,7 +277,7 @@ float get_estimated_assimilation(sys::state& state, dcon::pop_id n);
 float get_estimated_internal_migration(sys::state& state, dcon::pop_id n);
 float get_estimated_colonial_migration(sys::state& state, dcon::pop_id n);
 float get_estimated_emigration(sys::state& state, dcon::pop_id n);
-void estimate_directed_immigration(sys::state& state, dcon::nation_id n, std::vector<float>& national_amounts);
+void estimate_directed_immigration(sys::state& state, dcon::nation_id n, tagged_vector<float, dcon::nation_id>& national_amounts);
 
 float calculate_nation_sol(sys::state& state, dcon::nation_id nation_id);
 void reduce_pop_size_safe(sys::state& state, dcon::pop_id pop_id, int32_t amount);

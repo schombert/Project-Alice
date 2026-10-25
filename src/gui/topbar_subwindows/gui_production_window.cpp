@@ -588,7 +588,7 @@ public:
 						text::add_unparsed_text_to_layout_box(state, contents, box, description);
 						text::add_to_layout_box(state, contents, box, state.world.commodity_get_name(goods.commodity_type[i]));
 						text::add_to_layout_box(state, contents, box, std::string_view{ ": " });
-						text::add_to_layout_box(state, contents, box, text::fp_one_place{ cgoods.commodity_amounts[i] });
+						text::add_to_layout_box(state, contents, box, text::fp_one_place{ cgoods[i] });
 						text::add_to_layout_box(state, contents, box, std::string_view{ " / " });
 						text::add_to_layout_box(state, contents, box, text::fp_one_place{ goods.commodity_amounts[i] * factory_mod });
 						text::close_layout_box(contents, box);
@@ -635,7 +635,7 @@ public:
 						text::add_unparsed_text_to_layout_box(state, contents, box, description);
 						text::add_to_layout_box(state, contents, box, state.world.commodity_get_name(goods.commodity_type[i]));
 						text::add_to_layout_box(state, contents, box, std::string_view{ ": " });
-						text::add_to_layout_box(state, contents, box, text::fp_one_place{ cgoods.commodity_amounts[i] });
+						text::add_to_layout_box(state, contents, box, text::fp_one_place{ cgoods[i] });
 						text::add_to_layout_box(state, contents, box, std::string_view{ " / " });
 						text::add_to_layout_box(state, contents, box, text::fp_one_place{ goods.commodity_amounts[i] * factory_mod });
 						text::close_layout_box(contents, box);

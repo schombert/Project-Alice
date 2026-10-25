@@ -3537,6 +3537,41 @@ dcon::nation_id get_immigration_target(sys::state& state, dcon::nation_id owner,
 	return dcon::nation_id{};
 }
 
+
+template<concepts::any_dcon_id_type<dcon::pop_id> pop_type, typename F>
+void calculate_emigration_amount(sys::state& state, pop_type ids, F&& result_func) {
+	/*
+		pops in a civ nation that are not in a colony any which do not belong to an `overseas` culture group in provinces with a
+		total population > 100 may emigrate. This is done by calculating the emigration migration chance factor *additively*. If
+		it is non negative, pops may migrate, and we multiply it by (province-immigrant-push-modifier + 1) x
+		1v(province-immigrant-push-modifier + 1) x define:IMMIGRATION_SCALE x pop-size to find out how many migrate.
+		*/
+
+	using float_type = adaptive_ve::convert_to_float<pop_type>;
+
+	auto loc = state.world.pop_get_province_from_pop_location(ids);
+	auto owners = state.world.province_get_nation_from_province_ownership(loc);
+	auto pop_sizes = state.world.pop_get_size(ids);
+	auto impush = (state.world.province_get_modifier_values(loc, sys::provincial_mod_offsets::immigrant_push) + 1.0f);
+	auto trigger_amount = trigger::evaluate_additive_modifier(state, state.culture_definitions.emigration_chance, trigger::to_generic(ids), trigger::to_generic(ids), 0);
+	trigger_amount = adaptive_ve::max<float_type>(trigger::evaluate_additive_modifier(state, state.culture_definitions.emigration_chance, trigger::to_generic(ids), trigger::to_generic(ids), 0), 0.0f);
+	auto amounts = trigger_amount
+		* pop_sizes
+		* adaptive_ve::max<float_type>(impush, 0.0f)
+		* adaptive_ve::max<float_type>(impush, 1.0f)
+		* state.defines.immigration_scale;
+	auto pops_can_immigrate =
+		owners != decltype(owners){} &&
+		state.world.nation_get_is_civilized(owners) &&
+		state.world.pop_get_poptype(ids) != state.culture_definitions.slaves &&
+		state.world.culture_group_get_is_overseas(state.world.culture_get_group_from_culture_group_membership(state.world.pop_get_culture(ids)));
+
+	auto final_amounts = adaptive_ve::select(pops_can_immigrate, adaptive_ve::min<float_type>(pop_sizes, adaptive_ve::ceil(amounts)), float_type{ 0.0f });
+
+	result_func(ids, loc, owners, final_amounts);
+}
+
+
 } // namespace impl
 
 void update_internal_migration(sys::state& state, uint32_t offset, uint32_t divisions, migration_buffer& pbuf) {
@@ -3779,58 +3814,20 @@ void update_immigration(sys::state& state, uint32_t offset, uint32_t divisions, 
 	pexecute_staggered_blocks(offset, divisions, state.world.pop_size(), [&](auto ids) {
 		pbuf.amounts.set(ids, 0.0f);
 
-		/*
-		pops in a civ nation that are not in a colony any which do not belong to an `overseas` culture group in provinces with a
-		total population > 100 may emigrate. This is done by calculating the emigration migration chance factor *additively*. If
-		it is non negative, pops may migrate, and we multiply it by (province-immigrant-push-modifier + 1) x
-		1v(province-immigrant-push-modifier + 1) x define:IMMIGRATION_SCALE x pop-size to find out how many migrate.
-		*/
-
-		auto loc = state.world.pop_get_province_from_pop_location(ids);
-		auto owners = state.world.province_get_nation_from_province_ownership(loc);
-		auto pop_sizes = state.world.pop_get_size(ids);
-		auto impush = (state.world.province_get_modifier_values(loc, sys::provincial_mod_offsets::immigrant_push) + 1.0f);
-		auto trigger_amount = ve::max(trigger::evaluate_additive_modifier(state, state.culture_definitions.emigration_chance, trigger::to_generic(ids), trigger::to_generic(ids), 0), 0.0f);
-		auto amounts = trigger_amount
-			* pop_sizes
-			* ve::max(impush, 0.0f)
-			* ve::max(impush, 1.0f)
-			* state.defines.immigration_scale;
-
-		ve::apply(
-				[&](dcon::pop_id p, dcon::province_id location, dcon::nation_id owner, float amount, float pop_size) {
-
-					if(amount <= 0.0f)
-						return; // early exit
-					if(!owner)
-						return; // early exit
-					if(state.world.nation_get_is_civilized(owner) == false)
-						return; // early exit
-					if(state.world.province_get_is_colonial(location))
-						return; // early exit
-					if(state.world.pop_get_poptype(p) == state.culture_definitions.slaves)
-						return; // early exit
-					if(state.world.culture_group_get_is_overseas(
-								 state.world.culture_get_group_from_culture_group_membership(state.world.pop_get_culture(p))) == false) {
-						return; // early exit
-					}
-
-					//if(pop_size < small_pop_size) {
-					//	pbuf.amounts.set(p, pop_size);
-					//} else {
-						pbuf.amounts.set(p, std::min(pop_size, std::ceil(amount)));
-					//}
-
-					auto ndest = impl::get_immigration_target(state, owner, p, state.current_date);
-					auto dest = impl::get_province_target_in_nation(state, ndest, p);
-
-					pbuf.destinations.set(p, dest);
-				},
-				ids, loc, owners, amounts, pop_sizes);
+		impl::calculate_emigration_amount(state, ids, [&](auto pops, auto locations, auto owners, auto amounts) {
+			ve::apply([&](dcon::pop_id pop, dcon::nation_id owner, float amount) {
+				if(amount > 0.0f) {
+					auto ndest = impl::get_immigration_target(state, owner, pop, state.current_date);
+					auto dest = impl::get_province_target_in_nation(state, ndest, pop);
+					pbuf.destinations.set(pop, dest);
+					pbuf.amounts.set(pop, amount);
+				}
+			}, pops, owners, amounts);
+		});
 	});
 }
 
-void estimate_directed_immigration(sys::state& state, dcon::nation_id n, std::vector<float>& national_amounts) {
+void estimate_directed_immigration(sys::state& state, dcon::nation_id n, tagged_vector<float, dcon::nation_id>& national_amounts) {
 	auto sz = state.world.nation_size();
 	national_amounts.resize(sz);
 	for(auto& v : national_amounts) {
@@ -3855,18 +3852,22 @@ void estimate_directed_immigration(sys::state& state, dcon::nation_id n, std::ve
 		if(day_of_month <= 0)
 			day_of_month += days_in_month;
 		int32_t day_adjustment = day_of_month - int32_t(ymd_date.day);
-		auto est_amount = get_estimated_emigration(state, ids);
+		float est_amount = get_estimated_emigration(state, ids);
 		if(est_amount > 0.0f) {
 			auto target = impl::get_immigration_target(state, owners, ids, state.current_date + day_adjustment);
-			if(owners == n) {
-				if(target && uint32_t(target.index()) < sz) {
-					std::atomic_ref<float> ref{ national_amounts[uint32_t(target.index())] };
-					ref -= est_amount;
-				}
-			} else if(target == n) {
-				if(uint32_t(owners.index()) < sz) {
-					std::atomic_ref<float> ref{ national_amounts[uint32_t(owners.index())] };
-					ref += est_amount;
+			auto p_target = impl::get_province_target_in_nation(state, target, ids);
+			// There must be atleast a province target in the target nation to have immigration to said nation
+			if(target && p_target) {
+				if(owners == n) {
+					if(target && uint32_t(target.index()) < sz) {
+						std::atomic_ref<float> ref{ national_amounts[target] };
+						ref -= est_amount;
+					}
+				} else if(target == n) {
+					if(uint32_t(owners.index()) < sz) {
+						std::atomic_ref<float> ref{ national_amounts[owners] };
+						ref += est_amount;
+					}
 				}
 			}
 		}
@@ -3875,29 +3876,11 @@ void estimate_directed_immigration(sys::state& state, dcon::nation_id n, std::ve
 
 float get_estimated_emigration(sys::state& state, dcon::pop_id ids) {
 
-	auto loc = state.world.pop_get_province_from_pop_location(ids);
-	auto owners = state.world.province_get_nation_from_province_ownership(loc);
-
-	if(state.world.nation_get_is_civilized(owners) == false)
-		return 0.0f; // early exit
-	if(state.world.province_get_is_colonial(loc))
-		return 0.0f; // early exit
-	if(state.world.pop_get_poptype(ids) == state.culture_definitions.slaves)
-		return 0.0f; // early exit
-	if(state.world.culture_group_get_is_overseas(
-				 state.world.culture_get_group_from_culture_group_membership(state.world.pop_get_culture(ids))) == false) {
-		return 0.0f; // early exit
-	}
-
-	auto pop_sizes = state.world.pop_get_size(ids);
-	auto impush = (state.world.province_get_modifier_values(loc, sys::provincial_mod_offsets::immigrant_push) + 1.0f);
-	auto trigger_result = std::max(trigger::evaluate_additive_modifier(state, state.culture_definitions.emigration_chance, trigger::to_generic(ids), trigger::to_generic(ids), 0), 0.0f);
-	auto amounts = trigger_result * pop_sizes * std::max(impush, 0.0f) * std::max(impush, 1.0f) * state.defines.immigration_scale;
-
-	if(amounts <= 0.0f)
-		return 0.0f; // early exit
-
-	return std::min(pop_sizes, std::ceil(amounts));
+	float total_amount = 0.0f;
+	impl::calculate_emigration_amount(state, ids, [&](dcon::pop_id pop, dcon::province_id location, dcon::nation_id owner, float amount) {
+		total_amount += amount;
+	});
+	return total_amount;
 }
 
 namespace impl {

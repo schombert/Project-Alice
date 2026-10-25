@@ -140,7 +140,7 @@ public:
 	void populate_layout(sys::state& state, text::endless_layout& contents) noexcept override {
 		auto fat_cb = dcon::fatten(state.world, retrieve<dcon::cb_type_id>(state, parent));
 		auto box = text::open_layout_box(contents);
-		auto fab_time = std::ceil(100.0f / (state.defines.cb_generation_base_speed * fat_cb.get_construction_speed() * (state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::cb_generation_speed_modifier) + 1.0f)));
+		auto fab_time = std::ceil(100.0f / nations::cb_justification_speed(state, state.local_player_nation, fat_cb));
 		auto target_nation = retrieve<dcon::nation_id>(state, parent);
 		auto target_state = retrieve<dcon::state_definition_id>(state, parent);
 
@@ -2117,7 +2117,7 @@ public:
 			text::add_line(state, contents, "fab_is_paused");
 		} else {
 			auto rem_progress = 100.0f - state.world.nation_get_constructing_cb_progress(fab_by);
-			auto daily_progress = state.defines.cb_generation_base_speed * state.world.nation_get_constructing_cb_type(fab_by).get_construction_speed()* (state.world.nation_get_modifier_values(fab_by, sys::national_mod_offsets::cb_generation_speed_modifier) + 1.0f);
+			auto daily_progress = nations::cb_justification_speed(state, fab_by, state.world.nation_get_constructing_cb_type(fab_by));
 			auto days = int32_t(std::ceil(rem_progress / daily_progress));
 			text::add_line(state, contents, "fab_finish_date", text::variable_type::date, state.current_date + days);
 		}
