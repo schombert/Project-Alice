@@ -1004,8 +1004,9 @@ void update_supply_path_throughput_attrition(sys::state& state, dcon::supply_rou
 		supply_loss = 0.0f;
 		new_throughput = 1.0f; 
 	}
+	float exp_throughput = state.world.supply_route_path_get_expected_throughput(path_handle);
 	//std::clamp(exp_throughput * new_throughput * 1.1f, 0.01f, 1.0f);
-	state.world.supply_route_path_set_expected_throughput(path_handle, (new_throughput + old_throughput) / 2.0f); // Set the percentage of commodities routes should try to draw from this path and draw form other paths instead, to reduce bottlenecks. Maybe there is a better formula for this
+	state.world.supply_route_path_set_expected_throughput(path_handle, std::clamp(exp_throughput * new_throughput * 1.25f, 0.025f, 1.0f)); // Set the percentage of commodities routes should try to draw from this path and draw form other paths instead, to reduce bottlenecks. Maybe there is a better formula for this
 	state.world.supply_route_path_set_throughput(path_handle, new_throughput);
 	state.world.supply_route_path_set_supply_loss(path_handle, supply_loss);
 }
@@ -1532,6 +1533,8 @@ void update_military_unit_routes_satisfaction(sys::state& state, unit_type unit,
 	float min_required_amount = total_required_amount * min_route_desired_goods_threshold;
 	dcon::province_id unit_location = military::unit_get_location(state, unit);
 
+	float remaining_expected_throughput = max_expected_throughput_allowance;
+
 	auto stockpiles_buffer = unit_best_stockpiles_get(state, unit);
 	for(auto stockpile_state : stockpiles_buffer) {
 
@@ -1541,7 +1544,7 @@ void update_military_unit_routes_satisfaction(sys::state& state, unit_type unit,
 		float available_stockpile_amount = local_stockpile_available_goods_get(state, market, commodity);
 		float remaining_goods_required = get_remaining_goods_required();
 
-		if(available_stockpile_amount < std::min(min_required_amount, remaining_goods_required)) {
+		if(available_stockpile_amount <= 0.0f) {
 			continue;
 		}
 
@@ -1568,7 +1571,9 @@ void update_military_unit_routes_satisfaction(sys::state& state, unit_type unit,
 		if(!recently_created && !path_is_valid) {
 			continue;
 		}
-		float to_consume = std::min(remaining_goods_required, available_stockpile_amount) * state.world.supply_route_path_get_expected_throughput(path); // Consume less if the expected throughput of this route is lower than 100%
+		float expected_throughput = state.world.supply_route_path_get_expected_throughput(path);
+		float to_consume = std::min(remaining_goods_required, available_stockpile_amount) * expected_throughput; // Consume less if the expected throughput of this route is lower than 100%
+
 
 		// The amount to consume is the minimum of the desired amount or the amount available in stockpile
 		// Compute how much to consume to compensate for the expected loss on the route.
@@ -1590,7 +1595,8 @@ void update_military_unit_routes_satisfaction(sys::state& state, unit_type unit,
 		state.world.supply_route_path_set_volume(path, state.world.supply_route_path_get_volume(path) + (to_consume * com_supply_weight));
 		supply_route_set_is_active(state, route, true);
 		state.world.supply_route_path_set_is_active(path, true);
-		if(get_remaining_goods_required() <= 0.0f) {
+		remaining_expected_throughput -=  (1.0f - expected_throughput);
+		if(get_remaining_goods_required() <= 0.0f || remaining_expected_throughput <= 0.0f) {
 			break; // Check remaining goods required now after subtraction. If its zero then we can move on
 		}
 	}
@@ -1640,6 +1646,8 @@ void update_construction_routes_satisfaction(sys::state& state, construction_typ
 
 	float com_supply_weight = state.world.commodity_get_supply_weight(commodity);
 
+	float remaining_expected_throughput = max_expected_throughput_allowance;
+
 	auto stockpiles_buffer = construction_best_stockpiles_get(state, conc);
 	for(auto stockpile_state : stockpiles_buffer) {
 
@@ -1649,7 +1657,7 @@ void update_construction_routes_satisfaction(sys::state& state, construction_typ
 		float available_stockpile_amount = local_stockpile_available_goods_get(state, market, commodity);
 		float remaining_goods_required = construction_need[set_index];
 
-		if(available_stockpile_amount < std::min(min_required_amount, remaining_goods_required)) {
+		if(available_stockpile_amount <= 0.0F) {
 			continue;
 		}
 
@@ -1676,7 +1684,8 @@ void update_construction_routes_satisfaction(sys::state& state, construction_typ
 		if(!recently_created && !path_is_valid) {
 			continue;
 		}
-		float to_consume = std::min(remaining_goods_required, available_stockpile_amount) * state.world.supply_route_path_get_expected_throughput(path); // Consume less if the expected throughput of this route is lower than 100%
+		float expected_throughput = state.world.supply_route_path_get_expected_throughput(path);
+		float to_consume = std::min(remaining_goods_required, available_stockpile_amount) * expected_throughput; // Consume less if the expected throughput of this route is lower than 100%
 
 		// The amount to consume is the minimum of the desired amount or the amount available in stockpile
 		// Compute how much to consume to compensate for the expected loss on the route.
@@ -1696,7 +1705,8 @@ void update_construction_routes_satisfaction(sys::state& state, construction_typ
 		state.world.supply_route_path_set_volume(path, state.world.supply_route_path_get_volume(path) + (to_consume * com_supply_weight));
 		supply_route_set_is_active(state, route, true);
 		state.world.supply_route_path_set_is_active(path, true);
-		if(construction_need[set_index] <= 0.0f) {
+		remaining_expected_throughput -= (1.0f - expected_throughput);
+		if(construction_need[set_index] <= 0.0f || remaining_expected_throughput <= 0.0f) {
 			break; // Dont need any more of this commodity
 		}
 
