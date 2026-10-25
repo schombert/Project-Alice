@@ -368,19 +368,6 @@ void make_trade_volume_tooltip(
 	term::evaluate_derivative(state, contents, box, "", value_computed, term::value_t_result ( term::value_t{ prediction.export_tariff, "export_tariff", text::text_color::dark_red }));
 	term::evaluate_derivative(state, contents, box, "", value_computed, term::value_t_result(term::value_t{ prediction.export_tariff, "import_tariff", text::text_color::dark_red }));
 
-	text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, "(a + b) * (a + b) at a = 1 b = 2"));
-	term::value_t a{ 1.f, "a", text::text_color::dark_green };
-	term::value_t b { 2.f, "b", text::text_color::dark_red };
-
-	text::add_line_break_to_layout_box(state, contents, box);
-
-	//auto result = a * a * a + b;
-	//auto result_computed = term::compute(state, nullptr, result);
-	//term::evaluate_string(state, contents, box, "", false, result_computed);
-	//term::evaluate_derivative(state, contents, box, "", result_computed, term::value_t_result (a));
-	//term::evaluate_derivative(state, contents, box, "", result_computed, term::value_t_result (b));
-
-
 	text::close_layout_box(contents, box);
 }
 
