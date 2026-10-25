@@ -192,6 +192,32 @@ void restore_unsaved_values(sys::state& state) {
 						state.world.nation_set_is_at_war_with(defender, attacker, true);
 					}
 				}
+				for(auto attacker : attackers) {
+					for(auto other_attacker : attackers) {
+						if(attacker != other_attacker) {
+							state.world.nation_set_is_on_same_side_in_war_with(attacker, other_attacker, true);
+						}
+					}
+				}
+				for(auto defender : defenders) {
+					for(auto other_defender : defenders) {
+						if(defender != other_defender) {
+							state.world.nation_set_is_on_same_side_in_war_with(defender, other_defender, true);
+						}
+					}
+				}
+			});
+		},
+		[&]() {
+			state.world.for_each_war([&](dcon::war_id war) {
+				auto participants = state.world.war_get_war_participant(war);
+				for(auto participant : participants) {
+					for(auto other_participant : participants) {
+						if(participant != other_participant) {
+							state.world.nation_set_is_in_common_war_with(participant.get_nation(), other_participant.get_nation(), true);
+						}
+					}
+				}
 			});
 		},
 		[&]() {
@@ -1921,7 +1947,8 @@ void cleanup_nation(sys::state& state, dcon::nation_id n) {
 	state.world.execute_serial_over_nation([&](auto nations) {
 		state.world.nation_set_is_at_war_with(nations, n, ve::vbitfield_type{ 0 });
 		state.world.nation_set_has_military_access_from(nations, n, ve::vbitfield_type{ 0 });
-		state.world.nation_set_allied_in_war_with(nations, n, ve::vbitfield_type{ 0 });
+		state.world.nation_set_is_on_same_side_in_war_with(nations, n, ve::vbitfield_type{ 0 });
+		state.world.nation_set_is_in_common_war_with(nations, n, ve::vbitfield_type{ 0 });
 	});
 
 	// transfer flags and variables to new holder

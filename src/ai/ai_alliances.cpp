@@ -93,7 +93,7 @@ void prune_alliances(sys::state& state) {
 				if(dr.get_are_allied()) {
 					auto other = dr.get_related_nations(0) != n ? dr.get_related_nations(0) : dr.get_related_nations(1);
 					if(other.get_in_sphere_of() != n
-					&& !military::are_allied_in_war(state, n, other)) {
+					&& !military::are_on_same_side_in_common_war(state, n, other)) {
 						prune_targets.push_back(other);
 					}
 				}

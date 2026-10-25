@@ -89,7 +89,7 @@ bool province_has_fleet(const sys::state& state, dcon::province_id location, dco
 			}
 		}
 		if constexpr(has_flag(participant_setting, participants_included::in_common_war)) {
-			if(military::are_allied_in_war(state, our_nation, controller)) {
+			if(military::are_on_same_side_in_common_war(state, our_nation, controller)) {
 				return true;
 			}
 		}
@@ -136,7 +136,7 @@ bool province_has_army(const sys::state& state, dcon::province_id location, dcon
 			}
 		}
 		if constexpr(has_flag(participant_setting, participants_included::in_common_war)) {
-			if(military::are_allied_in_war(state, our_nation, controller)) {
+			if(military::are_on_same_side_in_common_war(state, our_nation, controller)) {
 				return true;
 			}
 		}
@@ -186,7 +186,7 @@ float army_strength_present(const sys::state& state, dcon::province_id location,
 			}
 		}
 		if constexpr(has_flag(participant_setting, participants_included::in_common_war)) {
-			if(military::are_allied_in_war(state, nation_as, controller)) {
+			if(military::are_on_same_side_in_common_war(state, nation_as, controller)) {
 				total += army_get_strength(state, army);
 				continue;
 			}
@@ -231,7 +231,7 @@ float navy_strength_present(const sys::state& state, dcon::province_id location,
 			}
 		}
 		if constexpr(has_flag(participant_setting, participants_included::in_common_war)) {
-			if(military::are_allied_in_war(state, nation_as, controller)) {
+			if(military::are_on_same_side_in_common_war(state, nation_as, controller)) {
 				total += navy_get_strength(state, navy);
 				continue;
 			}

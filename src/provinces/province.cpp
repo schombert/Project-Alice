@@ -2498,7 +2498,7 @@ bool has_naval_access_to_province(sys::state& state, dcon::nation_id nation_as, 
 	if(military::has_military_access_to(state, nation_as, controller))
 		return true;
 
-	if(military::are_allied_in_war(state, nation_as, controller))
+	if(military::are_on_same_side_in_common_war(state, nation_as, controller))
 		return true;
 
 	return false;
@@ -2555,7 +2555,7 @@ bool has_safe_access_to_province(sys::state& state, dcon::nation_id nation_as, d
 	if(military::has_military_access_to(state, nation_as, controller))
 		return true;
 
-	if(military::are_allied_in_war(state, nation_as, controller))
+	if(military::are_on_same_side_in_common_war(state, nation_as, controller))
 		return true;
 
 	return false;
@@ -2584,7 +2584,7 @@ bool has_supply_access_to_province(const sys::state& state, dcon::nation_id nati
 		return false;
 	}
 
-	if(military::are_allied_in_war(state, nation_as, controller))
+	if(military::are_on_same_side_in_common_war(state, nation_as, controller))
 		return true;
 
 	return false;

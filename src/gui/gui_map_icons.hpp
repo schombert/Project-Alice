@@ -192,7 +192,7 @@ public:
 				color = outline_color::blue;
 			} else if(!controller || military::are_at_war(state, controller, state.local_player_nation)) {
 				color = outline_color::red;
-			} else if(military::are_allied_in_war(state, controller, state.local_player_nation)) {
+			} else if(military::are_on_same_side_in_common_war(state, controller, state.local_player_nation)) {
 				color = outline_color::cyan;
 			} else {
 				color = outline_color::gray;
@@ -210,7 +210,7 @@ public:
 					player_navy = true;
 				} else if(!controller || military::are_at_war(state, controller, state.local_player_nation)) {
 					enemy_navy = true;
-				} else if(military::are_allied_in_war(state, controller, state.local_player_nation)) {
+				} else if(military::are_on_same_side_in_common_war(state, controller, state.local_player_nation)) {
 					allied_navy = true;;
 				}
 

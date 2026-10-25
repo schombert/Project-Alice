@@ -4644,7 +4644,8 @@ void state::fill_unsaved_data() { // reconstructs derived values that are not di
 
 	world.nation_resize_is_at_war_with(world.nation_size());
 	world.nation_resize_has_military_access_from(world.nation_size());
-	world.nation_resize_allied_in_war_with(world.nation_size());
+	world.nation_resize_is_on_same_side_in_war_with(world.nation_size());
+	world.nation_resize_is_in_common_war_with(world.nation_size());
 
 	world.army_resize_unit_build_commodity_float_buffer_1(world.unit_build_commodity_size());
 	world.army_resize_unit_build_commodity_float_buffer_2(world.unit_build_commodity_size());

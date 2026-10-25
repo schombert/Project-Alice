@@ -4748,7 +4748,11 @@ object {
 		type{ array{nation_id}{bitfield} }
 	}
 	property {
-		name{ allied_in_war_with }
+		name{ is_on_same_side_in_war_with }
+		type{ array{nation_id}{bitfield} }
+	}
+	property {
+		name{ is_in_common_war_with }
 		type{ array{nation_id}{bitfield} }
 	}
 
