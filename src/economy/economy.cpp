@@ -1039,7 +1039,7 @@ void presimulate(sys::state& state) {
 #endif
 	for(uint32_t i = 0; i < steps; i++) {
 		float presim_completion = float(i) / float(steps);
-		float employment_gradient_mult = 500.0f - 499.f * presim_completion;
+		float employment_gradient_mult = 300.0f - 299.f * presim_completion;
 		update_employment(state, true, employment_gradient_mult);
 		daily_update(state, true, std::min(1.f, 2.f * (float)i / (float)steps), i - steps);
 		ai::update_budget(state, true);
@@ -5680,7 +5680,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			auto old_price = current_price;
 
 			if(presimulation) {
-				current_price = current_price + price_properties::labor::change_fast<ve::fp_vector>(current_price, supply, demand);
+				current_price = current_price + price_properties::labor::change_fast<ve::fp_vector>(current_price, supply, demand) / (1.f + 100.f * presimulation_stage);
 			} else {
 				current_price = current_price + price_properties::labor::change<ve::fp_vector>(current_price, supply, demand);
 			}
@@ -5852,7 +5852,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 	// essentially upper bound on wealth in the system
 	state.inflation = 1.f;
 	if(presimulation) {
-		state.inflation = 0.99f;
+		state.inflation = presimulation_stage * 0.99f + 0.01f;
 	}
 
 	sanity_check(state);

@@ -1452,6 +1452,8 @@ void emulate_construction_demand(sys::state& state, dcon::nation_id n) {
 		float daily_cost = 0.f;
 		bool state_is_coastal = province::state_is_coastal(state, local_state);
 
+		auto scale = state.world.state_instance_get_demographics(local_state, demographics::total) / 1'000'000.f;
+
 		if(state_is_coastal) {
 			if(light_ship) {
 				auto& light_ship_def = state.military_definitions.unit_base_definitions[light_ship];
@@ -1502,7 +1504,7 @@ void emulate_construction_demand(sys::state& state, dcon::nation_id n) {
 		}
 		
 
-		auto pairs_to_build = std::max(0.f, income_to_build_units / (daily_cost + 1.f) - 0.1f);
+		auto pairs_to_build = std::max(0.f, income_to_build_units / (daily_cost + 1.f) - 0.1f) * scale;
 
 		if(state_is_coastal) {
 			if(light_ship) {
@@ -1538,7 +1540,7 @@ void emulate_construction_demand(sys::state& state, dcon::nation_id n) {
 			auto& infantry_def = state.military_definitions.unit_base_definitions[infantry];
 			for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
 				if(infantry_def.build_cost.commodity_type[i]) {
-					auto daily_amount = infantry_def.build_cost.commodity_amounts[i] / infantry_def.build_time;
+					auto daily_amount = infantry_def.build_cost.commodity_amounts[i] / infantry_def.build_time * scale;
 					register_demand(state, market, infantry_def.build_cost.commodity_type[i], daily_amount * pairs_to_build);
 					auto& current = state.world.market_get_stockpile(market, infantry_def.build_cost.commodity_type[i]);
 					state.world.market_set_stockpile(market, infantry_def.build_cost.commodity_type[i], current + daily_amount * pairs_to_build * 0.05f);
@@ -1552,7 +1554,7 @@ void emulate_construction_demand(sys::state& state, dcon::nation_id n) {
 			auto& artillery_def = state.military_definitions.unit_base_definitions[artillery];
 			for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
 				if(artillery_def.build_cost.commodity_type[i]) {
-					auto daily_amount = artillery_def.build_cost.commodity_amounts[i] / artillery_def.build_time;
+					auto daily_amount = artillery_def.build_cost.commodity_amounts[i] / artillery_def.build_time * scale;
 					register_demand(state, market, artillery_def.build_cost.commodity_type[i], daily_amount * pairs_to_build);
 					auto& current = state.world.market_get_stockpile(market, artillery_def.build_cost.commodity_type[i]);
 					state.world.market_set_stockpile(market, artillery_def.build_cost.commodity_type[i], current + daily_amount * pairs_to_build * 0.05f);

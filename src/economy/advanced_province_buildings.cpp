@@ -230,7 +230,7 @@ void update_consumption(sys::state& state) {
 			We don't want to expand faster than local labor allows us
 			*/
 			auto sat = state.world.province_get_labor_demand_satisfaction(pid, economy::labor_constants::construction_labor);
-			demand_scale = std::min(max_demand_scale, demand_scale * sat);
+			demand_scale = std::min(max_demand_scale, demand_scale * std::max(0.f, sat - 0.8f) * 5.f);
 
 			/*
 			Register demand both on construction materials and construction labor
@@ -450,7 +450,7 @@ void update_profit_and_refund(sys::state& state) {
 			*/
 
 			auto labor_sat = state.world.province_get_labor_demand_satisfaction(pid, economy::labor_constants::construction_labor);
-			auto demand_scale = std::min(max_demand_scale, construction_scale * labor_sat);
+			auto demand_scale = std::min(max_demand_scale, construction_scale * std::max(0.f, labor_sat - 0.8f) * 5.f);
 
 			/*
 			Find out how much we were able to buy.
