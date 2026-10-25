@@ -51,8 +51,8 @@ inline void dump_month(sys::state& state, FILE* nations_csv, FILE* prices_csv, F
 		state.world.for_each_market([&](dcon::market_id m) { supply += state.world.market_get_supply(m, c); });
 		// price = supply-weighted mean over the per-state markets; median_price = median over markets
 		fprintf(prices_csv, "%s,%s,%.6g,%.6g,%.6g\n", date.c_str(),
-				text::produce_simple_string(state, state.world.commodity_get_name(c)).c_str(), economy::price(state, c),
-				economy::median_price(state, c), supply);
+				text::produce_simple_string(state, state.world.commodity_get_name(c)).c_str(), economy::price_slow(state, c),
+				economy::median_price_slow(state, c), supply);
 	});
 }
 
