@@ -168,7 +168,7 @@ auto get_estimated_state_stockpile_purchase_price(const sys::state& state, marke
 
 template<price_estimation price_est, typename buf_getter>
 requires std::invocable<buf_getter, dcon::unit_supply_commodity_id> || std::invocable<buf_getter, dcon::unit_build_commodity_id> || std::invocable<buf_getter, dcon::unit_supply_and_build_commodity_id> || std::invocable<buf_getter, dcon::commodity_id>
-float get_estimated_stockpile_total_purchase_price(const sys::state& state, dcon::nation_id for_nation, buf_getter&& getter_func) {
+float estimate_stockpile_total_purchase_cost(const sys::state& state, dcon::nation_id for_nation, buf_getter&& getter_func) {
 	auto for_each_func = [&]<typename F>(F && func) {
 		if constexpr(std::is_invocable_r_v<float, buf_getter, dcon::unit_supply_commodity_id>) {
 			state.world.for_each_unit_supply_commodity(func);

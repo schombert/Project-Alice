@@ -11,25 +11,30 @@ namespace economy {
 
 namespace national_budget {
 
-float budget_ratio(float budget, float priority) {
+float inline budget_ratio(float budget, float priority) {
 	return budget * priority;
 }
 
-float estimate_education_spending(sys::state const& state, dcon::nation_id n) {
+float estimate_education_spending_before_refund(sys::state const& state, dcon::nation_id n) {
 	auto& def = advanced_province_buildings::definitions[advanced_province_buildings::list::schools_and_universities];
 	auto total = 0.f;
 	state.world.nation_for_each_province_ownership(n, [&](auto ownership) {
 		auto p = state.world.province_ownership_get_province(ownership);
 		auto local_hire = state.world.province_get_advanced_province_building_national_size(p, advanced_province_buildings::list::schools_and_universities);
 		auto local_wage = state.world.province_get_labor_price(p, def.throughput_labour_type);
-
-		//auto sat = state.world.province_get_labor_demand_satisfaction(p, def.throughput_labour_type);
-		//auto total_population = state.world.nation_get_demographics(n, demographics::primary_or_accepted);
-		//auto local_population = state.world.province_get_demographics(p, demographics::primary_or_accepted);
-		//auto weight = total_population == 0.f ? 0.f : local_population / total_population;
-		//float local_education_budget = weight * budget;
-
 		total = total + local_hire * local_wage;
+	});
+	return total;
+}
+float estimate_education_spending_after_refund(sys::state const& state, dcon::nation_id n) {
+	auto& def = advanced_province_buildings::definitions[advanced_province_buildings::list::schools_and_universities];
+	auto total = 0.f;
+	state.world.nation_for_each_province_ownership(n, [&](auto ownership) {
+		auto p = state.world.province_ownership_get_province(ownership);
+		auto local_hire = state.world.province_get_advanced_province_building_national_size(p, advanced_province_buildings::list::schools_and_universities);
+		auto local_wage = state.world.province_get_labor_price(p, def.throughput_labour_type);
+		auto sat = state.world.province_get_labor_demand_satisfaction(p, def.throughput_labour_type);
+		total = total + local_hire * local_wage * sat;
 	});
 	return total;
 }
@@ -106,7 +111,7 @@ budget_spending_details estimate_budget_detailed(sys::state& state, dcon::nation
 
 	auto admin_budget = available_funds * priority.administration_wages;
 	result.administration_wages.dedicated_budget = admin_budget;
-	result.administration_wages.actual_spending = economy::estimate_spendings_administration(state, n, admin_budget);
+	result.administration_wages.actual_spending = economy::estimate_spendings_administration_after_refund(state, n, admin_budget);
 	result.administration_wages.priority = priority.administration_wages;
 	if(admin_budget >= available_funds) {
 		return result;
@@ -122,28 +127,39 @@ budget_spending_details estimate_budget_detailed(sys::state& state, dcon::nation
 	}
 	auto military_budget = estimate_pop_payouts_by_income_type(state, n, culture::income_type::military) * priority.military_wages;
 	auto domestic_investment = budget_ratio(available_funds, priority.domestic_investments);
-	auto education_budget = estimate_education_spending(state, n);
-	auto overseas_budget = economy::estimate_overseas_penalty_spending(state, n) * priority.overseas_penalty;
-	auto subsidy_budget = state.world.nation_get_subsidy_token_total(n) == 0.f ? 0.f : budget_ratio(available_funds, priority.subsidy);
-	auto total_stockpiles_spending = economy::estimate_total_stockpile_spendings(state, n, budget_ratio(available_funds, priority.construction_supplies), budget_ratio(available_funds, priority.stockpile), budget_ratio(available_funds, priority.military_supplies_land), budget_ratio(available_funds, priority.military_supplies_navy));
 
-	float construction_budget = total_stockpiles_spending.construction_spendings;
-	float land_budget = total_stockpiles_spending.army_stockpile_spendings;
-	float naval_budget = total_stockpiles_spending.navy_stockpile_spendings;
-	float stockpile_budget = total_stockpiles_spending.stockpile_filling_spendings;
+	auto education_budget_before_refund = budget_ratio(available_funds, priority.education_wages);;
+	auto education_budget_after_refund = estimate_education_spending_after_refund(state, n);
+
+	auto overseas_budget_before_refund = economy::estimate_overseas_penalty_spending_before_refund(state, n) * priority.overseas_penalty;
+	auto overseas_budget_after_refund = economy::estimate_overseas_penalty_spending_after_refund(state, n) * priority.overseas_penalty;
+
+	auto subsidy_budget = state.world.nation_get_subsidy_token_total(n) == 0.f ? 0.f : budget_ratio(available_funds, priority.subsidy);
+	auto total_stockpiles_spending_before_refund = economy::estimate_total_stockpile_spendings_before_refund(state, n, budget_ratio(available_funds, priority.construction_supplies), budget_ratio(available_funds, priority.stockpile), budget_ratio(available_funds, priority.military_supplies_land), budget_ratio(available_funds, priority.military_supplies_navy));
+	auto total_stockpiles_spending_after_refund = economy::estimate_total_stockpile_spendings_after_refund(state, n, budget_ratio(available_funds, priority.construction_supplies), budget_ratio(available_funds, priority.stockpile), budget_ratio(available_funds, priority.military_supplies_land), budget_ratio(available_funds, priority.military_supplies_navy));
+
+	float construction_budget_before_refund = total_stockpiles_spending_before_refund.construction_spendings;
+	float land_budget_before_refund = total_stockpiles_spending_before_refund.army_stockpile_spendings;
+	float naval_budget_before_refund = total_stockpiles_spending_before_refund.navy_stockpile_spendings;
+	float stockpile_budget_before_refund = total_stockpiles_spending_before_refund.stockpile_filling_spendings;
+
+	float construction_budget_after_refund = total_stockpiles_spending_after_refund.construction_spendings;
+	float land_budget_after_refund = total_stockpiles_spending_after_refund.army_stockpile_spendings;
+	float naval_budget_after_refund = total_stockpiles_spending_after_refund.navy_stockpile_spendings;
+	float stockpile_budget_after_refund = total_stockpiles_spending_after_refund.stockpile_filling_spendings;
 
 	float total =
 		social_budget
 		+ military_budget
 		+ domestic_investment
-		+ education_budget
-		+ overseas_budget
+		+ education_budget_before_refund
+		+ overseas_budget_before_refund
 		+ subsidy_budget
-		+ construction_budget
-		+ stockpile_budget
-		+ construction_budget
-		+ naval_budget
-		+ land_budget;
+		+ construction_budget_before_refund
+		+ stockpile_budget_before_refund
+		+ construction_budget_before_refund
+		+ naval_budget_before_refund
+		+ land_budget_before_refund;
 
 	auto scale = 1.f;
 	if(total > available_funds) {
@@ -169,42 +185,52 @@ budget_spending_details estimate_budget_detailed(sys::state& state, dcon::nation
 	result.domestic_investments.dedicated_budget = domestic_investment;
 	result.domestic_investments.priority = priority.domestic_investments;
 
-	result.education_wages.actual_spending = education_budget * scale;
-	result.education_wages.dedicated_budget = education_budget;
+	result.education_wages.actual_spending = education_budget_after_refund * scale;
+	result.education_wages.dedicated_budget = education_budget_before_refund;
 	result.education_wages.priority = priority.education_wages;
 
-	result.overseas_penalty.actual_spending = overseas_budget * scale;
-	result.overseas_penalty.dedicated_budget = overseas_budget;
+	result.overseas_penalty.actual_spending = overseas_budget_after_refund * scale;
+	result.overseas_penalty.dedicated_budget = overseas_budget_before_refund;
 	result.overseas_penalty.priority = priority.overseas_penalty;
 
 	result.subsidy.actual_spending = subsidy_budget * scale;
 	result.subsidy.dedicated_budget = subsidy_budget;
 	result.subsidy.priority = priority.subsidy;
 
-	result.construction_supplies.actual_spending = construction_budget * scale;
-	result.construction_supplies.dedicated_budget = construction_budget;
+	result.construction_supplies.actual_spending = construction_budget_after_refund * scale;
+	result.construction_supplies.dedicated_budget = construction_budget_before_refund;
 	result.construction_supplies.priority = priority.construction_supplies;
 
-	result.military_supplies_land.actual_spending = land_budget * scale;
-	result.military_supplies_land.dedicated_budget = land_budget;
+	result.military_supplies_land.actual_spending = land_budget_after_refund * scale;
+	result.military_supplies_land.dedicated_budget = land_budget_before_refund;
 	result.military_supplies_land.priority = priority.military_supplies_land;
 
-	result.military_supplies_navy.actual_spending = naval_budget * scale;
-	result.military_supplies_navy.dedicated_budget = naval_budget;
+	result.military_supplies_navy.actual_spending = naval_budget_after_refund * scale;
+	result.military_supplies_navy.dedicated_budget = naval_budget_before_refund;
 	result.military_supplies_navy.priority = priority.military_supplies_navy;
 
-	result.stockpile.actual_spending = stockpile_budget * scale;
-	result.stockpile.dedicated_budget = stockpile_budget;
+	result.stockpile.actual_spending = stockpile_budget_after_refund * scale;
+	result.stockpile.dedicated_budget = stockpile_budget_before_refund;
 	result.stockpile.priority = priority.stockpile;
 
 	result.total_actual_spending =
-		total * scale
-		+ result.administration_wages.actual_spending
+		result.administration_wages.actual_spending
+		+ result.construction_supplies.actual_spending
 		+ result.diplomacy.actual_spending
-		+ result.interest.actual_spending;
+		+ result.domestic_investments.actual_spending
+		+ result.education_wages.actual_spending
+		+ result.interest.actual_spending
+		+ result.military_supplies_land.actual_spending
+		+ result.military_supplies_navy.actual_spending
+		+ result.military_wages.actual_spending
+		+ result.overseas_penalty.actual_spending
+		+ result.social.actual_spending
+		+ result.stockpile.actual_spending
+		+ result.subsidy.actual_spending;
 
 	return result;
 }
+
 
 value_per_budget_category get_current_priority(sys::state& state, dcon::nation_id n) {
 	value_per_budget_category priority{};

@@ -1941,7 +1941,7 @@ float estimate_pop_spending_category(sys::state const& state, dcon::consumption_
 		state, market, cat, cid, pop, budget
 	);
 	auto actually_bought = state.world.market_get_actual_probability_to_buy(market, cid);
-	auto cost = economy::price(state, market, cid);
+	auto cost = state.world.market_get_price(market, cid);
 	return demand * actually_bought * cost;
 }
 
@@ -1969,7 +1969,7 @@ float estimate_pop_spending_life(sys::state const& state, dcon::pop_id pop, dcon
 		state, cid, pop, budget, mul, weight, invention_factor
 	);
 	auto actually_bought = state.world.market_get_actual_probability_to_buy(market, cid);
-	auto cost = economy::price(state, market, cid);
+	auto cost = state.world.market_get_price(market, cid);
 	return demand * actually_bought * cost;
 }
 
@@ -1997,7 +1997,7 @@ float estimate_pop_spending_everyday(sys::state const& state, dcon::pop_id pop, 
 		state, cid, pop, budget, mul, weight, invention_factor
 	);
 	auto actually_bought = state.world.market_get_actual_probability_to_buy(market, cid);
-	auto cost = economy::price(state, market, cid);
+	auto cost = state.world.market_get_price(market, cid);
 	return demand * actually_bought * cost;
 }
 
@@ -2025,7 +2025,7 @@ float estimate_pop_spending_luxury(sys::state const& state, dcon::pop_id pop, dc
 		state, cid, pop, budget, mul, weight, invention_factor
 	);
 	auto actually_bought = state.world.market_get_actual_probability_to_buy(market, cid);
-	auto cost = economy::price(state, market, cid);
+	auto cost = state.world.market_get_price(market, cid);
 	return demand * actually_bought * cost;
 }
 

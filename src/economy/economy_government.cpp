@@ -88,7 +88,7 @@ float tax_collection_rate(sys::state const& state, dcon::nation_id n, dcon::prov
 	return std::min(0.5f * from_control * (1.f + efficiency), 1.f);
 }
 
-float estimate_spendings_administration_capital(sys::state const& state, dcon::nation_id n, float budget) {
+float estimate_spendings_administration_capital_after_refund(sys::state const& state, dcon::nation_id n, float budget) {
 	auto capital = state.world.nation_get_capital(n);
 	if(state.world.province_get_nation_from_province_control(capital) != n) {
 		return 0.f;
@@ -99,8 +99,19 @@ float estimate_spendings_administration_capital(sys::state const& state, dcon::n
 	auto demand = budget / wage;
 	return demand * wage * state.world.province_get_labor_demand_satisfaction(capital_of_capital_state, economy::labor::high_education_and_accepted);
 }
+float estimate_spendings_administration_capital_before_refund(sys::state const& state, dcon::nation_id n, float budget) {
+	auto capital = state.world.nation_get_capital(n);
+	if(state.world.province_get_nation_from_province_control(capital) != n) {
+		return 0.f;
+	}
+	auto capital_state = state.world.province_get_state_membership(capital);
+	auto capital_of_capital_state = state.world.state_instance_get_capital(capital_state);
+	auto wage = state.world.province_get_labor_price(capital_of_capital_state, economy::labor::high_education_and_accepted);
+	auto demand = budget / wage;
+	return demand * wage;
+}
 
-float estimate_spendings_administration_local(sys::state const& state, dcon::nation_id n, dcon::administration_id admin, float budget) {
+float estimate_spendings_administration_local_after_refund(sys::state const& state, dcon::nation_id n, dcon::administration_id admin, float budget) {
 	auto capital = state.world.administration_get_capital(admin);
 	if(state.world.province_get_nation_from_province_control(capital) != n) {
 		return 0.f;
@@ -111,23 +122,48 @@ float estimate_spendings_administration_local(sys::state const& state, dcon::nat
 	auto demand = budget / wage;
 	return demand * wage * state.world.province_get_labor_demand_satisfaction(capital_of_capital_state, economy::labor::high_education_and_accepted);
 }
+float estimate_spendings_administration_local_before_refund(sys::state const& state, dcon::nation_id n, dcon::administration_id admin, float budget) {
+	auto capital = state.world.administration_get_capital(admin);
+	if(state.world.province_get_nation_from_province_control(capital) != n) {
+		return 0.f;
+	}
+	auto capital_state = state.world.province_get_state_membership(capital);
+	auto capital_of_capital_state = state.world.state_instance_get_capital(capital_state);
+	auto wage = state.world.province_get_labor_price(capital_of_capital_state, economy::labor::high_education_and_accepted);
+	auto demand = budget / wage;
+	return demand * wage;
+}
 
-float estimate_spendings_administration(sys::state const& state, dcon::nation_id n, float budget) {
+float estimate_spendings_administration_after_refund(sys::state const& state, dcon::nation_id n, float budget) {
 	float total = 0.f;
 	auto admin_count = count_active_administrations(state, n);
 	if(admin_count == 0.f) {
 		return 0.f;
 	}
 	auto budget_per_administration = budget / admin_count;
-	total += estimate_spendings_administration_capital(state, n, budget_per_administration);
+	total += estimate_spendings_administration_capital_after_refund(state, n, budget_per_administration);
 	state.world.nation_for_each_nation_administration(n, [&](auto naid) {
 		auto admin = state.world.nation_administration_get_administration(naid);
-		total += estimate_spendings_administration_local(state, n, admin, budget_per_administration);
+		total += estimate_spendings_administration_local_after_refund(state, n, admin, budget_per_administration);
+	});
+	return total;
+}
+float estimate_spendings_administration_before_refund(sys::state const& state, dcon::nation_id n, float budget) {
+	float total = 0.f;
+	auto admin_count = count_active_administrations(state, n);
+	if(admin_count == 0.f) {
+		return 0.f;
+	}
+	auto budget_per_administration = budget / admin_count;
+	total += estimate_spendings_administration_capital_before_refund(state, n, budget_per_administration);
+	state.world.nation_for_each_nation_administration(n, [&](auto naid) {
+		auto admin = state.world.nation_administration_get_administration(naid);
+		total += estimate_spendings_administration_local_before_refund(state, n, admin, budget_per_administration);
 	});
 	return total;
 }
 
-float full_spendings_administration(sys::state const& state, dcon::nation_id n, float budget) {
+float full_spendings_administration_before_refund(sys::state const& state, dcon::nation_id n, float budget) {
 	auto admin_count = count_active_administrations(state, n);
 	if(admin_count == 0.f) {
 		return 0.f;

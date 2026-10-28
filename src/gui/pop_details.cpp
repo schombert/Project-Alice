@@ -1,8 +1,9 @@
+// BEGIN prelude
+#include "terms.hpp"
+#include "economy_templates_pure.hpp"
+// END
+
 namespace alice_ui {
-#ifdef __clang__
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wswitch"
-#endif
 struct pop_details_main_location_value_t;
 struct pop_details_main_job_value_t;
 struct pop_details_main_mil_value_t;
@@ -1614,7 +1615,7 @@ measure_result  pop_details_main_ln_list_t::place_item(sys::state& state, ui::no
 				destination->children.push_back(needs_header_pool[needs_header_pool_used].get());
 			((pop_details_needs_header_t*)(needs_header_pool[needs_header_pool_used].get()))->set_alternate(alternate);
 				needs_row_pool[needs_row_pool_used]->base_data.position.x = int16_t(x);
-				needs_row_pool[needs_row_pool_used]->base_data.position.y = int16_t(y +  needs_row_pool[0]->base_data.size.y + 0);
+				needs_row_pool[needs_row_pool_used]->base_data.position.y = int16_t(y +  needs_header_pool[0]->base_data.size.y + 0);
 				needs_row_pool[needs_row_pool_used]->parent = destination;
 				destination->children.push_back(needs_row_pool[needs_row_pool_used].get());
 				((pop_details_needs_row_t*)(needs_row_pool[needs_row_pool_used].get()))->commodity = std::get<needs_row_option>(values[index]).commodity;
@@ -1625,7 +1626,8 @@ measure_result  pop_details_main_ln_list_t::place_item(sys::state& state, ui::no
 				needs_header_pool_used++;
 				needs_row_pool_used++;
 			}
-			return measure_result{std::max(needs_header_pool[0]->base_data.size.x, needs_row_pool[0]->base_data.size.x), needs_header_pool[0]->base_data.size.y + needs_row_pool[0]->base_data.size.y + 0, measure_result::special::none};
+	 	 	bool stick_to_next = false;
+			return measure_result{std::max(needs_header_pool[0]->base_data.size.x, needs_row_pool[0]->base_data.size.x), needs_header_pool[0]->base_data.size.y + needs_row_pool[0]->base_data.size.y + 0, stick_to_next ? measure_result::special::no_break : measure_result::special::none};
 		}
 		if(destination) {
 			if(needs_row_pool.size() <= size_t(needs_row_pool_used)) needs_row_pool.emplace_back(make_pop_details_needs_row(state));
@@ -1641,7 +1643,8 @@ measure_result  pop_details_main_ln_list_t::place_item(sys::state& state, ui::no
 			needs_row_pool_used++;
 		}
 		alternate = !alternate;
-		return measure_result{ needs_row_pool[0]->base_data.size.x, needs_row_pool[0]->base_data.size.y + 0, measure_result::special::none};
+	 	 	bool stick_to_next = false;
+		return measure_result{ needs_row_pool[0]->base_data.size.x, needs_row_pool[0]->base_data.size.y + 0, stick_to_next ? measure_result::special::no_break : measure_result::special::none};
 	}
 	return measure_result{0,0,measure_result::special::none};
 }
@@ -1759,7 +1762,7 @@ measure_result  pop_details_main_en_list_t::place_item(sys::state& state, ui::no
 				destination->children.push_back(needs_header_pool[needs_header_pool_used].get());
 			((pop_details_needs_header_t*)(needs_header_pool[needs_header_pool_used].get()))->set_alternate(alternate);
 				needs_row_pool[needs_row_pool_used]->base_data.position.x = int16_t(x);
-				needs_row_pool[needs_row_pool_used]->base_data.position.y = int16_t(y +  needs_row_pool[0]->base_data.size.y + 0);
+				needs_row_pool[needs_row_pool_used]->base_data.position.y = int16_t(y +  needs_header_pool[0]->base_data.size.y + 0);
 				needs_row_pool[needs_row_pool_used]->parent = destination;
 				destination->children.push_back(needs_row_pool[needs_row_pool_used].get());
 				((pop_details_needs_row_t*)(needs_row_pool[needs_row_pool_used].get()))->commodity = std::get<needs_row_option>(values[index]).commodity;
@@ -1770,7 +1773,8 @@ measure_result  pop_details_main_en_list_t::place_item(sys::state& state, ui::no
 				needs_header_pool_used++;
 				needs_row_pool_used++;
 			}
-			return measure_result{std::max(needs_header_pool[0]->base_data.size.x, needs_row_pool[0]->base_data.size.x), needs_header_pool[0]->base_data.size.y + needs_row_pool[0]->base_data.size.y + 0, measure_result::special::none};
+	 	 	bool stick_to_next = false;
+			return measure_result{std::max(needs_header_pool[0]->base_data.size.x, needs_row_pool[0]->base_data.size.x), needs_header_pool[0]->base_data.size.y + needs_row_pool[0]->base_data.size.y + 0, stick_to_next ? measure_result::special::no_break : measure_result::special::none};
 		}
 		if(destination) {
 			if(needs_row_pool.size() <= size_t(needs_row_pool_used)) needs_row_pool.emplace_back(make_pop_details_needs_row(state));
@@ -1786,7 +1790,8 @@ measure_result  pop_details_main_en_list_t::place_item(sys::state& state, ui::no
 			needs_row_pool_used++;
 		}
 		alternate = !alternate;
-		return measure_result{ needs_row_pool[0]->base_data.size.x, needs_row_pool[0]->base_data.size.y + 0, measure_result::special::none};
+	 	 	bool stick_to_next = false;
+		return measure_result{ needs_row_pool[0]->base_data.size.x, needs_row_pool[0]->base_data.size.y + 0, stick_to_next ? measure_result::special::no_break : measure_result::special::none};
 	}
 	return measure_result{0,0,measure_result::special::none};
 }
@@ -1904,7 +1909,7 @@ measure_result  pop_details_main_lx_list_t::place_item(sys::state& state, ui::no
 				destination->children.push_back(needs_header_pool[needs_header_pool_used].get());
 			((pop_details_needs_header_t*)(needs_header_pool[needs_header_pool_used].get()))->set_alternate(alternate);
 				needs_row_pool[needs_row_pool_used]->base_data.position.x = int16_t(x);
-				needs_row_pool[needs_row_pool_used]->base_data.position.y = int16_t(y +  needs_row_pool[0]->base_data.size.y + 0);
+				needs_row_pool[needs_row_pool_used]->base_data.position.y = int16_t(y +  needs_header_pool[0]->base_data.size.y + 0);
 				needs_row_pool[needs_row_pool_used]->parent = destination;
 				destination->children.push_back(needs_row_pool[needs_row_pool_used].get());
 				((pop_details_needs_row_t*)(needs_row_pool[needs_row_pool_used].get()))->commodity = std::get<needs_row_option>(values[index]).commodity;
@@ -1915,7 +1920,8 @@ measure_result  pop_details_main_lx_list_t::place_item(sys::state& state, ui::no
 				needs_header_pool_used++;
 				needs_row_pool_used++;
 			}
-			return measure_result{std::max(needs_header_pool[0]->base_data.size.x, needs_row_pool[0]->base_data.size.x), needs_header_pool[0]->base_data.size.y + needs_row_pool[0]->base_data.size.y + 0, measure_result::special::none};
+	 	 	bool stick_to_next = false;
+			return measure_result{std::max(needs_header_pool[0]->base_data.size.x, needs_row_pool[0]->base_data.size.x), needs_header_pool[0]->base_data.size.y + needs_row_pool[0]->base_data.size.y + 0, stick_to_next ? measure_result::special::no_break : measure_result::special::none};
 		}
 		if(destination) {
 			if(needs_row_pool.size() <= size_t(needs_row_pool_used)) needs_row_pool.emplace_back(make_pop_details_needs_row(state));
@@ -1931,7 +1937,8 @@ measure_result  pop_details_main_lx_list_t::place_item(sys::state& state, ui::no
 			needs_row_pool_used++;
 		}
 		alternate = !alternate;
-		return measure_result{ needs_row_pool[0]->base_data.size.x, needs_row_pool[0]->base_data.size.y + 0, measure_result::special::none};
+	 	 	bool stick_to_next = false;
+		return measure_result{ needs_row_pool[0]->base_data.size.x, needs_row_pool[0]->base_data.size.y + 0, stick_to_next ? measure_result::special::no_break : measure_result::special::none};
 	}
 	return measure_result{0,0,measure_result::special::none};
 }
@@ -2021,7 +2028,7 @@ measure_result  pop_details_main_prom_list_t::place_item(sys::state& state, ui::
 				destination->children.push_back(prom_header_pool[prom_header_pool_used].get());
 			((pop_details_prom_header_t*)(prom_header_pool[prom_header_pool_used].get()))->set_alternate(alternate);
 				prom_row_pool[prom_row_pool_used]->base_data.position.x = int16_t(x);
-				prom_row_pool[prom_row_pool_used]->base_data.position.y = int16_t(y +  prom_row_pool[0]->base_data.size.y + 0);
+				prom_row_pool[prom_row_pool_used]->base_data.position.y = int16_t(y +  prom_header_pool[0]->base_data.size.y + 0);
 				prom_row_pool[prom_row_pool_used]->parent = destination;
 				destination->children.push_back(prom_row_pool[prom_row_pool_used].get());
 				((pop_details_prom_row_t*)(prom_row_pool[prom_row_pool_used].get()))->value = std::get<prom_row_option>(values[index]).value;
@@ -2030,7 +2037,8 @@ measure_result  pop_details_main_prom_list_t::place_item(sys::state& state, ui::
 				prom_header_pool_used++;
 				prom_row_pool_used++;
 			}
-			return measure_result{std::max(prom_header_pool[0]->base_data.size.x, prom_row_pool[0]->base_data.size.x), prom_header_pool[0]->base_data.size.y + prom_row_pool[0]->base_data.size.y + 0, measure_result::special::none};
+	 	 	bool stick_to_next = false;
+			return measure_result{std::max(prom_header_pool[0]->base_data.size.x, prom_row_pool[0]->base_data.size.x), prom_header_pool[0]->base_data.size.y + prom_row_pool[0]->base_data.size.y + 0, stick_to_next ? measure_result::special::no_break : measure_result::special::none};
 		}
 		if(destination) {
 			if(prom_row_pool.size() <= size_t(prom_row_pool_used)) prom_row_pool.emplace_back(make_pop_details_prom_row(state));
@@ -2044,7 +2052,8 @@ measure_result  pop_details_main_prom_list_t::place_item(sys::state& state, ui::
 			prom_row_pool_used++;
 		}
 		alternate = !alternate;
-		return measure_result{ prom_row_pool[0]->base_data.size.x, prom_row_pool[0]->base_data.size.y + 0, measure_result::special::none};
+	 	 	bool stick_to_next = false;
+		return measure_result{ prom_row_pool[0]->base_data.size.x, prom_row_pool[0]->base_data.size.y + 0, stick_to_next ? measure_result::special::no_break : measure_result::special::none};
 	}
 	return measure_result{0,0,measure_result::special::none};
 }
@@ -2134,7 +2143,7 @@ measure_result  pop_details_main_dem_list_t::place_item(sys::state& state, ui::n
 				destination->children.push_back(prom_header_pool[prom_header_pool_used].get());
 			((pop_details_prom_header_t*)(prom_header_pool[prom_header_pool_used].get()))->set_alternate(alternate);
 				prom_row_pool[prom_row_pool_used]->base_data.position.x = int16_t(x);
-				prom_row_pool[prom_row_pool_used]->base_data.position.y = int16_t(y +  prom_row_pool[0]->base_data.size.y + 0);
+				prom_row_pool[prom_row_pool_used]->base_data.position.y = int16_t(y +  prom_header_pool[0]->base_data.size.y + 0);
 				prom_row_pool[prom_row_pool_used]->parent = destination;
 				destination->children.push_back(prom_row_pool[prom_row_pool_used].get());
 				((pop_details_prom_row_t*)(prom_row_pool[prom_row_pool_used].get()))->value = std::get<prom_row_option>(values[index]).value;
@@ -2143,7 +2152,8 @@ measure_result  pop_details_main_dem_list_t::place_item(sys::state& state, ui::n
 				prom_header_pool_used++;
 				prom_row_pool_used++;
 			}
-			return measure_result{std::max(prom_header_pool[0]->base_data.size.x, prom_row_pool[0]->base_data.size.x), prom_header_pool[0]->base_data.size.y + prom_row_pool[0]->base_data.size.y + 0, measure_result::special::none};
+	 	 	bool stick_to_next = false;
+			return measure_result{std::max(prom_header_pool[0]->base_data.size.x, prom_row_pool[0]->base_data.size.x), prom_header_pool[0]->base_data.size.y + prom_row_pool[0]->base_data.size.y + 0, stick_to_next ? measure_result::special::no_break : measure_result::special::none};
 		}
 		if(destination) {
 			if(prom_row_pool.size() <= size_t(prom_row_pool_used)) prom_row_pool.emplace_back(make_pop_details_prom_row(state));
@@ -2157,7 +2167,8 @@ measure_result  pop_details_main_dem_list_t::place_item(sys::state& state, ui::n
 			prom_row_pool_used++;
 		}
 		alternate = !alternate;
-		return measure_result{ prom_row_pool[0]->base_data.size.x, prom_row_pool[0]->base_data.size.y + 0, measure_result::special::none};
+	 	 	bool stick_to_next = false;
+		return measure_result{ prom_row_pool[0]->base_data.size.x, prom_row_pool[0]->base_data.size.y + 0, stick_to_next ? measure_result::special::no_break : measure_result::special::none};
 	}
 	return measure_result{0,0,measure_result::special::none};
 }
@@ -2244,7 +2255,7 @@ measure_result  pop_details_main_ideo_list_t::place_item(sys::state& state, ui::
 				destination->children.push_back(weights_header_pool[weights_header_pool_used].get());
 			((pop_details_weights_header_t*)(weights_header_pool[weights_header_pool_used].get()))->set_alternate(alternate);
 				weights_row_pool[weights_row_pool_used]->base_data.position.x = int16_t(x);
-				weights_row_pool[weights_row_pool_used]->base_data.position.y = int16_t(y +  weights_row_pool[0]->base_data.size.y + 0);
+				weights_row_pool[weights_row_pool_used]->base_data.position.y = int16_t(y +  weights_header_pool[0]->base_data.size.y + 0);
 				weights_row_pool[weights_row_pool_used]->parent = destination;
 				destination->children.push_back(weights_row_pool[weights_row_pool_used].get());
 				((pop_details_weights_row_t*)(weights_row_pool[weights_row_pool_used].get()))->item_name = std::get<weights_row_option>(values[index]).item_name;
@@ -2255,7 +2266,8 @@ measure_result  pop_details_main_ideo_list_t::place_item(sys::state& state, ui::
 				weights_header_pool_used++;
 				weights_row_pool_used++;
 			}
-			return measure_result{std::max(weights_header_pool[0]->base_data.size.x, weights_row_pool[0]->base_data.size.x), weights_header_pool[0]->base_data.size.y + weights_row_pool[0]->base_data.size.y + 0, measure_result::special::none};
+	 	 	bool stick_to_next = false;
+			return measure_result{std::max(weights_header_pool[0]->base_data.size.x, weights_row_pool[0]->base_data.size.x), weights_header_pool[0]->base_data.size.y + weights_row_pool[0]->base_data.size.y + 0, stick_to_next ? measure_result::special::no_break : measure_result::special::none};
 		}
 		if(destination) {
 			if(weights_row_pool.size() <= size_t(weights_row_pool_used)) weights_row_pool.emplace_back(make_pop_details_weights_row(state));
@@ -2271,7 +2283,8 @@ measure_result  pop_details_main_ideo_list_t::place_item(sys::state& state, ui::
 			weights_row_pool_used++;
 		}
 		alternate = !alternate;
-		return measure_result{ weights_row_pool[0]->base_data.size.x, weights_row_pool[0]->base_data.size.y + 0, measure_result::special::none};
+	 	 	bool stick_to_next = false;
+		return measure_result{ weights_row_pool[0]->base_data.size.x, weights_row_pool[0]->base_data.size.y + 0, stick_to_next ? measure_result::special::no_break : measure_result::special::none};
 	}
 	return measure_result{0,0,measure_result::special::none};
 }
@@ -2378,7 +2391,7 @@ measure_result  pop_details_main_iss_list_t::place_item(sys::state& state, ui::n
 				destination->children.push_back(weights_header_pool[weights_header_pool_used].get());
 			((pop_details_weights_header_t*)(weights_header_pool[weights_header_pool_used].get()))->set_alternate(alternate);
 				weights_row_pool[weights_row_pool_used]->base_data.position.x = int16_t(x);
-				weights_row_pool[weights_row_pool_used]->base_data.position.y = int16_t(y +  weights_row_pool[0]->base_data.size.y + 0);
+				weights_row_pool[weights_row_pool_used]->base_data.position.y = int16_t(y +  weights_header_pool[0]->base_data.size.y + 0);
 				weights_row_pool[weights_row_pool_used]->parent = destination;
 				destination->children.push_back(weights_row_pool[weights_row_pool_used].get());
 				((pop_details_weights_row_t*)(weights_row_pool[weights_row_pool_used].get()))->item_name = std::get<weights_row_option>(values[index]).item_name;
@@ -2389,7 +2402,8 @@ measure_result  pop_details_main_iss_list_t::place_item(sys::state& state, ui::n
 				weights_header_pool_used++;
 				weights_row_pool_used++;
 			}
-			return measure_result{std::max(weights_header_pool[0]->base_data.size.x, weights_row_pool[0]->base_data.size.x), weights_header_pool[0]->base_data.size.y + weights_row_pool[0]->base_data.size.y + 0, measure_result::special::none};
+	 	 	bool stick_to_next = false;
+			return measure_result{std::max(weights_header_pool[0]->base_data.size.x, weights_row_pool[0]->base_data.size.x), weights_header_pool[0]->base_data.size.y + weights_row_pool[0]->base_data.size.y + 0, stick_to_next ? measure_result::special::no_break : measure_result::special::none};
 		}
 		if(destination) {
 			if(weights_row_pool.size() <= size_t(weights_row_pool_used)) weights_row_pool.emplace_back(make_pop_details_weights_row(state));
@@ -2405,7 +2419,8 @@ measure_result  pop_details_main_iss_list_t::place_item(sys::state& state, ui::n
 			weights_row_pool_used++;
 		}
 		alternate = !alternate;
-		return measure_result{ weights_row_pool[0]->base_data.size.x, weights_row_pool[0]->base_data.size.y + 0, measure_result::special::none};
+	 	 	bool stick_to_next = false;
+		return measure_result{ weights_row_pool[0]->base_data.size.x, weights_row_pool[0]->base_data.size.y + 0, stick_to_next ? measure_result::special::no_break : measure_result::special::none};
 	}
 	return measure_result{0,0,measure_result::special::none};
 }
@@ -2511,7 +2526,7 @@ measure_result  pop_details_main_emm_list_t::place_item(sys::state& state, ui::n
 				destination->children.push_back(emm_header_pool[emm_header_pool_used].get());
 			((pop_details_emm_header_t*)(emm_header_pool[emm_header_pool_used].get()))->set_alternate(alternate);
 				emm_row_pool[emm_row_pool_used]->base_data.position.x = int16_t(x);
-				emm_row_pool[emm_row_pool_used]->base_data.position.y = int16_t(y +  emm_row_pool[0]->base_data.size.y + 0);
+				emm_row_pool[emm_row_pool_used]->base_data.position.y = int16_t(y +  emm_header_pool[0]->base_data.size.y + 0);
 				emm_row_pool[emm_row_pool_used]->parent = destination;
 				destination->children.push_back(emm_row_pool[emm_row_pool_used].get());
 				((pop_details_emm_row_t*)(emm_row_pool[emm_row_pool_used].get()))->destination = std::get<emm_row_option>(values[index]).destination;
@@ -2520,7 +2535,8 @@ measure_result  pop_details_main_emm_list_t::place_item(sys::state& state, ui::n
 				emm_header_pool_used++;
 				emm_row_pool_used++;
 			}
-			return measure_result{std::max(emm_header_pool[0]->base_data.size.x, emm_row_pool[0]->base_data.size.x), emm_header_pool[0]->base_data.size.y + emm_row_pool[0]->base_data.size.y + 0, measure_result::special::none};
+	 	 	bool stick_to_next = false;
+			return measure_result{std::max(emm_header_pool[0]->base_data.size.x, emm_row_pool[0]->base_data.size.x), emm_header_pool[0]->base_data.size.y + emm_row_pool[0]->base_data.size.y + 0, stick_to_next ? measure_result::special::no_break : measure_result::special::none};
 		}
 		if(destination) {
 			if(emm_row_pool.size() <= size_t(emm_row_pool_used)) emm_row_pool.emplace_back(make_pop_details_emm_row(state));
@@ -2534,7 +2550,8 @@ measure_result  pop_details_main_emm_list_t::place_item(sys::state& state, ui::n
 			emm_row_pool_used++;
 		}
 		alternate = !alternate;
-		return measure_result{ emm_row_pool[0]->base_data.size.x, emm_row_pool[0]->base_data.size.y + 0, measure_result::special::none};
+	 	 	bool stick_to_next = false;
+		return measure_result{ emm_row_pool[0]->base_data.size.x, emm_row_pool[0]->base_data.size.y + 0, stick_to_next ? measure_result::special::no_break : measure_result::special::none};
 	}
 	return measure_result{0,0,measure_result::special::none};
 }
@@ -2641,7 +2658,7 @@ measure_result  pop_details_main_mig_list_t::place_item(sys::state& state, ui::n
 				destination->children.push_back(mig_header_pool[mig_header_pool_used].get());
 			((pop_details_mig_header_t*)(mig_header_pool[mig_header_pool_used].get()))->set_alternate(alternate);
 				mig_row_pool[mig_row_pool_used]->base_data.position.x = int16_t(x);
-				mig_row_pool[mig_row_pool_used]->base_data.position.y = int16_t(y +  mig_row_pool[0]->base_data.size.y + 0);
+				mig_row_pool[mig_row_pool_used]->base_data.position.y = int16_t(y +  mig_header_pool[0]->base_data.size.y + 0);
 				mig_row_pool[mig_row_pool_used]->parent = destination;
 				destination->children.push_back(mig_row_pool[mig_row_pool_used].get());
 				((pop_details_mig_row_t*)(mig_row_pool[mig_row_pool_used].get()))->destination = std::get<mig_row_option>(values[index]).destination;
@@ -2650,7 +2667,8 @@ measure_result  pop_details_main_mig_list_t::place_item(sys::state& state, ui::n
 				mig_header_pool_used++;
 				mig_row_pool_used++;
 			}
-			return measure_result{std::max(mig_header_pool[0]->base_data.size.x, mig_row_pool[0]->base_data.size.x), mig_header_pool[0]->base_data.size.y + mig_row_pool[0]->base_data.size.y + 0, measure_result::special::none};
+	 	 	bool stick_to_next = false;
+			return measure_result{std::max(mig_header_pool[0]->base_data.size.x, mig_row_pool[0]->base_data.size.x), mig_header_pool[0]->base_data.size.y + mig_row_pool[0]->base_data.size.y + 0, stick_to_next ? measure_result::special::no_break : measure_result::special::none};
 		}
 		if(destination) {
 			if(mig_row_pool.size() <= size_t(mig_row_pool_used)) mig_row_pool.emplace_back(make_pop_details_mig_row(state));
@@ -2664,7 +2682,8 @@ measure_result  pop_details_main_mig_list_t::place_item(sys::state& state, ui::n
 			mig_row_pool_used++;
 		}
 		alternate = !alternate;
-		return measure_result{ mig_row_pool[0]->base_data.size.x, mig_row_pool[0]->base_data.size.y + 0, measure_result::special::none};
+	 	 	bool stick_to_next = false;
+		return measure_result{ mig_row_pool[0]->base_data.size.x, mig_row_pool[0]->base_data.size.y + 0, stick_to_next ? measure_result::special::no_break : measure_result::special::none};
 	}
 	return measure_result{0,0,measure_result::special::none};
 }
@@ -3249,6 +3268,10 @@ void pop_details_main_t::create_layout_level(sys::state& state, layout_level& lv
 		layout_item_types t;
 		buffer.read(t);
 		switch(t) {
+			case layout_item_types::control:
+			case layout_item_types::window:
+			case layout_item_types::generator:
+				abort();
 			case layout_item_types::texture_layer:
 			{
 				texture_layer temp;
@@ -3500,7 +3523,7 @@ void pop_details_main_t::create_layout_level(sys::state& state, layout_level& lv
 				buffer.read(temp.amount);
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
-			case layout_item_types::generator:
+			case layout_item_types::generator2:
 			{
 				generator_instance temp;
 				std::string_view cname = buffer.read<std::string_view>();
@@ -4799,6 +4822,12 @@ void pop_details_needs_row_content_t::tooltip_position(sys::state& state, int32_
 	if(x >= table_source->needs_table_cost_column_start && x < table_source->needs_table_cost_column_start + table_source->needs_table_cost_column_width) {
 	}
 	if(x >= table_source->needs_table_weight_column_start && x < table_source->needs_table_weight_column_start + table_source->needs_table_weight_column_width) {
+		ident = 4;
+		subrect.top_left = ui::get_absolute_location(state, *this);
+		subrect.top_left.x += int16_t(table_source->needs_table_weight_column_start);
+		subrect.size = base_data.size;
+		subrect.size.x = int16_t(table_source->needs_table_weight_column_width);
+		return;
 	}
 		ident = -1;
 		subrect.top_left = ui::get_absolute_location(state, *this);
@@ -4815,6 +4844,142 @@ void pop_details_needs_row_content_t::update_tooltip(sys::state& state, int32_t 
 	if(x >=  table_source->needs_table_cost_column_start && x <  table_source->needs_table_cost_column_start +  table_source->needs_table_cost_column_width) {
 	}
 	if(x >=  table_source->needs_table_weight_column_start && x <  table_source->needs_table_weight_column_start +  table_source->needs_table_weight_column_width) {
+	pop_details_needs_row_t& needs_row = *((pop_details_needs_row_t*)(parent)); 
+	pop_details_main_t& main = *((pop_details_main_t*)(parent->parent)); 
+// BEGIN needs_row::content::weight::column_tooltip
+	ve::vectorizable_buffer<float, dcon::commodity_id> average_life_need = ve::vectorizable_buffer<float, dcon::commodity_id>(uint32_t(1));
+	ve::vectorizable_buffer<float, dcon::commodity_id> average_everyday_need = ve::vectorizable_buffer<float, dcon::commodity_id>(uint32_t(1));
+	ve::vectorizable_buffer<float, dcon::commodity_id> average_luxury_need = ve::vectorizable_buffer<float, dcon::commodity_id>(uint32_t(1));
+
+	float life_count = 1.f;
+	float everyday_count = 1.f;
+	float luxury_count = 1.f;
+
+	average_life_need = state.world.commodity_make_vectorizable_float_buffer();
+	average_everyday_need = state.world.commodity_make_vectorizable_float_buffer();
+	average_luxury_need = state.world.commodity_make_vectorizable_float_buffer();
+
+	state.world.for_each_commodity([&](auto c) {
+		auto life_average = 0.f;
+		auto everyday_average = 0.f;
+		auto luxury_average = 0.f;
+
+		state.world.for_each_pop_type([&](auto t) {
+			life_average += state.world.pop_type_get_life_needs(t, c);
+			everyday_average += state.world.pop_type_get_everyday_needs(t, c);
+			luxury_average += state.world.pop_type_get_luxury_needs(t, c);
+		});
+
+		life_average /= float(state.world.pop_type_size());
+		everyday_average /= float(state.world.pop_type_size());
+		luxury_average /= float(state.world.pop_type_size());
+
+		average_life_need.set(c, life_average);
+		average_everyday_need.set(c, everyday_average);
+		average_luxury_need.set(c, luxury_average);
+
+		life_count += life_average;
+		everyday_count += everyday_average;
+		luxury_count += luxury_average;
+	});
+
+	auto l = state.world.pop_get_province_from_pop_location(main.for_pop);
+	auto s = state.world.province_get_state_membership(l);
+	auto market = state.world.state_instance_get_market_from_local_market(s);
+
+	float local_cost_life{ economy::price_properties::commodity::min };
+	float local_cost_everyday{ economy::price_properties::commodity::min };
+	float local_cost_luxury{ economy::price_properties::commodity::min };
+	state.world.for_each_commodity([&](auto cid) {
+		auto base_life = average_life_need.get(cid);
+		auto base_everyday = average_everyday_need.get(cid);
+		auto base_luxury = average_luxury_need.get(cid);
+
+		auto price = state.world.market_get_price(market, cid);
+
+		local_cost_life = local_cost_life + base_life * price;
+		local_cost_everyday = local_cost_everyday + base_everyday * price;
+		local_cost_luxury = local_cost_luxury + base_luxury * price;
+	});
+
+	auto c = needs_row.commodity;
+	auto price = state.world.market_get_price(market, c);
+	auto available = state.world.market_get_expected_probability_to_buy(market, c);
+
+	auto w_life = state.world.market_get_life_needs_weights(market, c);
+	auto w_everyday = state.world.market_get_everyday_needs_weights(market, c);
+	auto w_luxury = state.world.market_get_luxury_needs_weights(market, c);
+
+	auto needed_life = average_life_need.get(c);
+	auto needed_everyday = average_everyday_need.get(c);
+	auto needed_luxury = average_luxury_need.get(c);
+
+	text::add_line(state, contents, "need_weight_scale_min", text::variable_type::x, text::prettify_currency(local_cost_life));
+	text::add_line(state, contents, "need_weight_price", text::variable_type::x, text::prettify_currency( price ));
+	text::add_line(state, contents, "need_weight_available", text::variable_type::x, text::fp_two_places{ available });
+	text::add_line_break_to_layout(state, contents);
+	text::pretty_integer pretty_scale { int(state.defines.alice_needs_scaling_factor) };
+	text::add_line(state, contents, "need_weight_needed_life", text::variable_type::x, pretty_scale, text::variable_type::y, text::fp_two_places{ needed_life });
+	text::add_line(state, contents, "need_weight_needed_everyday", text::variable_type::x, pretty_scale, text::variable_type::y, text::fp_two_places{ needed_everyday });
+	text::add_line(state, contents, "need_weight_needed_luxury", text::variable_type::x, pretty_scale, text::variable_type::y, text::fp_two_places{ needed_luxury });
+	text::add_line_break_to_layout(state, contents);
+	text::add_line(state, contents, "need_weight_local_cost_life", text::variable_type::x, pretty_scale, text::variable_type::y, text::prettify_currency( local_cost_life ));
+	text::add_line(state, contents, "need_weight_local_cost_everyday", text::variable_type::x, pretty_scale, text::variable_type::y, text::prettify_currency(local_cost_everyday));
+	text::add_line(state, contents, "need_weight_local_cost_luxury", text::variable_type::x, pretty_scale, text::variable_type::y, text::prettify_currency(local_cost_luxury));
+
+	auto type = state.world.pop_get_poptype(main.for_pop);
+
+	term::value_t term_inflation_indicator { local_cost_life + local_cost_everyday * 0.000'000'1f, "need_weight_base_cost_short", text::text_color::yellow };
+	term::value_t term_price{ price, "need_weight_price_short", text::text_color::yellow };
+	term::value_t term_available{ available, "need_weight_available_short", text::text_color::yellow };
+
+	auto box = text::open_layout_box(contents, 15);
+
+	if (w_life == needs_row.weight && needs_row.amount == state.world.pop_type_get_life_needs(type, c)) {
+		auto expression = economy::need_weight_change<term::value_t, float>(
+			term_inflation_indicator,
+			term_price,
+			term_available,
+			term::value_t{ w_life, "need_weight_w_life_short", text::text_color::yellow },
+			term::value_t{ needed_life, "need_weight_needed_life_short", text::text_color::yellow },
+			term::value_t{ local_cost_life, "need_weight_local_cost_life_short", text::text_color::yellow },
+			term::value_t{ life_count, "need_weight_life_count_short", text::text_color::yellow }
+		);
+		auto computed_expression = term::compute(state, nullptr, expression);
+		term::evaluate_string(state, contents, box, "", false, computed_expression);
+		text::add_line_break_to_layout_box(state, contents, box);
+	}
+	if(w_everyday == needs_row.weight && needs_row.amount == state.world.pop_type_get_everyday_needs(type, c)) {
+		auto expression = economy::need_weight_change<term::value_t, float>(
+			term_inflation_indicator,
+			term_price,
+			term_available,
+			term::value_t{ w_everyday, "need_weight_w_everyday_short", text::text_color::yellow },
+			term::value_t{ needed_everyday, "need_weight_needed_everyday_short", text::text_color::yellow },
+			term::value_t{ local_cost_everyday, "need_weight_local_cost_everyday_short", text::text_color::yellow },
+			term::value_t{ everyday_count, "need_weight_everyday_count_short", text::text_color::yellow }
+		);
+		auto computed_expression = term::compute(state, nullptr, expression);
+		term::evaluate_string(state, contents, box, "", false, computed_expression);
+		text::add_line_break_to_layout_box(state, contents, box);
+	}
+	if(w_luxury == needs_row.weight && needs_row.amount == state.world.pop_type_get_luxury_needs(type, c)) {
+		auto expression = economy::need_weight_change<term::value_t, float>(
+			term_inflation_indicator,
+			term_price,
+			term_available,
+			term::value_t{ w_luxury, "need_weight_w_luxury_short", text::text_color::yellow },
+			term::value_t{ needed_luxury, "need_weight_needed_luxury_short", text::text_color::yellow },
+			term::value_t{ local_cost_luxury, "need_weight_local_cost_luxury_short", text::text_color::yellow },
+			term::value_t{ luxury_count, "need_weight_luxury_count_short", text::text_color::yellow }
+		);
+		auto computed_expression = term::compute(state, nullptr, expression);
+		term::evaluate_string(state, contents, box, "", false, computed_expression);
+		text::add_line_break_to_layout_box(state, contents, box);
+	}
+
+	text::close_layout_box(contents, box);
+// END
 	}
 }
 void pop_details_needs_row_content_t::set_icon_text(sys::state & state, std::string const& new_text) {
@@ -5083,6 +5248,10 @@ void pop_details_needs_row_t::create_layout_level(sys::state& state, layout_leve
 		layout_item_types t;
 		buffer.read(t);
 		switch(t) {
+			case layout_item_types::control:
+			case layout_item_types::window:
+			case layout_item_types::generator:
+				abort();
 			case layout_item_types::texture_layer:
 			{
 				texture_layer temp;
@@ -5172,7 +5341,7 @@ void pop_details_needs_row_t::create_layout_level(sys::state& state, layout_leve
 				buffer.read(temp.amount);
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
-			case layout_item_types::generator:
+			case layout_item_types::generator2:
 			{
 				generator_instance temp;
 				std::string_view cname = buffer.read<std::string_view>();
@@ -5653,6 +5822,10 @@ void pop_details_needs_header_t::create_layout_level(sys::state& state, layout_l
 		layout_item_types t;
 		buffer.read(t);
 		switch(t) {
+			case layout_item_types::control:
+			case layout_item_types::window:
+			case layout_item_types::generator:
+				abort();
 			case layout_item_types::texture_layer:
 			{
 				texture_layer temp;
@@ -5739,7 +5912,7 @@ void pop_details_needs_header_t::create_layout_level(sys::state& state, layout_l
 				buffer.read(temp.amount);
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
-			case layout_item_types::generator:
+			case layout_item_types::generator2:
 			{
 				generator_instance temp;
 				std::string_view cname = buffer.read<std::string_view>();
@@ -6085,6 +6258,10 @@ void pop_details_prom_header_t::create_layout_level(sys::state& state, layout_le
 		layout_item_types t;
 		buffer.read(t);
 		switch(t) {
+			case layout_item_types::control:
+			case layout_item_types::window:
+			case layout_item_types::generator:
+				abort();
 			case layout_item_types::texture_layer:
 			{
 				texture_layer temp;
@@ -6171,7 +6348,7 @@ void pop_details_prom_header_t::create_layout_level(sys::state& state, layout_le
 				buffer.read(temp.amount);
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
-			case layout_item_types::generator:
+			case layout_item_types::generator2:
 			{
 				generator_instance temp;
 				std::string_view cname = buffer.read<std::string_view>();
@@ -6540,6 +6717,10 @@ void pop_details_prom_row_t::create_layout_level(sys::state& state, layout_level
 		layout_item_types t;
 		buffer.read(t);
 		switch(t) {
+			case layout_item_types::control:
+			case layout_item_types::window:
+			case layout_item_types::generator:
+				abort();
 			case layout_item_types::texture_layer:
 			{
 				texture_layer temp;
@@ -6629,7 +6810,7 @@ void pop_details_prom_row_t::create_layout_level(sys::state& state, layout_level
 				buffer.read(temp.amount);
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
-			case layout_item_types::generator:
+			case layout_item_types::generator2:
 			{
 				generator_instance temp;
 				std::string_view cname = buffer.read<std::string_view>();
@@ -6953,6 +7134,10 @@ void pop_details_weights_header_t::create_layout_level(sys::state& state, layout
 		layout_item_types t;
 		buffer.read(t);
 		switch(t) {
+			case layout_item_types::control:
+			case layout_item_types::window:
+			case layout_item_types::generator:
+				abort();
 			case layout_item_types::texture_layer:
 			{
 				texture_layer temp;
@@ -7039,7 +7224,7 @@ void pop_details_weights_header_t::create_layout_level(sys::state& state, layout
 				buffer.read(temp.amount);
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
-			case layout_item_types::generator:
+			case layout_item_types::generator2:
 			{
 				generator_instance temp;
 				std::string_view cname = buffer.read<std::string_view>();
@@ -7424,6 +7609,10 @@ void pop_details_weights_row_t::create_layout_level(sys::state& state, layout_le
 		layout_item_types t;
 		buffer.read(t);
 		switch(t) {
+			case layout_item_types::control:
+			case layout_item_types::window:
+			case layout_item_types::generator:
+				abort();
 			case layout_item_types::texture_layer:
 			{
 				texture_layer temp;
@@ -7510,7 +7699,7 @@ void pop_details_weights_row_t::create_layout_level(sys::state& state, layout_le
 				buffer.read(temp.amount);
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
-			case layout_item_types::generator:
+			case layout_item_types::generator2:
 			{
 				generator_instance temp;
 				std::string_view cname = buffer.read<std::string_view>();
@@ -7825,6 +8014,10 @@ void pop_details_emm_header_t::create_layout_level(sys::state& state, layout_lev
 		layout_item_types t;
 		buffer.read(t);
 		switch(t) {
+			case layout_item_types::control:
+			case layout_item_types::window:
+			case layout_item_types::generator:
+				abort();
 			case layout_item_types::texture_layer:
 			{
 				texture_layer temp;
@@ -7911,7 +8104,7 @@ void pop_details_emm_header_t::create_layout_level(sys::state& state, layout_lev
 				buffer.read(temp.amount);
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
-			case layout_item_types::generator:
+			case layout_item_types::generator2:
 			{
 				generator_instance temp;
 				std::string_view cname = buffer.read<std::string_view>();
@@ -8302,6 +8495,10 @@ void pop_details_emm_row_t::create_layout_level(sys::state& state, layout_level&
 		layout_item_types t;
 		buffer.read(t);
 		switch(t) {
+			case layout_item_types::control:
+			case layout_item_types::window:
+			case layout_item_types::generator:
+				abort();
 			case layout_item_types::texture_layer:
 			{
 				texture_layer temp;
@@ -8391,7 +8588,7 @@ void pop_details_emm_row_t::create_layout_level(sys::state& state, layout_level&
 				buffer.read(temp.amount);
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
-			case layout_item_types::generator:
+			case layout_item_types::generator2:
 			{
 				generator_instance temp;
 				std::string_view cname = buffer.read<std::string_view>();
@@ -8714,6 +8911,10 @@ void pop_details_mig_header_t::create_layout_level(sys::state& state, layout_lev
 		layout_item_types t;
 		buffer.read(t);
 		switch(t) {
+			case layout_item_types::control:
+			case layout_item_types::window:
+			case layout_item_types::generator:
+				abort();
 			case layout_item_types::texture_layer:
 			{
 				texture_layer temp;
@@ -8800,7 +9001,7 @@ void pop_details_mig_header_t::create_layout_level(sys::state& state, layout_lev
 				buffer.read(temp.amount);
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
-			case layout_item_types::generator:
+			case layout_item_types::generator2:
 			{
 				generator_instance temp;
 				std::string_view cname = buffer.read<std::string_view>();
@@ -9088,6 +9289,10 @@ void pop_details_mig_row_t::create_layout_level(sys::state& state, layout_level&
 		layout_item_types t;
 		buffer.read(t);
 		switch(t) {
+			case layout_item_types::control:
+			case layout_item_types::window:
+			case layout_item_types::generator:
+				abort();
 			case layout_item_types::texture_layer:
 			{
 				texture_layer temp;
@@ -9174,7 +9379,7 @@ void pop_details_mig_row_t::create_layout_level(sys::state& state, layout_level&
 				buffer.read(temp.amount);
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
-			case layout_item_types::generator:
+			case layout_item_types::generator2:
 			{
 				generator_instance temp;
 				std::string_view cname = buffer.read<std::string_view>();
@@ -9396,11 +9601,6 @@ std::unique_ptr<ui::element_base> make_pop_details_fancy_separator_2(sys::state&
 	ptr->on_create(state);
 	return ptr;
 }
-
-
-#ifdef __clang__
-#pragma clang diagnostic pop
-#endif
 // LOST-CODE
 // BEGIN main::close_button::lbutton_action
 //////////////////////////////////////	main.set_visible(state, false);

@@ -47,7 +47,7 @@ VALUE change(VALUE current_price, VALUE supply, VALUE demand) {
 	*/
 
 	auto delta = exp_minus_one(probability_to_sell - probability_to_buy);
-	return current_price * delta * 0.01f;
+	return current_price * delta * speed_multiplier;
 }
 }
 
@@ -57,10 +57,10 @@ VALUE change(VALUE current_price, VALUE supply, VALUE demand) {
 // min price prevents singularity at zero
 
 namespace commodity {
-inline constexpr float min = 0.00000000000001f;
+inline constexpr float min = 0.000000000001f;
 inline constexpr float max = 1'000'000'000'000.f;
 inline constexpr float epsilon = min * 0.1f;
-inline constexpr float speed_multiplier = 0.01f;
+inline constexpr float speed_multiplier = 0.02f;
 inline constexpr float additive_smoothing = 0.0075f;
 template<typename VALUE>
 VALUE change(VALUE current_price, VALUE supply, VALUE demand) {
@@ -68,14 +68,14 @@ VALUE change(VALUE current_price, VALUE supply, VALUE demand) {
 }
 template<typename VALUE>
 VALUE change_fast(VALUE current_price, VALUE supply, VALUE demand) {
-	return common::change<VALUE, min, speed_multiplier * 10.f, additive_smoothing>(current_price, supply, demand);
+	return common::change<VALUE, min, speed_multiplier * 200.f, additive_smoothing>(current_price, supply, demand);
 }
 }
 namespace labor {
-inline constexpr float min = 0.00000000000001f;
+inline constexpr float min = 0.000000000001f;
 inline constexpr float max = 1'000'000'000'000.f;
 inline constexpr float epsilon = min * 0.1f;
-inline constexpr float speed_multiplier = 0.0015f;
+inline constexpr float speed_multiplier = 0.02f;
 inline constexpr float additive_smoothing = 1.f;
 template<typename VALUE>
 VALUE change(VALUE current_price, VALUE supply, VALUE demand) {
@@ -83,14 +83,14 @@ VALUE change(VALUE current_price, VALUE supply, VALUE demand) {
 }
 template<typename VALUE>
 VALUE change_fast(VALUE current_price, VALUE supply, VALUE demand) {
-	return common::change<VALUE, min, speed_multiplier * 10.f, additive_smoothing>(current_price, supply, demand);
+	return common::change<VALUE, min, speed_multiplier * 100.f, additive_smoothing>(current_price, supply, demand);
 }
 }
 namespace service {
-inline constexpr float min = 0.00000000000001f;
+inline constexpr float min = 0.000000000001f;
 inline constexpr float max = 1'000'000'000'000.f;
 inline constexpr float epsilon = min * 0.1f;
-inline constexpr float speed_multiplier = 0.0015f;
+inline constexpr float speed_multiplier = 0.02f;
 inline constexpr float additive_smoothing = 1.f;
 template<typename VALUE>
 VALUE change(VALUE current_price, VALUE supply, VALUE demand) {

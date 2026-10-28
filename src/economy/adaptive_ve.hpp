@@ -64,6 +64,16 @@ RELEASE_INLINE VALUE ceil(const VALUE a) {
 	return ve::ceil(a);
 }
 
+template<typename VALUE>
+RELEASE_INLINE VALUE constant_value(float b) {
+	return VALUE { b };
+}
+
+template<typename VALUE>
+RELEASE_INLINE VALUE constant_value(int b) {
+	return VALUE{ b };
+}
+
 template<typename VALUE> requires abs_is_defined<VALUE>
 RELEASE_INLINE VALUE abs(const VALUE a) {
 	return std::abs(a);

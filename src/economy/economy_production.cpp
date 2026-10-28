@@ -202,7 +202,7 @@ float base_artisan_output_cost(
 ) {
 	auto sid = state.world.market_get_zone_from_local_market(market);
 	auto nid = state.world.state_instance_get_nation_from_state_ownership(sid);
-	auto output_total = state.world.commodity_get_artisan_output_amount(c) * price(state, market, c);
+	auto output_total = state.world.commodity_get_artisan_output_amount(c) * state.world.market_get_price(market, c);
 	auto output_multiplier = artisan_output_multiplier<dcon::nation_id>(state, nid);
 	return output_total * output_multiplier;
 }
@@ -493,7 +493,7 @@ preconsumption_data prepare_data_for_consumption(
 	auto direct_inputs_data = get_inputs_data(state, market, inputs);
 	assert(direct_inputs_data.min_available >= 0.f);
 
-	auto output_price = price(state, market, output);
+	auto output_price = state.world.market_get_price(market, output);
 
 	auto output_per_production_unit =
 		output_amount
@@ -1087,7 +1087,7 @@ profit_explanation explain_last_factory_profit(sys::state const& state, dcon::fa
 	auto market = state.world.state_instance_get_market_from_local_market(zone);
 	auto ftid = state.world.factory_get_building_type(f);
 	auto output_commodity = state.world.factory_type_get_output(ftid);
-	auto local_price = price(state, market, output_commodity);
+	auto local_price = state.world.market_get_price(market, output_commodity);
 	auto last_output = state.world.factory_get_output(f) * local_price;
 
 	auto priority = state.world.nation_get_production_directive(nation, production_directives::to_key(state, output_commodity));
@@ -1250,7 +1250,7 @@ float factory_investment_tokens(
 	}
 
 	auto time = state.world.factory_type_get_construction_time(factory_type);
-	auto per_worker_output_cost = state.world.factory_get_output_per_worker(factory) * price(state, market, output_type);
+	auto per_worker_output_cost = state.world.factory_get_output_per_worker(factory) * state.world.market_get_price(market, output_type);
 	auto per_worker_input_cost = state.world.factory_get_input_cost_per_worker(factory);
 	auto profit = per_worker_output_cost;
 
@@ -1363,7 +1363,7 @@ void update_production_investement_consumption(
 
 			//auto time = state.world.factory_type_get_construction_time(factory_type);
 			auto base_size = state.world.factory_type_get_base_workforce(factory_type);
-			auto per_worker_output_cost = state.world.factory_get_output_per_worker(factory) * price(state, output_type);
+			auto per_worker_output_cost = state.world.factory_get_output_per_worker(factory) * state.world.market_get_price(market, output_type);
 			auto per_worker_input_cost = state.world.factory_get_input_cost_per_worker(factory);
 			auto profit = per_worker_output_cost; // - per_worker_input_cost - state.world.province_get_labor_price(province, economy::labor::basic_education);
 
@@ -1385,7 +1385,7 @@ void update_production_investement_consumption(
 					if (!cid) break;
 					auto amount = costs.commodity_amounts[i] / base_size / 2.f;
 					economy::register_demand(state, market, costs.commodity_type[i], expansion_scale * amount);
-					actually_spent = actually_spent + expansion_scale * amount * price(state, market, cid) * state.world.market_get_actual_probability_to_buy(market, cid);
+					actually_spent = actually_spent + expansion_scale * amount * state.world.market_get_price(market, cid) * state.world.market_get_actual_probability_to_buy(market, cid);
 				}
 				auto actual_expansion = expansion_scale * costs_data.min_available;
 				state.world.factory_set_size(factory, std::max(1.f, size * 0.99999f - 0.01f) + actual_expansion);
@@ -1430,7 +1430,7 @@ void update_production_investement_consumption(
 					auto current_scale = (1.f + size) / state.world.factory_type_get_base_workforce(factory_type);
 
 					auto amount = 0.01f * efficiency_inputs.commodity_amounts[i] * current_scale;
-					auto cost = amount * price(state, market, cid);
+					auto cost = amount * state.world.market_get_price(market, cid);
 					auto can_afford = std::max(0.f, investment / cost - 1.f);
 
 					total_can_afford = total_can_afford + can_afford;
@@ -1444,7 +1444,7 @@ void update_production_investement_consumption(
 						auto current_scale = (1.f + size) / state.world.factory_type_get_base_workforce(factory_type);
 
 						auto amount = 0.01f * efficiency_inputs.commodity_amounts[i] * current_scale;
-						auto cost = amount * price(state, market, cid);
+						auto cost = amount * state.world.market_get_price(market, cid);
 						auto can_afford = std::max(0.f, investment / cost - 1.f);
 						auto investment_into_category = investment * can_afford / total_can_afford;
 
@@ -1502,7 +1502,7 @@ void update_production_investement_consumption(
 						if (!cid) break;
 						auto current_scale = (1.f + size) / state.defines.alice_rgo_per_size_employment;
 						auto amount = 0.01f * efficiency_inputs.commodity_amounts[i] * current_scale;
-						auto cost = amount * price(state, market, cid);
+						auto cost = amount * state.world.market_get_price(market, cid);
 						auto can_afford = std::max(0.f, investment_rgo_efficiency / cost - 1.f);
 						total_can_afford = total_can_afford + can_afford;
 					}
@@ -1512,7 +1512,7 @@ void update_production_investement_consumption(
 							if (!cid) break;
 							auto current_scale = (1.f + size) / state.defines.alice_rgo_per_size_employment;
 							auto amount = 0.01f * efficiency_inputs.commodity_amounts[i] * current_scale;
-							auto cost = amount * price(state, market, cid);
+							auto cost = amount * state.world.market_get_price(market, cid);
 							auto can_afford = std::max(0.f, investment_rgo_efficiency / cost - 1.f);
 							auto investment_into_category = investment_rgo_efficiency * can_afford / total_can_afford;
 							auto can_actually_afford = std::min(1.f, investment_into_category / cost);
@@ -2209,6 +2209,12 @@ void update_employment(sys::state& state, bool ignore_reality, float presim_empl
 			//* (sales_optimism + (1.f - sales_optimism) )
 			//* (purchase_optimism + (1.f - purchase_optimism) * min_expected_input);
 
+		if(ignore_reality) {
+			profit_per_worker = output_per_worker * (1.f + presim_employment_mult);
+			sold_expectation = 1.f;
+			min_expected_input = 1.f;
+		}
+
 		//auto unstable_market_conditions_indicator = ve::min(ve::fp_vector{1.f}, (sales_optimism + sold_expectation) * (purchase_optimism + min_expected_input));
 		auto input_cost_per_worker = state.world.factory_get_input_expected_cost_per_worker(facids);
 		auto unstable_market_conditions_indicator = sold_expectation * min_expected_input;
@@ -2317,15 +2323,17 @@ void update_employment(sys::state& state, bool ignore_reality, float presim_empl
 #endif // !NDEBUG
 
 		// we want to preserve starting factories at all costs
-		if(ignore_reality) {
-			state.world.factory_set_unqualified_employment(facids, ve::min(ve::to_float(base_size), state.world.factory_get_size(facids)));
-			state.world.factory_set_primary_employment(facids, 0.f);
-			state.world.factory_set_secondary_employment(facids, 0.f);
-		} else {
+		//if(ignore_reality) {
+		//	auto bad_factory = (output_per_worker * price_output < 0.1f * input_cost_per_worker);
+		//	//state.world.factory_set_unqualified_employment(facids, ve::select (bad_factory, ve::fp_vector{0.f}, ve::min(ve::to_float(base_size), state.world.factory_get_size(facids))));
+		//	state.world.factory_set_unqualified_employment(facids, ve::select(bad_factory, ve::fp_vector{ 0.f }, state.world.factory_get_size(facids)));
+		//	state.world.factory_set_primary_employment(facids, 0.f);
+		//	state.world.factory_set_secondary_employment(facids, 0.f);
+		//} else {
 			state.world.factory_set_unqualified_employment(facids, unqualified_next * scaler);
 			state.world.factory_set_primary_employment(facids, primary_next * scaler);
 			state.world.factory_set_secondary_employment(facids, secondary_next * scaler);
-		}
+		//}
 	});
 
 	auto const csize = state.world.commodity_size();
@@ -2514,7 +2522,7 @@ float factory_type_build_cost(sys::state& state, dcon::nation_id n, dcon::provin
 	for(uint32_t i = 0; i < economy::commodity_set::set_size; i++) {
 		auto cid = costs.commodity_type[i];
 		if(bool(cid)) {
-			total += price(state, m, cid) * costs.commodity_amounts[i] * cost_factor;
+			total += state.world.market_get_price(m, cid) * costs.commodity_amounts[i] * cost_factor;
 		}
 	}
 
@@ -2536,7 +2544,7 @@ float factory_type_output_cost(
 	auto base_output = state.world.factory_type_get_output_amount(factory_type);
 	auto subsidy = (priority_local || priority ? state.world.nation_get_subsidy_token_price(n) : 0.f) / base_output;
 
-	return total_production * (price(state, m, fac_type.get_output()) + subsidy);
+	return total_production * (state.world.market_get_price(m, fac_type.get_output()) + subsidy);
 }
 
 float factory_type_input_cost(
@@ -2845,10 +2853,10 @@ float rgo_income(sys::state& state, dcon::commodity_id c, dcon::province_id id) 
 	auto sid = state.world.province_get_state_membership(id);
 	auto mid = state.world.state_instance_get_market_from_local_market(sid);
 	if(state.world.commodity_get_money_rgo(c)) {
-		return rgo_output(state, c, id)	* price(state, mid, c);
+		return rgo_output(state, c, id) * state.world.market_get_price(mid, c);
 	}
 	return rgo_output(state, c, id)
-		* price(state, mid, c)
+		* state.world.market_get_price(mid, c)
 		* state.world.market_get_actual_probability_to_sell(mid, c);
 }
 
@@ -3093,7 +3101,7 @@ detailed_explanation explain_everything(sys::state const& state, dcon::factory_i
 	);
 
 	result.output = fac_type.get_output();
-	result.output_price = price(state, m, result.output);
+	result.output_price = state.world.market_get_price(m, result.output);
 	result.output_base_amount = fac_type.get_output_amount();
 	result.output_amount_per_production_unit = result.output_base_amount
 		* result.output_multipliers.total;

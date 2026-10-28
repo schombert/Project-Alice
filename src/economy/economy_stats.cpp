@@ -237,19 +237,19 @@ void register_domestic_supply(
 	ve_register_domestic_supply(state, s, commodity_type, amount, reason);
 }
 
-float price(sys::state const& state, dcon::state_instance_id s, dcon::commodity_id c) {
+float price_slow(sys::state const& state, dcon::state_instance_id s, dcon::commodity_id c) {
 	auto market = state.world.state_instance_get_market_from_local_market(s);
 	return state.world.market_get_price(market, c);
 }
 
-float price(sys::state const& state, dcon::nation_id s, dcon::commodity_id c) {
+float price_slow(sys::state const& state, dcon::nation_id s, dcon::commodity_id c) {
 	auto total_cost = 0.f;
 	auto total_supply = 0.f;
 	state.world.nation_for_each_state_ownership(s, [&](auto soid) {
 		auto sid = state.world.state_ownership_get_state(soid);
 		dcon::market_id market = state.world.state_instance_get_market_from_local_market(sid);
 
-		auto local_price = price(state, market, c);
+		auto local_price = state.world.market_get_price(market, c);
 		auto local_supply = state.world.market_get_supply(market, c);
 
 		total_cost += local_price * local_supply;
@@ -266,11 +266,11 @@ float price(sys::state const& state, dcon::nation_id s, dcon::commodity_id c) {
 	return total_cost / total_supply;
 }
 
-float price(sys::state const& state, dcon::commodity_id c) {
+float price_slow(sys::state const& state, dcon::commodity_id c) {
 	auto total_cost = 0.f;
 	auto total_supply = 0.f;
 	state.world.for_each_market([&](auto m) {
-		auto local_price = price(state, m, c);
+		auto local_price = state.world.market_get_price(m, c);
 		auto local_supply = state.world.market_get_supply(m, c) + 0.0001f;
 
 		total_cost += local_price * local_supply;
@@ -284,10 +284,10 @@ float price(sys::state const& state, dcon::commodity_id c) {
 	return total_cost / total_supply;
 }
 
-float median_price(sys::state const& state, dcon::commodity_id c) {
+float median_price_slow(sys::state const& state, dcon::commodity_id c) {
 	std::vector<float> prices{};
 	state.world.for_each_market([&](auto m) {
-		auto local_price = price(state, m, c);
+		auto local_price = state.world.market_get_price(m, c);
 		prices.push_back(local_price);
 	});
 	std::sort(prices.begin(), prices.end());
@@ -299,12 +299,12 @@ float median_price(sys::state const& state, dcon::commodity_id c) {
 	}
 	return (prices[prices.size() / 2]);
 }
-float median_price(sys::state const& state, dcon::nation_id s, dcon::commodity_id c) {
+float median_price_slow(sys::state const& state, dcon::nation_id s, dcon::commodity_id c) {
 	std::vector<float> prices{};
 	state.world.nation_for_each_state_ownership(s, [&](auto soid) {
 		auto sid = state.world.state_ownership_get_state(soid);
 		dcon::market_id m = state.world.state_instance_get_market_from_local_market(sid);
-		auto local_price = price(state, m, c);
+		auto local_price = state.world.market_get_price(m, c);
 		prices.push_back(local_price);
 	});
 	if(prices.size() == 0) {
@@ -328,7 +328,7 @@ float stockpile(sys::state const& state, dcon::nation_id n, dcon::commodity_id c
 }
 
 
-float price(sys::state const& state, dcon::market_id s, dcon::commodity_id c) {
+float price_slow(sys::state const& state, dcon::market_id s, dcon::commodity_id c) {
 	return state.world.market_get_price(s, c);
 }
 
@@ -1144,10 +1144,10 @@ market_budget breakdown_market_budget(sys::state const& state, dcon::market_id m
 	market_budget result {};
 
 	state.world.for_each_commodity([&](auto cid) {
-		auto p = price(state, m, cid);
+		auto local_price = state.world.market_get_price(m, cid);
 		//result.bought += (supply(state, m, cid) - trade_supply(state, m, cid)) * p * state.world.market_get_actual_probability_to_sell(m, cid);
 		auto attempt_to_sell = state.world.market_get_stockpile_sales(m, cid);
-		result.sold += attempt_to_sell * p * state.world.market_get_actual_probability_to_sell(m, cid);
+		result.sold += attempt_to_sell * local_price * state.world.market_get_actual_probability_to_sell(m, cid);
 	});
 
 

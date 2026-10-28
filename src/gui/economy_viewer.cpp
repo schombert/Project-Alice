@@ -392,7 +392,7 @@ void update(sys::state& state) {
 				}
 				switch(state.iui_state.selected_commodity_info) {
 				case iui::commodity_info_mode::price:
-					state.iui_state.per_nation_data[n.index()] = economy::median_price(state, n, state.selected_trade_good);
+					state.iui_state.per_nation_data[n.index()] = economy::median_price_slow(state, n, state.selected_trade_good);
 					break;
 
 				case iui::commodity_info_mode::supply:
