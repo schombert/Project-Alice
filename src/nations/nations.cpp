@@ -1550,7 +1550,8 @@ void update_monthly_points(sys::state& state) {
 	- Once relations are at 100, monthly increases cannot take them higher
 	*/
 	for(auto so : state.world.in_overlord) {
-		monthly_adjust_relationship(state, so.get_ruler(), so.get_subject(), 0.25f);
+		if(so.get_ruler())
+			monthly_adjust_relationship(state, so.get_ruler(), so.get_subject(), 0.25f);
 	}
 	for(auto an : state.world.in_nation_adjacency) {
 		if(an.get_connected_nations(0).get_is_at_war() == false && an.get_connected_nations(1).get_is_at_war() == false)
