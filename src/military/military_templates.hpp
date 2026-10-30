@@ -63,9 +63,6 @@ constexpr bool has_flag(enum_type to_check, enum_type flag) {
 template<battle_included battle_included, retreat_included retreat_included, participants_included participant_setting>
 bool province_has_fleet(const sys::state& state, dcon::province_id location, dcon::nation_id our_nation) {
 	auto navies = state.world.province_get_navy_location(location);
-	if(navies.begin() == navies.end()) {
-		return false; // no navies present
-	}
 	for(auto navy : navies) {
 		if constexpr(battle_included == battle_included::no) {
 			if(navy.get_navy().get_battle_from_navy_battle_participation()) {
@@ -105,9 +102,6 @@ bool province_has_fleet(const sys::state& state, dcon::province_id location, dco
 template<battle_included battle_included, retreat_included retreat_included, blackflag_included blackflag_included, participants_included participant_setting>
 bool province_has_army(const sys::state& state, dcon::province_id location, dcon::nation_id our_nation) {
 	auto armies = state.world.province_get_army_location(location);
-	if(armies.begin() == armies.end()) {
-		return false; // no armies present
-	}
 	for(auto army : armies) {
 		if constexpr(battle_included == battle_included::no) {
 			if(army.get_army().get_battle_from_army_battle_participation()) {
