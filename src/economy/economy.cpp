@@ -3197,8 +3197,10 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 		state.world.for_each_overlord([&](auto ovid) {
 			dcon::nation_id subject = state.world.overlord_get_subject(ovid);
 			dcon::nation_id overlord = state.world.overlord_get_ruler(ovid);
-			auto index_pair = subject.index() * state.world.nation_size() + overlord.index();
-			direct_no_tariffs[index_pair] = true;
+			if(overlord) {
+				auto index_pair = subject.index() * state.world.nation_size() + overlord.index();
+				direct_no_tariffs[index_pair] = true;
+			}
 		});
 
 		state.world.for_each_nation([&](auto A) {
