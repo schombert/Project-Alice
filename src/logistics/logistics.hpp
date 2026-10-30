@@ -109,8 +109,6 @@ void schedule_prov_common_war_supply_paths_update(sys::state& state, dcon::provi
 void schedule_prov_specific_nation_supply_paths_update(sys::state& state, dcon::province_id to_update, dcon::nation_id nation);
 // Schedules a path update on all supply routes owned by the nation on next weekly tick
 void schedule_nation_supply_paths_update(sys::state& state, dcon::nation_id nation);
-// Schedules supply paths which are considered to be ineffective & are active to be updated as soon as possible. Can be expensive
-void schedule_active_ineffective_supply_paths_update(sys::state& state);
 
 // Computes the efficiency of a construct with has consumed vs available. Eg supply throughput
 float compute_efficiency(float consumed, float available);

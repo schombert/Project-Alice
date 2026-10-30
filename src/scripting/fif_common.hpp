@@ -6,6 +6,7 @@
 #include "triggers.hpp"
 #include "economy.hpp"
 #include "province.hpp"
+#include "military_templates.hpp"
 
 namespace fif {
 
@@ -356,10 +357,7 @@ inline int32_t* f_has_cb_against_b(fif::state_stack& s, int32_t* p, fif::environ
 inline bool f_has_access_with(sys::state* state, int32_t targ_index, int32_t source_index) {
 	dcon::nation_id s{ dcon::nation_id::value_base_t(source_index) };
 	dcon::nation_id t{ dcon::nation_id::value_base_t(targ_index) };
-	if(auto p = state->world.get_unilateral_relationship_by_unilateral_pair(t, s); p) {
-		return state->world.unilateral_relationship_get_military_access(p);
-	}
-	return false;
+	return military::has_military_access_to(*state, s, t);
 }
 inline int32_t* f_has_access_with_b(fif::state_stack& s, int32_t* p, fif::environment* e) {
 	if(fif::typechecking_mode(e->mode)) {

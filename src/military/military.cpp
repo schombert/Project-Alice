@@ -997,39 +997,20 @@ uint32_t state_railroad_level(sys::state const& state, dcon::state_instance_id s
 }
 // wrapper for are_at_war which also returns true if one of the tags is rebel, and the other is not
 bool are_enemies(sys::state const& state, dcon::nation_id a, dcon::nation_id b) {
-	if((!b && a) || (b && !a)) {
-		return true;
-	} else {
-		return are_at_war(state, a, b);
-	}
+	return (!b && a) || (b && !a) || are_at_war(state, a, b);
 }
 
 bool are_at_war(sys::state const& state, dcon::nation_id a, dcon::nation_id b) {
-	if(!state.world.nation_get_is_at_war(a) || !state.world.nation_get_is_at_war(b))
-		return false;
-	auto diplo_rel = state.world.get_diplomatic_relation_by_diplomatic_pair(a, b);
-	return diplo_rel && state.world.diplomatic_relation_get_are_at_war(diplo_rel);
+	bool at_war_with = state.world.nation_get_is_at_war_with(a, b);
+	return at_war_with;
 }
 
-bool are_allied_in_war(sys::state const& state, dcon::nation_id a, dcon::nation_id b) {
-	for(auto wa : state.world.nation_get_war_participant(a)) {
-		auto is_attacker = wa.get_is_attacker();
-		for(auto o : wa.get_war().get_war_participant()) {
-			if(o.get_nation() == b)
-				return o.get_is_attacker() == is_attacker;
-		}
-	}
-	return false;
+bool are_on_same_side_in_common_war(sys::state const& state, dcon::nation_id a, dcon::nation_id b) {
+	return state.world.nation_get_is_on_same_side_in_war_with(a, b);
 }
 
 bool are_in_common_war(sys::state const& state, dcon::nation_id a, dcon::nation_id b) {
-	for(auto wa : state.world.nation_get_war_participant(a)) {
-		for(auto o : wa.get_war().get_war_participant()) {
-			if(o.get_nation() == b)
-				return true;
-		}
-	}
-	return false;
+	return state.world.nation_get_is_in_common_war_with(a, b);
 }
 
 void remove_from_common_allied_wars(sys::state& state, dcon::nation_id a, dcon::nation_id b) {
@@ -2820,12 +2801,14 @@ void give_military_access(sys::state& state, dcon::nation_id accessing_nation, d
 		ur = state.world.force_create_unilateral_relationship(target, accessing_nation);
 	}
 	state.world.unilateral_relationship_set_military_access(ur, true);
+	state.world.nation_set_has_military_access_from(target, accessing_nation, true);
 	logistics::schedule_nation_supply_paths_update(state, accessing_nation); // Schedule supply route updates to all routes owned by the accessing nation
 }
 void remove_military_access(sys::state& state, dcon::nation_id accessing_nation, dcon::nation_id target) {
 	auto ur = state.world.get_unilateral_relationship_by_unilateral_pair(target, accessing_nation);
 	if(ur) {
 		state.world.unilateral_relationship_set_military_access(ur, false);
+		state.world.nation_set_has_military_access_from(target, accessing_nation, false);
 	}
 	// Schedule supply route updates in routes owned by the accessor, in provinces controlled by the target
 	for(auto p : state.world.nation_get_province_control(target)) {
@@ -2883,13 +2866,20 @@ void add_to_war(sys::state& state, dcon::war_id w, dcon::nation_id n, bool as_at
 	state.world.nation_set_disarmed_until(n, sys::date{});
 
 	for(auto war_par : state.world.war_get_war_participant(w)) {
+		// On opposite side as the joiner; set them to being at war
 		if(war_par.get_is_attacker() != as_attacker) {
-			auto diplo_rel = state.world.get_diplomatic_relation_by_diplomatic_pair(war_par.get_nation(), n);
-			if(!diplo_rel) {
-				diplo_rel = state.world.force_create_diplomatic_relation(war_par.get_nation(), n);
-			}
-			state.world.diplomatic_relation_set_are_at_war(diplo_rel,true);
+			state.world.nation_set_is_at_war_with(war_par.get_nation(), n, true);
+			state.world.nation_set_is_at_war_with(n, war_par.get_nation(), true);
+
 		}
+		//	On same side as the joiner, set them to being on the same side in a common war
+		else {
+			state.world.nation_set_is_on_same_side_in_war_with(war_par.get_nation(), n, true);
+			state.world.nation_set_is_on_same_side_in_war_with(n, war_par.get_nation(), true);
+		}
+		// Regardless on which side they are, we are in a common war with them after joining
+		state.world.nation_set_is_in_common_war_with(war_par.get_nation(), n, true);
+		state.world.nation_set_is_in_common_war_with(n, war_par.get_nation(), true);
 	}
 
 	for(auto dep : state.world.nation_get_overlord_as_ruler(n)) {
@@ -3043,6 +3033,27 @@ bool is_attacker(sys::state& state, dcon::war_id w, dcon::nation_id n) {
 			return p.get_is_attacker();
 	}
 	return false;
+}
+
+enum class war_state : uint8_t {
+	no_common_wars = 0,
+	same_side_in_war = 1,
+	opposite_side_in_war = 2
+};
+
+war_state war_state_between_nations(const sys::state& state, dcon::nation_id a_nation, dcon::nation_id b_nation) {
+	auto a_wars = state.world.nation_get_war_participant(a_nation);
+	for(auto a_par : a_wars) {
+		auto a_war = a_par.get_war();
+		bool a_is_attacker = a_par.get_is_attacker();
+		for(auto war_par : a_war.get_war_participant()) {
+			if(war_par.get_nation() == b_nation) {
+				bool b_is_attacker = war_par.get_is_attacker();
+				return (a_is_attacker == b_is_attacker ? war_state::same_side_in_war : war_state::opposite_side_in_war);
+			}
+		}
+	}
+	return war_state::no_common_wars;
 }
 
 war_role get_role(sys::state const& state, dcon::war_id w, dcon::nation_id n) {
@@ -3389,12 +3400,27 @@ void remove_from_war(sys::state& state, dcon::war_id w, dcon::nation_id n, bool 
 	}
 	// update diplo relationship
 	for(auto war_par : state.world.war_get_war_participant(w)) {
+		// Check if we are still at war with/in war together with the war participant
+		auto war_state = war_state_between_nations(state, n, war_par.get_nation());
+
+		//	On same opposite as the leaver, set them to no longer being at war if we are no longer at war with them in any other war
 		if(war_par.get_is_attacker() != was_attacker) {
-			auto diplo_rel = state.world.get_diplomatic_relation_by_diplomatic_pair(war_par.get_nation(), n);
-			if(!diplo_rel) {
-				diplo_rel = state.world.force_create_diplomatic_relation(war_par.get_nation(), n);
+			if(war_state != war_state::opposite_side_in_war) {
+				state.world.nation_set_is_at_war_with(war_par.get_nation(), n, false);
+				state.world.nation_set_is_at_war_with(n, war_par.get_nation(), false);
 			}
-			state.world.diplomatic_relation_set_are_at_war(diplo_rel, false);
+		}
+		//	On same side as the leaver, set them to no longer being on the same side in a common war if we are not on the same side of any other war
+		else {
+			if(war_state != war_state::same_side_in_war) {
+				state.world.nation_set_is_on_same_side_in_war_with(war_par.get_nation(), n, false);
+				state.world.nation_set_is_on_same_side_in_war_with(n, war_par.get_nation(), false);
+			}
+		}
+		// Regardless on which side they are, we are no longer in a common war with them after leaving, if we are not in any other common wars
+		if(war_state == war_state::no_common_wars) {
+			state.world.nation_set_is_in_common_war_with(war_par.get_nation(), n, false);
+			state.world.nation_set_is_in_common_war_with(n, war_par.get_nation(), false);
 		}
 	}
 
@@ -6031,7 +6057,7 @@ void cleanup_army(sys::state& state, dcon::army_id n) {
 			for(auto bp : state.world.land_battle_get_army_battle_participation_as_battle(b)) {
 				if(bp.get_army() != n) {
 					has_other = true;
-					if(are_allied_in_war(state, controller, bp.get_army().get_controller_from_army_control())) {
+					if(are_on_same_side_in_common_war(state, controller, bp.get_army().get_controller_from_army_control())) {
 						should_end = false;
 					} else if(bp.get_army().get_controller_from_army_rebel_control()) {
 						has_rebels = true;
@@ -6079,7 +6105,7 @@ void cleanup_navy(sys::state& state, dcon::navy_id n) {
 		bool should_end = true;
 		// TODO: Do they have to be in common war or can they just be "hostile against"?
 		for(auto bp : state.world.naval_battle_get_navy_battle_participation_as_battle(b)) {
-			if(bp.get_navy() != n && are_allied_in_war(state, controller, state.world.navy_get_controller_from_navy_control(bp.get_navy()))) {
+			if(bp.get_navy() != n && are_on_same_side_in_common_war(state, controller, state.world.navy_get_controller_from_navy_control(bp.get_navy()))) {
 				should_end = false;
 			}
 		}
@@ -11282,7 +11308,7 @@ template bool can_attack_ai<false>(sys::state& state, dcon::nation_id n, dcon::n
 // we can allow expensive logic there
 template<bool VALIDATE>
 bool can_attack_expensive_checks(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
-	if(military::are_allied_in_war(state, source, target) || military::are_at_war(state, source, target))
+	if(military::are_on_same_side_in_common_war(state, source, target) || military::are_at_war(state, source, target))
 		return assertive_identity<VALIDATE>(false);
 	return true;
 }

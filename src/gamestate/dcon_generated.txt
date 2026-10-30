@@ -2404,7 +2404,19 @@ object {
 		tag { mp_checksum_excluded }
 	}
 	property{
+		name{ unit_build_commodity_float_buffer_2 }
+		type{ array{unit_build_commodity_id}{float} }
+		tag{ keep_after_state_reload }
+		tag { mp_checksum_excluded }
+	}
+	property{
 		name{ unit_supply_commodity_float_buffer_1 }
+		type{ array{unit_supply_commodity_id}{float} }
+		tag{ keep_after_state_reload }
+		tag { mp_checksum_excluded }
+	}
+	property{
+		name{ unit_supply_commodity_float_buffer_2 }
 		type{ array{unit_supply_commodity_id}{float} }
 		tag{ keep_after_state_reload }
 		tag { mp_checksum_excluded }
@@ -2505,7 +2517,19 @@ object {
 		tag { mp_checksum_excluded }
 	}
 	property{
+		name{ unit_build_commodity_float_buffer_2 }
+		type{ array{unit_build_commodity_id}{float} }
+		tag{ keep_after_state_reload }
+		tag { mp_checksum_excluded }
+	}
+	property{
 		name{ unit_supply_commodity_float_buffer_1 }
+		type{ array{unit_supply_commodity_id}{float} }
+		tag{ keep_after_state_reload }
+		tag { mp_checksum_excluded }
+	}
+	property{
+		name{ unit_supply_commodity_float_buffer_2 }
 		type{ array{unit_supply_commodity_id}{float} }
 		tag{ keep_after_state_reload }
 		tag { mp_checksum_excluded }
@@ -4716,6 +4740,23 @@ object {
 		tag{ save }
 	}
 	property {
+		name{ is_at_war_with }
+		type{ array{nation_id}{bitfield} }
+	}
+	property {
+		name{ has_military_access_from }
+		type{ array{nation_id}{bitfield} }
+	}
+	property {
+		name{ is_on_same_side_in_war_with }
+		type{ array{nation_id}{bitfield} }
+	}
+	property {
+		name{ is_in_common_war_with }
+		type{ array{nation_id}{bitfield} }
+	}
+
+	property {
 		name{ commodity_float_buffer_1 } 
 		type{ array{commodity_id}{float} }
 		tag{ keep_after_state_reload }
@@ -5375,10 +5416,6 @@ relationship{
 		tag{ save }
 	}
 	property{
-		name{ are_at_war }
-		type{ bitfield }
-	}
-	property{
 		name{ truce_until }
 		type{ sys::date }
 		tag{ save }
@@ -5709,7 +5746,6 @@ relationship{
 		type{ float }
 		tag{ save }
 	}
-
 	property{
 		name{ needs_construction_goods }
 		type{ bitfield }
@@ -5718,6 +5754,12 @@ relationship{
 	}
 	property{
 		name{ commodity_amounts_buffer_1 }
+		type{ economy::commodity_amounts }
+		tag{ keep_after_state_reload }
+		tag { mp_checksum_excluded }
+	}
+	property{
+		name{ commodity_amounts_buffer_2 }
 		type{ economy::commodity_amounts }
 		tag{ keep_after_state_reload }
 		tag { mp_checksum_excluded }
@@ -5792,6 +5834,12 @@ relationship{
 		tag { mp_checksum_excluded }
 	}
 	property{
+		name{ commodity_amounts_buffer_2 }
+		type{ economy::commodity_amounts }
+		tag{ keep_after_state_reload }
+		tag { mp_checksum_excluded }
+	}
+	property{
 		name{ state_instance_vector_buffer_1 }
 		type{ vector_pool{1000}{state_instance_id} }
 		tag{ keep_after_state_reload }
@@ -5851,6 +5899,12 @@ relationship{
 	}
 	property{
 		name{ commodity_amounts_buffer_1 }
+		type{ economy::commodity_amounts }
+		tag{ keep_after_state_reload }
+		tag { mp_checksum_excluded }
+	}
+	property{
+		name{ commodity_amounts_buffer_2 }
 		type{ economy::commodity_amounts }
 		tag{ keep_after_state_reload }
 		tag { mp_checksum_excluded }
@@ -5927,6 +5981,12 @@ relationship{
 	}
 	property{
 		name{ commodity_amounts_buffer_1 }
+		type{ economy::commodity_amounts }
+		tag{ keep_after_state_reload }
+		tag { mp_checksum_excluded }
+	}
+	property{
+		name{ commodity_amounts_buffer_2 }
 		type{ economy::commodity_amounts }
 		tag{ keep_after_state_reload }
 		tag { mp_checksum_excluded }
@@ -6664,6 +6724,11 @@ relationship{
 	}
 	property{
 		name{ inactive_days }
+		type{ uint8_t }
+		tag{ save }
+	}
+	property{
+		name{ active_days }
 		type{ uint8_t }
 		tag{ save }
 	}

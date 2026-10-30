@@ -31,6 +31,7 @@
 #include "validation.hpp"
 #include "advanced_province_buildings.hpp"
 #include "logistics.hpp"
+#include "military_templates.hpp"
 
 namespace command {
 
@@ -2756,8 +2757,7 @@ bool can_ask_for_access(sys::state& state, dcon::nation_id asker, dcon::nation_i
 	if(!ignore_cost && state.world.nation_get_is_player_controlled(asker) && state.world.nation_get_diplomatic_points(asker) < state.defines.askmilaccess_diplomatic_cost)
 		return false;
 
-	auto rel = state.world.get_unilateral_relationship_by_unilateral_pair(target, asker);
-	if(state.world.unilateral_relationship_get_military_access(rel))
+	if(military::has_military_access_to(state, asker, target))
 		return false;
 
 	if(military::are_at_war(state, asker, target))
@@ -2796,8 +2796,7 @@ bool can_give_military_access(sys::state& state, dcon::nation_id asker, dcon::na
 	if(!ignore_cost && state.world.nation_get_is_player_controlled(asker) && state.world.nation_get_diplomatic_points(asker) < state.defines.givemilaccess_diplomatic_cost)
 		return false;
 
-	auto rel = state.world.get_unilateral_relationship_by_unilateral_pair(asker, target);
-	if(state.world.unilateral_relationship_get_military_access(rel))
+	if(military::has_military_access_to(state, target, asker))
 		return false;
 
 	if(military::are_at_war(state, asker, target))
@@ -3376,11 +3375,10 @@ bool can_cancel_military_access(sys::state& state, dcon::nation_id source, dcon:
 	if(source == target)
 		return false;
 
-	auto rel = state.world.get_unilateral_relationship_by_unilateral_pair(target, source);
 	if(!ignore_cost && state.world.nation_get_is_player_controlled(source) && state.world.nation_get_diplomatic_points(source) < state.defines.cancelaskmilaccess_diplomatic_cost)
 		return false;
 
-	if(state.world.unilateral_relationship_get_military_access(rel))
+	if(military::has_military_access_to(state, source, target))
 		return true;
 	else
 		return false;
@@ -3412,12 +3410,11 @@ bool can_cancel_given_military_access(sys::state& state, dcon::nation_id source,
 	if(!state.current_scene.game_in_progress) {
 		return false;
 	}
-	auto rel = state.world.get_unilateral_relationship_by_unilateral_pair(source, target);
 
 	if(!ignore_cost && state.world.nation_get_is_player_controlled(source) && state.world.nation_get_diplomatic_points(source) < state.defines.cancelgivemilaccess_diplomatic_cost)
 		return false;
 
-	if(state.world.unilateral_relationship_get_military_access(rel)) {
+	if(military::has_military_access_to(state, target, source)) {
 		// subjects cannot cancel military access from their overlords
 		if(nations::is_nation_subject_of(state, source, target)) {
 			return false;
