@@ -2,6 +2,7 @@
 #include "system_state.hpp"
 #include "military.hpp"
 #include "economy_constants.hpp"
+#include "adaptive_ve.hpp"
 
 namespace military {
 

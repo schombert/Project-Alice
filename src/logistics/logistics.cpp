@@ -1939,12 +1939,12 @@ void update_supply_routes_daily(sys::state& state) {
 
 	// Profiling functions. Comment/uncomment to disable/enable
 	auto profile_step_start = [&]() {
-		begin = std::chrono::steady_clock::now();
+		//begin = std::chrono::steady_clock::now();
 	};
 	auto profile_step_end = [&](std::string_view step_name) {
-		end = std::chrono::steady_clock::now();
-		auto time_str = std::to_string(std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count());
-		state.console_log(std::format("{} MICROSECS: {}", step_name, time_str));
+		//end = std::chrono::steady_clock::now();
+		//auto time_str = std::to_string(std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count());
+		//state.console_log(std::format("{} MICROSECS: {}", step_name, time_str));
 	};
 
 
@@ -2496,7 +2496,6 @@ void update_supply_routes_daily(sys::state& state) {
 				for(uint32_t i = 0; i < build_cost.set_size; i++) {
 					auto com_id = build_cost.commodity_type[i];
 					if(com_id) {
-						float current_req_amount = current_req_goods[i];
 						float expected_sat = nation_construction_expected_satisfaction_get(state, controller, com_id);
 						current_req_goods[i] *= expected_sat;
 						current_req_total_goods[i] = current_req_goods[i];

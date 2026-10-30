@@ -8,7 +8,6 @@
 #include "constants_dcon.hpp"
 #include "commands_constants.hpp"
 #include "concept_declarations.hpp"
-#include "adaptive_ve.hpp"
 
 namespace military {
 namespace cb_flag {
