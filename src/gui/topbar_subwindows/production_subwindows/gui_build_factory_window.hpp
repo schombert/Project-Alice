@@ -101,7 +101,7 @@ public:
 		for(uint32_t i = 0; i < economy::commodity_set::set_size; i++) {
 			auto cid = name.commodity_type[i];
 			if(bool(cid)) {
-				total += economy::price(state, s, cid) * name.commodity_amounts[i] * factor;
+				total += state.world.market_get_price(state.world.state_instance_get_market_from_local_market(s), cid) * name.commodity_amounts[i] * factor;
 			}
 		} // Credit to leaf for this code :3
 		return text::format_money(total);
@@ -205,7 +205,7 @@ public:
 			if(iset.commodity_type[i] && iset.commodity_amounts[i] > 0.0f) {
 				auto amount = iset.commodity_amounts[i];
 				auto cid = iset.commodity_type[i];
-				auto price = economy::price(state, s, cid);
+				auto price = state.world.market_get_price(state.world.state_instance_get_market_from_local_market(s), cid);
 
 				auto box = text::open_layout_box(contents, 0);
 
@@ -233,7 +233,7 @@ public:
 			if(cset.commodity_type[i] && cset.commodity_amounts[i] > 0.0f) {
 				auto amount = cset.commodity_amounts[i];
 				auto cid = cset.commodity_type[i];
-				auto price = economy::price(state, s, cid);
+				auto price = state.world.market_get_price(state.world.state_instance_get_market_from_local_market(s), cid);
 
 				// Commodity icon
 				auto box = text::open_layout_box(contents, 0);

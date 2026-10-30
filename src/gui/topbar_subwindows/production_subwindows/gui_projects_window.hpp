@@ -105,7 +105,7 @@ class production_project_info : public listbox_row_element_base<production_proje
 		for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
 			dcon::commodity_id cid = cset.commodity_type[i];
 			if(bool(cid))
-				total += economy::price(state, s, cid) * cset.commodity_amounts[i];
+				total += state.world.market_get_price(state.world.state_instance_get_market_from_local_market(s), cid) * cset.commodity_amounts[i];
 		}
 		return total;
 	}
@@ -194,7 +194,7 @@ public:
 		for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
 			dcon::commodity_id cid = needed_commodities.commodity_type[i];
 			if(bool(cid))
-				purchased_cost += economy::price(state, s, cid) * satisfied_commodities[i];
+				purchased_cost += state.world.market_get_price(state.world.state_instance_get_market_from_local_market(s), cid) * satisfied_commodities[i];
 		}
 		float total_cost = get_cost(state, needed_commodities);
 		cost_text->set_text(state, text::format_money(purchased_cost) + "/" + text::format_money(total_cost));

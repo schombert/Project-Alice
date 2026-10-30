@@ -5343,8 +5343,6 @@ void army_arrives_in_province(sys::state& state, dcon::army_id a, dcon::province
 		if(prev_location) {
 			logistics::schedule_prov_enemy_supply_paths_update(state, prev_location, army_owner);
 		}
-
-
 	}
 
 	bool is_sea_prov = province::is_sea(state, p);

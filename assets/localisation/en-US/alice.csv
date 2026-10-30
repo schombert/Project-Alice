@@ -2144,3 +2144,67 @@ logistics_supply_throughput_tooltip;The throughput percentage for the transporte
 alice_budget_military_expense;Military Pay
 alice_budget_education_expense;Public Education
 alice_budget_administration_expense;Official Pay
+need_weight_scale_min;?Y$x$?W is considered as low amount of money locally
+need_weight_scale_max;?Y$x$?W is considered as large amount of money locally
+need_weight_price;Local price: ?Y$x$?W
+need_weight_available;Chance to buy: ?Y$x$?W
+need_weight_needed_life;On average (over pop types), ?Y$x$?W people need ?Y$y$?W of this good as a part of life needs.
+need_weight_needed_everyday;On average (over pop types), ?Y$x$?W people need ?Y$y$?W of this good as a part of everyday needs.
+need_weight_needed_luxury;On average (over pop types), ?Y$x$?W people need ?Y$y$?W of this good as a part of luxury needs.
+need_weight_local_cost_life;On average (over pop types), ?Y$x$?W people need to pay ?Y$y$?W to satisfy their life needs.
+need_weight_local_cost_everyday;On average (over pop types), ?Y$x$?W people need to pay ?Y$y$?W to satisfy their everyday needs.
+need_weight_local_cost_luxury;On average (over pop types), ?Y$x$?W people need to pay ?Y$y$?W to satisfy their luxury needs.
+need_weight_base_cost_short;Local inflation
+need_weight_available_short;Availability
+need_weight_w_life_short;Life needs weight
+need_weight_needed_life_short;Life needs
+need_weight_local_cost_life_short;Life needs cost
+need_weight_life_count_short;Count
+need_weight_w_everyday_short;Everyday needs weight
+need_weight_needed_everyday_short;Everyday needs
+need_weight_local_cost_everyday_short;Everyday needs cost
+need_weight_everyday_count_short;Count
+need_weight_w_luxury_short;Luxury needs weight
+need_weight_needed_luxury_short;Luxury needs
+need_weight_local_cost_luxury_short;Luxury needs cost
+need_weight_luxury_count_short;Count
+term_add;Add
+term_mul;Multiply
+term_div;Divide
+term_dividend;Dividend
+term_divisor;Divisor
+term_sub;Subtract
+term_minuend;Minuend
+term_subtrahend;Subtrahend
+term_const;Constant
+need_weight_price_short;Price
+term_commodity;Commodity
+term_market;Market
+term_market_price;Local price
+term_market_price_confidence;Local price confidence
+term_market_price_origin;?Y$y$?W price in exporter ?Y$val$?W: ?Y$value$?W
+term_market_price_target;?Y$y$?W price in importer ?Y$val$?W: ?Y$value$?W
+term_market_price_owner;?Y$y$?W price at trade hub ?Y$val$?W: ?Y$value$?W
+term_market_price_confidence_origin;?Y$y$?W price confidence in exporter ?Y$val$?W: ?Y$value$?W
+term_market_price_confidence_target;?Y$y$?W price confidence in importer ?Y$val$?W: ?Y$value$?W
+term_market_price_confidence_owner;?Y$y$?W price confidence at trade hub ?Y$val$?W: ?Y$value$?W
+term_trade_route;Trade route
+term_trade_origin;Exporting market
+term_trade_target;Importing market
+term_trade_owner;Trade route owner
+term_max;Max
+term_min;Min
+term_clamp_low_with;Clamp with ?Y$x$?W from below: ?Y$value$?W
+term_left;Left arg
+term_right;Right arg
+term_naval_transport_demand_satisfaction;Naval transport satisfaction
+term_land_transport_demand_satisfaction;Land transport satisfaction
+term_trade_house_budget_import_scale_result;Imports to income ratio
+export_tariff;Export tariff
+import_tariff;Import tariff
+transport_cost_per_unit;Transport cost per unit
+trade_budget;Merchants budget
+trade_good_loss_mult;Losses along the route
+merchant_cut;Merchants cut
+term_derivative;Derivative along term
+refund_explanation;Ratio of desired goods and services which was actually purchased at the given day.

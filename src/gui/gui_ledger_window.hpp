@@ -2194,7 +2194,7 @@ public:
 			return;
 
 		state.world.for_each_nation([&](dcon::nation_id nation) {
-			auto newest_index = economy::most_recent_gdp_record_index(state);
+			auto newest_index = economy::most_recent_gdp_record_index(state, 0);
 			if((*ptr).data[nation.index()]) {
 				for(uint32_t i = 0; i < graph_length; ++i) {
 					auto record = state.world.nation_get_gdp_record(nation, (newest_index + economy::gdp_history_length - graph_length + i + 1) % economy::gdp_history_length);
@@ -2211,7 +2211,7 @@ public:
 			} else {
 				graph_per_nation[nation.index()]->set_visible(state, true);
 				std::vector<float> datapoints(graph_length);
-				auto newest_index = economy::most_recent_gdp_record_index(state);
+				auto newest_index = economy::most_recent_gdp_record_index(state, 0);
 
 				for(uint32_t i = 0; i < graph_length; ++i) {
 					datapoints[i] = state.world.nation_get_gdp_record(nation, (newest_index + economy::gdp_history_length - graph_length + i + 1) % economy::gdp_history_length);
@@ -2303,7 +2303,7 @@ public:
 			return;
 
 		state.world.for_each_commodity([&](dcon::commodity_id commodity) {
-			auto newest_index = economy::most_recent_price_record_index(state);
+			auto newest_index = economy::most_recent_price_record_index(state, 0);
 			if((*ptr).data[commodity.index()]) {
 				for(uint32_t i = 0; i < graph_length; ++i) {
 					auto price = state.world.commodity_get_price_record(commodity, (newest_index + economy::price_history_length - graph_length + i + 1) % economy::price_history_length);
@@ -2323,7 +2323,7 @@ public:
 			} else {
 				graph_per_price[commodity.index()]->set_visible(state, true);
 				std::vector<float> datapoints(graph_length);
-				auto newest_index = economy::most_recent_price_record_index(state);
+				auto newest_index = economy::most_recent_price_record_index(state, 0);
 
 				for(uint32_t i = 0; i < graph_length; ++i) {
 					datapoints[i] = state.world.commodity_get_price_record(commodity, (newest_index + economy::price_history_length - graph_length + i + 1) % economy::price_history_length);

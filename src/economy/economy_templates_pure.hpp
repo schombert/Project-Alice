@@ -1,6 +1,8 @@
 #pragma once
 
 #include "container_types.hpp"
+#include "adaptive_ve.hpp"
+#include "terms_pure.hpp"
 
 namespace economy {
 
@@ -89,6 +91,24 @@ struct vectorized_pops_budget {
 	VALUE remaining_savings{ };
 	VALUE spent_total{ };
 };
+}
+
+template<typename VALUE_IN, typename scalar>
+auto need_weight_change(
+	VALUE_IN cost_life,
+	VALUE_IN price,
+	VALUE_IN availability,
+	VALUE_IN current_weight,
+	VALUE_IN base_amount,
+	VALUE_IN total_cost,
+	VALUE_IN total_count
+) {
+	//return (adaptive_ve::max(adaptive_ve::constant_value<scalar>(0.f), availability * availability - 0.5f) - total_count * base_amount * current_weight * 10.f * price / total_cost) + (cost_life) / total_cost - price * base_amount / (cost_life * 1'000'000.f);
+	return
+		10.f * adaptive_ve::max(adaptive_ve::constant_value<scalar>(0.f), 2.f * availability * availability - 1.f)
+		+ cost_life / total_cost
+		- price * base_amount / (cost_life * 10'000.f)
+		- total_count * base_amount * current_weight * price / total_cost;
 }
 
 }

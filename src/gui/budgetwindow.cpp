@@ -27,6 +27,7 @@ struct budgetwindow_section_header_expand_button_t;
 struct budgetwindow_section_header_total_amount_t;
 struct budgetwindow_section_header_min_setting_t;
 struct budgetwindow_section_header_max_setting_t;
+struct budgetwindow_section_header_refund_ratio_t;
 struct budgetwindow_section_header_t;
 struct budgetwindow_neutral_spacer_t;
 struct budgetwindow_bottom_spacer_t;
@@ -347,6 +348,11 @@ struct budgetwindow_section_header_max_setting_t : public alice_ui::template_lab
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override;
 	void on_update(sys::state& state) noexcept override;
 };
+struct budgetwindow_section_header_refund_ratio_t : public alice_ui::template_label {
+// BEGIN section_header::refund_ratio::variables
+// END
+	void on_update(sys::state& state) noexcept override;
+};
 struct budgetwindow_budget_row_contents_t : public ui::element_base {
 // BEGIN budget_row::contents::variables
 // END
@@ -502,6 +508,8 @@ struct budgetwindow_section_header_t : public layout_window_element {
 	std::unique_ptr<budgetwindow_section_header_total_amount_t> total_amount;
 	std::unique_ptr<budgetwindow_section_header_min_setting_t> min_setting;
 	std::unique_ptr<budgetwindow_section_header_max_setting_t> max_setting;
+	std::unique_ptr<budgetwindow_section_header_refund_ratio_t> refund_ratio;
+	std::unique_ptr<template_icon_graphic> refund_icon;
 	std::vector<std::unique_ptr<ui::element_base>> gui_inserts;
 	void create_layout_level(sys::state& state, layout_level& lvl, char const* ldata, size_t sz);
 	void on_create(sys::state& state) noexcept override;
@@ -932,7 +940,7 @@ void  budgetwindow_main_espenses_table_t::update(sys::state& state, layout_windo
 	auto stockpile_spending = (float)state.world.nation_get_stockpile_spending(state.local_player_nation) / 100.0f;
 	auto army_supplies_spending = (float)state.world.nation_get_land_spending(state.local_player_nation) / 100.0f;
 	auto navy_supplies_spending = (float)state.world.nation_get_naval_spending(state.local_player_nation) / 100.0f;
-	auto stockpile_spendings = economy::estimate_total_stockpile_spendings_by_commodity(state, state.local_player_nation, next_budget * construction_spending, next_budget * stockpile_spending, next_budget * army_supplies_spending, next_budget * navy_supplies_spending);
+	auto stockpile_spendings = economy::estimate_total_stockpile_spendings_by_commodity_after_refund(state, state.local_player_nation, next_budget * construction_spending, next_budget * stockpile_spending, next_budget * army_supplies_spending, next_budget * navy_supplies_spending);
 	values.clear();
 	add_section_header(budget_categories::construction);
 	if(budget_categories::expanded[budget_categories::construction]) {
@@ -990,7 +998,7 @@ void  budgetwindow_main_espenses_table_t::update(sys::state& state, layout_windo
 		auto budget_per_administration = admin_count == 0.f ? 0.f : admin_budget_approx / admin_count;
 		add_budget_row(
 			"capital",
-			economy::estimate_spendings_administration_capital(
+			economy::estimate_spendings_administration_capital_after_refund(
 				state, state.local_player_nation, budget_per_administration
 			)
 		);
@@ -1157,7 +1165,7 @@ void  budgetwindow_main_espenses_table_t::update(sys::state& state, layout_windo
 
 				if(state.world.commodity_get_overseas_penalty(cid) && (state.world.commodity_get_is_available_from_start(cid) || state.world.nation_get_unlocked_commodities(state.local_player_nation, cid))) {
 					auto amount =
-						overseas_factor * economy::price(state, market, cid) * state.world.market_get_actual_probability_to_buy(market, cid) * float(state.world.nation_get_overseas_spending(state.local_player_nation)) / 100.0f;
+						overseas_factor * state.world.market_get_price(market, cid) * state.world.market_get_actual_probability_to_buy(market, cid) * float(state.world.nation_get_overseas_spending(state.local_player_nation)) / 100.0f;
 					add_budget_row(text::produce_simple_string(state, state.world.commodity_get_name(cid)), amount);
 				}
 			}
@@ -3338,6 +3346,46 @@ void budgetwindow_section_header_max_setting_t::on_update(sys::state& state) noe
 	}
 // END
 }
+void budgetwindow_section_header_refund_ratio_t::on_update(sys::state& state) noexcept {
+	budgetwindow_section_header_t& section_header = *((budgetwindow_section_header_t*)(parent)); 
+	budgetwindow_main_t& main = *((budgetwindow_main_t*)(parent->parent)); 
+// BEGIN section_header::refund_ratio::update
+	auto n = state.local_player_nation;
+	auto spending_details = economy::national_budget::estimate_budget_detailed(state, n, economy::estimate_next_budget(state, n));
+
+	auto set_effective_ratio = [&](economy::national_budget::budget_spending_category data) {
+		set_text(state, text::format_percentage(data.dedicated_budget != 0.f ? data.actual_spending / data.dedicated_budget : 1.f, 0));
+	};
+	auto set_nothing = [&]() {
+		set_text(state, "");
+	};
+
+	switch(section_header.section_type) {
+	case budget_categories::diplomatic_income: set_nothing(); break;
+	case budget_categories::poor_tax: set_nothing(); break;
+	case budget_categories::middle_tax: set_nothing(); break;
+	case budget_categories::rich_tax: set_nothing(); break;
+	case budget_categories::tariffs_import: set_nothing(); break;
+	case budget_categories::tariffs_export: set_nothing(); break;
+	case budget_categories::gold: set_nothing(); break;
+	case budget_categories::diplomatic_expenses: set_nothing(); break;
+	case budget_categories::social: set_effective_ratio(spending_details.social); break;
+	case budget_categories::military: set_effective_ratio(spending_details.military_wages); break;
+	case budget_categories::education: set_effective_ratio(spending_details.education_wages); break;
+	case budget_categories::admin: set_effective_ratio(spending_details.administration_wages); break;
+	case budget_categories::domestic_investment:  set_effective_ratio(spending_details.domestic_investments); break;
+	case budget_categories::overseas_spending: set_effective_ratio(spending_details.overseas_penalty); break;
+	case budget_categories::subsidies:  set_effective_ratio(spending_details.subsidy); break;
+	case budget_categories::construction:  set_effective_ratio(spending_details.construction_supplies); break;
+	case budget_categories::army_upkeep: set_effective_ratio(spending_details.military_supplies_land); break;
+	case budget_categories::navy_upkeep: set_effective_ratio(spending_details.military_supplies_navy); break;
+	case budget_categories::debt_payment: set_nothing(); break;
+	case budget_categories::stockpile: set_effective_ratio(spending_details.stockpile); break;
+	default: set_text(state, ""); break;
+	}
+
+// END
+}
 ui::message_result budgetwindow_section_header_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
 	return ui::message_result::consumed;
 }
@@ -3430,6 +3478,12 @@ void budgetwindow_section_header_t::create_layout_level(sys::state& state, layou
 				} else
 				if(cname == "max_setting") {
 					temp.ptr = max_setting.get();
+				} else
+				if(cname == "refund_ratio") {
+					temp.ptr = refund_ratio.get();
+				} else
+				if(cname == "refund_icon") {
+					temp.ptr = refund_icon.get();
 				} else
 				{
 					std::string str_cname {cname};
@@ -3679,6 +3733,41 @@ void budgetwindow_section_header_t::on_create(sys::state& state) noexcept {
 			cptr->template_id = child_data.template_id;
 			if(child_data.text_key.length() > 0)
 				cptr->default_text = state.lookup_key(child_data.text_key);
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		} else 
+		if(child_data.name == "refund_ratio") {
+			refund_ratio = std::make_unique<budgetwindow_section_header_refund_ratio_t>();
+			refund_ratio->parent = this;
+			auto cptr = refund_ratio.get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->template_id = child_data.template_id;
+			if(child_data.text_key.length() > 0)
+				cptr->default_text = state.lookup_key(child_data.text_key);
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		} else 
+		if(child_data.name == "refund_icon") {
+			refund_icon = std::make_unique<template_icon_graphic>();
+			refund_icon->parent = this;
+			auto cptr = refund_icon.get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->template_id = child_data.template_id;
+			cptr->color = child_data.table_divider_color;
 			if(child_data.tooltip_text_key.length() > 0)
 				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
 			cptr->parent = this;

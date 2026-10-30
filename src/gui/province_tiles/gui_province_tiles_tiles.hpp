@@ -387,7 +387,7 @@ public:
 		auto admin_count = economy::count_active_administrations(state, state.local_player_nation);
 		auto budget_per_administration = admin_count == 0.f ? 0.f : admin_budget_approx / admin_count;
 
-		text::add_line(state, contents, "local_admin_spending", text::variable_type::value, text::fp_currency{ economy::estimate_spendings_administration(state, n, budget_per_administration) });
+		text::add_line(state, contents, "local_admin_spending", text::variable_type::value, text::fp_currency{ economy::estimate_spendings_administration_after_refund(state, n, budget_per_administration) });
 
 		auto records = economy::explain_local_administration_employment(state, target.province);
 		for(auto record : records) {
@@ -434,7 +434,7 @@ public:
 		auto admin_count = economy::count_active_administrations(state, state.local_player_nation);
 		auto budget_per_administration = admin_count == 0.f ? 0.f : admin_budget_approx / admin_count;
 
-		text::add_line(state, contents, "local_admin_spending", text::variable_type::value, text::fp_currency{ economy::estimate_spendings_administration_capital(state, n, budget_per_administration) });
+		text::add_line(state, contents, "local_admin_spending", text::variable_type::value, text::fp_currency{ economy::estimate_spendings_administration_capital_after_refund(state, n, budget_per_administration) });
 
 		text::add_line_break_to_layout(state, contents);
 

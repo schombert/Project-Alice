@@ -198,7 +198,7 @@ void update_consumption(sys::state& state) {
 					break;
 				}
 				auto amount = costs.commodity_amounts[i] / build_time;
-				material_cost_per_constructed_unit += amount * economy::price(state, mid, cid);
+				material_cost_per_constructed_unit += amount * state.world.market_get_price(mid, cid);
 			}
 			
 			auto expected_profit_per_size = output_cost * def.output_amount;
@@ -230,7 +230,7 @@ void update_consumption(sys::state& state) {
 			We don't want to expand faster than local labor allows us
 			*/
 			auto sat = state.world.province_get_labor_demand_satisfaction(pid, economy::labor_constants::construction_labor);
-			demand_scale = std::min(max_demand_scale, demand_scale * sat);
+			demand_scale = std::min(max_demand_scale, demand_scale * std::max(0.f, sat - 0.8f) * 5.f);
 
 			/*
 			Register demand both on construction materials and construction labor
@@ -277,7 +277,7 @@ void update_consumption(sys::state& state) {
 						break;
 					}
 					auto amount = max_port_expansion_speed * costs.commodity_amounts[i] / build_time;
-					cost += amount * economy::price(state, mid, cid);
+					cost += amount * state.world.market_get_price(mid, cid);
 				}
 				assert(cost != 0.f);
 				auto scale = std::min(1.f, expected_profit_per_size * 0.1f / cost);
@@ -361,7 +361,7 @@ void update_profit_and_refund(sys::state& state) {
 						break;
 					}
 					auto amount = max_port_expansion_speed * costs.commodity_amounts[i] / build_time;
-					total_cost += amount * economy::price(state, mid, cid);
+					total_cost += amount * state.world.market_get_price(mid, cid);
 				}
 				assert(total_cost != 0.f);
 				auto scale = std::min(1.f, expected_profit_per_size * 0.1f / total_cost);
@@ -377,7 +377,7 @@ void update_profit_and_refund(sys::state& state) {
 					auto probability = state.world.market_get_actual_probability_to_buy(mid, cid);
 					// we promised to buy - we spend money and throw away excess items
 					// otherwise we generated demand and then haven't fulfilled our promise
-					cost += max_port_expansion_speed * costs.commodity_amounts[i] / build_time * scale * economy::price(state, mid, cid) * probability;
+					cost += max_port_expansion_speed * costs.commodity_amounts[i] / build_time * scale * state.world.market_get_price(mid, cid) * probability;
 					if(probability < expansion_scale) {
 						expansion_scale = probability;
 					}
@@ -418,7 +418,7 @@ void update_profit_and_refund(sys::state& state) {
 					break;
 				}
 				auto amount = costs.commodity_amounts[i] / build_time;
-				material_cost_per_constructed_unit += amount * economy::price(state, mid, cid);
+				material_cost_per_constructed_unit += amount * state.world.market_get_price(mid, cid);
 			}
 			
 			auto expected_profit_per_size = output_cost * def.output_amount;
@@ -450,7 +450,7 @@ void update_profit_and_refund(sys::state& state) {
 			*/
 
 			auto labor_sat = state.world.province_get_labor_demand_satisfaction(pid, economy::labor_constants::construction_labor);
-			auto demand_scale = std::min(max_demand_scale, construction_scale * labor_sat);
+			auto demand_scale = std::min(max_demand_scale, construction_scale * std::max(0.f, labor_sat - 0.8f) * 5.f);
 
 			/*
 			Find out how much we were able to buy.
@@ -465,7 +465,7 @@ void update_profit_and_refund(sys::state& state) {
 				auto sat = state.world.market_get_actual_probability_to_buy(mid, cid);
 				actually_bought = std::min(actually_bought, sat);
 				auto amount =  costs.commodity_amounts[i] / build_time;
-				spendings += amount * economy::price(state, mid, cid) * demand_scale * sat;
+				spendings += amount * state.world.market_get_price(mid, cid) * demand_scale * sat;
 			}
 			auto sat = state.world.province_get_labor_demand_satisfaction(pid, economy::labor_constants::construction_labor);
 			actually_bought = std::min(actually_bought, sat);
@@ -566,7 +566,7 @@ void update_private_size(sys::state& state) {
 					break;
 				}
 				auto amount = costs.commodity_amounts[i] / build_time;
-				material_cost_per_constructed_unit += amount * economy::price(state, mid, cid);
+				material_cost_per_constructed_unit += amount * state.world.market_get_price(mid, cid);
 			}
 			auto maintenance_cost_per_unit = def.maintenance_rate * (
 				cost_of_labor

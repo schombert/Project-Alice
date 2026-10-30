@@ -197,28 +197,28 @@ float trade_demand(sys::state const& state,
 	dcon::commodity_id c
 );
 
-float price(
+float price_slow(
 	sys::state const& state,
 	dcon::state_instance_id s,
 	dcon::commodity_id c
 );
 
-float price(
+float price_slow(
 	sys::state const& state,
 	dcon::nation_id s,
 	dcon::commodity_id c
 );
-float price(
+float price_slow(
 	sys::state const& state,
 	dcon::commodity_id c
 );
-float median_price(
+float median_price_slow(
 	sys::state const& state,
 	dcon::commodity_id c
 );
-float median_price(sys::state const& state, dcon::nation_id s, dcon::commodity_id c);
+float median_price_slow(sys::state const& state, dcon::nation_id s, dcon::commodity_id c);
 
-float price(
+float price_slow(
 	sys::state const& state,
 	dcon::market_id s,
 	dcon::commodity_id c

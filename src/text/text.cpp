@@ -739,13 +739,13 @@ std::string prettify_currency(float num) {
 		"%.1fZ £"
 	};
 	constexpr static char const* sufx_zero[] = {
-		"%.1f £",
-		"%.1fK £",
-		"%.1fM £",
-		"%.1fB £",
-		"%.1fT £",
-		"%.1fP £",
-		"%.1fZ £"
+		"%d £",
+		"%dK £",
+		"%dM £",
+		"%dB £",
+		"%dT £",
+		"%dP £",
+		"%dZ £"
 	};
 	char buffer[200] = { 0 };
 	double dval = double(num);
@@ -761,7 +761,7 @@ std::string prettify_currency(float num) {
 			} else if(std::abs(reduced) < 100.0) {
 				snprintf(buffer, sizeof(buffer), sufx_one[i], float(reduced));
 			} else {
-				snprintf(buffer, sizeof(buffer), sufx_zero[i], float(reduced));
+				snprintf(buffer, sizeof(buffer), sufx_zero[i], int(reduced));
 			}
 			return std::string(buffer);
 		}
@@ -798,13 +798,13 @@ std::string prettify_float(float num) {
 		"%.1fZ"
 	};
 	constexpr static char const* sufx_zero[] = {
-		"%.1f",
-		"%.1fK",
-		"%.1fM",
-		"%.1fB",
-		"%.1fT",
-		"%.1fP",
-		"%.1fZ"
+		"%d",
+		"%dK",
+		"%dM",
+		"%dB",
+		"%dT",
+		"%dP",
+		"%dZ"
 	};
 	char buffer[200] = { 0 };
 	double dval = double(num);
@@ -820,7 +820,7 @@ std::string prettify_float(float num) {
 			} else if(std::abs(reduced) < 100.0) {
 				snprintf(buffer, sizeof(buffer), sufx_one[i], float(reduced));
 			} else {
-				snprintf(buffer, sizeof(buffer), sufx_zero[i], float(reduced));
+				snprintf(buffer, sizeof(buffer), sufx_zero[i], int(reduced));
 			}
 			return std::string(buffer);
 		}
@@ -2426,3 +2426,18 @@ void single_line_layout::add_text(sys::state& state, dcon::text_key source_text)
 }
 
 } // namespace text
+
+namespace term {
+
+void evaluate_string(sys::state& state, text::layout_base& dest, text::layout_box& box, std::string indent, text::text_color color, std::string description, float value) {
+	std::string result;
+	if(description.size() > 0) {
+		result = indent + text::produce_simple_string(state, description) + ": " + text::prettify_float(value);
+	} else {
+		result = indent + text::prettify_float(value);
+	}
+	text::add_to_layout_box(state, dest, box, result, color);
+	text::add_line_break_to_layout_box(state, dest, box);
+};
+
+}

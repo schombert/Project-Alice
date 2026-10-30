@@ -1188,7 +1188,7 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 				});
 			} else {
 				state.world.for_each_commodity([&](auto cid) {
-					state.world.market_set_price(new_market, cid, economy::median_price(state, cid));
+					state.world.market_set_price(new_market, cid, economy::median_price_slow(state, cid));
 				});
 			}
 

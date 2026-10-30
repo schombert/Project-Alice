@@ -78,13 +78,16 @@ void add_rebel_stockpile(sys::state& state, dcon::market_id market, dcon::commod
 void subtract_rebel_stockpile(sys::state& state, dcon::market_id market, dcon::commodity_id commodity, float amount);
 
 template<price_estimation price_est, concepts::any_commodity_type com_type>
-float get_estimated_stockpile_total_purchase_price(const sys::state& state, dcon::nation_id for_nation, const tagged_vector<float, com_type>& goods);
+float estimate_stockpile_total_purchase_cost(const sys::state& state, dcon::nation_id for_nation, const tagged_vector<float, com_type>& goods);
 
 template<price_estimation price_est, concepts::any_commodity_type com_type>
-tagged_vector<float, com_type> get_estimated_stockpile_purchase_price_by_commodity(const sys::state& state, dcon::nation_id for_nation, const tagged_vector<float, com_type>& goods);
+tagged_vector<float, com_type> estimate_stockpile_purchase_cost_by_commodity(const sys::state& state, dcon::nation_id for_nation, const tagged_vector<float, com_type>& goods);
 
-total_stockpile_spendings estimate_total_stockpile_spendings(const sys::state& state, dcon::nation_id nation_as, float military_construction_budget, float stockpile_filling_budget, float army_budget, float navy_budget);
-total_stockpile_spendings_by_commodity estimate_total_stockpile_spendings_by_commodity(const sys::state& state, dcon::nation_id nation_as, float military_construction_budget, float stockpile_filling_budget, float army_supplies_budget, float navy_supplies_budget);
+total_stockpile_spendings estimate_total_stockpile_spendings_before_refund(const sys::state& state, dcon::nation_id nation_as, float military_construction_budget, float stockpile_filling_budget, float army_budget, float navy_budget);
+total_stockpile_spendings_by_commodity estimate_total_stockpile_spendings_by_commodity_before_refund(const sys::state& state, dcon::nation_id nation_as, float military_construction_budget, float stockpile_filling_budget, float army_supplies_budget, float navy_supplies_budget);
+
+total_stockpile_spendings estimate_total_stockpile_spendings_after_refund(const sys::state& state, dcon::nation_id nation_as, float military_construction_budget, float stockpile_filling_budget, float army_budget, float navy_budget);
+total_stockpile_spendings_by_commodity estimate_total_stockpile_spendings_by_commodity_after_refund(const sys::state& state, dcon::nation_id nation_as, float military_construction_budget, float stockpile_filling_budget, float army_supplies_budget, float navy_supplies_budget);
 
 tagged_vector<float, dcon::unit_supply_and_build_commodity_id> estimate_nation_army_consumption(const sys::state& state, dcon::nation_id nation);
 tagged_vector<float, dcon::unit_supply_and_build_commodity_id> estimate_nation_navy_consumption(const sys::state& state, dcon::nation_id nation);
@@ -103,7 +106,7 @@ float pop_min_wage_factor(sys::state& state, dcon::nation_id n);
 float farmer_min_wage(sys::state& state, dcon::market_id m, float min_wage_factor);
 float laborer_min_wage(sys::state& state, dcon::market_id m, float min_wage_factor);
 
-void daily_update(sys::state& state, bool presimulation, float presimulation_stage);
+void daily_update(sys::state& state, bool presimulation, float presimulation_stage, int offset_days);
 
 std::vector<dcon::factory_type_id> commodity_get_factory_types_as_output(sys::state const& state, dcon::commodity_id output_good);
 
@@ -127,7 +130,8 @@ float estimate_war_subsidies_spending(sys::state& state, dcon::nation_id n);
 float estimate_reparations_spending(sys::state& state, dcon::nation_id n);
 float estimate_war_subsidies_income(sys::state& state, dcon::nation_id n);
 float estimate_reparations_income(sys::state& state, dcon::nation_id n);
-float estimate_overseas_penalty_spending(sys::state& state, dcon::nation_id n);
+float estimate_overseas_penalty_spending_before_refund(sys::state& state, dcon::nation_id n);
+float estimate_overseas_penalty_spending_after_refund(sys::state& state, dcon::nation_id n);
 
 struct full_construction_factory {
 	float cost = 0.0f;
@@ -174,9 +178,9 @@ construction_status factory_upgrade(sys::state& state, dcon::factory_id f);
 void try_add_factory_to_state(sys::state& state, dcon::state_instance_id s, dcon::factory_type_id t);
 void bound_budget_settings(sys::state& state, dcon::nation_id n);
 
-int32_t most_recent_price_record_index(sys::state& state);
+int32_t most_recent_price_record_index(sys::state& state, int offset);
 int32_t previous_price_record_index(sys::state& state);
-int32_t most_recent_gdp_record_index(sys::state& state);
+int32_t most_recent_gdp_record_index(sys::state& state, int offset);
 int32_t previous_gdp_record_index(sys::state& state);
 
 void prune_factories(sys::state& state); // get rid of closed factories in full states
