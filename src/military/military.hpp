@@ -209,7 +209,7 @@ dcon::unit_type_id get_best_big_ship(sys::state& state, dcon::nation_id n, bool 
 
 bool are_enemies(sys::state const& state, dcon::nation_id a, dcon::nation_id b);
 bool are_at_war(sys::state const& state, dcon::nation_id a, dcon::nation_id b);
-bool are_allied_in_war(sys::state const& state, dcon::nation_id a, dcon::nation_id b);
+bool are_on_same_side_in_common_war(sys::state const& state, dcon::nation_id a, dcon::nation_id b);
 bool are_in_common_war(sys::state const& state, dcon::nation_id a, dcon::nation_id b);
 void remove_from_common_allied_wars(sys::state& state, dcon::nation_id a, dcon::nation_id b);
 dcon::war_id find_war_between(sys::state const& state, dcon::nation_id a, dcon::nation_id b);

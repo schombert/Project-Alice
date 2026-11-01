@@ -14,7 +14,6 @@
 
 namespace logistics {
 
-constexpr uint32_t supply_route_pathfinding_batches = 30; // The desired amount of batches for processing pathfinding in parallel. Less batches = better performance when under heavy load, but the pathfinding is not able to take other potentially overlapping paths into account in the pathfinding logic.
 
 // union of either a army or navy. Used for type erasure when prioritizing supplies between military units
 struct unit {
@@ -97,6 +96,49 @@ void unit_reinforcement_need_set(sys::state& state, navy_type unit, dcon::unit_b
 }
 
 
+
+
+
+
+
+template<concepts::any_dcon_id_type<dcon::army_id> army_type>
+auto unit_total_supply_need_get(const sys::state& state, army_type unit, dcon::unit_supply_commodity_id com_id) {
+	return state.world.army_get_unit_supply_commodity_float_buffer_2(unit, com_id);
+}
+template<concepts::any_dcon_id_type<dcon::navy_id> navy_type>
+auto unit_total_supply_need_get(const sys::state& state, navy_type unit, dcon::unit_supply_commodity_id com_id) {
+	return state.world.navy_get_unit_supply_commodity_float_buffer_2(unit, com_id);
+}
+
+template<concepts::any_dcon_id_type<dcon::army_id> army_type, typename float_type>
+void unit_total_supply_need_set(sys::state& state, army_type unit, dcon::unit_supply_commodity_id com_id, float_type val) {
+	state.world.army_set_unit_supply_commodity_float_buffer_2(unit, com_id, val);
+}
+template<concepts::any_dcon_id_type<dcon::navy_id> navy_type, typename float_type>
+void unit_total_supply_need_set(sys::state& state, navy_type unit, dcon::unit_supply_commodity_id com_id, float_type val) {
+	state.world.navy_set_unit_supply_commodity_float_buffer_2(unit, com_id, val);
+}
+
+template<concepts::any_dcon_id_type<dcon::army_id> army_type>
+auto unit_total_reinforcement_need_get(const sys::state& state, army_type unit, dcon::unit_build_commodity_id com_id) {
+	return state.world.army_get_unit_build_commodity_float_buffer_2(unit, com_id);
+}
+template<concepts::any_dcon_id_type<dcon::navy_id> navy_type>
+auto unit_total_reinforcement_need_get(const sys::state& state, navy_type unit, dcon::unit_build_commodity_id com_id) {
+	return state.world.navy_get_unit_build_commodity_float_buffer_2(unit, com_id);
+}
+
+template<concepts::any_dcon_id_type<dcon::army_id> army_type, typename float_type>
+void unit_total_reinforcement_need_set(sys::state& state, army_type unit, dcon::unit_build_commodity_id com_id, float_type val) {
+	state.world.army_set_unit_build_commodity_float_buffer_2(unit, com_id, val);
+}
+template<concepts::any_dcon_id_type<dcon::navy_id> navy_type, typename float_type>
+void unit_total_reinforcement_need_set(sys::state& state, navy_type unit, dcon::unit_build_commodity_id com_id, float_type val) {
+	state.world.navy_set_unit_build_commodity_float_buffer_2(unit, com_id, val);
+}
+
+
+
 template<military::unit_priority priority, typename nation_type>
 auto nation_unit_prio_need_get(const sys::state& state, nation_type n, dcon::unit_supply_and_build_commodity_id com_id) {
 	if constexpr(priority == military::unit_priority::low_priority) {
@@ -146,6 +188,38 @@ economy::commodity_amounts& constructions_need_get(sys::state& state, dcon::fact
 economy::commodity_amounts& constructions_need_get(sys::state& state, dcon::province_building_construction_id con) {
 	return state.world.province_building_construction_get_commodity_amounts_buffer_1(con);
 }
+
+
+
+
+const economy::commodity_amounts& constructions_total_need_get(const sys::state& state, dcon::province_land_construction_id con) {
+	return state.world.province_land_construction_get_commodity_amounts_buffer_2(con);
+}
+const economy::commodity_amounts& constructions_total_need_get(const sys::state& state, dcon::province_naval_construction_id con) {
+	return state.world.province_naval_construction_get_commodity_amounts_buffer_2(con);
+}
+const economy::commodity_amounts& constructions_total_need_get(const sys::state& state, dcon::factory_construction_id con) {
+	return state.world.factory_construction_get_commodity_amounts_buffer_2(con);
+}
+const economy::commodity_amounts& constructions_total_need_get(const sys::state& state, dcon::province_building_construction_id con) {
+	return state.world.province_building_construction_get_commodity_amounts_buffer_2(con);
+}
+economy::commodity_amounts& constructions_total_need_get(sys::state& state, dcon::province_land_construction_id con) {
+	return state.world.province_land_construction_get_commodity_amounts_buffer_2(con);
+}
+economy::commodity_amounts& constructions_total_need_get(sys::state& state, dcon::province_naval_construction_id con) {
+	return state.world.province_naval_construction_get_commodity_amounts_buffer_2(con);
+}
+economy::commodity_amounts& constructions_total_need_get(sys::state& state, dcon::factory_construction_id con) {
+	return state.world.factory_construction_get_commodity_amounts_buffer_2(con);
+}
+economy::commodity_amounts& constructions_total_need_get(sys::state& state, dcon::province_building_construction_id con) {
+	return state.world.province_building_construction_get_commodity_amounts_buffer_2(con);
+}
+
+
+
+
 
 template<typename nation_type>
 auto nation_construction_need_get(const sys::state& state, nation_type n, dcon::commodity_id com_id) {
@@ -641,21 +715,6 @@ void schedule_nation_supply_paths_update(sys::state& state, dcon::nation_id nati
 	state.world.nation_set_supply_routes_requires_path_update(nation, true);
 }
 
-constexpr float ineffective_supply_path_throughput_cutoff = 0.9f;
-constexpr float ineffective_supply_path_loss_cutoff = 0.35f;
-
-void schedule_active_ineffective_supply_paths_update(sys::state& state) {
-	state.world.for_each_supply_route_path([&](dcon::supply_route_path_id path_id) {
-		float throughput = state.world.supply_route_path_get_throughput(path_id);
-		float loss = state.world.supply_route_path_get_supply_loss(path_id);
-		bool active = state.world.supply_route_path_get_is_active(path_id);
-		// update it if throughput is less than 90%, or if loss is greater than 35%
-		if(active && (throughput < ineffective_supply_path_throughput_cutoff || loss > ineffective_supply_path_loss_cutoff)) {
-			schedule_immediate_supply_path_update(state, path_id);
-		}
-	});
-}
-
 float compute_efficiency(float consumed, float available) {
 	if(consumed == 0.0f) {
 		if(available == 0.0f) {
@@ -666,6 +725,12 @@ float compute_efficiency(float consumed, float available) {
 	} else {
 		return std::min(available / consumed, 1.0f);
 	}
+}
+// This will get the percentage of potential throughput the current route delivers as a value from 0.0 to 1.0.
+// It also takes volentary reduction in throughput to avoid congestion into account. Due to this, it should NOT be used as a multiplier to buffered goods to see the amount delivered (without loss)
+template<typename supply_path_type>
+auto supply_route_path_potential_throughput(const sys::state& state, supply_path_type path) {
+	return state.world.supply_route_path_get_throughput(path) * state.world.supply_route_path_get_expected_throughput(path);
 }
 
 void regenerate_unsaved_values(sys::state& state) {
@@ -939,8 +1004,9 @@ void update_supply_path_throughput_attrition(sys::state& state, dcon::supply_rou
 		supply_loss = 0.0f;
 		new_throughput = 1.0f; 
 	}
+	float exp_throughput = state.world.supply_route_path_get_expected_throughput(path_handle);
 	//std::clamp(exp_throughput * new_throughput * 1.1f, 0.01f, 1.0f);
-	state.world.supply_route_path_set_expected_throughput(path_handle, (new_throughput + old_throughput) / 2.0f); // Set the percentage of commodities routes should try to draw from this path and draw form other paths instead, to reduce bottlenecks. Maybe there is a better formula for this
+	state.world.supply_route_path_set_expected_throughput(path_handle, std::clamp(exp_throughput * new_throughput * 1.25f, 0.025f, 1.0f)); // Set the percentage of commodities routes should try to draw from this path and draw form other paths instead, to reduce bottlenecks. Maybe there is a better formula for this
 	state.world.supply_route_path_set_throughput(path_handle, new_throughput);
 	state.world.supply_route_path_set_supply_loss(path_handle, supply_loss);
 }
@@ -1446,17 +1512,28 @@ template float nation_get_avg_military_supply_throughput_by_type<dcon::navy_id>(
 // Supply type decides whether to update supply, or reinforcement goods
 // It is assumed that the unit requires atleast some amount of this commodity before calling
 template<concepts::military_unit unit_type, concepts::unit_supply_or_build_commodity_type unit_commodity_type>
-void update_military_unit_routes_satisfaction(sys::state& state, unit_type unit,  dcon::nation_id nation, unit_commodity_type unit_com_id, dcon::commodity_id commodity) {
+void update_military_unit_routes_satisfaction(sys::state& state, unit_type unit, dcon::nation_id nation, unit_commodity_type unit_com_id, dcon::commodity_id commodity) {
 
-	auto get_remaining_goods_required = [&]() -> float{
+	auto get_remaining_goods_required = [&]() -> float {
 		if constexpr(std::is_same_v<unit_commodity_type, dcon::unit_supply_commodity_id>) {
 			return unit_supply_need_get(state, unit, unit_com_id);
 		} else if constexpr(std::is_same_v<unit_commodity_type, dcon::unit_build_commodity_id>) {
 			return unit_reinforcement_need_get(state, unit, unit_com_id);
 		}
 	};
+	auto get_total_goods_required = [&]() -> float {
+		if constexpr(std::is_same_v<unit_commodity_type, dcon::unit_supply_commodity_id>) {
+			return unit_total_supply_need_get(state, unit, unit_com_id);
+		} else if constexpr(std::is_same_v<unit_commodity_type, dcon::unit_build_commodity_id>) {
+			return unit_total_reinforcement_need_get(state, unit, unit_com_id);
+		}
+	};
 	float com_supply_weight = state.world.commodity_get_supply_weight(commodity);
+	float total_required_amount = get_total_goods_required();
+	float min_required_amount = total_required_amount * min_route_desired_goods_threshold;
 	dcon::province_id unit_location = military::unit_get_location(state, unit);
+
+	float remaining_expected_throughput = max_expected_throughput_allowance;
 
 	auto stockpiles_buffer = unit_best_stockpiles_get(state, unit);
 	for(auto stockpile_state : stockpiles_buffer) {
@@ -1465,8 +1542,9 @@ void update_military_unit_routes_satisfaction(sys::state& state, unit_type unit,
 		auto origin_prov = state.world.state_instance_get_capital(stockpile_state);
 
 		float available_stockpile_amount = local_stockpile_available_goods_get(state, market, commodity);
+		float remaining_goods_required = get_remaining_goods_required();
 
-		if(available_stockpile_amount == 0.f) {
+		if(available_stockpile_amount <= 0.0f) {
 			continue;
 		}
 
@@ -1493,8 +1571,9 @@ void update_military_unit_routes_satisfaction(sys::state& state, unit_type unit,
 		if(!recently_created && !path_is_valid) {
 			continue;
 		}
-		float remaining_goods_required = get_remaining_goods_required();
-		float to_consume = std::min(remaining_goods_required, available_stockpile_amount) * state.world.supply_route_path_get_expected_throughput(path); // Consume less if the expected throughput of this route is lower than 100%
+		float expected_throughput = state.world.supply_route_path_get_expected_throughput(path);
+		float to_consume = std::min(remaining_goods_required, available_stockpile_amount) * expected_throughput; // Consume less if the expected throughput of this route is lower than 100%
+
 
 		// The amount to consume is the minimum of the desired amount or the amount available in stockpile
 		// Compute how much to consume to compensate for the expected loss on the route.
@@ -1509,15 +1588,15 @@ void update_military_unit_routes_satisfaction(sys::state& state, unit_type unit,
 		if constexpr(std::is_same_v<unit_commodity_type, dcon::unit_supply_commodity_id>) {
 			fat_route.set_buffered_supply_goods(unit_com_id, fat_route.get_buffered_supply_goods(unit_com_id) + to_consume);
 			unit_supply_need_set(state, unit, unit_com_id, remaining_goods_required - to_consume);
-		}
-		else if constexpr(std::is_same_v<unit_commodity_type, dcon::unit_build_commodity_id>) {
+		} else if constexpr(std::is_same_v<unit_commodity_type, dcon::unit_build_commodity_id>) {
 			fat_route.set_buffered_reinforcement_goods(unit_com_id, fat_route.get_buffered_reinforcement_goods(unit_com_id) + to_consume);
 			unit_reinforcement_need_set(state, unit, unit_com_id, remaining_goods_required - to_consume);
 		}
 		state.world.supply_route_path_set_volume(path, state.world.supply_route_path_get_volume(path) + (to_consume * com_supply_weight));
 		supply_route_set_is_active(state, route, true);
 		state.world.supply_route_path_set_is_active(path, true);
-		if(get_remaining_goods_required() == 0.0f) {
+		remaining_expected_throughput -=  (1.0f - expected_throughput);
+		if(get_remaining_goods_required() <= 0.0f || remaining_expected_throughput <= 0.0f) {
 			break; // Check remaining goods required now after subtraction. If its zero then we can move on
 		}
 	}
@@ -1532,9 +1611,6 @@ uint32_t supply_route_path_get_connected_routes(const sys::state& state, dcon::s
 	auto building_construction_routes = state.world.supply_route_path_get_building_construction_route_path(path);
 	return uint32_t((army_routes.end() - army_routes.begin()) + (navy_routes.end() - navy_routes.begin()) + (land_construction_routes.end() - land_construction_routes.begin()) + (naval_construction_routes.end() - naval_construction_routes.begin()) + (factory_construction_routes.end() - factory_construction_routes.begin()) + (building_construction_routes.end() - building_construction_routes.begin()));
 }
-
-constexpr uint32_t supply_route_inactive_days_before_deletion = 10;
-constexpr uint32_t supply_path_inactive_days_before_deletion = 50;
 
 template<concepts::supply_route_type route_type>
 bool should_delete_route(const sys::state& state, route_type route) {
@@ -1561,10 +1637,16 @@ template<concepts::construction_type construction_type>
 void update_construction_routes_satisfaction(sys::state& state, construction_type conc, dcon::nation_id nation, uint32_t set_index, dcon::commodity_id commodity) {
 
 	economy::commodity_amounts& construction_need = constructions_need_get(state, conc);
+	const economy::commodity_amounts& construction_total_need = constructions_total_need_get(state, conc);
 
 	dcon::province_id con_location = economy::construction_get_location(state, conc);
 
+	float total_required_amount = construction_total_need[set_index];
+	float min_required_amount = total_required_amount * min_route_desired_goods_threshold;
+
 	float com_supply_weight = state.world.commodity_get_supply_weight(commodity);
+
+	float remaining_expected_throughput = max_expected_throughput_allowance;
 
 	auto stockpiles_buffer = construction_best_stockpiles_get(state, conc);
 	for(auto stockpile_state : stockpiles_buffer) {
@@ -1573,8 +1655,9 @@ void update_construction_routes_satisfaction(sys::state& state, construction_typ
 		dcon::province_id origin_prov = state.world.state_instance_get_capital(stockpile_state);
 
 		float available_stockpile_amount = local_stockpile_available_goods_get(state, market, commodity);
-		// Is there anything to consume here?
-		if(available_stockpile_amount == 0.0f) {
+		float remaining_goods_required = construction_need[set_index];
+
+		if(available_stockpile_amount <= 0.0F) {
 			continue;
 		}
 
@@ -1601,8 +1684,8 @@ void update_construction_routes_satisfaction(sys::state& state, construction_typ
 		if(!recently_created && !path_is_valid) {
 			continue;
 		}
-		float remaining_goods_required = construction_need[set_index];
-		float to_consume = std::min(remaining_goods_required, available_stockpile_amount) * state.world.supply_route_path_get_expected_throughput(path); // Consume less if the expected throughput of this route is lower than 100%
+		float expected_throughput = state.world.supply_route_path_get_expected_throughput(path);
+		float to_consume = std::min(remaining_goods_required, available_stockpile_amount) * expected_throughput; // Consume less if the expected throughput of this route is lower than 100%
 
 		// The amount to consume is the minimum of the desired amount or the amount available in stockpile
 		// Compute how much to consume to compensate for the expected loss on the route.
@@ -1622,7 +1705,8 @@ void update_construction_routes_satisfaction(sys::state& state, construction_typ
 		state.world.supply_route_path_set_volume(path, state.world.supply_route_path_get_volume(path) + (to_consume * com_supply_weight));
 		supply_route_set_is_active(state, route, true);
 		state.world.supply_route_path_set_is_active(path, true);
-		if(construction_need[set_index] == 0.0f) {
+		remaining_expected_throughput -= (1.0f - expected_throughput);
+		if(construction_need[set_index] <= 0.0f || remaining_expected_throughput <= 0.0f) {
 			break; // Dont need any more of this commodity
 		}
 
@@ -1968,9 +2052,11 @@ void update_supply_routes_daily(sys::state& state) {
 				state.world.army_set_needs_reinforcement_goods(armies, ve::vbitfield_type{ 0 });
 				state.world.for_each_unit_supply_commodity([&](dcon::unit_supply_commodity_id com_id) {
 					unit_supply_need_set(state, armies, com_id, ve::fp_vector{ 0.0f });
+					unit_total_supply_need_set(state, armies, com_id, ve::fp_vector{ 0.0f });
 				});
 				state.world.for_each_unit_build_commodity([&](dcon::unit_build_commodity_id com_id) {
 					unit_reinforcement_need_set(state, armies, com_id, ve::fp_vector{ 0.0f });
+					unit_total_reinforcement_need_set(state, armies, com_id, ve::fp_vector{ 0.0f });
 				});
 				ve::apply([&](dcon::army_id army) {
 					if(state.world.army_is_valid(army)) {
@@ -1988,9 +2074,11 @@ void update_supply_routes_daily(sys::state& state) {
 				state.world.navy_set_needs_reinforcement_goods(navies, ve::vbitfield_type{ 0 });
 				state.world.for_each_unit_supply_commodity([&](dcon::unit_supply_commodity_id com_id) {
 					unit_supply_need_set(state, navies, com_id, ve::fp_vector{ 0.0f });
+					unit_total_supply_need_set(state, navies, com_id, ve::fp_vector{ 0.0f });
 				});
 				state.world.for_each_unit_build_commodity([&](dcon::unit_build_commodity_id com_id) {
 					unit_reinforcement_need_set(state, navies, com_id, ve::fp_vector{ 0.0f });
+					unit_total_reinforcement_need_set(state, navies, com_id, ve::fp_vector{ 0.0f });
 				});
 				ve::apply([&](dcon::navy_id navy) {
 					if(state.world.navy_is_valid(navy)) {
@@ -2008,7 +2096,9 @@ void update_supply_routes_daily(sys::state& state) {
 				ve::apply([&](dcon::province_land_construction_id con) {
 					if(state.world.province_land_construction_is_valid(con)) {
 						auto& constructions_need = constructions_need_get(state, con);
+						auto& constructions_total_need = constructions_total_need_get(state, con);
 						std::fill(constructions_need.begin(), constructions_need.end(), 0.0f);
+						std::fill(constructions_total_need.begin(), constructions_total_need.end(), 0.0f);
 						auto stockpile_buffer = construction_best_stockpiles_get(state, con);
 						stockpile_buffer.clear();
 					}
@@ -2023,7 +2113,9 @@ void update_supply_routes_daily(sys::state& state) {
 				ve::apply([&](dcon::province_naval_construction_id con) {
 					if(state.world.province_naval_construction_is_valid(con)) {
 						auto& constructions_need = constructions_need_get(state, con);
+						auto& constructions_total_need = constructions_total_need_get(state, con);
 						std::fill(constructions_need.begin(), constructions_need.end(), 0.0f);
+						std::fill(constructions_total_need.begin(), constructions_total_need.end(), 0.0f);
 						auto stockpile_buffer = construction_best_stockpiles_get(state, con);
 						stockpile_buffer.clear();
 					}
@@ -2038,7 +2130,9 @@ void update_supply_routes_daily(sys::state& state) {
 				ve::apply([&](dcon::factory_construction_id con) {
 					if(state.world.factory_construction_is_valid(con)) {
 						auto& constructions_need = constructions_need_get(state, con);
+						auto& constructions_total_need = constructions_total_need_get(state, con);
 						std::fill(constructions_need.begin(), constructions_need.end(), 0.0f);
+						std::fill(constructions_total_need.begin(), constructions_total_need.end(), 0.0f);
 						auto stockpile_buffer = construction_best_stockpiles_get(state, con);
 						stockpile_buffer.clear();
 					}
@@ -2053,7 +2147,9 @@ void update_supply_routes_daily(sys::state& state) {
 				ve::apply([&](dcon::province_building_construction_id con) {
 					if(state.world.province_building_construction_is_valid(con)) {
 						auto& constructions_need = constructions_need_get(state, con);
+						auto& constructions_total_need = constructions_total_need_get(state, con);
 						std::fill(constructions_need.begin(), constructions_need.end(), 0.0f);
+						std::fill(constructions_total_need.begin(), constructions_total_need.end(), 0.0f);
 						auto stockpile_buffer = construction_best_stockpiles_get(state, con);
 						stockpile_buffer.clear();
 					}
@@ -2341,13 +2437,17 @@ void update_supply_routes_daily(sys::state& state) {
 					auto supply_build_id = state.world.unit_supply_commodity_get_supply_and_build_commodity(com_id);
 					float expected_sat = nation_unit_expected_satisfaction_get(state, controller, supply_build_id);
 					float current_req_supply = unit_supply_need_get(state, army, com_id);
-					unit_supply_need_set(state, army, com_id, current_req_supply * expected_sat);
+					float new_req_sup = current_req_supply * expected_sat;
+					unit_supply_need_set(state, army, com_id, new_req_sup);
+					unit_total_supply_need_set(state, army, com_id, new_req_sup);
 				});
 				state.world.for_each_unit_build_commodity([&](dcon::unit_build_commodity_id com_id) {
 					auto supply_build_id = state.world.unit_build_commodity_get_supply_and_build_commodity(com_id);
 					float expected_sat = nation_unit_expected_satisfaction_get(state, controller, supply_build_id);
 					float current_req_supply = unit_reinforcement_need_get(state, army, com_id);
-					unit_reinforcement_need_set(state, army, com_id, current_req_supply * expected_sat);
+					float new_req_sup = current_req_supply * expected_sat;
+					unit_reinforcement_need_set(state, army, com_id, new_req_sup);
+					unit_total_reinforcement_need_set(state, army, com_id, new_req_sup);
 				});
 			}
 			else {
@@ -2358,13 +2458,17 @@ void update_supply_routes_daily(sys::state& state) {
 					auto supply_build_id = state.world.unit_supply_commodity_get_supply_and_build_commodity(com_id);
 					float expected_sat = nation_unit_expected_satisfaction_get(state, controller, supply_build_id);
 					float current_req_supply = unit_supply_need_get(state, navy, com_id);
-					unit_supply_need_set(state, navy, com_id, current_req_supply * expected_sat);
+					float new_req_sup = current_req_supply * expected_sat;
+					unit_supply_need_set(state, navy, com_id, new_req_sup);
+					unit_total_supply_need_set(state, navy, com_id, new_req_sup);
 				});
 				state.world.for_each_unit_build_commodity([&](dcon::unit_build_commodity_id com_id) {
 					auto supply_build_id = state.world.unit_build_commodity_get_supply_and_build_commodity(com_id);
 					float expected_sat = nation_unit_expected_satisfaction_get(state, controller, supply_build_id);
 					float current_req_supply = unit_reinforcement_need_get(state, navy, com_id);
-					unit_reinforcement_need_set(state, navy, com_id, current_req_supply * expected_sat);
+					float new_req_sup = current_req_supply * expected_sat;
+					unit_reinforcement_need_set(state, navy, com_id, new_req_sup);
+					unit_total_reinforcement_need_set(state, navy, com_id, new_req_sup);
 				});
 			}
 		});
@@ -2386,6 +2490,7 @@ void update_supply_routes_daily(sys::state& state) {
 		economy::parallel_for_each_construction(state, [&](auto con) {
 			if(!economy::construction_is_privately_owned(state, con) && economy::can_advance_construction(state, con)) {
 				economy::commodity_amounts& current_req_goods = constructions_need_get(state, con);
+				economy::commodity_amounts& current_req_total_goods = constructions_total_need_get(state, con);
 				auto controller = economy::construction_get_controller(state, con);
 				const economy::commodity_set& build_cost = economy::construction_get_base_build_cost(state, con);
 				for(uint32_t i = 0; i < build_cost.set_size; i++) {
@@ -2393,6 +2498,7 @@ void update_supply_routes_daily(sys::state& state) {
 					if(com_id) {
 						float expected_sat = nation_construction_expected_satisfaction_get(state, controller, com_id);
 						current_req_goods[i] *= expected_sat;
+						current_req_total_goods[i] = current_req_goods[i];
 					} else {
 						break;
 					}
@@ -2452,7 +2558,7 @@ void update_supply_routes_daily(sys::state& state) {
 				}
 			}
 		}
-	};
+		};
 	// Lambda to process all constructions
 	auto process_constructions = [&]() {
 		economy::for_each_construction(state, [&](auto construction) {
@@ -2477,13 +2583,12 @@ void update_supply_routes_daily(sys::state& state) {
 					if(construction_need[idx] > 0.0f) {
 						update_construction_routes_satisfaction(state, construction, controller, idx, commodity);
 					}
-				}
-				else {
+				} else {
 					break;
 				}
 			}
 		});
-	};
+		};
 
 
 	// Pricess units first, in order of priority
@@ -2512,7 +2617,23 @@ void update_supply_routes_daily(sys::state& state) {
 
 	// STEP 6: update the paths of any supply routes which are deemed out-of-date or has no path. They are deemed out of date if anything significant happens to disrupt it and an update is scheduled. 
 	// Weekly province updates are issued once per week, and things like moving into an enemy province will schedule a weekly update on enemy routes through said province.
+	// Updates are done to routes which are deemed inefficient, and they have been active for some time
 	// Updates on army/navy routes are done daily if the army/navy completes a movement to a diffrent province
+
+	parallel_for_each_supply_route_path(state, [&](dcon::supply_route_path_id path) {
+		// update every x days of consecutive activity if other requirements are also met
+		auto active_days = state.world.supply_route_path_get_active_days(path);
+		auto time_interval_fufilled = (active_days != 0 && active_days % ineffective_supply_path_update_interval == uint8_t(0));
+		auto potential_throughput = supply_route_path_potential_throughput(state, path);
+		auto loss = state.world.supply_route_path_get_supply_loss(path);
+		auto active = state.world.supply_route_path_get_is_active(path);
+		// update it if it meets the requirements
+		auto ineffective_route_update = time_interval_fufilled && active && (potential_throughput < ineffective_supply_path_throughput_cutoff || loss > ineffective_supply_path_loss_cutoff);
+		if(ineffective_route_update) {
+			schedule_immediate_supply_path_update(state, path);
+		}
+	});
+
 
 	auto day_of_week = state.current_date.value % 7;
 	if(day_of_week == 0) {
@@ -2570,7 +2691,7 @@ void update_supply_routes_daily(sys::state& state) {
 
 
 	// step 7: Do a bunch of mostly unrelated things in parallel:
-	// Increment the amount of days a route or path has been inactive,
+	// Increment the amount of days a route or path has been inactive or active,
 	// add the volume used by some supply routes unto each adjacency,
 	// set the recently_created flag to false
 	// setup the path batch container in the meantime as it can also run in parallel with these things
@@ -2580,17 +2701,27 @@ void update_supply_routes_daily(sys::state& state) {
 	concurrency::parallel_invoke(
 		[&]() {
 			ve_for_each_supply_route(state, [&](auto routes) {
+				auto currently_active = supply_route_is_active(state, routes);
 				auto cur_inactive_days = supply_route_get_inactive_days(state, routes);
-				auto new_inactive_days = ve::select(supply_route_is_active(state, routes), cur_inactive_days, cur_inactive_days + uint8_t(1));
+				auto is_max_inactive_days = (cur_inactive_days == uint8_t(255));
+				auto new_inactive_days = ve::select(currently_active, uint8_t(0), cur_inactive_days + uint8_t(1));
+				new_inactive_days = ve::select(is_max_inactive_days, cur_inactive_days, new_inactive_days);
 				supply_route_set_inactive_days(state, routes, new_inactive_days);
 			});
 		},
 		[&]() {
 			state.world.execute_serial_over_supply_route_path([&](auto paths) {
+				auto currently_active = state.world.supply_route_path_get_is_active(paths);
 				auto cur_inactive_days = state.world.supply_route_path_get_inactive_days(paths);
-				auto new_inactive_days = ve::select(state.world.supply_route_path_get_is_active(paths), cur_inactive_days, cur_inactive_days + uint8_t(1));
+				auto is_max_inactive_days = (cur_inactive_days == uint8_t(255));
+				auto new_inactive_days = ve::select(currently_active, uint8_t(0), cur_inactive_days + uint8_t(1));
+				new_inactive_days = ve::select(is_max_inactive_days, cur_inactive_days, new_inactive_days);
 				state.world.supply_route_path_set_inactive_days(paths, new_inactive_days);
 				state.world.supply_route_path_set_recently_created(paths, ve::vbitfield_type{ 0 });
+				// active_days is a modulo-counter incrementing by one each day the path is active and may wrap-around to 0. Is used for determining updates done on a consistent basis every x number of days
+				auto cur_active_days = state.world.supply_route_path_get_active_days(paths);
+				auto new_active_days = ve::select(currently_active, cur_active_days + uint8_t(1), cur_active_days);
+				state.world.supply_route_path_set_active_days(paths, new_active_days);
 			});
 		},
 		[&]() {

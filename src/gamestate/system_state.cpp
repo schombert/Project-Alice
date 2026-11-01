@@ -4642,11 +4642,20 @@ void state::fill_unsaved_data() { // reconstructs derived values that are not di
 	world.nation_resize_unit_supply_and_build_commodity_float_buffer_3(world.unit_supply_and_build_commodity_size());
 	world.nation_resize_unit_supply_and_build_commodity_float_buffer_4(world.unit_supply_and_build_commodity_size());
 
+	world.nation_resize_is_at_war_with(world.nation_size());
+	world.nation_resize_has_military_access_from(world.nation_size());
+	world.nation_resize_is_on_same_side_in_war_with(world.nation_size());
+	world.nation_resize_is_in_common_war_with(world.nation_size());
+
 	world.army_resize_unit_build_commodity_float_buffer_1(world.unit_build_commodity_size());
+	world.army_resize_unit_build_commodity_float_buffer_2(world.unit_build_commodity_size());
 	world.army_resize_unit_supply_commodity_float_buffer_1(world.unit_supply_commodity_size());
+	world.army_resize_unit_supply_commodity_float_buffer_2(world.unit_supply_commodity_size());
 
 	world.navy_resize_unit_build_commodity_float_buffer_1(world.unit_build_commodity_size());
+	world.navy_resize_unit_build_commodity_float_buffer_2(world.unit_build_commodity_size());
 	world.navy_resize_unit_supply_commodity_float_buffer_1(world.unit_supply_commodity_size());
+	world.navy_resize_unit_supply_commodity_float_buffer_2(world.unit_supply_commodity_size());
 
 	province::restore_distances(*this);
 
@@ -5214,7 +5223,6 @@ void state::single_game_tick() {
 		case 1:
 			nations::update_monthly_points(*this);
 			economy::prune_factories(*this);
-			logistics::schedule_active_ineffective_supply_paths_update(*this); // The actual update will happen on the 2nd day of the month, this just schedules it
 			break;
 		case 2:
 			province::update_blockaded_cache(*this);

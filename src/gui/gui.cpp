@@ -616,7 +616,7 @@ void unit_counter_window::update_province_data(sys::state& state, dcon::province
 				auto controller = military::get_effective_unit_commander(state, n);
 				if(!controller || military::are_at_war(state, controller, state.local_player_nation))
 					top_right_found_enemy = true;
-				else if(military::are_allied_in_war(state, controller, state.local_player_nation))
+				else if(military::are_on_same_side_in_common_war(state, controller, state.local_player_nation))
 					top_right_found_ally = true;
 				else
 					top_right_found_other = true;
@@ -629,7 +629,7 @@ void unit_counter_window::update_province_data(sys::state& state, dcon::province
 					all_selected = false;
 				else if(!controller || military::are_at_war(state, controller, state.local_player_nation))
 					found_enemy = true;
-				else if(military::are_allied_in_war(state, controller, state.local_player_nation))
+				else if(military::are_on_same_side_in_common_war(state, controller, state.local_player_nation))
 					found_ally = true;
 				else
 					found_other = true;
@@ -639,7 +639,7 @@ void unit_counter_window::update_province_data(sys::state& state, dcon::province
 				auto controller = military::get_effective_unit_commander(state, n);
 				if(!controller || military::are_at_war(state, controller, state.local_player_nation))
 					top_right_found_enemy = true;
-				else if(military::are_allied_in_war(state, controller, state.local_player_nation))
+				else if(military::are_on_same_side_in_common_war(state, controller, state.local_player_nation))
 					top_right_found_ally = true;
 				else
 					top_right_found_other = true;
@@ -652,7 +652,7 @@ void unit_counter_window::update_province_data(sys::state& state, dcon::province
 					all_selected = false;
 				else if(!controller || military::are_at_war(state, controller, state.local_player_nation))
 					found_enemy = true;
-				else if(military::are_allied_in_war(state, controller, state.local_player_nation))
+				else if(military::are_on_same_side_in_common_war(state, controller, state.local_player_nation))
 					found_ally = true;
 				else
 					found_other = true;
@@ -956,7 +956,7 @@ void unit_counter_window::update_province_data(sys::state& state, dcon::province
 			} else if(display.colors[0] == outline_color::cyan) {
 				filter = [&](dcon::army_id a) {
 					auto n = state.world.army_get_controller_from_army_control(a);
-					return n != state.local_player_nation && military::are_allied_in_war(state, n, state.local_player_nation);
+					return n != state.local_player_nation && military::are_on_same_side_in_common_war(state, n, state.local_player_nation);
 					};
 			} else if(display.colors[0] == outline_color::red) {
 				filter = [&](dcon::army_id a) {
@@ -966,7 +966,7 @@ void unit_counter_window::update_province_data(sys::state& state, dcon::province
 			} else if(display.colors[0] == outline_color::gray) {
 				filter = [&](dcon::army_id a) {
 					auto n = state.world.army_get_controller_from_army_control(a);
-					return n != state.local_player_nation && !military::are_allied_in_war(state, n, state.local_player_nation) && !military::are_at_war(state, n, state.local_player_nation);
+					return n != state.local_player_nation && !military::are_on_same_side_in_common_war(state, n, state.local_player_nation) && !military::are_at_war(state, n, state.local_player_nation);
 					};
 			}
 
@@ -1044,7 +1044,7 @@ void unit_counter_window::update_province_data(sys::state& state, dcon::province
 			} else if(display.colors[0] == outline_color::cyan) {
 				filter = [&](dcon::navy_id a) {
 					auto n = state.world.navy_get_controller_from_navy_control(a);
-					return n != state.local_player_nation && military::are_allied_in_war(state, n, state.local_player_nation);
+					return n != state.local_player_nation && military::are_on_same_side_in_common_war(state, n, state.local_player_nation);
 					};
 			} else if(display.colors[0] == outline_color::red) {
 				filter = [&](dcon::navy_id a) {
@@ -1054,7 +1054,7 @@ void unit_counter_window::update_province_data(sys::state& state, dcon::province
 			} else if(display.colors[0] == outline_color::gray) {
 				filter = [&](dcon::navy_id a) {
 					auto n = state.world.navy_get_controller_from_navy_control(a);
-					return n != state.local_player_nation && !military::are_allied_in_war(state, n, state.local_player_nation) && !military::are_at_war(state, n, state.local_player_nation);
+					return n != state.local_player_nation && !military::are_on_same_side_in_common_war(state, n, state.local_player_nation) && !military::are_at_war(state, n, state.local_player_nation);
 					};
 			}
 
