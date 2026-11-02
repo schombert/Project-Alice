@@ -5783,32 +5783,20 @@ dcon::nation_id get_land_battle_lead_defender(sys::state& state, dcon::land_batt
 	return dcon::nation_id{};
 }
 
-float get_leader_select_score(sys::state& state, dcon::leader_id l, bool is_attacking) {
-	/*
-	- Each side has a leader that is in charge of the combat, which is the leader with the greatest
-	value as determined by the following formula: (organization x 5 + attack + defend + morale +
-	speed + attrition + experience / 2 + reconnaissance / 5  + reliability / 5) x (prestige + 1)
-	*/
+float get_leader_battle_select_score(sys::state& state, dcon::leader_id l, bool is_attacking) {
 	auto per = get_leader_personality_wrapper(state, l);
 	auto bak = get_leader_background_wrapper(state, l);
-	// atk and def are both set to 0 initally, and will be set to its actual amount depending if on the on_attacking input param
-	// this makes it so for example if the leader is attacking, it will disregard all "defence" stats for the purposes of calculating the score
-	float atk = 0.f;
-	float def = 0.f;
-	auto org = state.world.leader_trait_get_organisation(per) + state.world.leader_trait_get_organisation(bak);
-	if(is_attacking) {
-		atk = state.world.leader_trait_get_attack(per) + state.world.leader_trait_get_attack(bak);
-	} else {
-		def = state.world.leader_trait_get_defense(per) + state.world.leader_trait_get_defense(bak);
-	}
-	auto spd = state.world.leader_trait_get_speed(per) + state.world.leader_trait_get_speed(bak);
-	auto mor = state.world.leader_trait_get_morale(per) + state.world.leader_trait_get_morale(bak);
-	auto att = state.world.leader_trait_get_experience(per) + state.world.leader_trait_get_experience(bak);
-	auto rel = state.world.leader_trait_get_reliability(per) + state.world.leader_trait_get_reliability(bak);
-	auto exp = state.world.leader_trait_get_experience(per) + state.world.leader_trait_get_experience(bak);
-	auto rec = state.world.leader_trait_get_reconnaissance(per) + state.world.leader_trait_get_reconnaissance(bak);
-	auto lp = state.world.leader_get_prestige(l);
-	return (org * 5.f + atk + def + mor + spd + att + exp / 2.f + rec / 5.f + rel / 5.f) * (lp + 1.f);
+	// For selecting a general/admiral in a battle, it should select the one with the best attack or defence depending on if we are defending or attacking. The only stats which matters for the "battle leader" general is atk/def anyways
+	float atk_def_stat = [&]() {
+		if(is_attacking) {
+			return state.world.leader_trait_get_attack(per) + state.world.leader_trait_get_attack(bak);
+		} else {
+			return state.world.leader_trait_get_defense(per) + state.world.leader_trait_get_defense(bak);
+		}
+	}();
+	
+
+	return atk_def_stat;
 }
 
 bool is_attacker_in_battle(const sys::state& state, dcon::army_id a) {
@@ -5842,6 +5830,27 @@ bool is_attacker_in_battle(const sys::state& state, dcon::army_id a) {
 			return !war_attacker;
 		}
 	}
+}
+float get_leader_select_score(sys::state& state, dcon::leader_id l) {
+	/*
+	- Each side has a leader that is in charge of the combat, which is the leader with the greatest
+	value as determined by the following formula: (organization x 5 + attack + defend + morale +
+	speed + attrition + experience / 2 + reconnaissance / 5  + reliability / 5) x (prestige + 1)
+	*/
+	auto per = get_leader_personality_wrapper(state, l);
+	auto bak = get_leader_background_wrapper(state, l);
+	auto org = state.world.leader_trait_get_organisation(per) + state.world.leader_trait_get_organisation(bak);
+	float atk = state.world.leader_trait_get_attack(per) + state.world.leader_trait_get_attack(bak);
+	float def = state.world.leader_trait_get_defense(per) + state.world.leader_trait_get_defense(bak);
+	
+	auto spd = state.world.leader_trait_get_speed(per) + state.world.leader_trait_get_speed(bak);
+	auto mor = state.world.leader_trait_get_morale(per) + state.world.leader_trait_get_morale(bak);
+	auto att = state.world.leader_trait_get_experience(per) + state.world.leader_trait_get_experience(bak);
+	auto rel = state.world.leader_trait_get_reliability(per) + state.world.leader_trait_get_reliability(bak);
+	auto exp = state.world.leader_trait_get_experience(per) + state.world.leader_trait_get_experience(bak);
+	auto rec = state.world.leader_trait_get_reconnaissance(per) + state.world.leader_trait_get_reconnaissance(bak);
+	auto lp = state.world.leader_get_prestige(l);
+	return (org * 5.f + atk + def + mor + spd + att + exp / 2.f + rec / 5.f + rel / 5.f) * (lp + 1.f);
 }
 
 bool is_attacker_in_battle(sys::state& state, dcon::navy_id a) {
@@ -5889,7 +5898,7 @@ void update_battle_leaders(sys::state& state, dcon::land_battle_id b) {
 			continue;
 		}
 		bool is_attacking = is_attacker_in_battle(state, a.get_army());
-		auto score = get_leader_select_score(state, l, is_attacking);
+		auto score = get_leader_battle_select_score(state, l, is_attacking);
 		/*if(a.get_army().get_controller_from_army_control() == la) {*/
 		if(is_attacking) {
 			if(score > a_score) {
@@ -5924,7 +5933,7 @@ void update_battle_leaders(sys::state& state, dcon::naval_battle_id b) {
 			continue;
 		}
 		bool is_attacking = is_attacker_in_battle(state, a.get_navy());
-		auto score = get_leader_select_score(state, l, is_attacking);
+		auto score = get_leader_battle_select_score(state, l, is_attacking);
 		if(is_attacking) {
 			if(score > a_score) {
 				a_lid = l;

@@ -5,9 +5,39 @@
 #include "system_state_forward.hpp"
 #include "dcon_generated_ids.hpp"
 
+
+
 namespace ui {
+
+enum class leader_sort_type : uint8_t {
+	prestige,
+	type,
+	name,
+	assignment
+};
+enum class unit_sort_type : uint8_t {
+	name,
+	strength
+};
+
+struct leader_sort_data {
+	leader_sort_type sort_by = leader_sort_type::name;
+	bool ascending = false;
+};
+struct unit_sort_data {
+	unit_sort_type sort_by = unit_sort_type::name;
+	bool ascending = false;
+};
+
 class leaders_window : public window_element_base {
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override;
+	message_result get(sys::state& state, Cyto::Any& payload) noexcept override;
+
+	leader_sort_data leader_sort{};
+
+	unit_sort_data unit_sort{};
+
+
 };
 }
