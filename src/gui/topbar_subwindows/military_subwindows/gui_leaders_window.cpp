@@ -14,9 +14,6 @@ namespace ui {
 struct change_leader_sort {
 	leader_sort_data data{};
 };
-struct change_unit_sort {
-	leader_sort_data data{};
-};
 
 class leader_portrait : public image_element_base {
 	void on_update(sys::state& state) noexcept override {

@@ -247,10 +247,10 @@ public:
 		auto content = retrieve< outliner_data>(state, parent);
 		if(std::holds_alternative<dcon::army_id>(content)) {
 			auto v = std::get<dcon::army_id>(content);
-			visible = bool(state.world.army_get_arrival_time(v));
+			visible = bool(state.world.army_get_arrival_time(v)) && !bool(state.world.army_get_battle_from_army_battle_participation(v));
 		} else if(std::holds_alternative<dcon::navy_id>(content)) {
 			auto v = std::get<dcon::navy_id>(content);
-			visible = bool(state.world.navy_get_arrival_time(v));
+			visible = bool(state.world.navy_get_arrival_time(v) && !bool(state.world.navy_get_battle_from_navy_battle_participation(v)));
 		} else {
 			visible = false;
 		}

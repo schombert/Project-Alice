@@ -2866,8 +2866,17 @@ void add_to_war(sys::state& state, dcon::war_id w, dcon::nation_id n, bool as_at
 	state.world.nation_set_disarmed_until(n, sys::date{});
 
 	for(auto war_par : state.world.war_get_war_participant(w)) {
-		// On opposite side as the joiner; set them to being at war
+		// On opposite side as the joiner; set them to being at war and remove alliances/military access
 		if(war_par.get_is_attacker() != as_attacker) {
+			if (nations::are_allied(state, n, war_par.get_nation())) {
+				nations::break_alliance(state, n, war_par.get_nation());
+			}
+			if (military::has_military_access_to(state, n, war_par.get_nation())) {
+				remove_military_access(state, n, war_par.get_nation());
+			}
+			if (military::has_military_access_to(state, war_par.get_nation(), n)) {
+				remove_military_access(state, war_par.get_nation(), n);
+			}
 			state.world.nation_set_is_at_war_with(war_par.get_nation(), n, true);
 			state.world.nation_set_is_at_war_with(n, war_par.get_nation(), true);
 
@@ -2884,11 +2893,6 @@ void add_to_war(sys::state& state, dcon::war_id w, dcon::nation_id n, bool as_at
 
 	for(auto dep : state.world.nation_get_overlord_as_ruler(n)) {
 		add_to_war(state, w, dep.get_subject(), as_attacker);
-	}
-
-	for(auto wp : state.world.war_get_war_participant(w)) {
-		if(wp.get_is_attacker() == !as_attacker && nations::are_allied(state, n, wp.get_nation()))
-			nations::break_alliance(state, n, wp.get_nation());
 	}
 
 	if(!as_attacker && state.world.nation_get_rank(state.world.war_get_primary_defender(w)) > state.world.nation_get_rank(n)) {
@@ -10787,7 +10791,7 @@ void move_navy_to_merge(sys::state& state, dcon::nation_id by, dcon::navy_id a, 
 }
 
 
-float navy_get_strength(const sys::state& state, dcon::navy_id navy) {
+float unit_get_strength(const sys::state& state, dcon::navy_id navy) {
 	float total = 0.0f;
 	for(auto r : state.world.navy_get_navy_membership(navy)) {
 		auto ship = r.get_ship();
@@ -10797,7 +10801,7 @@ float navy_get_strength(const sys::state& state, dcon::navy_id navy) {
 }
 
 
-float army_get_strength(const sys::state& state, dcon::army_id army) {
+float unit_get_strength(const sys::state& state, dcon::army_id army) {
 	float total = 0.0f;
 	for(auto r : state.world.army_get_army_membership(army)) {
 		auto reg = r.get_regiment();
@@ -11265,9 +11269,9 @@ bool can_attack_internal(sys::state& state, dcon::nation_id n, dcon::nation_id t
 	if(nations::would_war_conflict_with_sphere_leader<nations::war_initiation::declare_war>(state, n, target)) {
 		return assertive_identity<VALIDATE>(false);
 	}
-
-	if(military::has_truce_with(state, n, target))
-		return assertive_identity<VALIDATE>(false);
+	// You CAN attack with a truce. Its called a trucebreak!
+	//if(military::has_truce_with(state, n, target))
+	//	return assertive_identity<VALIDATE>(false);
 
 	// subjects check
 	auto overlord_source = state.world.overlord_get_ruler(state.world.nation_get_overlord_as_subject(n));

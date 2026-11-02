@@ -617,8 +617,8 @@ bool move_army_ai(sys::state& state, dcon::army_id army, dcon::province_id desti
 
 bool pop_eligible_for_mobilization(sys::state& state, dcon::pop_id p);
 
-float navy_get_strength(const sys::state& state, dcon::navy_id navy);
-float army_get_strength(const sys::state& state, dcon::army_id army);
+float unit_get_strength(const sys::state& state, dcon::navy_id navy);
+float unit_get_strength(const sys::state& state, dcon::army_id army);
 
 template<regiment_dmg_source damage_source>
 void disband_regiment_w_pop_death(sys::state& state, dcon::regiment_id reg_id);

@@ -15,17 +15,9 @@ enum class leader_sort_type : uint8_t {
 	name,
 	assignment
 };
-enum class unit_sort_type : uint8_t {
-	name,
-	strength
-};
 
 struct leader_sort_data {
 	leader_sort_type sort_by = leader_sort_type::name;
-	bool ascending = false;
-};
-struct unit_sort_data {
-	unit_sort_type sort_by = unit_sort_type::name;
 	bool ascending = false;
 };
 
@@ -35,9 +27,6 @@ public:
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override;
 
 	leader_sort_data leader_sort{};
-
-	unit_sort_data unit_sort{};
-
 
 };
 }
