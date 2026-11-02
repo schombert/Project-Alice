@@ -652,7 +652,7 @@ influence_explain_5;基础影响力获得倍率（$x$）*影响力修正（$y$�
 influence_explain_6;国家影响力修正：$x$
 influence_explain_7;修正来自科技：$x$
 influence_explain_8;这在我们影响的国家之间分配，造成每日获得的基础收益为：$x$
-influence_explain_9;它将进一步乘以1，加上下列因子的和：
+influence_explain_9;它将进一步乘以1，相加下列因子：
 influence_explain_10;$x$ 来自败坏名誉
 influence_explain_11;$x$ 来自接壤
 influence_explain_12;$x$ 来自一个或多个作为我们成员的邻居
@@ -1460,7 +1460,7 @@ payment_received_per_unit;每单位卖方收到 ?Y$val$
 merchants_received_per_unit;每单位卖方利润 ?Y$val$
 disallow_naval_trade;海上禁运
 disallow_land_trade;陆上禁运
-pop_migration_bureaucracy;流动官员管理地方：$x$
+pop_migration_bureaucracy;流动官员管理当地：$x$
 pop_migration_attraction_wage_ratio;工资差距：$x$
 pop_migration_attraction_bureaucracy;官员基础吸引力：$x$
 ask_free_trade_agreement;贸易协定
@@ -1564,7 +1564,7 @@ local_admin_spending;成本预计：?Y$value$?W
 target_employment;目标雇佣：?Y$value$?W
 employment_satisfaction;就业度：?Y$value$?W
 wage;工资：?Y$value$?W
-local_admin_efficiency;地方行政部是低于首都的 ?Y$value$?W。
+local_admin_efficiency;当地行政部是低于首都的 ?Y$value$?W。
 tax_collection_rate;征税率：?Y$value$?!
 poor_potential;贫困阶级潜在税收：?Y$value$?W
 mid_potential;中产阶级潜在税收：?Y$value$?W
@@ -2140,3 +2140,67 @@ logistics_satisfaction_tooltip;此区域所需物资平均满足：?Y$val$?W
 logistics_supply_loss_tooltip;此区域物资平均运输损失率：?Y$val$?W
 logistics_supply_throughput_tooltip;此区域物资运输吞吐率：?Y$val$?W
 monthly_net_migration_lab;每月净迁移：
+need_weight_scale_min;?Y$x$?W 被当地视为小钱
+need_weight_scale_max;?Y$x$?W 被当地视为大钱
+need_weight_price;当地价：?Y$x$?W
+need_weight_available;购买可能：?Y$x$?W
+need_weight_needed_life;按职业平均，?Y$x$?W 人需要 ?Y$y$?W 商品为必需品
+need_weight_needed_everyday;按职业平均，?Y$x$?W 人需要 ?Y$y$?W 商品为日用品
+need_weight_needed_luxury;按职业平均，?Y$x$?W 人需要 ?Y$y$?W 商品为奢侈品
+need_weight_local_cost_life;按职业平均，?Y$x$?W 人想买 ?Y$y$?W 来满足必需品
+need_weight_local_cost_everyday;按职业平均，?Y$x$?W 人想买 ?Y$y$?W 来满足日用品
+need_weight_local_cost_luxury;按职业平均，?Y$x$?W 人想买 ?Y$y$?W 来满足奢侈品
+need_weight_base_cost_short;当地通胀
+need_weight_available_short;购买可能
+need_weight_w_life_short;必需品倾向
+need_weight_needed_life_short;必需品需求
+need_weight_local_cost_life_short;必需品成本
+need_weight_life_count_short;数量
+need_weight_w_everyday_short;日用品倾向
+need_weight_needed_everyday_short;日用品需求
+need_weight_local_cost_everyday_short;日用品成本
+need_weight_everyday_count_short;数量
+need_weight_w_luxury_short;奢侈品倾向
+need_weight_needed_luxury_short;奢侈品需求
+need_weight_local_cost_luxury_short;奢侈品成本
+need_weight_luxury_count_short;数量
+term_add;加
+term_mul;乘
+term_div;除
+term_dividend;被除
+term_divisor;除数
+term_sub;减
+term_minuend;被减数
+term_subtrahend;减数
+term_const;常数
+need_weight_price_short;价格
+term_commodity;商品
+term_market;市场
+term_market_price;当地价格
+term_market_price_confidence;当地价格信心
+term_market_price_origin;?Y$y$?W 在出口商 ?Y$val$?W 中的价格: ?Y$value$?W
+term_market_price_target;?Y$y$?W 在进口商 ?Y$val$?W 中的价格: ?Y$value$?W
+term_market_price_owner;?Y$y$?W 在贸易中心 ?Y$val$?W 中的价格: ?Y$value$?W
+term_market_price_confidence_origin;?Y$y$?W 价格信心在出口商 ?Y$val$?W: ?Y$value$?W
+term_market_price_confidence_target;?Y$y$?W 价格信心在进口商 ?Y$val$?W: ?Y$value$?W
+term_market_price_confidence_owner;?Y$y$?W 价格信心在贸易中心 ?Y$val$?W: ?Y$value$?W
+term_trade_route;贸易路线
+term_trade_origin;出口市场
+term_trade_target;入口市场
+term_trade_owner;贸易路线主
+term_max;最大
+term_min;最小
+term_clamp_low_with;在下家 ?Y$x$?W 强加：?Y$value$?W
+term_left;左参
+term_right;右参
+term_naval_transport_demand_satisfaction;海运满足度
+term_land_transport_demand_satisfaction;陆路满足度
+term_trade_house_budget_import_scale_result;进口占收入比
+export_tariff;出口关税
+import_tariff;进口关税
+transport_cost_per_unit;单位运输成本
+trade_budget;商人预算
+trade_good_loss_mult;沿途损失
+merchant_cut;商人分红
+term_derivative;沿项导数
+refund_explanation;特定一日的买到与预期商品服务之比。
