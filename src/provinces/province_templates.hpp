@@ -110,7 +110,6 @@ ve::value_to_vector_type<float> movement_cost(const sys::state& state, ve_id_typ
 	return ve::max(state.world.province_get_modifier_values(prov, sys::provincial_mod_offsets::movement_cost), 0.01f);
 }
 
-
 struct retreat_province_and_distance {
 	float distance_covered = 0.0f;
 	dcon::province_id province;
@@ -135,8 +134,6 @@ struct province_and_distance {
 		return other.province.index() > province.index();
 	}
 };
-
-
 
 struct path_node_heuristic {
 	float distance_covered = 0.0f;
@@ -191,7 +188,7 @@ bool make_path_to_prov(const sys::state& state, dcon::province_id start, dcon::p
 		} else {
 			return to_prov_predicate(end, local_state);
 		}
-	}();
+		}();
 	if(!prov_check) { //  or if the end province would fail the province check
 		return false;
 	}
@@ -251,7 +248,7 @@ bool make_path_to_prov(const sys::state& state, dcon::province_id start, dcon::p
 		// Init the local state for the from-province only once a new from-province is chosen
 		if constexpr(!std::is_same_v<StateType, std::monostate>) {
 			stateinit_from_prov_func(current_prov, local_state);
-		} 
+		}
 
 		for(auto adj : state.world.province_get_province_adjacency(current_prov)) {
 			auto other_prov =
@@ -265,8 +262,7 @@ bool make_path_to_prov(const sys::state& state, dcon::province_id start, dcon::p
 			if(!neighbor_node.is_in_closed_list) {
 				if constexpr(std::is_same_v<StateType, std::monostate>) {
 					prov_check = to_prov_predicate(other_prov);
-				}
-				else {
+				} else {
 					stateinit_to_prov_func(other_prov, local_state);
 					prov_check = to_prov_predicate(other_prov, local_state);
 				}
@@ -275,8 +271,7 @@ bool make_path_to_prov(const sys::state& state, dcon::province_id start, dcon::p
 					bool adj_check;
 					if constexpr(std::is_same_v<StateType, std::monostate>) {
 						adj_check = adj_predicate(other_prov, current_prov, adj);
-					}
-					else {
+					} else {
 						stateinit_adj_func(other_prov, current_prov, adj, distance, local_state);
 						adj_check = adj_predicate(other_prov, current_prov, adj, local_state);
 					}
@@ -286,11 +281,10 @@ bool make_path_to_prov(const sys::state& state, dcon::province_id start, dcon::p
 							// to and from province
 							if constexpr(std::is_same_v<StateType, std::monostate>) {
 								return movementcost_func(other_prov, current_prov, adj, distance);
+							} else {
+								return movementcost_func(other_prov, current_prov, adj, distance, local_state);
 							}
-							else {
-								return movementcost_func(other_prov, current_prov, adj, distance, local_state); 
-							}
-						}();
+							}();
 
 						float distance_to_neighbor = current_node.distance_covered + actual_dist; // computes net distance to neighbor from the start province
 						// if not present in the open queue add it to the open queue for processing later
@@ -316,8 +310,7 @@ bool make_path_to_prov(const sys::state& state, dcon::province_id start, dcon::p
 					} else {
 						// Nothing, it can be tried again if it fails adjacency check
 					}
-				}
-				else {
+				} else {
 					neighbor_node.is_in_closed_list = true;// exclude it from being checked again
 				}
 			}
@@ -327,9 +320,6 @@ bool make_path_to_prov(const sys::state& state, dcon::province_id start, dcon::p
 	return false;
 
 }
-
-
-
 
 
 // Creates a path from start province to end province,with given template functions to decide various factors. Returns the path in the passed-in buffer, and can thusly be used with static buffers. Expects the buffer to be empty

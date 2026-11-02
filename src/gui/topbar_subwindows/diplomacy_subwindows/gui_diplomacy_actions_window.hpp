@@ -5,6 +5,7 @@
 #include "ai_campaign_values.hpp"
 #include "ai_alliances.hpp"
 #include "diplomatic_messages.hpp"
+#include "military_templates.hpp"
 
 namespace ui {
 
@@ -530,9 +531,8 @@ class diplomacy_action_call_ally_button : public diplomacy_action_btn_logic {
 class diplomacy_action_military_access_button : public diplomacy_action_btn_logic {
 public:
 	dcon::text_key get_name(sys::state& state, dcon::nation_id target) noexcept override {
-		auto urid = state.world.get_unilateral_relationship_by_unilateral_pair(target, state.local_player_nation);
 
-		if(state.world.unilateral_relationship_get_military_access(urid)) {
+		if(military::has_military_access_to(state, state.local_player_nation, target)) {
 			return state.lookup_key("cancelaskmilitaryaccess_button");
 		} else {
 			return state.lookup_key("askmilitaryaccess_button");
@@ -542,7 +542,7 @@ public:
 	bool is_available(sys::state& state, dcon::nation_id target) noexcept override {
 		auto urid = state.world.get_unilateral_relationship_by_unilateral_pair(target, state.local_player_nation);
 
-		if(state.world.unilateral_relationship_get_military_access(urid)) {
+		if(military::has_military_access_to(state, state.local_player_nation, target)) {
 			return command::can_cancel_military_access(state, state.local_player_nation, target);
 		} else {
 			if(command::can_ask_for_access(state, state.local_player_nation, target)) {
@@ -572,9 +572,8 @@ public:
 	}
 
 	void button_action(sys::state& state, dcon::nation_id target, ui::element_base* parent) noexcept override {
-		auto urid = state.world.get_unilateral_relationship_by_unilateral_pair(target, state.local_player_nation);
 
-		if(state.world.unilateral_relationship_get_military_access(urid)) {
+		if(military::has_military_access_to(state, state.local_player_nation, target)) {
 			command::cancel_military_access(state, state.local_player_nation, target);
 		} else {
 			command::ask_for_military_access(state, state.local_player_nation, target);
@@ -582,9 +581,8 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents, dcon::nation_id target) noexcept override {
-		auto urid = state.world.get_unilateral_relationship_by_unilateral_pair(target, state.local_player_nation);
 
-		if(state.world.unilateral_relationship_get_military_access(urid)) {
+		if(military::has_military_access_to(state, state.local_player_nation, target)) {
 			text::add_line(state, contents, "cancelaskmilitaryaccess_desc");
 			text::add_line_break_to_layout(state, contents);
 
@@ -624,9 +622,8 @@ public:
 class diplomacy_action_give_military_access_button : public diplomacy_action_btn_logic {
 public:
 	dcon::text_key get_name(sys::state& state, dcon::nation_id target) noexcept override {
-		auto urid = state.world.get_unilateral_relationship_by_unilateral_pair(state.local_player_nation, target);
 
-		if(state.world.unilateral_relationship_get_military_access(urid)) {
+		if(military::has_military_access_to(state, target, state.local_player_nation)) {
 			return state.lookup_key("cancelgivemilitaryaccess_button");
 		} else {
 			return state.lookup_key("givemilitaryaccess_button");
@@ -634,9 +631,8 @@ public:
 	}
 
 	bool is_available(sys::state& state, dcon::nation_id target) noexcept override {
-		auto urid = state.world.get_unilateral_relationship_by_unilateral_pair(state.local_player_nation, target);
 
-		if(state.world.unilateral_relationship_get_military_access(urid)) {
+		if(military::has_military_access_to(state, target, state.local_player_nation)) {
 			return command::can_cancel_given_military_access(state, state.local_player_nation, target);
 		} else {
 			return command::can_give_military_access(state, state.local_player_nation, target);
@@ -644,9 +640,8 @@ public:
 	}
 
 	void button_action(sys::state& state, dcon::nation_id target, ui::element_base* parent) noexcept override {
-		auto urid = state.world.get_unilateral_relationship_by_unilateral_pair(state.local_player_nation, target);
 
-		if(state.world.unilateral_relationship_get_military_access(urid)) {
+		if(military::has_military_access_to(state, target, state.local_player_nation)) {
 			command::cancel_given_military_access(state, state.local_player_nation, target);
 		} else {
 			command::give_military_access(state, state.local_player_nation, target);
@@ -654,9 +649,8 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents, dcon::nation_id target) noexcept override {
-		auto urid = state.world.get_unilateral_relationship_by_unilateral_pair(state.local_player_nation, target);
 
-		if(state.world.unilateral_relationship_get_military_access(urid)) {
+		if(military::has_military_access_to(state, target, state.local_player_nation)) {
 			text::add_line(state, contents, "cancelgivemilitaryaccess_desc");
 			text::add_line_break_to_layout(state, contents);
 

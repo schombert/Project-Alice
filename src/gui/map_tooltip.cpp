@@ -8,6 +8,7 @@
 #include "province.hpp"
 #include "logistics.hpp"
 #include "gui_modifier_tooltips.hpp"
+#include "military_templates.hpp"
 
 namespace ui {
 
@@ -661,7 +662,7 @@ void supply_map_tt_box(sys::state& state, text::columnar_layout& contents, dcon:
 			text::add_space_to_layout_box(state, contents, box);
 			text::add_to_layout_box(state, contents, box, text::format_float(2.0f, 0), text::text_color::green);
 			text::add_line_break_to_layout_box(state, contents, box);
-		} else if(auto uni_rel = state.world.get_unilateral_relationship_by_unilateral_pair(prov_controller, state.local_player_nation); state.world.unilateral_relationship_get_military_access(uni_rel)) {
+		} else if(military::has_military_access_to(state, state.local_player_nation, prov_controller)) {
 			text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, "supply_access"), text::text_color::white);
 			text::add_space_to_layout_box(state, contents, box);
 			text::add_to_layout_box(state, contents, box, text::format_float(2.0f, 0), text::text_color::green);

@@ -2252,8 +2252,7 @@ TRIGGER_FUNCTION(tf_military_access_tag) {
 	auto holder = ws.world.national_identity_get_nation_from_identity_holder(trigger::payload(tval[1]).tag_id);
 	auto result = ve::apply(
 			[&ws, holder](dcon::nation_id n) {
-				return ws.world.unilateral_relationship_get_military_access(
-						ws.world.get_unilateral_relationship_by_unilateral_pair(holder, n));
+				return military::has_military_access_to(ws, n, holder);
 			},
 			to_nation(primary_slot));
 	return compare_to_true(tval[0], result);
@@ -2261,8 +2260,7 @@ TRIGGER_FUNCTION(tf_military_access_tag) {
 TRIGGER_FUNCTION(tf_military_access_from) {
 	auto result = ve::apply(
 			[&ws](dcon::nation_id n, dcon::nation_id t) {
-				return ws.world.unilateral_relationship_get_military_access(
-						ws.world.get_unilateral_relationship_by_unilateral_pair(t, n));
+				return military::has_military_access_to(ws, n, t);
 			},
 			to_nation(primary_slot), to_nation(from_slot));
 	return compare_to_true(tval[0], result);
@@ -2270,8 +2268,7 @@ TRIGGER_FUNCTION(tf_military_access_from) {
 TRIGGER_FUNCTION(tf_military_access_this_nation) {
 	auto result = ve::apply(
 			[&ws](dcon::nation_id n, dcon::nation_id t) {
-				return ws.world.unilateral_relationship_get_military_access(
-						ws.world.get_unilateral_relationship_by_unilateral_pair(t, n));
+				return military::has_military_access_to(ws, n, t);
 			},
 			to_nation(primary_slot), to_nation(this_slot));
 	return compare_to_true(tval[0], result);
@@ -2280,8 +2277,7 @@ TRIGGER_FUNCTION(tf_military_access_this_state) {
 	auto owner = ws.world.state_instance_get_nation_from_state_ownership(to_state(this_slot));
 	auto result = ve::apply(
 			[&ws](dcon::nation_id n, dcon::nation_id t) {
-				return ws.world.unilateral_relationship_get_military_access(
-						ws.world.get_unilateral_relationship_by_unilateral_pair(t, n));
+				return military::has_military_access_to(ws, n, t);
 			},
 			to_nation(primary_slot), owner);
 	return compare_to_true(tval[0], result);
@@ -2290,8 +2286,7 @@ TRIGGER_FUNCTION(tf_military_access_this_province) {
 	auto owner = ws.world.province_get_nation_from_province_ownership(to_prov(this_slot));
 	auto result = ve::apply(
 			[&ws](dcon::nation_id n, dcon::nation_id t) {
-				return ws.world.unilateral_relationship_get_military_access(
-						ws.world.get_unilateral_relationship_by_unilateral_pair(t, n));
+				return military::has_military_access_to(ws, n, t);
 			},
 			to_nation(primary_slot), owner);
 	return compare_to_true(tval[0], result);
@@ -2300,8 +2295,7 @@ TRIGGER_FUNCTION(tf_military_access_this_pop) {
 	auto owner = nations::owner_of_pop(ws, to_pop(this_slot));
 	auto result = ve::apply(
 			[&ws](dcon::nation_id n, dcon::nation_id t) {
-				return ws.world.unilateral_relationship_get_military_access(
-						ws.world.get_unilateral_relationship_by_unilateral_pair(t, n));
+				return military::has_military_access_to(ws, n, t);
 			},
 			to_nation(primary_slot), owner);
 	return compare_to_true(tval[0], result);
