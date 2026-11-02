@@ -427,7 +427,7 @@ void  pop_budget_details_main_needs_t::update(sys::state& state, layout_window_e
 		add_consumption_category(cat);
 		state.world.for_each_commodity([&](dcon::commodity_id cid) {
 			auto cost = economy::pops::estimate_pop_spending_category(state, cat, main.for_pop, cid);
-			if(cost > 0.001f) {
+			if(cost > 0.f) {
 				add_consumption(cid, (uint8_t)(cat.index()) + 3, cost, state.world.market_get_actual_probability_to_buy(market, cid));
 			}
 		});

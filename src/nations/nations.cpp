@@ -923,12 +923,13 @@ void update_military_scores(sys::state& state) {
 
 float prestige_score(sys::state const& state, dcon::nation_id n) {
 	return std::max(0.0f, state.world.nation_get_prestige(n) +
-				 state.world.nation_get_modifier_values(n, sys::national_mod_offsets::permanent_prestige));
+				state.world.nation_get_modifier_values(n, sys::national_mod_offsets::permanent_prestige));
 }
 
 void update_rankings(sys::state& state) {
 	uint32_t to_sort_count = 0;
 	state.world.for_each_nation([&](dcon::nation_id n) {
+		state.world.nation_set_is_great_power_candidate(n, false);
 		state.nations_by_rank[to_sort_count] = n;
 		++to_sort_count;
 	});
@@ -953,7 +954,92 @@ void update_rankings(sys::state& state) {
 		state.nations_by_rank[to_sort_count] = dcon::nation_id{};
 	}
 	for(uint32_t i = 0; i < to_sort_count; ++i) {
-		state.world.nation_set_rank(state.nations_by_rank[i], uint16_t(i + 1));
+		auto nation = state.nations_by_rank[i];
+		state.world.nation_set_rank(nation, uint16_t(i + 1));
+		auto ov_rel =  state.world.nation_get_overlord_as_subject(nation);
+		auto ov = state.world.overlord_get_ruler(ov_rel);
+		if(i < state.defines.great_nations_count && !(bool)(ov) && state.world.nation_get_owned_province_count(state.great_nations[i].nation) > 0) {
+			state.world.nation_set_is_great_power_candidate(nation, true);
+		}
+	}
+}
+
+void init_rankings_lua(sys::state& state) {
+	if(state.lua_nation_ranking_function_index == LUA_REFNIL) {
+		auto stack_size_at_start = lua_gettop(state.lua_game_loop_environment);
+		lua_getfield(state.lua_game_loop_environment, LUA_GLOBALSINDEX, "UPDATE_GREAT_POWERS"); // [function
+		state.lua_nation_ranking_function_index = luaL_ref(state.lua_game_loop_environment, LUA_REGISTRYINDEX); // [
+		assert(lua_gettop(state.lua_game_loop_environment) == stack_size_at_start);
+
+		if(state.lua_nation_ranking_function_index == LUA_REFNIL) {
+			state.lua_nation_ranking_function_is_missing = true;
+		} else {
+			state.lua_nation_ranking_function_is_missing = false;
+		}
+	}
+	if(state.lua_nation_ranking_function_index != LUA_REFNIL) {
+		lua_rawgeti(state.lua_game_loop_environment, LUA_REGISTRYINDEX, state.lua_nation_ranking_function_index);
+		lua_pushnumber(state.lua_game_loop_environment, state.defines.great_nations_count);
+		auto pcall_result = lua_pcall(state.lua_game_loop_environment, 1, 0, 0);
+		if(pcall_result) {
+			state.lua_notification(lua_tostring(state.lua_game_loop_environment, -1));
+			lua_settop(state.lua_game_loop_environment, 0);
+		}
+
+		// Lua script has updated ranking, now we have to update the list
+
+		int count_of_great_powers = 0;
+		state.world.for_each_nation([&](dcon::nation_id n) {
+			if(state.world.nation_get_is_great_power_candidate(n)) {
+				count_of_great_powers++;
+			}
+		});
+		state.great_nations.resize(count_of_great_powers);
+		state.world.for_each_nation([&](dcon::nation_id n) {
+			int rank_from_zero = (int)(state.world.nation_get_rank(n)) - 1;
+			state.nations_by_rank[rank_from_zero] = n;
+			if(state.world.nation_get_is_great_power_candidate(n)) {
+				state.great_nations[rank_from_zero] = { sys::date{0}, n };
+				state.world.nation_set_is_great_power(n, true);
+			}
+		});
+	}
+}
+
+static int convert_error_to_traceback(lua_State* L) {
+	const char *message = lua_tostring(L, -1);
+	luaL_traceback(L, L, message, 0);
+	return 1;
+}
+
+void update_rankings_lua(sys::state& state) {
+	if(state.lua_nation_ranking_function_index == LUA_REFNIL) {
+		auto stack_size_at_start = lua_gettop(state.lua_game_loop_environment);
+		lua_getfield(state.lua_game_loop_environment, LUA_GLOBALSINDEX, "UPDATE_GREAT_POWERS"); // [function
+		state.lua_nation_ranking_function_index = luaL_ref(state.lua_game_loop_environment, LUA_REGISTRYINDEX); // [
+		assert(lua_gettop(state.lua_game_loop_environment) == stack_size_at_start);
+
+		if(state.lua_nation_ranking_function_index == LUA_REFNIL) {
+			state.lua_nation_ranking_function_is_missing = true;
+		} else {
+			state.lua_nation_ranking_function_is_missing = false;
+		}
+	}
+	if(state.lua_nation_ranking_function_index != LUA_REFNIL) {
+		lua_pushcfunction(state.lua_game_loop_environment, convert_error_to_traceback);
+		lua_rawgeti(state.lua_game_loop_environment, LUA_REGISTRYINDEX, state.lua_nation_ranking_function_index);
+		lua_pushnumber(state.lua_game_loop_environment, (int)(state.defines.great_nations_count));
+		auto pcall_result = lua_pcall(state.lua_game_loop_environment, 1, 0, -3);
+		if(pcall_result) {
+			state.lua_notification(lua_tostring(state.lua_game_loop_environment, -1));
+			lua_settop(state.lua_game_loop_environment, 0);
+		}
+
+		// Lua script has updated ranks, now we have to update the list
+		state.world.for_each_nation([&](dcon::nation_id n) {
+			int rank_from_zero = (int)(state.world.nation_get_rank(n)) - 1;
+			state.nations_by_rank[rank_from_zero] = n;
+		});
 	}
 }
 
@@ -1036,11 +1122,13 @@ void update_great_powers(sys::state& state) {
 	bool at_least_one_added = false;
 
 	for(auto i = state.great_nations.size(); i-- > 0;) {
-		if(state.world.nation_get_rank(state.great_nations[i].nation) <= uint16_t(state.defines.great_nations_count)) {
+		if(state.world.nation_get_is_great_power_candidate(state.great_nations[i].nation)) {
 			// is still a gp
 			state.great_nations[i].last_greatness = state.current_date;
-		} else if(state.great_nations[i].last_greatness + int32_t(state.defines.greatness_days) < state.current_date ||
-							state.world.nation_get_owned_province_count(state.great_nations[i].nation) == 0) {
+		} else if(
+			state.great_nations[i].last_greatness + int32_t(state.defines.greatness_days) < state.current_date
+		) {
+			// not a gp candidate and enough time has passed
 			state.trade_route_cached_values_out_of_date = true;
 
 			auto n = state.great_nations[i].nation;
@@ -1076,7 +1164,7 @@ void update_great_powers(sys::state& state) {
 
 	for(uint32_t i = 0; i < uint32_t(state.defines.great_nations_count) && state.great_nations.size() < size_t(state.defines.great_nations_count); ++i) {
 		auto n = state.nations_by_rank[i];
-		if(n && !state.world.nation_get_is_great_power(n) && state.world.nation_get_owned_province_count(n) > 0) {
+		if(n && !state.world.nation_get_is_great_power(n) && state.world.nation_get_is_great_power_candidate(n)) {
 			at_least_one_added = true;
 			state.world.nation_set_is_great_power(n, true);
 			state.great_nations.push_back(sys::great_nation(state.current_date, n));
