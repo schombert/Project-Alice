@@ -1,6 +1,7 @@
 #include "gui_map_icons.hpp"
 #include "gui_element_base.hpp"
 #include "gui_templates.hpp"
+#include "game_scene.hpp"
 
 namespace ui {
 
@@ -1355,8 +1356,7 @@ void unit_counter_window::toogle_grid (sys::state& state, dcon::province_id targ
 	if(state.ui_state.unit_details_box->for_province == target && state.ui_state.unit_details_box->is_visible() == true) {
 		state.ui_state.unit_details_box->set_visible(state, false);
 		if(!with_shift) {
-			state.selected_armies.clear();
-			state.selected_navies.clear();
+			game_scene::deselect_units(state);
 		} else {
 			if(target.index() >= state.province_definitions.first_sea_province.index()) {
 				for(auto n : state.world.province_get_navy_location(target)) {
@@ -1370,20 +1370,21 @@ void unit_counter_window::toogle_grid (sys::state& state, dcon::province_id targ
 		}
 	} else {
 		if(!with_shift) {
-			state.selected_armies.clear();
-			state.selected_navies.clear();
+			game_scene::deselect_units(state);
 		}
-
+		// Don't allow land and naval units to be selected at the same time. It breaks assumptions which other code relies on
 		if(target.index() >= state.province_definitions.first_sea_province.index()) {
-			for(auto n : state.world.province_get_navy_location(target)) {
-				// if(state.world.navy_get_controller_from_navy_control(n.get_navy()) == state.local_player_nation) {
+			if(state.selected_armies.empty()) {
+				for(auto n : state.world.province_get_navy_location(target)) {
 					state.select(n.get_navy().id);
-				//  }
+				}
 			}
 		} else {
-			for(auto n : state.world.province_get_army_location(target)) {
-				if(!(n.get_army().get_navy_from_army_transport()) /* && n.get_army().get_controller_from_army_control() == state.local_player_nation */) {
-					state.select(n.get_army().id);
+			if(state.selected_navies.empty()) {
+				for(auto n : state.world.province_get_army_location(target)) {
+					if(!(n.get_army().get_navy_from_army_transport()) /* && n.get_army().get_controller_from_army_control() == state.local_player_nation */) {
+						state.select(n.get_army().id);
+					}
 				}
 			}
 		}

@@ -43,7 +43,8 @@ struct scene_properties {
 
 	//key presses related
 	std::function <sys::virtual_key(sys::state& state, sys::virtual_key keycode, sys::key_modifiers mod)> keycode_mapping;
-	std::function <void(sys::state& state, sys::virtual_key keycode, sys::key_modifiers mod)> handle_hotkeys;
+	std::function <void(sys::state& state, sys::virtual_key keycode, sys::key_modifiers mod)> handle_hotkeys_key_down;
+	std::function <void(sys::state& state, sys::virtual_key keycode, sys::key_modifiers mod)> handle_hotkeys_key_up;
 
 	//logger
 	std::function <void(sys::state& state, std::string_view message)> console_log;

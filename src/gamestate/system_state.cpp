@@ -276,8 +276,7 @@ void state::on_key_up(virtual_key keycode, key_modifiers mod) {
 		else if(keycode == sys::virtual_key::D)
 			keycode = sys::virtual_key::RIGHT;
 	}
-
-	map_state.on_key_up(keycode, mod);
+	game_scene::on_key_up(*this, keycode, mod);
 }
 void state::on_text(char32_t c) { // c is win1250 codepage value
 	if(ui_state.edit_target_internal)
@@ -6799,8 +6798,7 @@ void sys::state::set_selected_province(dcon::province_id prov_id) {
 	if(prov_id && map_state.selected_province != prov_id) {
 		map_state.unhandled_province_selection = true;
 		map_state.selected_province = prov_id;
-		selected_navies.clear();
-		selected_armies.clear();
+		game_scene::deselect_units(*this);
 		selected_regiments_clear(*this);
 		selected_ships_clear(*this);
 		game_state_updated.store(true, std::memory_order_release);

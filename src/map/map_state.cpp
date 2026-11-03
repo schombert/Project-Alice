@@ -2319,6 +2319,10 @@ void map_state::on_lbutton_up(sys::state& state, int32_t x, int32_t y, int32_t s
 		if(!screen_to_map(mouse_pos, screen_size, current_view(state), map_pos)) {
 			return;
 		}
+		// If there are any pending shift selected units AND we are attempting to select more (holding shift), then don't select a province yet as it would deselect all units
+		if((!state.selected_armies.empty() || !state.selected_navies.empty()) && mod == sys::key_modifiers::modifiers_shift) {
+			return;
+		}
 		auto idx = map_space::to_idx(map_pos, (float)map_data.size_x, (float)map_data.size_y);
 
 		if(0 <= idx && size_t(idx) < map_data.province_id_map.size()) {

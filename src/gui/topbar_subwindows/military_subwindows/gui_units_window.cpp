@@ -251,8 +251,7 @@ public:
 		auto container = retrieve<military_unit_info<T>>(state, parent);
 		if(std::holds_alternative<T>(container)) {
 			T id = std::get<T>(container);
-			state.selected_armies.clear();
-			state.selected_navies.clear();
+			game_scene::deselect_units(state);
 
 			if constexpr(std::is_same_v<T, dcon::army_id>) {
 				state.map_state.center_map_on_province(state, state.world.army_get_location_from_army_location(id));

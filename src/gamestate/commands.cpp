@@ -6313,8 +6313,6 @@ void execute_notify_start_game(sys::state& state, dcon::nation_id source) {
 		state.game_state_resetting_cv.notify_all();
 
 		state.ui_state.invoke_on_ui_thread([](sys::state& state, ui::ui_function_argument) {
-			state.selected_armies.clear();
-			state.selected_navies.clear();
 			state.set_selected_province(dcon::province_id{});
 			for(auto& v : state.ctrl_armies) v.clear();
 			for(auto& v : state.ctrl_navies) v.clear();
