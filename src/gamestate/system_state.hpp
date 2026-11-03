@@ -875,6 +875,7 @@ struct alignas(64) state {
 	sys::date current_date = sys::date{0};
 	sys::date ui_date = sys::date{0};
 	uint32_t game_seed = 0; // do *not* alter this value, ever
+	bool single_pass_demographics = false; // headless -single_pass_demographics 1: demographic totals in one serial pass over the pops (same values as the per-key passes; for -threads 1 runs)
 	float inflation = 0.999f; // to compensate for some of money generation which will happen anyway
 	std::vector<player_data> player_data_cache;
 	player_data* find_player_data_cache(dcon::nation_id n) {
