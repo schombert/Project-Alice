@@ -54,6 +54,13 @@ state::state() : untrans_key_to_text_sequence(0, text::vector_backed_ci_hash(key
 
 state::~state() {
 	quit_signaled.store(true, std::memory_order::release);
+	// Usually not needed if the game is quit, but if multiple scenarios are being created in the same session, the state destructor might run multiple times. Also just good practice
+	if(lua_ui_environment) {
+		lua_close(lua_ui_environment);
+	}
+	if(lua_game_loop_environment) {
+		lua_close(lua_game_loop_environment);
+	}
 	logger_thread.join(); // wait for logger thread to quit after signalling
 }
 
@@ -4275,6 +4282,34 @@ void state::on_scenario_load() {
 
 	ui_state.rebel_flags.resize(world.ideology_size(), 0);
 
+	// Lua init. Save lua ui environment for later when UI is available
+
+	lua_alice_api::set_state(this);
+	lua_alice_api::setup_gameloop_environment(*this);
+
+
+
+	// populate the table with scripted functions from lua_combined_script (read during scenario generation). Do ui script later when UI is available
+	{
+		int status;
+		status = luaL_dostring(lua_game_loop_environment, lua_combined_script.c_str());
+		if(status) {
+#ifdef _WIN32
+			OutputDebugStringA(lua_tostring(lua_game_loop_environment, -1));
+#endif
+			lua_settop(lua_game_loop_environment, 0);
+			std::abort();
+		}
+		status = luaL_dostring(lua_game_loop_environment, lua_game_loop_script.c_str());
+		if(status) {
+#ifdef _WIN32
+			OutputDebugStringA(lua_tostring(lua_game_loop_environment, -1));
+#endif
+			lua_settop(lua_game_loop_environment, 0);
+			std::abort();
+		}
+	}
+
 	if(network_mode != network_mode_type::single_player)
 		return;
 
@@ -4570,35 +4605,6 @@ void state::on_scenario_load() {
 	} };
 
 	dispatch.detach();
-
-	// Lua init. Save lua ui environment for later when UI is available
-
-	lua_alice_api::set_state(this);
-	lua_alice_api::setup_gameloop_environment(*this);
-
-
-
-	// populate the table with scripted functions from lua_combined_script (read during scenario generation). Do ui script later when UI is available
-	{
-		int status;
-		status = luaL_dostring(lua_game_loop_environment, lua_combined_script.c_str());
-		if(status) {
-#ifdef _WIN32
-			OutputDebugStringA(lua_tostring(lua_game_loop_environment, -1));
-#endif
-			lua_settop(lua_game_loop_environment, 0);
-			std::abort();
-		}
-		status = luaL_dostring(lua_game_loop_environment, lua_game_loop_script.c_str());
-		if(status) {
-#ifdef _WIN32
-			OutputDebugStringA(lua_tostring(lua_game_loop_environment, -1));
-#endif
-			lua_settop(lua_game_loop_environment, 0);
-			std::abort();
-		}
-	}
-
 
 #endif
 

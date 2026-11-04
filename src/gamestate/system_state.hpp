@@ -795,8 +795,8 @@ struct alignas(64) state {
 	// Lua scripting
 	//
 
-	lua_State* lua_ui_environment;
-	lua_State* lua_game_loop_environment;
+	lua_State* lua_ui_environment = nullptr;
+	lua_State* lua_game_loop_environment = nullptr;
 	std::vector<int> lua_on_daily_tick;
 	std::vector<int> lua_on_battle_end;
 	std::vector<int> lua_on_battle_tick;
