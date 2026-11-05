@@ -284,6 +284,52 @@ void setup_gameloop_environment(sys::state& state) {
 	}
 }
 
+void setup_trade_goods_enumeration(sys::state& state) {
+	auto L = state.lua_game_loop_environment;
+
+	// create table
+	lua_newtable(L);
+	lua_setglobal(L, "commodity");
+	assert(lua_gettop(L) == 0);
+
+	// set fields
+	lua_getfield(L, LUA_GLOBALSINDEX, "commodity"); // [commodity table
+	state.world.for_each_commodity([&](auto cid) {
+		std::string name = text::produce_simple_string(state, state.world.commodity_get_name(cid));
+		lua_pushnumber(L, (float)(cid.index())); // [commodity table, commodity index
+		lua_setfield(L, -2, name.data()); // [commodity table
+	});
+
+	// clean up
+	lua_pop(L, 1);
+	assert(lua_gettop(L) == 0);
+}
+
+void setup_nation_flag_enumeration(sys::state& state) {
+	auto L = state.lua_game_loop_environment;
+
+	// create table
+	lua_newtable(L);
+	lua_setglobal(L, "country_flag");
+	assert(lua_gettop(L) == 0);
+
+	// set fields
+	lua_getfield(L, LUA_GLOBALSINDEX, "country_flag"); // [table
+
+	auto size = state.national_definitions.flag_variable_names.size();
+	for(size_t i = 0; i < size; i++) {
+		dcon::national_flag_id flag{ (dcon::national_flag_id::value_base_t)(i) };
+		auto name = state.national_definitions.flag_variable_names[flag];
+		std::string name_str = text::produce_simple_string(state, name);
+		lua_pushnumber(L, (float)i); // [table, index
+		lua_setfield(L, -2, name_str.data()); // [table
+	}
+
+	// clean up
+	lua_pop(L, 1);
+	assert(lua_gettop(L) == 0);
+}
+
 // example of providing LUA API if someone would ever need it for something
 static int draw_rectangle(lua_State* L) {
 	// get amount of arguments
