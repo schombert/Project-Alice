@@ -330,10 +330,6 @@ void acting_modifiers_description_province(sys::state& state, text::layout_base&
 			active_single_modifier_description(state, layout, state.national_definitions.has_siege, identation, header, nmid,
 					military::province_is_under_siege(state, p) ? 1.f : 0.f);
 		}
-		if(state.national_definitions.occupied) {
-			active_single_modifier_description(state, layout, state.national_definitions.occupied, identation, header, nmid,
-					province::is_occupied(state, p) ? 1.f : 0.f);
-		}
 		if(state.national_definitions.blockaded) {
 			active_single_modifier_description(state, layout, state.national_definitions.blockaded, identation, header, nmid,
 					military::province_is_blockaded(state, p) ? 1.f : 0.f);
