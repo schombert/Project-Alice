@@ -14,6 +14,7 @@
 #include <shellapi.h>
 #include "Objbase.h"
 #include "window.hpp"
+#include "lua_alice_api.hpp"
 
 #include "network/webapi/controllers.hpp"
 
@@ -104,7 +105,8 @@ void EnableCrashingOnCrashes() {
 
 enum run_mode {
 	economy_tick,
-	battles_data
+	battles_data,
+	generate_lua_meta
 };
 
 
@@ -116,13 +118,24 @@ int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPWSTR
 
 		int num_params = 0;
 		auto parsed_cmd = CommandLineToArgvW(GetCommandLineW(), &num_params);
-		if(num_params < 2) return 0;
+		if(num_params < 2) {
+			LocalFree(parsed_cmd);
+			return 0;
+		}
 		run_mode mode = run_mode::economy_tick;
+		native_string output_path;
 		if(num_params >= 2) {			
 			if(native_string(parsed_cmd[2]) == NATIVE("economy_tick")) {
 				mode = run_mode::economy_tick;				
 			} else if(native_string(parsed_cmd[2]) == NATIVE("battles_data")) {
 				mode = run_mode::battles_data;
+			} else if(native_string(parsed_cmd[2]) == NATIVE("gen_lua")) {
+				if(num_params < 3) {
+					LocalFree(parsed_cmd);
+					return 0;
+				}
+				mode = run_mode::generate_lua_meta;
+				output_path = parsed_cmd[3];
 			}
 		}
 		native_string scenario = parsed_cmd[1];
@@ -131,6 +144,37 @@ int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPWSTR
 
 		// to make copying the code easier
 		auto& state = game_state;
+
+		if(mode == run_mode::generate_lua_meta) {
+			if(sys::try_read_scenario_and_save_file(game_state, scenario)) {
+				lua_alice_api::set_state(&state);
+				lua_alice_api::setup_gameloop_environment(state);
+				game_state.fill_unsaved_data();
+			} else {
+				return 0;
+			}
+
+			std::string result = "---@meta\n--[[\nGENERATED FILE:\n\tALL CHANGES ARE IGNORED ON REGENERATION\n--]]\n\n---@class CommodityEnum\n";
+			state.world.for_each_commodity([&](auto cid) {
+				result = result + "---@field " + text::produce_simple_string(state, state.world.commodity_get_name(cid)) + " commodity_id\n";
+			});
+			result = result + "commodity = {}\n";
+
+			result = result + "\n---@class CountryFlagEnum\n";
+			auto size = state.national_definitions.flag_variable_names.size();
+			for(size_t i = 0; i < size; i++) {
+				dcon::national_flag_id flag{ (dcon::national_flag_id::value_base_t)(i) };
+				auto name = state.national_definitions.flag_variable_names[flag];
+				std::string name_str = text::produce_simple_string(state, name);
+				result = result + "---@field " + name_str + " national_flag_id\n";
+			}
+			result = result + "country_flag = {}\n";
+
+			auto pf = _wfopen(output_path.c_str(), L"w");
+			fprintf(pf, "%s", result.c_str());
+			fflush(pf);
+			fclose(pf);
+		}
 
 		if (mode == run_mode::economy_tick) {
 			// scenario loading functions (would have to run these even when scenario is pre-built)

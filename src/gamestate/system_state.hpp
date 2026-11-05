@@ -809,6 +809,9 @@ struct alignas(64) state {
 	std::string lua_game_loop_script{};
 	std::string lua_ui_script{};
 
+	int lua_nation_ranking_function_index = LUA_REFNIL;
+	int lua_nation_ranking_function_is_missing = false;
+
 	//
 	// Crisis data
 	//

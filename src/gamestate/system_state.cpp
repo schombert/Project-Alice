@@ -2187,6 +2187,11 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 		});
 	}
 
+	{
+		// trade goods are set up, we are ready to emit related meta file
+		lua_alice_api::setup_trade_goods_enumeration(*this);
+	}
+
 	// read buildings.text
 	// world.factory_type_resize_construction_costs(world.commodity_size());
 	if(world.factory_type_size() == 0) {
@@ -3054,6 +3059,8 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	national_definitions.global_flag_variables.resize((national_definitions.num_allocated_global_flags + 7) / 8, dcon::bitfield_type{ 0 });
 	world.nation_resize_accepted_cultures(world.culture_size());
 
+	lua_alice_api::setup_nation_flag_enumeration(*this);
+
 	std::vector<std::pair<dcon::nation_id, dcon::decision_id>> pending_decisions;
 	// load country history
 	{
@@ -3728,23 +3735,29 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	military::update_naval_supply_points(*this);
 	economy::update_employment(*this, true, 1.f);
 	nations::update_military_scores(*this); // depends on ship score, land unit average
-	nations::update_rankings(*this);		// depends on industrial score, military scores
 
 	economy::sanity_check(*this);
 
 	assert(great_nations.size() == 0);
-	uint32_t greatpowersfound = 0;
-	uint32_t i = 0;
-	while(greatpowersfound < uint32_t(defines.great_nations_count)) {
-		if(i >= nations_by_rank.size()) {
-			break;
+
+	if(!lua_nation_ranking_function_is_missing) {
+		nations::init_rankings_lua(*this);
+	}
+	if(lua_nation_ranking_function_is_missing) {
+		nations::update_rankings(*this);		// depends on industrial score, military scores
+		uint32_t greatpowersfound = 0;
+		uint32_t i = 0;
+		while(greatpowersfound < uint32_t(defines.great_nations_count)) {
+			if(i >= nations_by_rank.size()) {
+				break;
+			}
+			if(nations_by_rank[i] && world.overlord_get_ruler(world.nation_get_overlord_as_subject(nations_by_rank[i])) == dcon::nation_id()) {
+				great_nations.push_back(great_nation{ sys::date{0}, nations_by_rank[i] });
+				world.nation_set_is_great_power(nations_by_rank[i], true);
+				greatpowersfound++;
+			}
+			i++;
 		}
-		if(nations_by_rank[i] && world.overlord_get_ruler(world.nation_get_overlord_as_subject(nations_by_rank[i])) == dcon::nation_id()) {
-			great_nations.push_back(great_nation{ sys::date{0}, nations_by_rank[i] });
-			world.nation_set_is_great_power(nations_by_rank[i], true);
-			greatpowersfound++;
-		}
-		i++;
 	}
 
 	// fix slaves in non-slave owning nations
@@ -4606,6 +4619,37 @@ void state::on_scenario_load() {
 
 	dispatch.detach();
 
+	// Lua init. Save lua ui environment for later when UI is available
+
+	lua_alice_api::set_state(this);
+	lua_alice_api::setup_gameloop_environment(*this);
+	lua_alice_api::setup_trade_goods_enumeration(*this);
+	lua_alice_api::setup_nation_flag_enumeration(*this);
+
+
+
+	// populate the table with scripted functions from lua_combined_script (read during scenario generation). Do ui script later when UI is available
+	{
+		int status;
+		status = luaL_dostring(lua_game_loop_environment, lua_combined_script.c_str());
+		if(status) {
+#ifdef _WIN32
+			OutputDebugStringA(lua_tostring(lua_game_loop_environment, -1));
+#endif
+			lua_settop(lua_game_loop_environment, 0);
+			std::abort();
+		}
+		status = luaL_dostring(lua_game_loop_environment, lua_game_loop_script.c_str());
+		if(status) {
+#ifdef _WIN32
+			OutputDebugStringA(lua_tostring(lua_game_loop_environment, -1));
+#endif
+			lua_settop(lua_game_loop_environment, 0);
+			std::abort();
+		}
+	}
+
+
 #endif
 
 }
@@ -4761,7 +4805,12 @@ void state::fill_unsaved_data() { // reconstructs derived values that are not di
 	military::regenerate_ship_scores(*this);
 	nations::update_industrial_scores(*this);
 	nations::update_military_scores(*this);
-	nations::update_rankings(*this);
+	if(!lua_nation_ranking_function_is_missing) {
+		nations::update_rankings_lua(*this);
+	}
+	if(lua_nation_ranking_function_is_missing) {
+		nations::update_rankings(*this);
+	}
 	nations::update_ui_rankings(*this);
 
 	nations::monthly_flashpoint_update(*this);
@@ -5195,7 +5244,13 @@ void state::single_game_tick() {
 
 		nations::update_industrial_scores(*this);
 		nations::update_military_scores(*this); // depends on ship score, land unit average
-		nations::update_rankings(*this);				// depends on industrial score, military scores
+		if(!lua_nation_ranking_function_is_missing) {
+			nations::update_rankings_lua(*this);
+		}
+		if(lua_nation_ranking_function_is_missing) {
+			nations::update_rankings(*this);
+		}
+		//nations::update_rankings(*this);				// depends on industrial score, military scores
 		nations::update_great_powers(*this);		// depends on rankings
 		nations::update_influence(*this);				// depends on rankings, great powers
 
