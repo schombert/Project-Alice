@@ -108,7 +108,7 @@ auto need_weight_change(
 		10.f * adaptive_ve::max(adaptive_ve::constant_value<scalar>(0.f), 2.f * availability * availability - 1.f)
 		+ cost_life / total_cost
 		- price * base_amount / (cost_life * 10'000.f)
-		- total_count * base_amount * current_weight * price / total_cost;
+		- 1.5f * total_count * base_amount * price / total_cost;
 }
 
 }

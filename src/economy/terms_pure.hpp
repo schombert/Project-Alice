@@ -31,6 +31,10 @@ concept is_term = requires (T x) {
 	x.is_term;
 };
 template<typename T>
+concept potential_constant = requires (T x) {
+	x.is_constant;
+};
+template<typename T>
 concept is_atom = requires (T x) {
 	x.is_atom;
 };
@@ -353,6 +357,19 @@ struct fetch_expected_probability_to_buy_result {
 };
 
 template <typename left_t, typename right_t>
+struct fetch_aggregated_demand_history {
+	left_t left;
+	right_t right;
+	static constexpr bool is_term = true;
+};
+template <typename left_t, typename right_t>
+struct fetch_aggregated_demand_history_result {
+	left_t left;
+	right_t right;
+	float data;
+};
+
+template <typename left_t, typename right_t>
 struct fetch_price_confidence {
 	left_t left;
 	right_t right;
@@ -500,6 +517,18 @@ struct switch_to_result_struct<fetch_trade_volume<left_t, right_t>> {
 template<typename left_t, typename right_t>
 struct switch_to_result_struct<fetch_price_confidence<left_t, right_t>> {
 	using type = fetch_price_confidence_result<switch_to_result<left_t>, switch_to_result<right_t>>;
+};
+template<typename left_t, typename right_t>
+struct switch_to_result_struct<fetch_aggregated_demand_history<left_t, right_t>> {
+	using type = fetch_aggregated_demand_history_result<switch_to_result<left_t>, switch_to_result<right_t>>;
+};
+template<typename left_t, typename right_t>
+struct switch_to_result_struct<fetch_expected_probability_to_buy<left_t, right_t>> {
+	using type = fetch_expected_probability_to_buy_result<switch_to_result<left_t>, switch_to_result<right_t>>;
+};
+template<typename left_t, typename right_t>
+struct switch_to_result_struct<fetch_expected_probability_to_sell<left_t, right_t>> {
+	using type = fetch_expected_probability_to_sell_result<switch_to_result<left_t>, switch_to_result<right_t>>;
 };
 template<typename left_t, typename right_t>
 struct switch_to_result_struct<BEq<left_t, right_t>> {
