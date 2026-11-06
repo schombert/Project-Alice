@@ -41,6 +41,7 @@
 #include "logistics_templates.hpp"
 #include "math_fns.hpp"
 #include "trade_network.hpp"
+#include "virtual_key_utility.hpp"
 
 namespace sys {
 
@@ -247,9 +248,9 @@ void state::on_resize(int32_t x, int32_t y, window::window_state win_state) {
 }
 
 void state::on_key_down(virtual_key keycode, key_modifiers mod) {
-	if(keycode == virtual_key::CONTROL || keycode == virtual_key::LCONTROL || keycode == virtual_key::RCONTROL)
+	if(is_ctrl(keycode))
 		ui_state.ctrl_held_down = true;
-	if(keycode == virtual_key::SHIFT || keycode == virtual_key::LSHIFT || keycode == virtual_key::RSHIFT)
+	if(is_shift(keycode))
 		ui_state.shift_held_down = true;
 	if(keycode == virtual_key::ESCAPE && ui_state.current_drag_and_drop_data_type != ui::drag_and_drop_data::none) {
 		ui_state.current_drag_and_drop_data_type = ui::drag_and_drop_data::none;
@@ -260,9 +261,9 @@ void state::on_key_down(virtual_key keycode, key_modifiers mod) {
 }
 
 void state::on_key_up(virtual_key keycode, key_modifiers mod) {
-	if(keycode == virtual_key::CONTROL || keycode == virtual_key::LCONTROL || keycode == virtual_key::RCONTROL)
+	if(is_ctrl(keycode))
 		ui_state.ctrl_held_down = false;
-	if(keycode == virtual_key::SHIFT || keycode == virtual_key::LSHIFT || keycode == virtual_key::RSHIFT)
+	if(is_shift(keycode))
 		ui_state.shift_held_down = false;
 
 	//TODO: move to according scenes
@@ -4274,6 +4275,33 @@ void state::on_scenario_load() {
 
 	ui_state.rebel_flags.resize(world.ideology_size(), 0);
 
+
+
+	// Lua init. Save lua ui environment for later when UI is available
+
+	lua_alice_api::set_state(this);
+	lua_alice_api::setup_gameloop_environment(*this);
+	// populate the table with scripted functions from lua_combined_script (read during scenario generation). Do ui script later when UI is available
+	{
+		int status;
+		status = luaL_dostring(lua_game_loop_environment, lua_combined_script.c_str());
+		if(status) {
+#ifdef _WIN32
+			OutputDebugStringA(lua_tostring(lua_game_loop_environment, -1));
+#endif
+			lua_settop(lua_game_loop_environment, 0);
+			std::abort();
+		}
+		status = luaL_dostring(lua_game_loop_environment, lua_game_loop_script.c_str());
+		if(status) {
+#ifdef _WIN32
+			OutputDebugStringA(lua_tostring(lua_game_loop_environment, -1));
+#endif
+			lua_settop(lua_game_loop_environment, 0);
+			std::abort();
+		}
+	}
+
 	if(network_mode != network_mode_type::single_player)
 		return;
 
@@ -4569,36 +4597,6 @@ void state::on_scenario_load() {
 	} };
 
 	dispatch.detach();
-
-	// Lua init. Save lua ui environment for later when UI is available
-
-	lua_alice_api::set_state(this);
-	lua_alice_api::setup_gameloop_environment(*this);
-
-
-
-	// populate the table with scripted functions from lua_combined_script (read during scenario generation). Do ui script later when UI is available
-	{
-		int status;
-		status = luaL_dostring(lua_game_loop_environment, lua_combined_script.c_str());
-		if(status) {
-#ifdef _WIN32
-			OutputDebugStringA(lua_tostring(lua_game_loop_environment, -1));
-#endif
-			lua_settop(lua_game_loop_environment, 0);
-			std::abort();
-		}
-		status = luaL_dostring(lua_game_loop_environment, lua_game_loop_script.c_str());
-		if(status) {
-#ifdef _WIN32
-			OutputDebugStringA(lua_tostring(lua_game_loop_environment, -1));
-#endif
-			lua_settop(lua_game_loop_environment, 0);
-			std::abort();
-		}
-	}
-
-
 #endif
 
 }

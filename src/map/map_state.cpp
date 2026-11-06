@@ -2066,6 +2066,8 @@ void map_state::on_key_down(sys::virtual_key keycode, sys::key_modifiers mod) {
 		pgdn_key_down = true;
 		break;
 	case sys::virtual_key::SHIFT:
+	case sys::virtual_key::LSHIFT:
+	case sys::virtual_key::RSHIFT:
 		shift_key_down = true;
 		break;
 	default:
@@ -2094,6 +2096,8 @@ void map_state::on_key_up(sys::virtual_key keycode, sys::key_modifiers mod) {
 		pgdn_key_down = false;
 		break;
 	case sys::virtual_key::SHIFT:
+	case sys::virtual_key::LSHIFT:
+	case sys::virtual_key::RSHIFT:
 		shift_key_down = false;
 		break;
 	default:

@@ -8,6 +8,8 @@
 #include "gui_listbox_templates.hpp"
 #include "gui_common_elements.hpp"
 #include "economy.hpp"
+#include "game_scene.hpp"
+
 
 namespace ui {
 

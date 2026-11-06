@@ -12,6 +12,7 @@
 #include "alice_ui.hpp"
 #include "immediate_mode.hpp"
 #include "commands.hpp"
+#include "virtual_key_utility.hpp"
 
 namespace game_scene {
 
@@ -860,7 +861,7 @@ void in_game_hotkeys(sys::state& state, sys::virtual_key keycode, sys::key_modif
 }
 
 void in_game_hotkeys_key_up(sys::state& state, sys::virtual_key keycode, sys::key_modifiers mod) {
-	if(keycode == sys::virtual_key::SHIFT) {
+	if(sys::is_shift(keycode)) {
 		if(!state.ui_state.pending_shift_selected_armies.empty()) {
 			state.selected_armies.clear();
 			for(auto army : state.ui_state.pending_shift_selected_armies) {
