@@ -989,7 +989,7 @@ void update_rankings(sys::state& state) {
 		state.world.nation_set_rank(nation, uint16_t(i + 1));
 		auto ov_rel =  state.world.nation_get_overlord_as_subject(nation);
 		auto ov = state.world.overlord_get_ruler(ov_rel);
-		if(i < state.defines.great_nations_count && !(bool)(ov) && state.world.nation_get_owned_province_count(state.great_nations[i].nation) > 0) {
+		if(i < state.defines.great_nations_count && !(bool)(ov) && state.world.nation_get_owned_province_count(nation) > 0) {
 			state.world.nation_set_is_great_power_candidate(nation, true);
 		}
 	}
