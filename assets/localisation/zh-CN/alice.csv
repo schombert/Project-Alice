@@ -1734,7 +1734,7 @@ trade_route_volume_profit_score;利润评分：?Y$val$?W（取决于基础率变
 trade_route_volume_profit_score_export;出口评分：?Y$val$?W。出口利润 ?Y$x$?W ÷ 我方出口价格 ?Y$y$?W
 trade_route_volume_profit_score_import;进口评分：?Y$val$?W。减去（进口利润 ?Y$x$?W ÷ 对方出口价格 ?Y$y$?W）
 trade_route_volume_base_change;基础变化预计：?Y$val$?W（利润评分 乘以 扩张乘数）
-trade_route_volume_decay;衰减：?Y$val$?W（防止贸易量偏离合理范围，逐渐减少低利润路线的贸易量。）
+trade_route_volume_decay;贸易量衰减
 export;出口额
 import;进口额
 total_volume;贸易总额
@@ -2204,3 +2204,10 @@ trade_good_loss_mult;沿途损失
 merchant_cut;商人分红
 term_derivative;沿项导数
 refund_explanation;特定一日的买到与预期商品服务之比。
+province_market_historical_supply;历史累计供应：?G$val$?!
+province_market_historical_demand;历史累计需求：?R$val$?!
+term_trade_volume;当前贸易量
+term_clamp_high_with;上限：?Y$x$?W 来自上家 ?Y$value$?W
+expected_import_price;预期进口价
+expected_export_price;预期出口价
+trade_volume_speed_multiplier;速度乘数
