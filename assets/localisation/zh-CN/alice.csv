@@ -1734,7 +1734,7 @@ trade_route_volume_profit_score;利润评分：?Y$val$?W（取决于基础率变
 trade_route_volume_profit_score_export;出口评分：?Y$val$?W。出口利润 ?Y$x$?W ÷ 我方出口价格 ?Y$y$?W
 trade_route_volume_profit_score_import;进口评分：?Y$val$?W。减去（进口利润 ?Y$x$?W ÷ 对方出口价格 ?Y$y$?W）
 trade_route_volume_base_change;基础变化预计：?Y$val$?W（利润评分 乘以 扩张乘数）
-trade_route_volume_decay;衰减：?Y$val$?W（防止贸易量偏离合理范围，逐渐减少低利润路线的贸易量。）
+trade_route_volume_decay;贸易量衰减
 export;出口额
 import;进口额
 total_volume;贸易总额
@@ -1897,7 +1897,7 @@ production_rh_state_population;地区人群
 production_rh_state_consumption;最多消费
 production_rh_state_production;最多生产
 production_directive_header;建筑指令
-production_directive_explain;若干建筑指令可在地区或全国发布，调整优先级和建筑开支。点击所需指令，然后点击任一高亮地区以分配它。点击已分布的指令以移除。
+production_directive_explain;建筑指令可在地区或全国发布，调整优先级和建筑开支。点击指令再点击任一高亮地区以分配。点击已分配的指令以移除。
 production_directive_national_header;国家指令
 production_directive_national_tt;国家指令作用于全国建筑。各地指令的优先级高于国家指令。
 directive_description_fmoney;利润优先
@@ -2143,15 +2143,15 @@ monthly_net_migration_lab;每月净迁移：
 need_weight_scale_min;?Y$x$?W 被当地视为小钱
 need_weight_scale_max;?Y$x$?W 被当地视为大钱
 need_weight_price;当地价：?Y$x$?W
-need_weight_available;购买可能：?Y$x$?W
-need_weight_needed_life;按职业平均，?Y$x$?W 人需要 ?Y$y$?W 商品为必需品
-need_weight_needed_everyday;按职业平均，?Y$x$?W 人需要 ?Y$y$?W 商品为日用品
-need_weight_needed_luxury;按职业平均，?Y$x$?W 人需要 ?Y$y$?W 商品为奢侈品
-need_weight_local_cost_life;按职业平均，?Y$x$?W 人想买 ?Y$y$?W 来满足必需品
-need_weight_local_cost_everyday;按职业平均，?Y$x$?W 人想买 ?Y$y$?W 来满足日用品
-need_weight_local_cost_luxury;按职业平均，?Y$x$?W 人想买 ?Y$y$?W 来满足奢侈品
+need_weight_available;购买概率：?Y$x$?W
+need_weight_needed_life;平均来看（在所有人口类型中），?Y$x$?W 人需要 ?Y$y$?W 商品作为必需品之一
+need_weight_needed_everyday;平均来看（在所有人口类型中），?Y$x$?W 人需要 ?Y$y$?W 商品作为日用品之一
+need_weight_needed_luxury;平均来看（在所有人口类型中），?Y$x$?W 人需要 ?Y$y$?W 商品作为奢侈品之一
+need_weight_local_cost_life;平均来看（在所有人口类型中），?Y$x$?W 人需支付 ?Y$y$?W 来满足必需品之一
+need_weight_local_cost_everyday;平均来看（在所有人口类型中），?Y$x$?W 人需支付 ?Y$y$?W 来满足日用品之一
+need_weight_local_cost_luxury;平均来看（在所有人口类型中），?Y$x$?W 人需支付 ?Y$y$?W 来满足奢侈品之一
 need_weight_base_cost_short;当地通胀
-need_weight_available_short;购买可能
+need_weight_available_short;购买概率
 need_weight_w_life_short;必需品倾向
 need_weight_needed_life_short;必需品需求
 need_weight_local_cost_life_short;必需品成本
@@ -2190,7 +2190,7 @@ term_trade_target;入口市场
 term_trade_owner;贸易路线主
 term_max;最大
 term_min;最小
-term_clamp_low_with;在下家 ?Y$x$?W 强加：?Y$value$?W
+term_clamp_low_with;在下家 ?Y$x$?W 下限：?Y$value$?W
 term_left;左参
 term_right;右参
 term_naval_transport_demand_satisfaction;海运满足度
@@ -2204,3 +2204,10 @@ trade_good_loss_mult;沿途损失
 merchant_cut;商人分红
 term_derivative;沿项导数
 refund_explanation;特定一日的买到与预期商品服务之比。
+province_market_historical_supply;历史累计供应：?G$val$?!
+province_market_historical_demand;历史累计需求：?R$val$?!
+term_trade_volume;当前贸易量
+term_clamp_high_with;上限：?Y$x$?W 来自上家 ?Y$value$?W
+expected_import_price;预期进口价
+expected_export_price;预期出口价
+trade_volume_speed_multiplier;速度乘数
