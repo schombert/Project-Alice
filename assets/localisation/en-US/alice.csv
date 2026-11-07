@@ -1588,7 +1588,7 @@ trade_route_volume_expansion_multiplier;Expansion multiplier: ?Y$val$?W (Depends
 trade_route_volume_transport_availability;Transport availability: ?Y$val$?W
 trade_route_volume_budget_availability;Available import budget: ?Y$val$?W
 trade_route_volume_risk;Riskiness of the trade (Depends on ratio of price to available funds) : ?Y$val$?W
-trade_route_volume_decay;Decay: ?Y$val$?W (Prevents trade volume from running too far away and slowly decreases volume of low profit routes)
+trade_route_volume_decay;Decay of trade volume
 trade_route_volume_final_change;Expected change: ?Y$val$
 trade_route_confidence_export;Confidence in export price: ?Y$val$
 trade_route_confidence_import;Confidence in import price: ?Y$val$
@@ -1757,6 +1757,8 @@ province_market_market;Market: ?Y$name$?!
 province_market_price;Price: ?Y$val$?!
 province_market_supply;Supply: ?G$val$?!
 province_market_demand;Demand: ?R$val$?!
+province_market_historical_supply;Aggregated historical supply: ?G$val$?!
+province_market_historical_demand;Aggregated historical demand: ?R$val$?!
 province_market_production;Production: ?G$val$?!
 province_market_consumption;Consumption: ?R$val$?!
 province_market_stockpiles;Stockpiles: ?Y$val$?!
@@ -2181,6 +2183,7 @@ need_weight_price_short;Price
 term_commodity;Commodity
 term_market;Market
 term_market_price;Local price
+term_trade_volume;Current trade volume
 term_market_price_confidence;Local price confidence
 term_market_price_origin;?Y$y$?W price in exporter ?Y$val$?W: ?Y$value$?W
 term_market_price_target;?Y$y$?W price in importer ?Y$val$?W: ?Y$value$?W
@@ -2195,6 +2198,7 @@ term_trade_owner;Trade route owner
 term_max;Max
 term_min;Min
 term_clamp_low_with;Clamp with ?Y$x$?W from below: ?Y$value$?W
+term_clamp_high_with;Clamp with ?Y$x$?W from above: ?Y$value$?W
 term_left;Left arg
 term_right;Right arg
 term_naval_transport_demand_satisfaction;Naval transport satisfaction
@@ -2208,3 +2212,6 @@ trade_good_loss_mult;Losses along the route
 merchant_cut;Merchants cut
 term_derivative;Derivative along term
 refund_explanation;Ratio of desired goods and services which was actually purchased at the given day.
+expected_import_price;Expected import price
+expected_export_price;Expected export price
+trade_volume_speed_multiplier;Speed mulltiplier

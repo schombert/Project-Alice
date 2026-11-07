@@ -617,10 +617,10 @@ void advance_private_province_building_construction(
 			if(current >= required)
 				continue;
 			auto amount = required / details.construction_time;
-			auto source_private = state.world.market_get_private_construction_demand(details.market, base_cost.commodity_type[i]);
+			auto source_private = state.world.market_get_stockpile(details.market, base_cost.commodity_type[i]);
 			auto delta = std::clamp(required / details.construction_time, 0.f, source_private);
 			current_purchased[i] += delta;
-			state.world.market_set_private_construction_demand(details.market, base_cost.commodity_type[i], source_private - delta);
+			state.world.market_set_stockpile(details.market, base_cost.commodity_type[i], source_private - delta);
 
 		}
 	}
@@ -883,10 +883,10 @@ void advance_private_factory_construction(
 			auto current = current_purchased[i];
 			auto required = base_cost.commodity_amounts[i] * details.cost_multiplier;
 			if(current >= required)	continue;
-			auto source_private = state.world.market_get_private_construction_demand(details.market, base_cost.commodity_type[i]);
+			auto source_private = state.world.market_get_stockpile(details.market, base_cost.commodity_type[i]);
 			auto delta = std::clamp(required / details.construction_time, 0.f, source_private);
 			current_purchased[i] += delta;
-			state.world.market_set_private_construction_demand(details.market, base_cost.commodity_type[i], source_private - delta);
+			state.world.market_set_stockpile(details.market, base_cost.commodity_type[i], source_private - delta);
 
 		}
 	}
@@ -1407,11 +1407,23 @@ void update_private_construction_demand_satisfaction(sys::state& state, dcon::na
 			dcon::commodity_id c{ dcon::commodity_id::value_base_t(i) };
 			auto d_sat = state.world.market_get_actual_probability_to_buy(market, c);
 			auto private_demand = state.world.market_get_private_construction_demand(market, c);
-			state.world.market_set_private_construction_demand(market, c, private_demand * p_spending * d_sat);
-			// refund to private investors
-			auto invested = state.world.nation_get_private_investment(n);
+			auto local_stockpile = state.world.market_get_stockpile(market, c);
+			auto bought = private_demand * p_spending * d_sat;
+			state.world.market_set_stockpile(market, c, local_stockpile + bought);
+			//state.world.market_set_private_construction_demand(market, c, local_stockpile + bought);
+		
+			/*
+			Normally, these money would be refunded to entity which is actually spending them.
+			But in this case the main issue is that if you return all the money to private investors,
+			local market will be out of money and goods.
+			Stockpiles belong to private investors anyway, so here we do something else:
+			When they are unable to buy something, they reserve money
+			inside the market accounts so it would be able to buy goods.
+			It allows to make budget limitations on trade more strict and avoid situation of runaway spending on imports.
+			*/
+			auto invested = state.world.market_get_stockpile(market, economy::money);
 			auto refund = private_demand * p_spending * (1.f - d_sat);
-			state.world.nation_set_private_investment(n, invested + refund);
+			state.world.market_set_stockpile(market, economy::money,  invested + refund);
 		}
 	});
 }

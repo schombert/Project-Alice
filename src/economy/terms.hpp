@@ -140,6 +140,27 @@ fetch_price_confidence_result<switch_to_result<left_t>, switch_to_result<right_t
 	return { left, right, result };
 }
 template <typename replacement, typename left_t, typename right_t>
+fetch_aggregated_demand_history_result<switch_to_result<left_t>, switch_to_result<right_t>> compute(sys::state const& state, replacement replace_with, fetch_aggregated_demand_history<left_t, right_t>& node) {
+	auto left = compute(state, replace_with, node.left);
+	auto right = compute(state, replace_with, node.right);
+	auto result = state.world.market_get_aggregated_demand_history(left.data, right.data);
+	return { left, right, result };
+}
+template <typename replacement, typename left_t, typename right_t>
+fetch_expected_probability_to_sell_result<switch_to_result<left_t>, switch_to_result<right_t>> compute(sys::state const& state, replacement replace_with, fetch_expected_probability_to_sell<left_t, right_t>& node) {
+	auto left = compute(state, replace_with, node.left);
+	auto right = compute(state, replace_with, node.right);
+	auto result = state.world.market_get_expected_probability_to_sell(left.data, right.data);
+	return { left, right, result };
+}
+template <typename replacement, typename left_t, typename right_t>
+fetch_expected_probability_to_buy_result<switch_to_result<left_t>, switch_to_result<right_t>> compute(sys::state const& state, replacement replace_with, fetch_expected_probability_to_buy<left_t, right_t>& node) {
+	auto left = compute(state, replace_with, node.left);
+	auto right = compute(state, replace_with, node.right);
+	auto result = state.world.market_get_expected_probability_to_buy(left.data, right.data);
+	return { left, right, result };
+}
+template <typename replacement, typename left_t, typename right_t>
 fetch_trade_volume_result<switch_to_result<left_t>, switch_to_result<right_t>> compute(sys::state const& state, replacement replace_with, fetch_trade_volume<left_t, right_t>& node) {
 	auto left = compute(state, replace_with, node.left);
 	auto right = compute(state, replace_with, node.right);
@@ -277,6 +298,42 @@ float compute_derivative(sys::state const& state, axis_t axis, fetch_price_confi
 	return 0.f;
 }
 template <typename left_t, typename right_t>
+float compute_derivative(sys::state const& state, fetch_aggregated_demand_history_result<market_id_wrapper, commodity_id_wrapper> axis, fetch_aggregated_demand_history_result<left_t, right_t>& node) {
+	if(node.left.data == axis.left.data && node.right.data == axis.right.data) {
+		return 1.f;
+	} else {
+		return 0.f;
+	}
+}
+template <typename axis_t, typename left_t, typename right_t>
+float compute_derivative(sys::state const& state, axis_t axis, fetch_aggregated_demand_history_result<left_t, right_t>& node) {
+	return 0.f;
+}
+template <typename left_t, typename right_t>
+float compute_derivative(sys::state const& state, fetch_expected_probability_to_sell_result<market_id_wrapper, commodity_id_wrapper> axis, fetch_expected_probability_to_sell_result<left_t, right_t>& node) {
+	if(node.left.data == axis.left.data && node.right.data == axis.right.data) {
+		return 1.f;
+	} else {
+		return 0.f;
+	}
+}
+template <typename axis_t, typename left_t, typename right_t>
+float compute_derivative(sys::state const& state, axis_t axis, fetch_expected_probability_to_sell_result<left_t, right_t>& node) {
+	return 0.f;
+}
+template <typename left_t, typename right_t>
+float compute_derivative(sys::state const& state, fetch_expected_probability_to_buy_result<market_id_wrapper, commodity_id_wrapper> axis, fetch_expected_probability_to_buy_result<left_t, right_t>& node) {
+	if(node.left.data == axis.left.data && node.right.data == axis.right.data) {
+		return 1.f;
+	} else {
+		return 0.f;
+	}
+}
+template <typename axis_t, typename left_t, typename right_t>
+float compute_derivative(sys::state const& state, axis_t axis, fetch_expected_probability_to_buy_result<left_t, right_t>& node) {
+	return 0.f;
+}
+template <typename left_t, typename right_t>
 float compute_derivative(sys::state const& state, fetch_trade_volume_result<trade_route_id_wrapper, commodity_id_wrapper> axis, fetch_trade_volume_result<left_t, right_t>& node) {
 	if(node.left.data == axis.left.data && node.right.data == axis.right.data) {
 		return 1.f;
@@ -382,6 +439,16 @@ void evaluate_string(
 		evaluate_string(state, dest, box, indent, false, result.left);
 		evaluate_string(state, dest, box, indent, true, result.right);
 	} else {
+		if constexpr(potential_constant<left_t_computed>) {
+			if(result.left.is_constant) {
+				text::add_to_layout_box(state, dest, box, indent);
+				text::add_to_layout_box(state, dest, box, text::format_float(result.data), text::text_color::gold);
+				text::add_to_layout_box(state, dest, box, " = " + text::format_float(result.left.data) + " + ", text::text_color::light_grey);
+				text::add_line_break_to_layout_box(state, dest, box);
+				evaluate_string(state, dest, box, indent + "|\t\t", true, result.right);
+				return;
+			}
+		}
 		text::add_to_layout_box(state, dest, box, indent + "-" + text::produce_simple_string(state, "term_add") + ": ");
 		text::add_to_layout_box(state, dest, box, text::format_float(result.data), text::text_color::gold);
 		text::add_line_break_to_layout_box(state, dest, box);
@@ -403,6 +470,16 @@ void evaluate_string(
 		evaluate_string(state, dest, box, indent, false, result.left);
 		evaluate_string(state, dest, box, indent, false, result.right);
 	} else {
+		if constexpr(potential_constant<left_t_computed>) {
+			if(result.left.is_constant) {
+				text::add_to_layout_box(state, dest, box, indent);
+				text::add_to_layout_box(state, dest, box, text::format_float(result.data), text::text_color::gold);
+				text::add_to_layout_box(state, dest, box, " = " + text::format_float(result.left.data) + " + ", text::text_color::light_grey);
+				text::add_line_break_to_layout_box(state, dest, box);
+				evaluate_string(state, dest, box, indent + "|\t\t", false, result.right);
+				return;
+			}
+		}
 		text::add_to_layout_box(state, dest, box, indent + "-" + text::produce_simple_string(state, "term_add") + ": ");
 		text::add_to_layout_box(state, dest, box, text::format_float(result.data), text::text_color::gold);
 		text::add_line_break_to_layout_box(state, dest, box);
@@ -451,6 +528,16 @@ void evaluate_string(sys::state& state, text::layout_base& dest, text::layout_bo
 		evaluate_string(state, dest, box, indent, false, calculation.left);
 		evaluate_string(state, dest, box, indent, true, calculation.right);
 	} else {
+		if constexpr(potential_constant<left_t>) {
+			if(calculation.left.is_constant) {
+				text::add_to_layout_box(state, dest, box, indent);
+				text::add_to_layout_box(state, dest, box, text::format_float(calculation.data), text::text_color::gold);
+				text::add_to_layout_box(state, dest, box, " = " + text::format_float(calculation.left.data) + " * ", text::text_color::light_grey);
+				text::add_line_break_to_layout_box(state, dest, box);
+				evaluate_string(state, dest, box, indent + "|\t\t", true, calculation.right);
+				return;
+			}
+		}
 		text::add_to_layout_box(state, dest, box, indent + "-" + text::produce_simple_string(state, "term_mul") + ": ");
 		text::add_to_layout_box(state, dest, box, text::format_float(calculation.data), text::text_color::gold);
 		text::add_line_break_to_layout_box(state, dest, box);
@@ -464,6 +551,16 @@ void evaluate_string(sys::state& state, text::layout_base& dest, text::layout_bo
 		evaluate_string(state, dest, box, indent, false, calculation.left);
 		evaluate_string(state, dest, box, indent, false, calculation.right);
 	} else {
+		if constexpr(potential_constant<left_t>) {
+			if(calculation.left.is_constant) {
+				text::add_to_layout_box(state, dest, box, indent);
+				text::add_to_layout_box(state, dest, box, text::format_float(calculation.data), text::text_color::gold);
+				text::add_to_layout_box(state, dest, box, " = " + text::format_float(calculation.left.data) + " * ", text::text_color::light_grey);
+				text::add_line_break_to_layout_box(state, dest, box);
+				evaluate_string(state, dest, box, indent + "|\t\t", false, calculation.right);
+				return;
+			}
+		}
 		text::add_to_layout_box(state, dest, box, indent + "-" + text::produce_simple_string(state, "term_mul") + ": ");
 		text::add_to_layout_box(state, dest, box, text::format_float(calculation.data), text::text_color::gold);
 		text::add_line_break_to_layout_box(state, dest, box);
@@ -531,6 +628,35 @@ void evaluate_string(sys::state& state, text::layout_base& dest, text::layout_bo
 	text::add_line_break_to_layout_box(state, dest, box);
 	evaluate_string(state, dest, box, indent + "|\t\t", false, calculation.right);
 }
+template <typename right_t>
+void evaluate_string(sys::state& state, text::layout_base& dest, text::layout_box& box, std::string indent, bool assoc, min_result<value_t_result, right_t>& calculation) {
+	if(calculation.left.is_constant) {
+		text::add_to_layout_box(state, dest, box, indent + "-");
+		text::substitution_map m;
+		text::add_to_substitution_map(m,
+			text::variable_type::x, text::fp_two_places{ calculation.left.data }
+		);
+		text::add_to_substitution_map(m,
+			text::variable_type::value, text::fp_two_places{ calculation.data }
+		);
+		text::localised_format_box(state, dest, box, "term_clamp_high_with", m);
+		text::add_line_break_to_layout_box(state, dest, box);
+		evaluate_string(state, dest, box, indent + "|-", false, calculation.right);
+	} else {
+		text::add_to_layout_box(state, dest, box, indent + "-" + text::produce_simple_string(state, "term_min") + ": ");
+		text::add_to_layout_box(state, dest, box, text::format_float(calculation.data), text::text_color::gold);
+		text::add_line_break_to_layout_box(state, dest, box);
+		text::add_to_layout_box(state, dest, box, indent + "|-" + text::produce_simple_string(state, "term_left") + ": ");
+		text::add_to_layout_box(state, dest, box, text::format_float(calculation.left.data), text::text_color::gold);
+		text::add_line_break_to_layout_box(state, dest, box);
+		evaluate_string(state, dest, box, indent + "|\t\t", false, calculation.left);
+		text::add_to_layout_box(state, dest, box, indent + "|-" + text::produce_simple_string(state, "term_right") + ": ");
+		text::add_to_layout_box(state, dest, box, text::format_float(calculation.right.data), text::text_color::gold);
+		text::add_line_break_to_layout_box(state, dest, box);
+		evaluate_string(state, dest, box, indent + "|\t\t", false, calculation.right);
+	}
+}
+
 
 template <typename left_t, typename right_t>
 void evaluate_string(sys::state& state, text::layout_base& dest, text::layout_box& box, std::string indent, bool assoc, min_result<left_t, right_t>& calculation) {
@@ -786,6 +912,56 @@ inline void evaluate_string(sys::state& state, text::layout_base& dest, text::la
 template <typename left_t, typename right_t>
 void evaluate_string(sys::state& state, text::layout_base& dest, text::layout_box& box, std::string indent, bool assoc, fetch_price_confidence_result<left_t, right_t>& calculation) {
 	text::add_to_layout_box(state, dest, box, indent + "-" + text::produce_simple_string(state, "term_market_price_confidence") + ": ");
+	text::add_to_layout_box(state, dest, box, text::format_float(calculation.data), text::text_color::gold);
+	text::add_line_break_to_layout_box(state, dest, box);
+
+	text::add_to_layout_box(state, dest, box, indent + "|-" + text::produce_simple_string(state, "term_market") + ": ");
+	text::add_to_layout_box(state, dest, box, std::to_string(calculation.left.data.index()), text::text_color::gold);
+	text::add_line_break_to_layout_box(state, dest, box);
+	evaluate_string(state, dest, box, indent + "|\t\t", false, calculation.left);
+
+	text::add_to_layout_box(state, dest, box, indent + "|-" + text::produce_simple_string(state, "term_commodity") + ": ");
+	text::add_to_layout_box(state, dest, box, text::get_name_as_string(state, calculation.right.data), text::text_color::gold);
+	text::add_line_break_to_layout_box(state, dest, box);
+	evaluate_string(state, dest, box, indent + "|\t\t", false, calculation.right);
+}
+
+
+template <typename left_t, typename right_t>
+void evaluate_string(sys::state& state, text::layout_base& dest, text::layout_box& box, std::string indent, bool assoc, fetch_aggregated_demand_history_result<left_t, right_t>& calculation) {
+	text::add_to_layout_box(state, dest, box, indent + "-" + text::produce_simple_string(state, "term_market_aggregated_demand") + ": ");
+	text::add_to_layout_box(state, dest, box, text::format_float(calculation.data), text::text_color::gold);
+	text::add_line_break_to_layout_box(state, dest, box);
+
+	text::add_to_layout_box(state, dest, box, indent + "|-" + text::produce_simple_string(state, "term_market") + ": ");
+	text::add_to_layout_box(state, dest, box, std::to_string(calculation.left.data.index()), text::text_color::gold);
+	text::add_line_break_to_layout_box(state, dest, box);
+	evaluate_string(state, dest, box, indent + "|\t\t", false, calculation.left);
+
+	text::add_to_layout_box(state, dest, box, indent + "|-" + text::produce_simple_string(state, "term_commodity") + ": ");
+	text::add_to_layout_box(state, dest, box, text::get_name_as_string(state, calculation.right.data), text::text_color::gold);
+	text::add_line_break_to_layout_box(state, dest, box);
+	evaluate_string(state, dest, box, indent + "|\t\t", false, calculation.right);
+}
+template <typename left_t, typename right_t>
+void evaluate_string(sys::state& state, text::layout_base& dest, text::layout_box& box, std::string indent, bool assoc, fetch_expected_probability_to_buy_result<left_t, right_t>& calculation) {
+	text::add_to_layout_box(state, dest, box, indent + "-" + text::produce_simple_string(state, "term_market_probability_to_buy") + ": ");
+	text::add_to_layout_box(state, dest, box, text::format_float(calculation.data), text::text_color::gold);
+	text::add_line_break_to_layout_box(state, dest, box);
+
+	text::add_to_layout_box(state, dest, box, indent + "|-" + text::produce_simple_string(state, "term_market") + ": ");
+	text::add_to_layout_box(state, dest, box, std::to_string(calculation.left.data.index()), text::text_color::gold);
+	text::add_line_break_to_layout_box(state, dest, box);
+	evaluate_string(state, dest, box, indent + "|\t\t", false, calculation.left);
+
+	text::add_to_layout_box(state, dest, box, indent + "|-" + text::produce_simple_string(state, "term_commodity") + ": ");
+	text::add_to_layout_box(state, dest, box, text::get_name_as_string(state, calculation.right.data), text::text_color::gold);
+	text::add_line_break_to_layout_box(state, dest, box);
+	evaluate_string(state, dest, box, indent + "|\t\t", false, calculation.right);
+}
+template <typename left_t, typename right_t>
+void evaluate_string(sys::state& state, text::layout_base& dest, text::layout_box& box, std::string indent, bool assoc, fetch_expected_probability_to_sell_result<left_t, right_t>& calculation) {
+	text::add_to_layout_box(state, dest, box, indent + "-" + text::produce_simple_string(state, "term_market_probability_to_sell") + ": ");
 	text::add_to_layout_box(state, dest, box, text::format_float(calculation.data), text::text_color::gold);
 	text::add_line_break_to_layout_box(state, dest, box);
 
