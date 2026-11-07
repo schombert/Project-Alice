@@ -317,6 +317,13 @@ void rebalance_needs_weights(sys::state& state) {
 		ve::fp_vector local_cost_life { economy::price_properties::commodity::min };
 		ve::fp_vector local_cost_everyday{ economy::price_properties::commodity::min };
 		ve::fp_vector local_cost_luxury{ economy::price_properties::commodity::min };
+
+		ve::fp_vector local_cost_reasonable { economy::price_properties::commodity::min };
+
+		auto local_zone = state.world.market_get_zone_from_local_market(market);
+		auto local_capital = state.world.state_instance_get_capital(local_zone);
+		auto local_base_wage = economy::price_properties::commodity::min + state.world.province_get_labor_price(local_capital, labor::basic_education) * state.defines.alice_needs_scaling_factor;
+
 		state.world.for_each_commodity([&](auto cid) {
 			auto base_life = average_life_need.get(cid);
 			auto base_everyday = average_everyday_need.get(cid);
@@ -324,10 +331,18 @@ void rebalance_needs_weights(sys::state& state) {
 
 			auto price = state.world.market_get_price(market, cid);
 
+			auto w_life = state.world.market_get_life_needs_weights(market, cid);
+			auto w_everyday = state.world.market_get_everyday_needs_weights(market, cid);
+			auto w_luxury = state.world.market_get_luxury_needs_weights(market, cid);
+
+			local_cost_reasonable = local_cost_reasonable + w_life * base_life * price + w_everyday * base_everyday * price * 0.000'000'1f;
+
 			local_cost_life = local_cost_life + base_life * price;
 			local_cost_everyday = local_cost_everyday + base_everyday * price;
 			local_cost_luxury = local_cost_luxury + base_luxury * price;
 		});
+
+		local_cost_reasonable = ve::min(local_base_wage * 20.f, local_cost_reasonable);
 
 		state.world.for_each_commodity([&](dcon::commodity_id c) {
 			auto price = state.world.market_get_price(market, c);
@@ -341,9 +356,9 @@ void rebalance_needs_weights(sys::state& state) {
 			auto needed_everyday = average_everyday_need.get(c);
 			auto needed_luxury = average_luxury_need.get(c);
 
-			ve::fp_vector dw_life = need_weight_change<ve::fp_vector, ve::fp_vector>(local_cost_life + local_cost_everyday * 0.000'000'1f, price, available, w_life, needed_life, local_cost_life, life_count);
-			ve::fp_vector dw_everyday = need_weight_change<ve::fp_vector, ve::fp_vector>(local_cost_life + local_cost_everyday * 0.000'000'1f, price, available, w_everyday, needed_everyday, local_cost_everyday, everyday_count);
-			ve::fp_vector dw_luxury = need_weight_change<ve::fp_vector, ve::fp_vector>(local_cost_life + local_cost_everyday * 0.000'000'1f, price, available, w_luxury, needed_luxury, local_cost_luxury, luxury_count);
+			ve::fp_vector dw_life = need_weight_change<ve::fp_vector, ve::fp_vector>(local_cost_reasonable, price, available, w_life, needed_life, local_cost_life, life_count);
+			ve::fp_vector dw_everyday = need_weight_change<ve::fp_vector, ve::fp_vector>(local_cost_reasonable, price, available, w_everyday, needed_everyday, local_cost_everyday, everyday_count);
+			ve::fp_vector dw_luxury = need_weight_change<ve::fp_vector, ve::fp_vector>(local_cost_reasonable, price, available, w_luxury, needed_luxury, local_cost_luxury, luxury_count);
 
 			w_life = ve::max(ve::fp_vector{0.f}, ve::min(ve::fp_vector{1.f}, w_life + dw_life * 10.f * state.defines.alice_need_drift_speed));
 			w_everyday = ve::max(ve::fp_vector{ 0.f }, ve::min(ve::fp_vector{ 1.f }, w_everyday + dw_everyday * 10.f * state.defines.alice_need_drift_speed));
@@ -3680,7 +3695,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 					if(presimulation) {
 						state.world.market_set_aggregated_demand_history(markets, c, old_aggregated_demand * 0.001f + old_demand * 0.999f);
 					} else {
-						state.world.market_set_aggregated_demand_history(markets, c, old_aggregated_demand * 0.95f + old_demand * 0.05f);
+						state.world.market_set_aggregated_demand_history(markets, c, old_aggregated_demand * 0.8f + old_demand * 0.2f);
 					}
 
 					state.world.market_set_demand(markets, c, ve::fp_vector{});
@@ -5024,7 +5039,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 					if(presimulation) {
 						state.world.market_set_aggregated_supply_history(markets, c, old_aggregated_supply * 0.001f + old_supply * 0.999f);
 					} else {
-						state.world.market_set_aggregated_supply_history(markets, c, old_aggregated_supply * 0.95f + old_supply * 0.05f);
+						state.world.market_set_aggregated_supply_history(markets, c, old_aggregated_supply * 0.8f + old_supply * 0.2f);
 					}
 
 					state.world.market_set_supply(markets, c, ve::fp_vector{});
@@ -5126,7 +5141,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 					+ preserve_stockpiles_for_future * stockpile_is_running_out
 				) / total_score;
 
-				auto next_merchants_supply = current_merchants_supply * 0.5f + historical_balance * 0.4f + target * 0.10f; //+ desired_sales * 0.000002f ;
+				auto next_merchants_supply = ve::min(ve::max(historical_demand * 0.1f, stockpiles * stockpile_to_supply), current_merchants_supply * 0.5f + historical_balance * 0.4f + target * 0.10f); //+ desired_sales * 0.000002f ;
 
 				auto bounded_next_merchants_supply = ve::min(stockpiles, ve::max(0.f, next_merchants_supply));
 				state.world.market_set_stockpile_sales(markets, c, bounded_next_merchants_supply);
@@ -5138,7 +5153,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 					&& state.world.commodity_get_rgo_amount(c) > 0.f
 				) {
 					state.world.market_set_stockpile(markets, c, ve::max(
-						ve::min(ve::fp_vector{3650.f}, (2.f - confidence) * presimulation_stage * historical_demand / stockpile_to_supply),
+						ve::min(ve::fp_vector{365.f}, (2.f - confidence) * historical_demand / stockpile_to_supply),
 						state.world.market_get_stockpile(markets, c)
 					));
 				}
@@ -5657,7 +5672,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 		state.world.for_each_commodity([&](dcon::commodity_id c) {
 			if(!state.world.commodity_get_money_rgo(c))
 				return;
-			state.world.market_set_price(ids, c, state.world.commodity_get_cost(c) * 0.05f);
+			state.world.market_set_price(ids, c, state.world.commodity_get_cost(c));
 		});
 	});
 

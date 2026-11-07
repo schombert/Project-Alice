@@ -54,7 +54,7 @@ DCON_RELEASE_INLINE auto market_get_expected_probability_to_sell(sys::state cons
 	return state.world.market_get_expected_probability_to_sell(market, cid);
 }
 template<bool eager, typename left_t, typename right_t, std::enable_if_t<!eager, bool> = true>
-constexpr term::fetch_price<left_t, right_t> market_get_expected_probability_to_sell(sys::state const& state, left_t market, right_t cid) {
+constexpr term::fetch_expected_probability_to_sell<left_t, right_t> market_get_expected_probability_to_sell(sys::state const& state, left_t market, right_t cid) {
 	return { market, cid };
 }
 
@@ -63,7 +63,7 @@ DCON_RELEASE_INLINE auto market_get_expected_probability_to_buy(sys::state const
 	return state.world.market_get_expected_probability_to_buy(market, cid);
 }
 template<bool eager, typename left_t, typename right_t, std::enable_if_t<!eager, bool> = true>
-constexpr term::fetch_price<left_t, right_t> market_get_expected_probability_to_buy(sys::state const& state, left_t market, right_t cid) {
+constexpr term::fetch_expected_probability_to_buy<left_t, right_t> market_get_expected_probability_to_buy(sys::state const& state, left_t market, right_t cid) {
 	return { market, cid };
 }
 
@@ -72,7 +72,7 @@ DCON_RELEASE_INLINE auto market_get_aggregated_demand_history(sys::state const& 
 	return state.world.market_get_aggregated_demand_history(market, cid);
 }
 template<bool eager, typename left_t, typename right_t, std::enable_if_t<!eager, bool> = true>
-constexpr term::fetch_price<left_t, right_t> market_get_aggregated_demand_history(sys::state const& state, left_t market, right_t cid) {
+constexpr term::fetch_aggregated_demand_history<left_t, right_t> market_get_aggregated_demand_history(sys::state const& state, left_t market, right_t cid) {
 	return { market, cid };
 }
 
@@ -163,7 +163,7 @@ x = (2 * EARN - SPEND) / (2 * EARN) --- the ratio of traders with profitable tra
 */
 
 template<bool eager, typename scalar, typename ROUTE_ID, typename COMMODITY_ID, typename VALUE_IN, typename BOOL_IN1, typename BOOL_IN2>
-inline auto trade_route_compute_next_volume(
+inline auto trade_route_compute_change_multiplier(
 	sys::state const& state,
 	BOOL_IN1 reset_route,
 	BOOL_IN2 is_sea_route,
@@ -175,18 +175,16 @@ inline auto trade_route_compute_next_volume(
 	VALUE_IN transport_cost,
 	VALUE_IN budget,
 	VALUE_IN trade_good_loss_mult,
-	VALUE_IN merchant_cut
+	VALUE_IN merchant_cut,
+	VALUE_IN price_import,
+	VALUE_IN price_export
 ) {
 	auto origin = adaptive_ve::trade_route_get_origin<eager, ROUTE_ID>(state, trade_route);
 	auto target = adaptive_ve::trade_route_get_target<eager, ROUTE_ID>(state, trade_route);
 	auto owner = adaptive_ve::trade_route_get_owner<eager, ROUTE_ID>(state, trade_route);
 	auto reset_route_commodity = reset_route;
 	auto current_volume = adaptive_ve::trade_route_get_volume<eager>(state, trade_route, c);
-	auto confidence_export = adaptive_ve::max(adaptive_ve::constant_value<scalar>(0.5f), adaptive_ve::market_get_price_confidence<eager>(state, origin, c));
-	auto confidence_import = adaptive_ve::max(adaptive_ve::constant_value<scalar>(0.5f), adaptive_ve::market_get_price_confidence<eager>(state, target, c));
-	auto price_origin = adaptive_ve::market_get_price<eager>(state, origin, c);
-	auto price_target = adaptive_ve::market_get_price<eager>(state, target, c);
-	
+
 	auto expected_to_buy = adaptive_ve::market_get_expected_probability_to_buy<eager>(state, origin, c);
 	auto expected_to_sell = adaptive_ve::market_get_expected_probability_to_sell<eager>(state, target, c);
 	auto historical_demand = adaptive_ve::market_get_aggregated_demand_history<eager>(state, target, c);
@@ -194,10 +192,6 @@ inline auto trade_route_compute_next_volume(
 	auto naval_transport_availability = adaptive_ve::market_get_naval_transportation_demand_satisfaction<eager>(state, owner);
 	auto land_transport_availability = adaptive_ve::market_get_land_transportation_demand_satisfaction<eager>(state, owner);
 	auto transport_availability = adaptive_ve::select<BOOL_IN2, scalar>(is_sea_route, naval_transport_availability, land_transport_availability);
-	
-
-	auto price_export = price_origin / confidence_export;
-	auto price_import = price_target * confidence_import;
 
 	auto earn_per_unit = price_import * trade_good_loss_mult;
 	auto pay_per_unit = price_export * (1.f + export_tariff + merchant_cut) + price_import * import_tariff + transport_cost;
@@ -211,10 +205,95 @@ inline auto trade_route_compute_next_volume(
 	auto change_multiplier =
 		adaptive_ve::max(adaptive_ve::constant_value<scalar>(0.f), (hard_limit - 0.9f) / 0.1f)
 		* adaptive_ve::max(adaptive_ve::constant_value<scalar>(0.f), (soft_limit - 0.8f) / 0.2f)
-		* budget_factor * budget_factor;
-	auto decay = adaptive_ve::max(adaptive_ve::constant_value<scalar>(0.999f), adaptive_ve::min(adaptive_ve::constant_value<scalar>(1.f), 0.5f + hard_limit * soft_limit * budget_scale));
-	auto diff = 2.f * (earn_per_unit - pay_per_unit) / (earn_per_unit + economy::price_properties::commodity::min);
-	auto change = (current_volume * 0.001f + 0.1f) * diff;
+		* adaptive_ve::max(adaptive_ve::constant_value<scalar>(0.f), (budget_scale - 0.1f) / 0.2f)
+		* adaptive_ve::max(adaptive_ve::constant_value<scalar>(0.f), adaptive_ve::min(adaptive_ve::constant_value<scalar>(100.f), budget / (economy::price_properties::commodity::min + 100.f * price_sold) - 0.01f));
+
+	return change_multiplier;
+}
+
+template<bool eager, typename scalar, typename ROUTE_ID, typename COMMODITY_ID, typename VALUE_IN, typename BOOL_IN1, typename BOOL_IN2>
+inline auto trade_route_compute_decay(
+	sys::state const& state,
+	BOOL_IN1 reset_route,
+	BOOL_IN2 is_sea_route,
+	ROUTE_ID trade_route,
+	COMMODITY_ID c,
+
+	VALUE_IN export_tariff,
+	VALUE_IN import_tariff,
+	VALUE_IN transport_cost,
+	VALUE_IN budget,
+	VALUE_IN trade_good_loss_mult,
+	VALUE_IN merchant_cut,
+	VALUE_IN price_import,
+	VALUE_IN price_export
+) {
+	auto origin = adaptive_ve::trade_route_get_origin<eager, ROUTE_ID>(state, trade_route);
+	auto target = adaptive_ve::trade_route_get_target<eager, ROUTE_ID>(state, trade_route);
+	auto owner = adaptive_ve::trade_route_get_owner<eager, ROUTE_ID>(state, trade_route);
+	auto reset_route_commodity = reset_route;
+	auto current_volume = adaptive_ve::trade_route_get_volume<eager>(state, trade_route, c);
+
+	auto expected_to_buy = adaptive_ve::market_get_expected_probability_to_buy<eager>(state, origin, c);
+	auto expected_to_sell = adaptive_ve::market_get_expected_probability_to_sell<eager>(state, target, c);
+	auto historical_demand = adaptive_ve::market_get_aggregated_demand_history<eager>(state, target, c);
+	auto import_budget_scale = adaptive_ve::market_get_trade_house_budget_import_scale<eager>(state, target);
+	auto naval_transport_availability = adaptive_ve::market_get_naval_transportation_demand_satisfaction<eager>(state, owner);
+	auto land_transport_availability = adaptive_ve::market_get_land_transportation_demand_satisfaction<eager>(state, owner);
+	auto transport_availability = adaptive_ve::select<BOOL_IN2, scalar>(is_sea_route, naval_transport_availability, land_transport_availability);
+
+	auto earn_per_unit = price_import * trade_good_loss_mult;
+	auto pay_per_unit = price_export * (1.f + export_tariff + merchant_cut) + price_import * import_tariff + transport_cost;
+	auto owner_is_exporter = owner == origin;
+	auto price_sold = adaptive_ve::select<decltype(owner_is_exporter), scalar>(owner_is_exporter, price_import, price_export);
+	auto budget_scale = adaptive_ve::max(adaptive_ve::constant_value<scalar>(0.f), 1.f - import_budget_scale);
+	auto budget_factor = adaptive_ve::min(adaptive_ve::constant_value<scalar>(1.f), adaptive_ve::max(adaptive_ve::constant_value<scalar>(0.f), budget / (1.f + import_budget_scale * 5.f) / 100.f * budget_scale / (economy::price_properties::commodity::min + price_sold)));
+
+	auto hard_limit = transport_availability;
+	auto soft_limit = expected_to_sell * expected_to_buy;
+	auto decay = adaptive_ve::max(adaptive_ve::constant_value<scalar>(0.99f), adaptive_ve::min(adaptive_ve::constant_value<scalar>(1.f), 0.5f + hard_limit * soft_limit * budget_scale));
+
+	return decay;
+}
+
+
+template<bool eager, typename scalar, typename ROUTE_ID, typename COMMODITY_ID, typename VALUE_IN, typename BOOL_IN1, typename BOOL_IN2>
+inline auto trade_route_compute_next_volume(
+	sys::state const& state,
+	BOOL_IN1 reset_route,
+	BOOL_IN2 is_sea_route,
+	ROUTE_ID trade_route,
+	COMMODITY_ID c,
+
+	VALUE_IN export_tariff,
+	VALUE_IN import_tariff,
+	VALUE_IN transport_cost,
+	VALUE_IN budget,
+	VALUE_IN trade_good_loss_mult,
+	VALUE_IN merchant_cut,
+	VALUE_IN price_import,
+	VALUE_IN price_export,
+	VALUE_IN change_multiplier,
+	VALUE_IN decay
+) {
+	auto origin = adaptive_ve::trade_route_get_origin<eager, ROUTE_ID>(state, trade_route);
+	auto target = adaptive_ve::trade_route_get_target<eager, ROUTE_ID>(state, trade_route);
+	auto owner = adaptive_ve::trade_route_get_owner<eager, ROUTE_ID>(state, trade_route);
+	auto reset_route_commodity = reset_route;
+	auto current_volume = adaptive_ve::trade_route_get_volume<eager>(state, trade_route, c);
+	
+	auto expected_to_buy = adaptive_ve::market_get_expected_probability_to_buy<eager>(state, origin, c);
+	auto expected_to_sell = adaptive_ve::market_get_expected_probability_to_sell<eager>(state, target, c);
+	auto historical_demand = adaptive_ve::market_get_aggregated_demand_history<eager>(state, target, c);
+	auto naval_transport_availability = adaptive_ve::market_get_naval_transportation_demand_satisfaction<eager>(state, owner);
+	auto land_transport_availability = adaptive_ve::market_get_land_transportation_demand_satisfaction<eager>(state, owner);
+	auto transport_availability = adaptive_ve::select<BOOL_IN2, scalar>(is_sea_route, naval_transport_availability, land_transport_availability);
+	
+	auto earn_per_unit = price_import * trade_good_loss_mult;
+	auto pay_per_unit = price_export * (1.f + export_tariff + merchant_cut) + price_import * import_tariff + transport_cost;
+
+	auto diff = 2.f * (earn_per_unit - pay_per_unit) / (economy::price_properties::commodity::min + earn_per_unit);
+	auto change = 0.01f * (0.1f + 0.001f * current_volume) * diff;
 	auto change_is_negative = change <= adaptive_ve::constant_value<scalar>(0.f);
 	auto change_slow_down_expansion = adaptive_ve::select<decltype(change_is_negative), scalar>(change_is_negative, change, change * change_multiplier);
 	auto next = adaptive_ve::select<BOOL_IN1, scalar>(
@@ -310,16 +389,16 @@ void make_trade_volume_tooltip(
 	text::add_line(state, contents, "trade_route_volume_risk",
 		text::variable_type::val, text::fp_two_places{ prediction.risk }
 	);
-	text::add_line(state, contents, "trade_route_confidence_export",
-		text::variable_type::val, text::fp_two_places{ prediction.export_price_confidence }
-	);
-	text::add_line(state, contents, "trade_route_confidence_import",
-		text::variable_type::val, text::fp_two_places{ prediction.import_price_confidence }
-	);
+	//text::add_line(state, contents, "trade_route_confidence_export",
+	//	text::variable_type::val, text::fp_two_places{ prediction.export_price_confidence }
+	//);
+	//text::add_line(state, contents, "trade_route_confidence_import",
+	//	text::variable_type::val, text::fp_two_places{ prediction.import_price_confidence }
+	//);
 
-	text::add_line(state, contents, "trade_route_volume_decay",
-		text::variable_type::val, text::fp_two_places{ multiplier * prediction.decay }
-	);
+	//text::add_line(state, contents, "trade_route_volume_decay",
+	//	text::variable_type::val, text::fp_two_places{ multiplier * prediction.decay }
+	//);
 
 	text::add_line(state, contents, "trade_route_volume_final_change",
 		text::variable_type::val, text::fp_two_places{ multiplier * prediction.final_change }
@@ -345,7 +424,52 @@ void make_trade_volume_tooltip(
 		"trade_prediction_commodity"
 	};
 
-	//auto origin = 
+	auto origin = adaptive_ve::trade_route_get_origin<false, term::trade_route_id_wrapper>(state, trade_route);
+	auto target = adaptive_ve::trade_route_get_target<false, term::trade_route_id_wrapper>(state, trade_route);
+	auto price_origin = adaptive_ve::market_get_price<false>(state, origin, cid_wrapper);
+	auto price_target = adaptive_ve::market_get_price<false>(state, target, cid_wrapper);
+	auto confidence_export = adaptive_ve::max(adaptive_ve::constant_value<float>(0.5f), adaptive_ve::market_get_price_confidence<false>(state, origin, cid_wrapper));
+	auto confidence_import = adaptive_ve::max(adaptive_ve::constant_value<float>(0.5f), adaptive_ve::market_get_price_confidence<false>(state, target, cid_wrapper));
+	auto price_export = price_origin / confidence_export;
+	auto price_import = price_target * confidence_import;
+
+	auto price_export_computed = term::compute(state, nullptr, price_export);
+	auto price_import_computed = term::compute(state, nullptr, price_import);
+
+	auto multiplier_value = trade_route_compute_change_multiplier<false, float, term::trade_route_id_wrapper>(
+		state,
+		trade_blocked,
+		sea_route,
+		trade_route,
+		cid_wrapper,
+		term::value_t{ prediction.export_tariff, "export_tariff", text::text_color::dark_red },
+		term::value_t{ prediction.import_tariff, "import_tariff", text::text_color::dark_red },
+		term::value_t{ prediction.transport_cost_per_unit, "transport_cost", text::text_color::dark_red },
+		term::value_t{ prediction.budget, "trade_budget", text::text_color::dark_green },
+		term::value_t{ prediction.trade_good_loss_mult, "trade_good_loss_mult", text::text_color::dark_red },
+		term::value_t{ prediction.merchant_cut, "merchant_cut", text::text_color::dark_red },
+		term::value_t{ price_import_computed.data, "expected_import_price", text::text_color::gold },
+		term::value_t{ price_export_computed.data , "expected_export_price", text::text_color::gold }
+	);
+	auto multiplier_computed = term::compute(state, nullptr, multiplier_value);
+
+
+	auto decay_value = trade_route_compute_decay<false, float, term::trade_route_id_wrapper>(
+		state,
+		trade_blocked,
+		sea_route,
+		trade_route,
+		cid_wrapper,
+		term::value_t{ prediction.export_tariff, "export_tariff", text::text_color::dark_red },
+		term::value_t{ prediction.import_tariff, "import_tariff", text::text_color::dark_red },
+		term::value_t{ prediction.transport_cost_per_unit, "transport_cost", text::text_color::dark_red },
+		term::value_t{ prediction.budget, "trade_budget", text::text_color::dark_green },
+		term::value_t{ prediction.trade_good_loss_mult, "trade_good_loss_mult", text::text_color::dark_red },
+		term::value_t{ prediction.merchant_cut, "merchant_cut", text::text_color::dark_red },
+		term::value_t{ price_import_computed.data, "expected_import_price", text::text_color::gold },
+		term::value_t{ price_export_computed.data , "expected_export_price", text::text_color::gold }
+	);
+	auto decay_computed = term::compute(state, nullptr, decay_value);
 
 	auto value = trade_route_compute_next_volume<false, float, term::trade_route_id_wrapper>(
 		state,
@@ -358,17 +482,58 @@ void make_trade_volume_tooltip(
 		term::value_t{ prediction.transport_cost_per_unit, "transport_cost", text::text_color::dark_red },
 		term::value_t{ prediction.budget, "trade_budget", text::text_color::dark_green },
 		term::value_t{ prediction.trade_good_loss_mult, "trade_good_loss_mult", text::text_color::dark_red },
-		term::value_t{ prediction.merchant_cut, "merchant_cut", text::text_color::dark_red }
+		term::value_t{ prediction.merchant_cut, "merchant_cut", text::text_color::dark_red },
+		term::value_t{ price_import_computed.data, "expected_import_price", text::text_color::gold },
+		term::value_t{ price_export_computed.data , "expected_export_price", text::text_color::gold },
+		term::value_t{ multiplier_computed.data, "trade_volume_speed_multiplier", text::text_color::brown },
+		term::value_t{ decay_computed.data, "trade_route_volume_decay", text::text_color::brown }
 	);
+
 	auto value_computed = term::compute(state, nullptr, value);
-	auto box = text::open_layout_box(contents, 15);
-	//auto origin = state.world.trade_route_get_origin(state, nullptr, value);
-	//term::evaluate_string(state, contents, box, "", false, value_computed);
+	{
+		auto box = text::open_layout_box(contents, 15);
+		term::evaluate_derivative(state, contents, box, "", value_computed, term::value_t_result ( term::value_t{ prediction.export_tariff, "export_tariff", text::text_color::dark_red }));
+		term::evaluate_derivative(state, contents, box, "", value_computed, term::value_t_result ( term::value_t{ prediction.export_tariff, "import_tariff", text::text_color::dark_red }));
+		text::close_layout_box(contents, box);
+	}
 
-	term::evaluate_derivative(state, contents, box, "", value_computed, term::value_t_result ( term::value_t{ prediction.export_tariff, "export_tariff", text::text_color::dark_red }));
-	term::evaluate_derivative(state, contents, box, "", value_computed, term::value_t_result(term::value_t{ prediction.export_tariff, "import_tariff", text::text_color::dark_red }));
+	{
+		auto box = text::open_layout_box(contents, 15);
+		text::localised_format_box(state, contents, box, "expected_export_price");
+		text::add_line_break_to_layout_box(state, contents, box);
+		term::evaluate_string(state, contents, box, "", false, price_export_computed);
+		text::close_layout_box(contents, box);
+	}
 
-	text::close_layout_box(contents, box);
+	{
+		auto box = text::open_layout_box(contents, 15);
+		text::localised_format_box(state, contents, box, "expected_import_price");
+		text::add_line_break_to_layout_box(state, contents, box);
+		term::evaluate_string(state, contents, box, "", false, price_import_computed);
+		text::close_layout_box(contents, box);
+	}
+
+	{
+		auto box = text::open_layout_box(contents, 15);
+		text::localised_format_box(state, contents, box, "trade_volume_speed_multiplier");
+		text::add_line_break_to_layout_box(state, contents, box);
+		term::evaluate_string(state, contents, box, "", false, multiplier_computed);
+		text::close_layout_box(contents, box);
+	}
+
+	{
+		auto box = text::open_layout_box(contents, 15);
+		text::localised_format_box(state, contents, box, "trade_route_volume_decay");
+		text::add_line_break_to_layout_box(state, contents, box);
+		term::evaluate_string(state, contents, box, "", false, decay_computed);
+		text::close_layout_box(contents, box);
+	}
+
+	{
+		auto box = text::open_layout_box(contents, 15);
+		term::evaluate_string(state, contents, box, "", false, value_computed);
+		text::close_layout_box(contents, box);
+	}
 }
 
 embargo_explanation embargo_exists(
@@ -695,43 +860,29 @@ void update_trade_routes_volume(
 			}
 			auto reset_route_commodity = reset_route;
 
-			/*
-			auto current_volume = state.world.trade_route_get_volume(trade_route, c);
-			auto confidence_export = ve::max(0.5f, state.world.market_get_price_confidence(origin, c));
-			auto confidence_import = ve::max(0.5f, state.world.market_get_price_confidence(target, c));
-			auto price_origin = ve_price(state, origin, c);
-			auto price_target = ve_price(state, target, c);
-			auto expected_to_buy = state.world.market_get_expected_probability_to_buy(origin, c);
-			auto expected_to_sell = state.world.market_get_expected_probability_to_sell(target, c);
-			auto historical_demand = state.world.market_get_aggregated_demand_history(target, c);
-			auto import_budget_scale = state.world.market_get_trade_house_budget_import_scale(target);
-			auto naval_transport_availability = state.world.market_get_naval_transportation_demand_satisfaction(owner);
-			auto land_transport_availability = state.world.market_get_land_transportation_demand_satisfaction(owner);
-			auto transport_availability = ve::select(is_sea_route, naval_transport_availability, land_transport_availability);
-			auto price_export = price_origin / confidence_export;
+			auto price_origin = adaptive_ve::market_get_price<true>(state, origin, c);
+			auto price_target = adaptive_ve::market_get_price<true>(state, target, c);
+			auto confidence_import = adaptive_ve::max(adaptive_ve::constant_value<ve::fp_vector>(0.5f), adaptive_ve::market_get_price_confidence<true>(state, target, c));
+			auto confidence_export = adaptive_ve::max(adaptive_ve::constant_value<ve::fp_vector>(0.5f), adaptive_ve::market_get_price_confidence<true>(state, origin, c));
 			auto price_import = price_target * confidence_import;
-			auto earn_per_unit = price_import * trade_good_loss_mult;
-			auto pay_per_unit = price_export * (1.f + export_tariff + merchant_cut) + price_import * import_tariff + transport_cost;
-			auto price_sold = ve::select(owner == origin, price_import, price_export);
-			auto budget_scale = ve::max(ve::fp_vector{ 0.f }, 1.f - import_budget_scale);
-			auto budget_factor = ve::min(ve::fp_vector{ 1.f }, ve::max(ve::fp_vector{ 0.f }, budget / (1.f + import_budget_scale * 5.f) / 100.f * budget_scale / (economy::price_properties::commodity::min + price_sold)));
-			auto hard_limit = transport_availability;
-			auto soft_limit = expected_to_sell * expected_to_buy;
-			auto change_multiplier =
-				ve::max(ve::fp_vector{ 0.f }, (hard_limit - 0.9f) / 0.1f)
-				* ve::max(ve::fp_vector{ 0.f }, (soft_limit - 0.8f) / 0.2f)
-				* budget_factor * budget_factor;
-			auto decay = ve::max(0.999f, ve::min(1.f, 0.5f + hard_limit * soft_limit * budget_scale));
-			auto diff = 2.f * (earn_per_unit - pay_per_unit) / (earn_per_unit + economy::price_properties::commodity::min);
-			auto change = (current_volume * 0.001f + 0.1f) * diff;
-			change = adaptive_ve::select(change <= 0.f, change, change * change_multiplier);
-			auto next = adaptive_ve::select(reset_route_commodity, 0.f, ve::max(0.f, current_volume * decay + change + ve::min(ve::fp_vector{0.f}, historical_demand - 0.0001f)));
-			*/
+			auto price_export = price_origin / confidence_export;
 
+
+			auto multiplier_value = trade_route_compute_change_multiplier<true, ve::fp_vector>(
+				state, reset_route, is_sea_route,
+				trade_route, c,
+				export_tariff, import_tariff, transport_cost, budget, trade_good_loss_mult, merchant_cut, price_import, price_export
+			);			
+			auto decay_value = trade_route_compute_decay<true, ve::fp_vector>(
+				state, reset_route, is_sea_route,
+				trade_route, c,
+				export_tariff, import_tariff, transport_cost, budget, trade_good_loss_mult, merchant_cut, price_import, price_export
+			);
 			auto next = trade_route_compute_next_volume<true, ve::fp_vector>(
 				state, reset_route, is_sea_route,
 				trade_route, c,
-				export_tariff, import_tariff, transport_cost, budget, trade_good_loss_mult, merchant_cut				
+				export_tariff, import_tariff, transport_cost, budget, trade_good_loss_mult, merchant_cut, price_import, price_export,
+				multiplier_value, decay_value
 			);
 
 			state.world.trade_route_set_volume(trade_route, c, next);
