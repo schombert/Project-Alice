@@ -103,7 +103,7 @@ public:
 			T unit = std::get<T>(container);
 			if constexpr(std::is_same_v<T, dcon::army_id>) {
 				auto subunits = military::unit_get_membership(state, unit);
-				uint32_t subunit_count = subunits.end() - subunits.begin();
+				uint32_t subunit_count = uint32_t(subunits.end() - subunits.begin());
 				float cur_strength = military::unit_get_strength(state, unit) * state.defines.pop_size_per_regiment;
 				float max_str = subunit_count * state.defines.pop_size_per_regiment;
 				text::add_line(state, contents, "military_strength_tooltip2", text::variable_type::percent, uint8_t(progress * 100), text::variable_type::value, uint32_t(cur_strength), text::variable_type::max, uint32_t(max_str) );
