@@ -11,6 +11,11 @@ void on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers
 void on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mod);
 void on_lbutton_up(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mod);
 
+void deselect_armies(sys::state& state);
+void deselect_navies(sys::state& state);
+
+void deselect_units(sys::state& state);
+
 void switch_scene(sys::state& state, scene_id ui_scene);
 
 void selected_units_control(
@@ -48,6 +53,7 @@ sys::virtual_key replace_keycodes_identity(sys::state& state, sys::virtual_key k
 void nation_picker_hotkeys(sys::state& state, sys::virtual_key keycode, sys::key_modifiers mod);
 void do_nothing_hotkeys(sys::state& state, sys::virtual_key keycode, sys::key_modifiers mod);
 void in_game_hotkeys(sys::state& state, sys::virtual_key keycode, sys::key_modifiers mod);
+void in_game_hotkeys_key_up(sys::state& state, sys::virtual_key keycode, sys::key_modifiers mod);
 void military_screen_hotkeys(sys::state& state, sys::virtual_key keycode, sys::key_modifiers mod);
 void state_selector_hotkeys(sys::state& state, sys::virtual_key keycode, sys::key_modifiers mod);
 void nation_identity_selector_hotkeys(sys::state& state, sys::virtual_key keycode, sys::key_modifiers mod);
@@ -63,6 +69,7 @@ void render_ui_selection_screen(sys::state& state);
 
 
 void on_key_down(sys::state& state, sys::virtual_key keycode, sys::key_modifiers mod);
+void on_key_up(sys::state& state, sys::virtual_key keycode, sys::key_modifiers mod);
 
 ui::mouse_probe recalculate_mouse_probe_basic(sys::state& state, ui::mouse_probe mouse_probe, ui::mouse_probe tooltip_probe);
 ui::mouse_probe recalculate_tooltip_probe_basic(sys::state& state, ui::mouse_probe mouse_probe, ui::mouse_probe tooltip_probe);
@@ -120,7 +127,8 @@ inline scene_properties nation_picker() {
 		.lbutton_up = do_nothing,
 		.on_province_selected = select_player_nation_from_selected_province,
 		.keycode_mapping = replace_keycodes_map_movement,
-		.handle_hotkeys = nation_picker_hotkeys,
+		.handle_hotkeys_key_down = nation_picker_hotkeys,
+		.handle_hotkeys_key_up = do_nothing_hotkeys,
 		.console_log = console_log_other,
 		.open_chat = open_chat_before_game,
 		.update_highlight_texture = highlight_player_nation,
@@ -143,7 +151,8 @@ inline scene_properties basic_game() {
 		.lbutton_up = do_nothing,
 		.on_province_selected = do_nothing,
 		.keycode_mapping = replace_keycodes_map_movement,
-		.handle_hotkeys = in_game_hotkeys,
+		.handle_hotkeys_key_down = in_game_hotkeys,
+		.handle_hotkeys_key_up = in_game_hotkeys_key_up,
 		.console_log = console_log_other,
 
 		.render_ui = render_ui_ingame,
@@ -170,7 +179,8 @@ inline scene_properties battleplan_editor() { return scene_properties{
 		.lbutton_up = military_screen_on_lbutton_up,
 		.on_province_selected = do_nothing,
 		.keycode_mapping = replace_keycodes_map_movement,
-		.handle_hotkeys = military_screen_hotkeys,
+		.handle_hotkeys_key_down = military_screen_hotkeys,
+		.handle_hotkeys_key_up = do_nothing_hotkeys,
 		.console_log = console_log_other,
 
 		.render_ui = render_ui_military,
@@ -196,7 +206,8 @@ inline scene_properties battleplan_editor_add_army() {
 		.lbutton_up = do_nothing,
 		.on_province_selected = do_nothing,
 		.keycode_mapping = replace_keycodes_map_movement,
-		.handle_hotkeys = military_screen_hotkeys,
+		.handle_hotkeys_key_down = military_screen_hotkeys,
+		.handle_hotkeys_key_up = do_nothing_hotkeys,
 		.console_log = console_log_other,
 
 		.render_ui = render_ui_selection_screen,
@@ -224,7 +235,8 @@ inline scene_properties economy_viewer_scene() {
 		.lbutton_up = do_nothing,
 		.on_province_selected = do_nothing,
 		.keycode_mapping = replace_keycodes_map_movement,
-		.handle_hotkeys = economy_screen_hotkeys,
+		.handle_hotkeys_key_down = economy_screen_hotkeys,
+		.handle_hotkeys_key_up = do_nothing_hotkeys,
 		.console_log = console_log_other,
 
 		.render_ui = economy_viewer::render,
@@ -251,7 +263,8 @@ inline scene_properties state_wargoal_selector() {
 		.lbutton_up = do_nothing,
 		.on_province_selected = select_wargoal_state_from_selected_province,
 		.keycode_mapping = replace_keycodes_map_movement,
-		.handle_hotkeys = state_selector_hotkeys,
+		.handle_hotkeys_key_down = state_selector_hotkeys,
+		.handle_hotkeys_key_up = do_nothing_hotkeys,
 		.console_log = console_log_other
 	};
 }
@@ -272,7 +285,8 @@ inline scene_properties national_identity_selector() {
 		.lbutton_up = do_nothing,
 		.on_province_selected = select_national_identity_from_selected_province,
 		.keycode_mapping = replace_keycodes_map_movement,
-		.handle_hotkeys = nation_identity_selector_hotkeys,
+		.handle_hotkeys_key_down = nation_identity_selector_hotkeys,
+		.handle_hotkeys_key_up = do_nothing_hotkeys,
 		.console_log = console_log_other
 	};
 }
@@ -296,7 +310,8 @@ inline scene_properties end_screen() {
 		.lbutton_up = do_nothing,
 		.on_province_selected = do_nothing,
 		.keycode_mapping = replace_keycodes_identity,
-		.handle_hotkeys = do_nothing_hotkeys,
+		.handle_hotkeys_key_down = do_nothing_hotkeys,
+		.handle_hotkeys_key_up = do_nothing_hotkeys,
 		.console_log = console_log_other,
 
 		.render_map = do_nothing,

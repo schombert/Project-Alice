@@ -181,7 +181,7 @@ void initialize_sound_system(sys::state& state) {
 		{ &state.sound_ptr->province_select_sounds[2], NATIVE("NU_ProvSelect3.wav") },
 		{ &state.sound_ptr->province_select_sounds[3], NATIVE("NU_ProvSelect4.wav") },
 	};
-	auto const assets_directory = simple_fs::open_directory(root_dir, NATIVE("\\assets"));
+	auto const assets_directory = simple_fs::open_directory(root_dir, NATIVE("/assets"));
 	for(const auto& e : new_sound_table) {
 		auto file_peek = simple_fs::peek_file(assets_directory, e.name);
 		e.audio->set_file(file_peek ? simple_fs::get_full_name(*file_peek) : native_string());
@@ -200,7 +200,9 @@ void change_music_volume(sys::state& state, float v) {
 void play_effect(sys::state& state, audio_instance& s, float volume) {
 	if(state.sound_ptr->global_pause)
 		return;
-	state.sound_ptr->override_sound(state.sound_ptr->effect_sound, s, volume);
+	if(!state.sound_ptr->effect_sound || state.sound_ptr->effect_sound->atEnd == true) {
+		state.sound_ptr->override_sound(state.sound_ptr->effect_sound, s, volume);
+	}
 }
 void play_interface_sound(sys::state& state, audio_instance& s, float volume) {
 	if(state.sound_ptr->global_pause)

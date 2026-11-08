@@ -2847,14 +2847,15 @@ void add_to_war(sys::state& state, dcon::war_id w, dcon::nation_id n, bool as_at
 	if(state.world.nation_get_owned_province_count(n) == 0)
 		return;
 
-	auto already_at_war = false;
-
-	state.world.nation_for_each_war_participant(n, [&](auto participant){
-		if (state.world.war_participant_get_war(participant) == w) {
-			already_at_war = true;
+	// Sanity check: Must not already be at war with ANY of the participants of the war we are joining
+	bool already_at_war = [&]() {
+		for(auto par : state.world.war_get_war_participant(w)) {
+			if (are_at_war(state, n, par.get_nation())) {
+				return true;
+			}
 		}
-	});
-
+		return false;
+	}();
 	if (already_at_war)
 		return;
 
@@ -2866,8 +2867,17 @@ void add_to_war(sys::state& state, dcon::war_id w, dcon::nation_id n, bool as_at
 	state.world.nation_set_disarmed_until(n, sys::date{});
 
 	for(auto war_par : state.world.war_get_war_participant(w)) {
-		// On opposite side as the joiner; set them to being at war
+		// On opposite side as the joiner; set them to being at war and remove alliances/military access
 		if(war_par.get_is_attacker() != as_attacker) {
+			if (nations::are_allied(state, n, war_par.get_nation())) {
+				nations::break_alliance(state, n, war_par.get_nation());
+			}
+			if (military::has_military_access_to(state, n, war_par.get_nation())) {
+				remove_military_access(state, n, war_par.get_nation());
+			}
+			if (military::has_military_access_to(state, war_par.get_nation(), n)) {
+				remove_military_access(state, war_par.get_nation(), n);
+			}
 			state.world.nation_set_is_at_war_with(war_par.get_nation(), n, true);
 			state.world.nation_set_is_at_war_with(n, war_par.get_nation(), true);
 
@@ -2884,11 +2894,6 @@ void add_to_war(sys::state& state, dcon::war_id w, dcon::nation_id n, bool as_at
 
 	for(auto dep : state.world.nation_get_overlord_as_ruler(n)) {
 		add_to_war(state, w, dep.get_subject(), as_attacker);
-	}
-
-	for(auto wp : state.world.war_get_war_participant(w)) {
-		if(wp.get_is_attacker() == !as_attacker && nations::are_allied(state, n, wp.get_nation()))
-			nations::break_alliance(state, n, wp.get_nation());
 	}
 
 	if(!as_attacker && state.world.nation_get_rank(state.world.war_get_primary_defender(w)) > state.world.nation_get_rank(n)) {
@@ -3166,16 +3171,10 @@ std::string get_war_name(sys::state& state, dcon::war_id war) {
 bool standard_war_joining_is_possible(sys::state& state, dcon::war_id wfor, dcon::nation_id n, bool as_attacker) {
 	auto ol_relation = state.world.nation_get_overlord_as_subject(n);
 	auto ol_nation = state.world.overlord_get_ruler(ol_relation);
+	return joining_war_does_not_violate_constraints(state, n, wfor, as_attacker) &&
+		state.world.nation_get_in_sphere_of(n) != state.world.war_get_primary_attacker(wfor) &&
+		ol_nation != state.world.war_get_primary_attacker(wfor);
 
-	if(!as_attacker) {
-		return joining_war_does_not_violate_constraints(state, n, wfor, false) &&
-			state.world.nation_get_in_sphere_of(n) != state.world.war_get_primary_attacker(wfor) &&
-			ol_nation != state.world.war_get_primary_attacker(wfor);
-	} else {
-		return joining_war_does_not_violate_constraints(state, n, wfor, true) &&
-			state.world.nation_get_in_sphere_of(n) != state.world.war_get_primary_attacker(wfor) &&
-			ol_nation != state.world.war_get_primary_attacker(wfor);
-	}
 }
 void call_defender_allies(sys::state& state, dcon::war_id wfor) {
 	if(is_civil_war(state, wfor))
@@ -5783,32 +5782,20 @@ dcon::nation_id get_land_battle_lead_defender(sys::state& state, dcon::land_batt
 	return dcon::nation_id{};
 }
 
-float get_leader_select_score(sys::state& state, dcon::leader_id l, bool is_attacking) {
-	/*
-	- Each side has a leader that is in charge of the combat, which is the leader with the greatest
-	value as determined by the following formula: (organization x 5 + attack + defend + morale +
-	speed + attrition + experience / 2 + reconnaissance / 5  + reliability / 5) x (prestige + 1)
-	*/
+float get_leader_battle_select_score(sys::state& state, dcon::leader_id l, bool is_attacking) {
 	auto per = get_leader_personality_wrapper(state, l);
 	auto bak = get_leader_background_wrapper(state, l);
-	// atk and def are both set to 0 initally, and will be set to its actual amount depending if on the on_attacking input param
-	// this makes it so for example if the leader is attacking, it will disregard all "defence" stats for the purposes of calculating the score
-	float atk = 0.f;
-	float def = 0.f;
-	auto org = state.world.leader_trait_get_organisation(per) + state.world.leader_trait_get_organisation(bak);
-	if(is_attacking) {
-		atk = state.world.leader_trait_get_attack(per) + state.world.leader_trait_get_attack(bak);
-	} else {
-		def = state.world.leader_trait_get_defense(per) + state.world.leader_trait_get_defense(bak);
-	}
-	auto spd = state.world.leader_trait_get_speed(per) + state.world.leader_trait_get_speed(bak);
-	auto mor = state.world.leader_trait_get_morale(per) + state.world.leader_trait_get_morale(bak);
-	auto att = state.world.leader_trait_get_experience(per) + state.world.leader_trait_get_experience(bak);
-	auto rel = state.world.leader_trait_get_reliability(per) + state.world.leader_trait_get_reliability(bak);
-	auto exp = state.world.leader_trait_get_experience(per) + state.world.leader_trait_get_experience(bak);
-	auto rec = state.world.leader_trait_get_reconnaissance(per) + state.world.leader_trait_get_reconnaissance(bak);
-	auto lp = state.world.leader_get_prestige(l);
-	return (org * 5.f + atk + def + mor + spd + att + exp / 2.f + rec / 5.f + rel / 5.f) * (lp + 1.f);
+	// For selecting a general/admiral in a battle, it should select the one with the best attack or defence depending on if we are defending or attacking. The only stats which matters for the "battle leader" general is atk/def anyways
+	float atk_def_stat = [&]() {
+		if(is_attacking) {
+			return state.world.leader_trait_get_attack(per) + state.world.leader_trait_get_attack(bak);
+		} else {
+			return state.world.leader_trait_get_defense(per) + state.world.leader_trait_get_defense(bak);
+		}
+	}();
+	
+
+	return atk_def_stat;
 }
 
 bool is_attacker_in_battle(const sys::state& state, dcon::army_id a) {
@@ -5842,6 +5829,27 @@ bool is_attacker_in_battle(const sys::state& state, dcon::army_id a) {
 			return !war_attacker;
 		}
 	}
+}
+float get_leader_select_score(sys::state& state, dcon::leader_id l) {
+	/*
+	- Each side has a leader that is in charge of the combat, which is the leader with the greatest
+	value as determined by the following formula: (organization x 5 + attack + defend + morale +
+	speed + attrition + experience / 2 + reconnaissance / 5  + reliability / 5) x (prestige + 1)
+	*/
+	auto per = get_leader_personality_wrapper(state, l);
+	auto bak = get_leader_background_wrapper(state, l);
+	auto org = state.world.leader_trait_get_organisation(per) + state.world.leader_trait_get_organisation(bak);
+	float atk = state.world.leader_trait_get_attack(per) + state.world.leader_trait_get_attack(bak);
+	float def = state.world.leader_trait_get_defense(per) + state.world.leader_trait_get_defense(bak);
+	
+	auto spd = state.world.leader_trait_get_speed(per) + state.world.leader_trait_get_speed(bak);
+	auto mor = state.world.leader_trait_get_morale(per) + state.world.leader_trait_get_morale(bak);
+	auto att = state.world.leader_trait_get_experience(per) + state.world.leader_trait_get_experience(bak);
+	auto rel = state.world.leader_trait_get_reliability(per) + state.world.leader_trait_get_reliability(bak);
+	auto exp = state.world.leader_trait_get_experience(per) + state.world.leader_trait_get_experience(bak);
+	auto rec = state.world.leader_trait_get_reconnaissance(per) + state.world.leader_trait_get_reconnaissance(bak);
+	auto lp = state.world.leader_get_prestige(l);
+	return (org * 5.f + atk + def + mor + spd + att + exp / 2.f + rec / 5.f + rel / 5.f) * (lp + 1.f);
 }
 
 bool is_attacker_in_battle(sys::state& state, dcon::navy_id a) {
@@ -5889,7 +5897,7 @@ void update_battle_leaders(sys::state& state, dcon::land_battle_id b) {
 			continue;
 		}
 		bool is_attacking = is_attacker_in_battle(state, a.get_army());
-		auto score = get_leader_select_score(state, l, is_attacking);
+		auto score = get_leader_battle_select_score(state, l, is_attacking);
 		/*if(a.get_army().get_controller_from_army_control() == la) {*/
 		if(is_attacking) {
 			if(score > a_score) {
@@ -5924,7 +5932,7 @@ void update_battle_leaders(sys::state& state, dcon::naval_battle_id b) {
 			continue;
 		}
 		bool is_attacking = is_attacker_in_battle(state, a.get_navy());
-		auto score = get_leader_select_score(state, l, is_attacking);
+		auto score = get_leader_battle_select_score(state, l, is_attacking);
 		if(is_attacking) {
 			if(score > a_score) {
 				a_lid = l;
@@ -10778,7 +10786,7 @@ void move_navy_to_merge(sys::state& state, dcon::nation_id by, dcon::navy_id a, 
 }
 
 
-float navy_get_strength(const sys::state& state, dcon::navy_id navy) {
+float unit_get_strength(const sys::state& state, dcon::navy_id navy) {
 	float total = 0.0f;
 	for(auto r : state.world.navy_get_navy_membership(navy)) {
 		auto ship = r.get_ship();
@@ -10788,7 +10796,7 @@ float navy_get_strength(const sys::state& state, dcon::navy_id navy) {
 }
 
 
-float army_get_strength(const sys::state& state, dcon::army_id army) {
+float unit_get_strength(const sys::state& state, dcon::army_id army) {
 	float total = 0.0f;
 	for(auto r : state.world.army_get_army_membership(army)) {
 		auto reg = r.get_regiment();
@@ -11256,9 +11264,9 @@ bool can_attack_internal(sys::state& state, dcon::nation_id n, dcon::nation_id t
 	if(nations::would_war_conflict_with_sphere_leader<nations::war_initiation::declare_war>(state, n, target)) {
 		return assertive_identity<VALIDATE>(false);
 	}
-
-	if(military::has_truce_with(state, n, target))
-		return assertive_identity<VALIDATE>(false);
+	// You CAN attack with a truce. Its called a trucebreak!
+	//if(military::has_truce_with(state, n, target))
+	//	return assertive_identity<VALIDATE>(false);
 
 	// subjects check
 	auto overlord_source = state.world.overlord_get_ruler(state.world.nation_get_overlord_as_subject(n));

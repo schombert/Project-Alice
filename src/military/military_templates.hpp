@@ -170,25 +170,25 @@ float army_strength_present(const sys::state& state, dcon::province_id location,
 
 		if constexpr(has_flag(participant_setting, participants_included::ourselves)) {
 			if(nation_as == controller) {
-				total += army_get_strength(state, army);
+				total += unit_get_strength(state, army);
 				continue;
 			}
 		}
 		if constexpr(has_flag(participant_setting, participants_included::allies)) {
 			if(nations::are_allied(state, nation_as, controller)) {
-				total += army_get_strength(state, army);
+				total += unit_get_strength(state, army);
 				continue;
 			}
 		}
 		if constexpr(has_flag(participant_setting, participants_included::in_common_war)) {
 			if(military::are_on_same_side_in_common_war(state, nation_as, controller)) {
-				total += army_get_strength(state, army);
+				total += unit_get_strength(state, army);
 				continue;
 			}
 		}
 		if constexpr(has_flag(participant_setting, participants_included::enemies)) {
 			if(military::are_enemies(state, nation_as, controller)) {
-				total += army_get_strength(state, army);
+				total += unit_get_strength(state, army);
 				continue;
 			}
 		}
@@ -215,25 +215,25 @@ float navy_strength_present(const sys::state& state, dcon::province_id location,
 
 		if constexpr(has_flag(participant_setting, participants_included::ourselves)) {
 			if(nation_as == controller) {
-				total += navy_get_strength(state, navy);
+				total += unit_get_strength(state, navy);
 				continue;
 			}
 		}
 		if constexpr(has_flag(participant_setting, participants_included::allies)) {
 			if(nations::are_allied(state, nation_as, controller)) {
-				total += navy_get_strength(state, navy);
+				total += unit_get_strength(state, navy);
 				continue;
 			}
 		}
 		if constexpr(has_flag(participant_setting, participants_included::in_common_war)) {
 			if(military::are_on_same_side_in_common_war(state, nation_as, controller)) {
-				total += navy_get_strength(state, navy);
+				total += unit_get_strength(state, navy);
 				continue;
 			}
 		}
 		if constexpr(has_flag(participant_setting, participants_included::enemies)) {
 			if(military::are_at_war(state, nation_as, controller)) {
-				total += navy_get_strength(state, navy);
+				total += unit_get_strength(state, navy);
 				continue;
 			}
 		}

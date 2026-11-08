@@ -10,6 +10,11 @@
 
 namespace ui {
 
+
+struct change_leader_sort {
+	leader_sort_data data{};
+};
+
 class leader_portrait : public image_element_base {
 	void on_update(sys::state& state) noexcept override {
 		auto pculture = state.world.nation_get_primary_culture(state.local_player_nation);
@@ -120,24 +125,47 @@ public:
 			auto personality_content = text::produce_simple_string(state, personality_id);
 			personality->set_text(state, personality_content);
 		}
-
-		auto army_id = state.world.leader_get_army_from_army_leadership(content);
-		if(army_id.value == 0) {
-			if(army) {
-				army->set_text(state, text::produce_simple_string(state, "unassigned"));
+		bool is_admiral = state.world.leader_get_is_admiral(content);
+		if(is_admiral) {
+			auto navy_id = state.world.leader_get_navy_from_navy_leadership(content);
+			if(navy_id.value == 0) {
+				if(army) {
+					army->set_text(state, text::produce_simple_string(state, "unassigned"));
+				}
+				if(location) {
+					location->set_text(state, "");
+				}
+			} else {
+				if(army) {
+					auto army_content = state.to_string_view(state.world.navy_get_name(navy_id));
+					army->set_text(state, std::string(army_content));
+					//army->set_text(state, "");
+				}
+				if(location) {
+					auto location_content = text::produce_simple_string(state, state.world.province_get_name(state.world.navy_location_get_location(state.world.navy_get_navy_location(navy_id))));
+					location->set_text(state, std::string(location_content));
+				}
 			}
-			if(location) {
-				location->set_text(state, "");
-			}
-		} else {
-			if(army) {
-				auto army_content = state.to_string_view(state.world.army_get_name(army_id));
-				army->set_text(state, std::string(army_content));
-				//army->set_text(state, "");
-			}
-			if(location) {
-				auto location_content = text::produce_simple_string(state, state.world.province_get_name(state.world.army_location_get_location(state.world.army_get_army_location(army_id))));
-				location->set_text(state, std::string(location_content));
+		}
+		else {
+			auto army_id = state.world.leader_get_army_from_army_leadership(content);
+			if(army_id.value == 0) {
+				if(army) {
+					army->set_text(state, text::produce_simple_string(state, "unassigned"));
+				}
+				if(location) {
+					location->set_text(state, "");
+				}
+			} else {
+				if(army) {
+					auto army_content = state.to_string_view(state.world.army_get_name(army_id));
+					army->set_text(state, std::string(army_content));
+					//army->set_text(state, "");
+				}
+				if(location) {
+					auto location_content = text::produce_simple_string(state, state.world.province_get_name(state.world.army_location_get_location(state.world.army_get_army_location(army_id))));
+					location->set_text(state, std::string(location_content));
+				}
 			}
 		}
 
@@ -157,6 +185,101 @@ public:
 		row_contents.clear();
 		for(auto const fat_id : state.world.nation_get_leader_loyalty(state.local_player_nation))
 			row_contents.push_back(fat_id.get_leader());
+
+		auto leader_sort_setting = retrieve<leader_sort_data>(state, parent);
+		switch(leader_sort_setting.sort_by) {
+		case leader_sort_type::type:
+		{
+			if(leader_sort_setting.ascending) {
+				std::sort(row_contents.begin(), row_contents.end(), [&](dcon::leader_id a, dcon::leader_id b) {
+					bool a_is_admiral = state.world.leader_get_is_admiral(a);
+					bool b_is_admiral = state.world.leader_get_is_admiral(b);
+					// If they are both admirals or both generals, then sort by select score (ie how good the generals traits are)
+					if(a_is_admiral && b_is_admiral) {
+						return military::get_leader_select_score(state, a) > military::get_leader_select_score(state, b);
+					}
+					else {
+						return a_is_admiral > b_is_admiral;
+					}
+				});
+			}
+			// descending
+			else {
+				std::sort(row_contents.begin(), row_contents.end(), [&](dcon::leader_id a, dcon::leader_id b) {
+					bool a_is_admiral = state.world.leader_get_is_admiral(a);
+					bool b_is_admiral = state.world.leader_get_is_admiral(b);
+					// If they are both admirals or both generals, then sort by select score (ie how good the generals traits are)
+					if(b_is_admiral && a_is_admiral) {
+						return military::get_leader_select_score(state, b) > military::get_leader_select_score(state, a);
+					} else {
+						return b_is_admiral > a_is_admiral;
+					}
+				});
+			}
+			break;
+		}
+		case leader_sort_type::name:
+		{
+			if(leader_sort_setting.ascending) {
+				std::sort(row_contents.begin(), row_contents.end(), [&](dcon::leader_id a, dcon::leader_id b) {
+					auto a_name = state.to_string_view(state.world.leader_get_name(a));
+					auto b_name = state.to_string_view(state.world.leader_get_name(b));
+					return a_name > b_name;
+				});
+			}
+			// descending
+			else {
+				std::sort(row_contents.begin(), row_contents.end(), [&](dcon::leader_id a, dcon::leader_id b) {
+					auto a_name = state.to_string_view(state.world.leader_get_name(a));
+					auto b_name = state.to_string_view(state.world.leader_get_name(b));
+					return b_name > a_name;
+				});
+			}
+			break;
+		}
+		case leader_sort_type::assignment:
+		{
+			if(leader_sort_setting.ascending) {
+				std::sort(row_contents.begin(), row_contents.end(), [&](dcon::leader_id a, dcon::leader_id b) {
+					auto a_location = (state.world.leader_get_is_admiral(a) ? state.world.navy_get_location_from_navy_location(state.world.leader_get_navy_from_navy_leadership(a)) : state.world.army_get_location_from_army_location(state.world.leader_get_army_from_army_leadership(a)));
+					auto b_location = (state.world.leader_get_is_admiral(b) ? state.world.navy_get_location_from_navy_location(state.world.leader_get_navy_from_navy_leadership(b)) : state.world.army_get_location_from_army_location(state.world.leader_get_army_from_army_leadership(b)));
+					auto a_location_name = text::produce_simple_string(state, state.world.province_get_name(a_location));
+					auto b_location_name = text::produce_simple_string(state, state.world.province_get_name(b_location));
+					return a_location_name > b_location_name;
+				});
+			}
+			// descending
+			else {
+				std::sort(row_contents.begin(), row_contents.end(), [&](dcon::leader_id a, dcon::leader_id b) {
+					auto a_location = (state.world.leader_get_is_admiral(a) ? state.world.navy_get_location_from_navy_location(state.world.leader_get_navy_from_navy_leadership(a)) : state.world.army_get_location_from_army_location(state.world.leader_get_army_from_army_leadership(a)));
+					auto b_location = (state.world.leader_get_is_admiral(b) ? state.world.navy_get_location_from_navy_location(state.world.leader_get_navy_from_navy_leadership(b)) : state.world.army_get_location_from_army_location(state.world.leader_get_army_from_army_leadership(b)));
+					auto a_location_name = text::produce_simple_string(state, state.world.province_get_name(a_location));
+					auto b_location_name = text::produce_simple_string(state, state.world.province_get_name(b_location));
+					return b_location_name > a_location_name;
+				});
+			}
+			break;
+		}
+		case leader_sort_type::prestige:
+		{
+			if(leader_sort_setting.ascending) {
+				std::sort(row_contents.begin(), row_contents.end(), [&](dcon::leader_id a, dcon::leader_id b) {
+					auto a_prestige = state.world.leader_get_prestige(a);
+					auto b_prestige = state.world.leader_get_prestige(b);
+					return a_prestige > b_prestige;
+				});
+			}
+			// descending
+			else {
+				std::sort(row_contents.begin(), row_contents.end(), [&](dcon::leader_id a, dcon::leader_id b) {
+					auto a_prestige = state.world.leader_get_prestige(a);
+					auto b_prestige = state.world.leader_get_prestige(b);
+					return b_prestige > a_prestige;
+				});
+			}
+		}
+			
+		}
 		update(state);
 	}
 };
@@ -205,6 +328,18 @@ public:
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::tooltip;
 	}
+	void button_action(sys::state& state) noexcept override {
+		leader_sort_data new_sorting{ };
+		auto current_sorting = retrieve<leader_sort_data>(state, parent);
+		if(current_sorting.sort_by == leader_sort_type::prestige) {
+			new_sorting.ascending = !current_sorting.ascending;
+		}
+		else {
+			new_sorting.ascending = true;
+		}
+		new_sorting.sort_by = leader_sort_type::prestige;
+		send(state, parent, change_leader_sort{ new_sorting });
+	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
@@ -217,6 +352,17 @@ class leaders_sortby_type : public button_element_base {
 public:
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::tooltip;
+	}
+	void button_action(sys::state& state) noexcept override {
+		leader_sort_data new_sorting{ };
+		auto current_sorting = retrieve<leader_sort_data>(state, parent);
+		if(current_sorting.sort_by == leader_sort_type::type) {
+			new_sorting.ascending = !current_sorting.ascending;
+		} else {
+			new_sorting.ascending = true;
+		}
+		new_sorting.sort_by = leader_sort_type::type;
+		send(state, parent, change_leader_sort{ new_sorting });
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
@@ -231,6 +377,17 @@ public:
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::tooltip;
 	}
+	void button_action(sys::state& state) noexcept override {
+		leader_sort_data new_sorting{ };
+		auto current_sorting = retrieve<leader_sort_data>(state, parent);
+		if(current_sorting.sort_by == leader_sort_type::name) {
+			new_sorting.ascending = !current_sorting.ascending;
+		} else {
+			new_sorting.ascending = true;
+		}
+		new_sorting.sort_by = leader_sort_type::name;
+		send(state, parent, change_leader_sort{ new_sorting });
+	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
@@ -243,6 +400,17 @@ class leaders_sortby_army : public button_element_base {
 public:
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::tooltip;
+	}
+	void button_action(sys::state& state) noexcept override {
+		leader_sort_data new_sorting{ };
+		auto current_sorting = retrieve<leader_sort_data>(state, parent);
+		if(current_sorting.sort_by == leader_sort_type::assignment) {
+			new_sorting.ascending = !current_sorting.ascending;
+		} else {
+			new_sorting.ascending = true;
+		}
+		new_sorting.sort_by = leader_sort_type::assignment;
+		send(state, parent, change_leader_sort{ new_sorting });
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
@@ -313,5 +481,20 @@ std::unique_ptr<element_base> leaders_window::make_child(sys::state& state, std:
 		return nullptr;
 	}
 }
+message_result leaders_window::get(sys::state& state, Cyto::Any& payload) noexcept {
+	if(payload.holds_type<leader_sort_data>()) {
+		payload.emplace<leader_sort_data>(leader_sort);
+		return message_result::consumed;
+	}
+	else if(payload.holds_type<change_leader_sort>()) {
+		change_leader_sort new_sort = any_cast<change_leader_sort>( payload);
+		leader_sort = new_sort.data;
+		state.game_state_updated.store(true, std::memory_order::release);
+		return message_result::consumed;
+	} else {
+		return message_result::unseen;
+	}
+}
+
 
 } // namespace ui

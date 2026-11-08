@@ -5,6 +5,7 @@
 #include "unit_tooltip.hpp"
 #include "economy_tooltips.hpp"
 #include "construction.hpp"
+#include "game_scene.hpp"
 
 namespace ui {
 
@@ -116,14 +117,12 @@ public:
 
 		if(std::holds_alternative<dcon::army_id>(content)) {
 			auto army = fatten(state.world, std::get<dcon::army_id>(content));
-			state.selected_armies.clear();
-			state.selected_navies.clear();
+			game_scene::deselect_units(state);
 			state.select(army.id);
 			state.map_state.center_map_on_province(state, army.get_location_from_army_location());
 		} else if(std::holds_alternative<dcon::navy_id>(content)) {
 			auto navy = fatten(state.world, std::get<dcon::navy_id>(content));
-			state.selected_armies.clear();
-			state.selected_navies.clear();
+			game_scene::deselect_units(state);
 			state.select(navy.id);
 			state.map_state.center_map_on_province(state, navy.get_location_from_navy_location());
 		} else if(std::holds_alternative<dcon::gp_relationship_id>(content)) {
@@ -247,10 +246,10 @@ public:
 		auto content = retrieve< outliner_data>(state, parent);
 		if(std::holds_alternative<dcon::army_id>(content)) {
 			auto v = std::get<dcon::army_id>(content);
-			visible = bool(state.world.army_get_arrival_time(v));
+			visible = bool(state.world.army_get_arrival_time(v)) && !bool(state.world.army_get_battle_from_army_battle_participation(v));
 		} else if(std::holds_alternative<dcon::navy_id>(content)) {
 			auto v = std::get<dcon::navy_id>(content);
-			visible = bool(state.world.navy_get_arrival_time(v));
+			visible = bool(state.world.navy_get_arrival_time(v) && !bool(state.world.navy_get_battle_from_navy_battle_participation(v)));
 		} else {
 			visible = false;
 		}

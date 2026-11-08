@@ -84,6 +84,12 @@ glm::vec2 put_in_local(glm::vec2 new_point, glm::vec2 base_point, float size_x) 
 		return ladjx < radjx ? glm::vec2{ new_point.x - size_x, new_point.y } : glm::vec2{ new_point.x + size_x, new_point.y };
 	}
 }
+bool is_shift(virtual_key key) {
+	return key == virtual_key::SHIFT || key == virtual_key::LSHIFT || key == virtual_key::RSHIFT;
+}
+bool is_ctrl(virtual_key key) {
+	return key == virtual_key::CONTROL || key == virtual_key::LCONTROL || key == virtual_key::RCONTROL;
+}
 
 void state::start_national_identity_selection(national_identity_selection_data& data) {
 	national_identity_selection = data;
@@ -254,9 +260,9 @@ void state::on_resize(int32_t x, int32_t y, window::window_state win_state) {
 }
 
 void state::on_key_down(virtual_key keycode, key_modifiers mod) {
-	if(keycode == virtual_key::CONTROL || keycode == virtual_key::LCONTROL || keycode == virtual_key::RCONTROL)
+	if(is_ctrl(keycode))
 		ui_state.ctrl_held_down = true;
-	if(keycode == virtual_key::SHIFT || keycode == virtual_key::LSHIFT || keycode == virtual_key::RSHIFT)
+	if(is_shift(keycode))
 		ui_state.shift_held_down = true;
 	if(keycode == virtual_key::ESCAPE && ui_state.current_drag_and_drop_data_type != ui::drag_and_drop_data::none) {
 		ui_state.current_drag_and_drop_data_type = ui::drag_and_drop_data::none;
@@ -267,9 +273,9 @@ void state::on_key_down(virtual_key keycode, key_modifiers mod) {
 }
 
 void state::on_key_up(virtual_key keycode, key_modifiers mod) {
-	if(keycode == virtual_key::CONTROL || keycode == virtual_key::LCONTROL || keycode == virtual_key::RCONTROL)
+	if(is_ctrl(keycode))
 		ui_state.ctrl_held_down = false;
-	if(keycode == virtual_key::SHIFT || keycode == virtual_key::LSHIFT || keycode == virtual_key::RSHIFT)
+	if(is_shift(keycode))
 		ui_state.shift_held_down = false;
 
 	//TODO: move to according scenes
@@ -283,8 +289,7 @@ void state::on_key_up(virtual_key keycode, key_modifiers mod) {
 		else if(keycode == sys::virtual_key::D)
 			keycode = sys::virtual_key::RIGHT;
 	}
-
-	map_state.on_key_up(keycode, mod);
+	game_scene::on_key_up(*this, keycode, mod);
 }
 void state::on_text(char32_t c) { // c is win1250 codepage value
 	if(ui_state.edit_target_internal)
@@ -2732,14 +2737,18 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 			}
 		}
 	});
-	// check that all provinces are assigned to a state
+	// check that all land provinces are assigned to a state
 	// it's required to avoid issues with functions which assume that every land province is in a state
 	for(int32_t i = 0; i < province_definitions.first_sea_province.index(); i++) {
 		auto pid = dcon::province_id{ dcon::province_id::value_base_t(i) };
 		auto v2id = world.province_get_provid(pid);
-		if(world.province_get_nation_from_province_ownership(pid)) {
-			assert(world.abstract_state_membership_get_state(world.province_get_abstract_state_membership(pid)));
+		if (!world.province_get_state_from_abstract_state_membership(pid)) {
+			// Set the province to the first state defined as a placeholder, so the later code dosen't crash and burn before the fatal error is checked
+			world.province_set_state_from_abstract_state_membership(pid, dcon::state_definition_id{0 });
+			err.accumulated_errors += "Province with ID " + std::to_string(v2id) + " is not assigned to any state\n";
+			err.fatal = true;
 		}
+
 	}
 
 	culture::set_default_issue_and_reform_options(*this);
@@ -4299,9 +4308,8 @@ void state::on_scenario_load() {
 
 	lua_alice_api::set_state(this);
 	lua_alice_api::setup_gameloop_environment(*this);
-
-
-
+	lua_alice_api::setup_trade_goods_enumeration(*this);
+	lua_alice_api::setup_nation_flag_enumeration(*this);
 	// populate the table with scripted functions from lua_combined_script (read during scenario generation). Do ui script later when UI is available
 	{
 		int status;
@@ -4618,38 +4626,6 @@ void state::on_scenario_load() {
 	} };
 
 	dispatch.detach();
-
-	// Lua init. Save lua ui environment for later when UI is available
-
-	lua_alice_api::set_state(this);
-	lua_alice_api::setup_gameloop_environment(*this);
-	lua_alice_api::setup_trade_goods_enumeration(*this);
-	lua_alice_api::setup_nation_flag_enumeration(*this);
-
-
-
-	// populate the table with scripted functions from lua_combined_script (read during scenario generation). Do ui script later when UI is available
-	{
-		int status;
-		status = luaL_dostring(lua_game_loop_environment, lua_combined_script.c_str());
-		if(status) {
-#ifdef _WIN32
-			OutputDebugStringA(lua_tostring(lua_game_loop_environment, -1));
-#endif
-			lua_settop(lua_game_loop_environment, 0);
-			std::abort();
-		}
-		status = luaL_dostring(lua_game_loop_environment, lua_game_loop_script.c_str());
-		if(status) {
-#ifdef _WIN32
-			OutputDebugStringA(lua_tostring(lua_game_loop_environment, -1));
-#endif
-			lua_settop(lua_game_loop_environment, 0);
-			std::abort();
-		}
-	}
-
-
 #endif
 
 }
@@ -6860,8 +6836,7 @@ void sys::state::set_selected_province(dcon::province_id prov_id) {
 	if(prov_id && map_state.selected_province != prov_id) {
 		map_state.unhandled_province_selection = true;
 		map_state.selected_province = prov_id;
-		selected_navies.clear();
-		selected_armies.clear();
+		game_scene::deselect_units(*this);
 		selected_regiments_clear(*this);
 		selected_ships_clear(*this);
 		game_state_updated.store(true, std::memory_order_release);

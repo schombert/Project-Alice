@@ -688,31 +688,33 @@ bool can_begin_factory_building_construction(sys::state& state, dcon::nation_id 
 
 	// If Foreign target
 	if(owner != source) {
+		return false; // Foreign investment is disabled temporarily due to the ownership model/logistics not supporting it at the moment
+
 		/*
 		For foreign investment: the target nation must allow foreign investment, the nation doing the investing must be a great
 		power while the target is not a great power, and the nation doing the investing must not be at war with the target nation.
 		The nation being invested in must be civilized.
 		Overlord can invest in its subjects ignoring GP and owner's rules.
 		*/
-		auto rel = state.world.nation_get_overlord_as_subject(owner);
-		auto overlord = state.world.overlord_get_ruler(rel);
-		if(overlord != source) {
-			if(state.world.nation_get_is_great_power(source) == false || state.world.nation_get_is_great_power(owner) == true)
-				return false;
-			auto rules = state.world.nation_get_combined_issue_rules(owner);
-			if((rules & issue_rule::allow_foreign_investment) == 0)
-				return false;
-		}
-		if(state.world.nation_get_is_civilized(owner) == false)
-			return false;
+		//auto rel = state.world.nation_get_overlord_as_subject(owner);
+		//auto overlord = state.world.overlord_get_ruler(rel);
+		//if(overlord != source) {
+		//	if(state.world.nation_get_is_great_power(source) == false || state.world.nation_get_is_great_power(owner) == true)
+		//		return false;
+		//	auto rules = state.world.nation_get_combined_issue_rules(owner);
+		//	if((rules & issue_rule::allow_foreign_investment) == 0)
+		//		return false;
+		//}
+		//if(state.world.nation_get_is_civilized(owner) == false)
+		//	return false;
 
-		if(military::are_at_war(state, source, owner))
-			return false;
+		//if(military::are_at_war(state, source, owner))
+		//	return false;
 
-		// Refit in foreign countries is not allowed
-		if(refit_target) {
-			return false;
-		}
+		//// Refit in foreign countries is not allowed
+		//if(refit_target) {
+		//	return false;
+		//}
 	}
 	// Else Internal target
 	else {
@@ -6311,8 +6313,6 @@ void execute_notify_start_game(sys::state& state, dcon::nation_id source) {
 		state.game_state_resetting_cv.notify_all();
 
 		state.ui_state.invoke_on_ui_thread([](sys::state& state, ui::ui_function_argument) {
-			state.selected_armies.clear();
-			state.selected_navies.clear();
 			state.set_selected_province(dcon::province_id{});
 			for(auto& v : state.ctrl_armies) v.clear();
 			for(auto& v : state.ctrl_navies) v.clear();

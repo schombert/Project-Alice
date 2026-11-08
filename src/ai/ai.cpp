@@ -1559,7 +1559,7 @@ float estimate_win_probability(sys::state& state, std::vector<dcon::army_id> con
 		if(!candidate) {
 			continue;
 		}
-		auto score = military::get_leader_select_score(state, candidate, true);
+		auto score = military::get_leader_battle_select_score(state, candidate, true);
 		if(score > a_score) {
 			a_lid = candidate;
 			a_score = score;
@@ -1574,7 +1574,7 @@ float estimate_win_probability(sys::state& state, std::vector<dcon::army_id> con
 		if(!candidate) {
 			continue;
 		}
-		auto score = military::get_leader_select_score(state, candidate, false);
+		auto score = military::get_leader_battle_select_score(state, candidate, false);
 		if(score > d_score) {
 			d_lid = candidate;
 			d_score = score;
