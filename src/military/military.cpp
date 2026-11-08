@@ -2847,14 +2847,15 @@ void add_to_war(sys::state& state, dcon::war_id w, dcon::nation_id n, bool as_at
 	if(state.world.nation_get_owned_province_count(n) == 0)
 		return;
 
-	auto already_at_war = false;
-
-	state.world.nation_for_each_war_participant(n, [&](auto participant){
-		if (state.world.war_participant_get_war(participant) == w) {
-			already_at_war = true;
+	// Sanity check: Must not already be at war with ANY of the participants of the war we are joining
+	bool already_at_war = [&]() {
+		for(auto par : state.world.war_get_war_participant(w)) {
+			if (are_at_war(state, n, par.get_nation())) {
+				return true;
+			}
 		}
-	});
-
+		return false;
+	}();
 	if (already_at_war)
 		return;
 
@@ -3170,16 +3171,10 @@ std::string get_war_name(sys::state& state, dcon::war_id war) {
 bool standard_war_joining_is_possible(sys::state& state, dcon::war_id wfor, dcon::nation_id n, bool as_attacker) {
 	auto ol_relation = state.world.nation_get_overlord_as_subject(n);
 	auto ol_nation = state.world.overlord_get_ruler(ol_relation);
+	return joining_war_does_not_violate_constraints(state, n, wfor, as_attacker) &&
+		state.world.nation_get_in_sphere_of(n) != state.world.war_get_primary_attacker(wfor) &&
+		ol_nation != state.world.war_get_primary_attacker(wfor);
 
-	if(!as_attacker) {
-		return joining_war_does_not_violate_constraints(state, n, wfor, false) &&
-			state.world.nation_get_in_sphere_of(n) != state.world.war_get_primary_attacker(wfor) &&
-			ol_nation != state.world.war_get_primary_attacker(wfor);
-	} else {
-		return joining_war_does_not_violate_constraints(state, n, wfor, true) &&
-			state.world.nation_get_in_sphere_of(n) != state.world.war_get_primary_attacker(wfor) &&
-			ol_nation != state.world.war_get_primary_attacker(wfor);
-	}
 }
 void call_defender_allies(sys::state& state, dcon::war_id wfor) {
 	if(is_civil_war(state, wfor))

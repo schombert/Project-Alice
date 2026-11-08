@@ -4310,36 +4310,6 @@ void state::on_scenario_load() {
 	lua_alice_api::setup_gameloop_environment(*this);
 	lua_alice_api::setup_trade_goods_enumeration(*this);
 	lua_alice_api::setup_nation_flag_enumeration(*this);
-
-
-
-	// populate the table with scripted functions from lua_combined_script (read during scenario generation). Do ui script later when UI is available
-	{
-		int status;
-		status = luaL_dostring(lua_game_loop_environment, lua_combined_script.c_str());
-		if(status) {
-#ifdef _WIN32
-			OutputDebugStringA(lua_tostring(lua_game_loop_environment, -1));
-#endif
-			lua_settop(lua_game_loop_environment, 0);
-			std::abort();
-		}
-		status = luaL_dostring(lua_game_loop_environment, lua_game_loop_script.c_str());
-		if(status) {
-#ifdef _WIN32
-			OutputDebugStringA(lua_tostring(lua_game_loop_environment, -1));
-#endif
-			lua_settop(lua_game_loop_environment, 0);
-			std::abort();
-		}
-	}
-
-
-
-	// Lua init. Save lua ui environment for later when UI is available
-
-	lua_alice_api::set_state(this);
-	lua_alice_api::setup_gameloop_environment(*this);
 	// populate the table with scripted functions from lua_combined_script (read during scenario generation). Do ui script later when UI is available
 	{
 		int status;
