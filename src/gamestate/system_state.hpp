@@ -795,8 +795,8 @@ struct alignas(64) state {
 	// Lua scripting
 	//
 
-	lua_State* lua_ui_environment;
-	lua_State* lua_game_loop_environment;
+	lua_State* lua_ui_environment = nullptr;
+	lua_State* lua_game_loop_environment = nullptr;
 	std::vector<int> lua_on_daily_tick;
 	std::vector<int> lua_on_battle_end;
 	std::vector<int> lua_on_battle_tick;
@@ -808,6 +808,9 @@ struct alignas(64) state {
 	std::string lua_combined_script{};
 	std::string lua_game_loop_script{};
 	std::string lua_ui_script{};
+
+	int lua_nation_ranking_function_index = LUA_REFNIL;
+	int lua_nation_ranking_function_is_missing = false;
 
 	//
 	// Crisis data

@@ -4887,9 +4887,17 @@ void pop_details_needs_row_content_t::update_tooltip(sys::state& state, int32_t 
 	auto s = state.world.province_get_state_membership(l);
 	auto market = state.world.state_instance_get_market_from_local_market(s);
 
+	auto local_zone = state.world.market_get_zone_from_local_market(market);
+	auto local_capital = state.world.state_instance_get_capital(local_zone);
+	auto local_base_wage = economy::price_properties::commodity::min + state.world.province_get_labor_price(local_capital, economy::labor::basic_education) * state.defines.alice_needs_scaling_factor;
+
+
 	float local_cost_life{ economy::price_properties::commodity::min };
 	float local_cost_everyday{ economy::price_properties::commodity::min };
 	float local_cost_luxury{ economy::price_properties::commodity::min };
+
+	float local_cost_reasonable{ economy::price_properties::commodity::min };
+
 	state.world.for_each_commodity([&](auto cid) {
 		auto base_life = average_life_need.get(cid);
 		auto base_everyday = average_everyday_need.get(cid);
@@ -4897,10 +4905,18 @@ void pop_details_needs_row_content_t::update_tooltip(sys::state& state, int32_t 
 
 		auto price = state.world.market_get_price(market, cid);
 
+		auto w_life = state.world.market_get_life_needs_weights(market, cid);
+		auto w_everyday = state.world.market_get_everyday_needs_weights(market, cid);
+		auto w_luxury = state.world.market_get_luxury_needs_weights(market, cid);
+
+		local_cost_reasonable = local_cost_reasonable + w_life * base_life * price + w_everyday * base_everyday * price * 0.000'000'1f;
+
 		local_cost_life = local_cost_life + base_life * price;
 		local_cost_everyday = local_cost_everyday + base_everyday * price;
 		local_cost_luxury = local_cost_luxury + base_luxury * price;
 	});
+
+	local_cost_reasonable = std::min(local_cost_reasonable, local_base_wage * 20.f);
 
 	auto c = needs_row.commodity;
 	auto price = state.world.market_get_price(market, c);
@@ -4929,7 +4945,7 @@ void pop_details_needs_row_content_t::update_tooltip(sys::state& state, int32_t 
 
 	auto type = state.world.pop_get_poptype(main.for_pop);
 
-	term::value_t term_inflation_indicator { local_cost_life + local_cost_everyday * 0.000'000'1f, "need_weight_base_cost_short", text::text_color::yellow };
+	term::value_t term_inflation_indicator { local_cost_reasonable, "need_weight_base_cost_short", text::text_color::yellow };
 	term::value_t term_price{ price, "need_weight_price_short", text::text_color::yellow };
 	term::value_t term_available{ available, "need_weight_available_short", text::text_color::yellow };
 

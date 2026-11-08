@@ -9,7 +9,7 @@ jobs:
     strategy:
       matrix:
         config: [Debug]
-        llvm-version: [20]
+        llvm-version: [23]
         compiler: [clang]
         os: [ubuntu-latest]
 

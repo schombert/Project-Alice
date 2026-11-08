@@ -2099,7 +2099,7 @@ void update_employment(sys::state& state, bool ignore_reality, float presim_empl
 			auto current_price = ve_price(state, m, c) + subsidy;
 
 			auto sales_expected_rate = state.world.market_get_expected_probability_to_sell(m, c);
-			if(ignore_reality) {
+			if(ignore_reality || state.world.commodity_get_money_rgo(c)) {
 				sales_expected_rate = 1.f;
 			}
 			auto spending_per_worker_perception = wage_per_worker * (1.f + aristocrats_greed);

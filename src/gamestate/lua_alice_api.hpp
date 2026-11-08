@@ -9,6 +9,8 @@ struct state;
 namespace lua_alice_api {
 
 void setup_gameloop_environment(sys::state& state);
+void setup_trade_goods_enumeration(sys::state& state);
+void setup_nation_flag_enumeration(sys::state& state);
 void setup_ui_environment(sys::state& state);
 void set_state(sys::state* state);
 

@@ -177,19 +177,25 @@ auto prepare_pop_budget_templated(
 	//VALUE current_life = pop_demographics::get_life_needs(state, ids);
 	is_poor = adaptive_ve::min<VALUE>(1.f, adaptive_ve::max<VALUE>(0.f, is_poor));
 
-	VALUE savings_divisor = 1.f / (savings + economy::price_properties::commodity::min);
+	VALUE savings_positive = (savings + economy::price_properties::commodity::min);
+	VALUE savings_divisor = 1.f / savings_positive;
 
 	// prepare desired spending rate for every category
 
 	VALUE life_satisfaction_per_pound = 1.f / (life_costs + economy::price_properties::commodity::min);
-	VALUE everyday_satisfaction_per_pound = 1.f / (life_costs + economy::price_properties::commodity::min);
-	VALUE luxury_satisfaction_per_pound = 1.f / (life_costs + economy::price_properties::commodity::min);
+	VALUE everyday_satisfaction_per_pound = 1.f / (everyday_costs + economy::price_properties::commodity::min);
+	VALUE luxury_satisfaction_per_pound = 1.f / (luxury_costs + economy::price_properties::commodity::min);
 
-	VALUE total_score = life_satisfaction_per_pound + everyday_satisfaction_per_pound + luxury_satisfaction_per_pound;
 
-	VALUE lf_spend = adaptive_ve::min<VALUE>(10.f * base_life_costs * savings_divisor, life_satisfaction_per_pound / total_score);
-	VALUE ev_spend = adaptive_ve::min<VALUE>(10.f * base_everyday_costs * savings_divisor, everyday_satisfaction_per_pound / total_score);
-	VALUE lx_spend = adaptive_ve::min<VALUE>(10.f * base_luxury_costs * savings_divisor, luxury_satisfaction_per_pound / total_score);
+	VALUE life_satisfaction_priority= adaptive_ve::max<VALUE>(0.f, life_satisfaction_per_pound * savings_positive - 0.01f);
+	VALUE everyday_satisfaction_priority = adaptive_ve::max<VALUE>(0.f, everyday_satisfaction_per_pound * savings_positive - 0.01f);
+	VALUE luxury_satisfaction_priority = adaptive_ve::max<VALUE>(0.f, luxury_satisfaction_per_pound * savings_positive - 0.01f);
+
+	VALUE total_score = life_satisfaction_priority + everyday_satisfaction_priority + luxury_satisfaction_priority + 0.01f;
+
+	VALUE lf_spend = adaptive_ve::min<VALUE>(10.f * base_life_costs * savings_divisor, life_satisfaction_priority / total_score);
+	VALUE ev_spend = adaptive_ve::min<VALUE>(10.f * base_everyday_costs * savings_divisor, everyday_satisfaction_priority / total_score);
+	VALUE lx_spend = adaptive_ve::min<VALUE>(10.f * base_luxury_costs * savings_divisor, luxury_satisfaction_priority / total_score);
 
 	VALUE life_spending_ratio = lf_spend * (1.f - is_poor) + is_poor;
 	VALUE housing_spending_ratio = 0.3f;
