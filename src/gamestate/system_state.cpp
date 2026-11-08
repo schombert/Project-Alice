@@ -41,7 +41,6 @@
 #include "logistics_templates.hpp"
 #include "math_fns.hpp"
 #include "trade_network.hpp"
-#include "virtual_key_utility.hpp"
 
 namespace sys {
 
@@ -77,6 +76,12 @@ glm::vec2 put_in_local(glm::vec2 new_point, glm::vec2 base_point, float size_x) 
 	} else {
 		return ladjx < radjx ? glm::vec2{ new_point.x - size_x, new_point.y } : glm::vec2{ new_point.x + size_x, new_point.y };
 	}
+}
+bool is_shift(virtual_key key) {
+	return key == virtual_key::SHIFT || key == virtual_key::LSHIFT || key == virtual_key::RSHIFT;
+}
+bool is_ctrl(virtual_key key) {
+	return key == virtual_key::CONTROL || key == virtual_key::LCONTROL || key == virtual_key::RCONTROL;
 }
 
 void state::start_national_identity_selection(national_identity_selection_data& data) {
@@ -2720,14 +2725,18 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 			}
 		}
 	});
-	// check that all provinces are assigned to a state
+	// check that all land provinces are assigned to a state
 	// it's required to avoid issues with functions which assume that every land province is in a state
 	for(int32_t i = 0; i < province_definitions.first_sea_province.index(); i++) {
 		auto pid = dcon::province_id{ dcon::province_id::value_base_t(i) };
 		auto v2id = world.province_get_provid(pid);
-		if(world.province_get_nation_from_province_ownership(pid)) {
-			assert(world.abstract_state_membership_get_state(world.province_get_abstract_state_membership(pid)));
+		if (!world.province_get_state_from_abstract_state_membership(pid)) {
+			// Set the province to the first state defined as a placeholder, so the later code dosen't crash and burn before the fatal error is checked
+			world.province_set_state_from_abstract_state_membership(pid, dcon::state_definition_id{0 });
+			err.accumulated_errors += "Province with ID " + std::to_string(v2id) + " is not assigned to any state\n";
+			err.fatal = true;
 		}
+
 	}
 
 	culture::set_default_issue_and_reform_options(*this);

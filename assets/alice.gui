@@ -128,10 +128,10 @@ guiTypes = {
 	
 	windowType = {
 		name = "show_all_saves_setting_container"
-		extends = "lobby"
-		position = {  0 -410 }
+		extends = "playable_countries_window"
+		position = {  0 590 }
 		size = { 212 32 }
-		Orientation = "LOWER_LEFT"
+		Orientation = "UPPER_LEFT"
 		
 		iconType = {
 			name = "background"
