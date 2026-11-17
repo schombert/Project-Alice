@@ -2066,6 +2066,8 @@ void map_state::on_key_down(sys::virtual_key keycode, sys::key_modifiers mod) {
 		pgdn_key_down = true;
 		break;
 	case sys::virtual_key::SHIFT:
+	case sys::virtual_key::LSHIFT:
+	case sys::virtual_key::RSHIFT:
 		shift_key_down = true;
 		break;
 	default:
@@ -2094,6 +2096,8 @@ void map_state::on_key_up(sys::virtual_key keycode, sys::key_modifiers mod) {
 		pgdn_key_down = false;
 		break;
 	case sys::virtual_key::SHIFT:
+	case sys::virtual_key::LSHIFT:
+	case sys::virtual_key::RSHIFT:
 		shift_key_down = false;
 		break;
 	default:
@@ -2317,6 +2321,10 @@ void map_state::on_lbutton_up(sys::state& state, int32_t x, int32_t y, int32_t s
 		auto screen_size = glm::vec2(screen_size_x, screen_size_y);
 		map_space::point_normalized_inverted_y map_pos;
 		if(!screen_to_map(mouse_pos, screen_size, current_view(state), map_pos)) {
+			return;
+		}
+		// If there are any pending shift selected units AND we are attempting to select more (holding shift), then don't select a province yet as it would deselect all units
+		if((!state.selected_armies.empty() || !state.selected_navies.empty()) && mod == sys::key_modifiers::modifiers_shift) {
 			return;
 		}
 		auto idx = map_space::to_idx(map_pos, (float)map_data.size_x, (float)map_data.size_y);

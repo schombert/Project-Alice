@@ -479,6 +479,22 @@ public:
 	}
 };
 
+class show_all_saves_setting_container : public window_element_base {
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "background") {
+			return make_element_by_type<image_element_base>(state, id);
+		} else if(name == "show_all_saves_checkbox") {
+			return make_element_by_type<show_all_saves_checkbox>(state, id);
+		} else if(name == "show_all_saves_label") {
+			return make_element_by_type<simple_text_element_base>(state, id);
+		}
+		return nullptr;
+	}
+
+};
+
+
+
 template< picker_sort stype>
 class playable_nations_sort_button : public button_element_base {
 	void button_action(sys::state& state) noexcept override {
@@ -501,6 +517,9 @@ class playable_nations_window : public window_element_base {
 			return make_element_by_type<playable_nations_sort_button<picker_sort::mil_rank>>(state, id);
 		} else if(name == "playable_countries_list") {
 			return make_element_by_type<playable_nations_lb>(state, id);
+		}
+		else if(name == "show_all_saves_setting_container") {
+			return make_element_by_type<show_all_saves_setting_container>(state, id);
 		}
 		return nullptr;
 	}
@@ -840,21 +859,6 @@ public:
 	}
 };
 
-
-class show_all_saves_setting_container : public window_element_base {
-	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
-		if(name == "background") {
-			return make_element_by_type<image_element_base>(state, id);
-		} else if(name == "show_all_saves_checkbox") {
-			return make_element_by_type<show_all_saves_checkbox>(state, id);
-		} else if(name == "show_all_saves_label") {
-			return make_element_by_type<simple_text_element_base>(state, id);
-		}
-		return nullptr;
-	}
-
-};
-
 class nation_picker_container : public window_element_base {
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
@@ -891,9 +895,6 @@ public:
 
 		} else if(name == "gamerules_button") {
 			return make_element_by_type< gamerules_button>(state, id);
-		}
-		else if(name == "show_all_saves_setting_container") {
-			return make_element_by_type<show_all_saves_setting_container>(state, id);
 		}
 		return nullptr;
 	}

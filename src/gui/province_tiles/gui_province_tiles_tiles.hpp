@@ -173,8 +173,7 @@ public:
 	// Done
 	void button_action(sys::state& state, province_tile target, ui::element_base* parent) noexcept override {
 		auto army = state.world.regiment_get_army_from_army_membership(target.regiment);
-		state.selected_armies.clear();
-		state.selected_navies.clear();
+		game_scene::deselect_units(state);
 		state.select(army);
 		state.map_state.center_map_on_province(state, state.world.army_get_location_from_army_location(army));
 	}

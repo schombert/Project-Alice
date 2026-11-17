@@ -784,7 +784,8 @@ bool can_build_railroads(sys::state& state, dcon::province_id id, dcon::nation_i
 		return false;
 
 	if(owner != n) {
-		if(state.world.nation_get_is_great_power(n) == false || state.world.nation_get_is_great_power(owner) == true)
+		return false; // Foreign investment is disabled temporarily due to the ownership model/logistics not supporting it at the moment
+		/*if(state.world.nation_get_is_great_power(n) == false || state.world.nation_get_is_great_power(owner) == true)
 			return false;
 		if(state.world.nation_get_is_civilized(owner) == false)
 			return false;
@@ -794,7 +795,7 @@ bool can_build_railroads(sys::state& state, dcon::province_id id, dcon::nation_i
 			return false;
 
 		if(military::are_at_war(state, n, owner))
-			return false;
+			return false;*/
 	} else {
 		auto rules = state.world.nation_get_combined_issue_rules(n);
 		if((rules & issue_rule::build_railway) == 0)
@@ -872,7 +873,8 @@ bool can_build_province_building(sys::state& state, dcon::province_id id, dcon::
 		return false;
 
 	if(owner != n) {
-		if(state.world.nation_get_is_great_power(n) == false || state.world.nation_get_is_great_power(owner) == true)
+		return false; // Foreign investment is disabled temporarily due to the ownership model/logistics not supporting it at the moment
+		/*if(state.world.nation_get_is_great_power(n) == false || state.world.nation_get_is_great_power(owner) == true)
 			return false;
 		if(state.world.nation_get_is_civilized(owner) == false)
 			return false;
@@ -882,7 +884,7 @@ bool can_build_province_building(sys::state& state, dcon::province_id id, dcon::
 			return false;
 
 		if(military::are_at_war(state, n, owner))
-			return false;
+			return false;*/
 	} else {
 		auto rules = state.world.nation_get_combined_issue_rules(n);
 		if(t == economy::province_building_type::bank && (rules & issue_rule::build_bank) == 0)

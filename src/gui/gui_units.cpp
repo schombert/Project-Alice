@@ -170,15 +170,13 @@ void unit_frame_bg::button_action(sys::state& state) noexcept {
 	if(std::holds_alternative<dcon::army_id>(u)) {
 		auto a = std::get<dcon::army_id>(u);
 		// if(state.world.army_get_controller_from_army_control(a) == state.local_player_nation) {
-		state.selected_armies.clear();
-		state.selected_navies.clear();
+		game_scene::deselect_units(state);
 		state.select(a);
 		// }
 	} else if(std::holds_alternative<dcon::navy_id>(u)) {
 		auto a = std::get<dcon::navy_id>(u);
 		// if(state.world.navy_get_controller_from_navy_control(a) == state.local_player_nation) {
-		state.selected_armies.clear();
-		state.selected_navies.clear();
+		game_scene::deselect_units(state);
 		state.select(a);
 		// }
 	}
@@ -187,7 +185,7 @@ void unit_frame_bg::button_shift_action(sys::state& state) noexcept {
 	auto u = retrieve< unit_var>(state, parent);
 	if(std::holds_alternative<dcon::army_id>(u)) {
 		auto a = std::get<dcon::army_id>(u);
-		if(state.world.army_get_controller_from_army_control(a) == state.local_player_nation) {
+		if(military::get_effective_unit_commander(state, a) == state.local_player_nation && state.selected_navies.empty()) {
 			if(!state.is_selected(a))
 				state.select(a);
 			else
@@ -195,7 +193,7 @@ void unit_frame_bg::button_shift_action(sys::state& state) noexcept {
 		}
 	} else if(std::holds_alternative<dcon::navy_id>(u)) {
 		auto a = std::get<dcon::navy_id>(u);
-		if(state.world.navy_get_controller_from_navy_control(a) == state.local_player_nation) {
+		if(military::get_effective_unit_commander(state, a) == state.local_player_nation && state.selected_armies.empty()) {
 			if(!state.is_selected(a))
 				state.select(a);
 			else
@@ -1481,31 +1479,39 @@ private:
 	}
 	// On normal left click, select just the clicked unit and clear all other selected units
 	void button_action(sys::state& state) noexcept override {
-		state.selected_navies.clear();
-		state.selected_armies.clear();
-		state.ui_state.pending_shift_selected_armies.clear();
-		state.ui_state.pending_shift_selected_navies.clear();
+		game_scene::deselect_units(state);
 		auto foru = retrieve<unit_var>(state, parent);
 		if(std::holds_alternative<dcon::army_id>(foru)) {
 			auto army = std::get<dcon::army_id>(foru);
-			state.selected_armies.push_back(army);
+			state.select(army);
 
 		} else if(std::holds_alternative<dcon::navy_id>(foru)) {
 			auto navy = std::get<dcon::navy_id>(foru);
-			state.selected_navies.push_back(navy);
+			state.select(navy);
 		}
 		state.game_state_updated.store(true);
 	}
-	// On shift left click, add the clicked unit the pending shift selected units
+	// On shift left click, add the clicked unit the pending shift selected units. When shift stops being held-down it will select these units
 	void button_shift_action(sys::state& state) noexcept override {
 		auto foru = retrieve<unit_var>(state, parent);
 		if(std::holds_alternative<dcon::army_id>(foru)) {
 			auto army = std::get<dcon::army_id>(foru);
-			state.ui_state.pending_shift_selected_armies.push_back(army);
+			auto found = std::find(state.ui_state.pending_shift_selected_armies.begin(), state.ui_state.pending_shift_selected_armies.end(), army);
+			if(found == state.ui_state.pending_shift_selected_armies.end()) {
+				state.ui_state.pending_shift_selected_armies.push_back(army);
+			}
+			else {
+				state.ui_state.pending_shift_selected_armies.erase(found);
+			}
 
 		} else if(std::holds_alternative<dcon::navy_id>(foru)) {
 			auto navy = std::get<dcon::navy_id>(foru);
-			state.ui_state.pending_shift_selected_navies.push_back(navy);
+			auto found = std::find(state.ui_state.pending_shift_selected_navies.begin(), state.ui_state.pending_shift_selected_navies.end(), navy);
+			if(found == state.ui_state.pending_shift_selected_navies.end()) {
+				state.ui_state.pending_shift_selected_navies.push_back(navy);
+			} else {
+				state.ui_state.pending_shift_selected_navies.erase(found);
+			}
 		}
 		state.game_state_updated.store(true);
 	}
@@ -1514,13 +1520,23 @@ private:
 
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
 		auto foru = retrieve<unit_var>(state, parent);
-		constexpr int32_t increment_x = 30; 
+		// nudge to the right when it is selected
+		constexpr int32_t selected_increment_x = 20;
+		// Nudge to the right abit if the scrollbar is present
+		int32_t scrollbar_x_increment = [&]() {
+			if(state.selected_armies.size() > 6 || state.selected_navies.size() > 6) {
+				return 16;
+			}
+			else {
+				return 0;
+			}
+		}();
 		if(std::holds_alternative<dcon::army_id>(foru)) {
 			auto army = std::get<dcon::army_id>(foru);
 			auto found = std::find(state.ui_state.pending_shift_selected_armies.begin(), state.ui_state.pending_shift_selected_armies.end(), army);
 			// If already selected, nudge element to the right
 			if(found != state.ui_state.pending_shift_selected_armies.end()) {
-				button_element_base::render(state, x + increment_x, y);
+				button_element_base::render(state, x + selected_increment_x + scrollbar_x_increment, y);
 				return;
 			}
 
@@ -1529,11 +1545,11 @@ private:
 			auto found = std::find(state.ui_state.pending_shift_selected_navies.begin(), state.ui_state.pending_shift_selected_navies.end(), navy);
 			// If already selected, nudge element to the right
 			if(found != state.ui_state.pending_shift_selected_navies.end()) {
-				button_element_base::render(state, x + increment_x, y);
+				button_element_base::render(state, x + selected_increment_x + scrollbar_x_increment, y);
 				return;
 			}
 		}
-		button_element_base::render(state, x, y);
+		button_element_base::render(state, x + scrollbar_x_increment, y);
 
 	}
 
@@ -3274,8 +3290,7 @@ message_result unit_details_window<T>::get(sys::state& state, Cyto::Any& payload
 		{
 			Cyto::Any cpayload = element_selection_wrapper<reorg_win_action>{ reorg_win_action{reorg_win_action::close} };
 			unit_selection_win->reorg_window->impl_get(state, cpayload);
-			state.selected_armies.clear();
-			state.selected_navies.clear();
+			game_scene::deselect_units(state);
 			set_visible(state, false);
 			state.game_state_updated.store(true, std::memory_order_release);
 			break;
@@ -3478,8 +3493,7 @@ private:
 class deselect_all_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
-		state.selected_armies.clear();
-		state.selected_navies.clear();
+		game_scene::deselect_units(state);
 		state.game_state_updated.store(true, std::memory_order_release);
 	}
 };
@@ -3523,12 +3537,10 @@ public:
 	void button_action(sys::state& state) noexcept override {
 		auto foru = retrieve<unit_var>(state, parent);
 		if(std::holds_alternative<dcon::army_id>(foru)) {
-			state.selected_armies.clear();
-			state.selected_navies.clear();
+			game_scene::deselect_units(state);
 			state.select(std::get<dcon::army_id>(foru));
 		} else if(std::holds_alternative<dcon::navy_id>(foru)) {
-			state.selected_armies.clear();
-			state.selected_navies.clear();
+			game_scene::deselect_units(state);
 			state.select(std::get<dcon::navy_id>(foru));
 		}
 	}

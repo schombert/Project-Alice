@@ -8,6 +8,8 @@
 #include "gui_listbox_templates.hpp"
 #include "gui_common_elements.hpp"
 #include "economy.hpp"
+#include "game_scene.hpp"
+
 
 namespace ui {
 
@@ -87,7 +89,7 @@ public:
 		text::close_layout_box(contents, box);
 	}
 };
-
+template<typename T>
 class military_unit_strength_progress_bar : public vertical_progress_bar {
 public:
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -95,11 +97,23 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		auto box = text::open_layout_box(contents, 0);
-		// This should change to use "military_shipstrength_tooltip" instead for naval units
-		text::localised_single_sub_box(state, contents, box, std::string_view("military_strength_tooltip2"),
-				text::variable_type::percent, uint8_t(progress * 100));
-		text::close_layout_box(contents, box);
+		//auto box = text::open_layout_box(contents, 0);
+		auto container = retrieve<military_unit_info<T>>(state, parent);
+		if(std::holds_alternative<T>(container)) {
+			T unit = std::get<T>(container);
+			if constexpr(std::is_same_v<T, dcon::army_id>) {
+				auto subunits = military::unit_get_membership(state, unit);
+				uint32_t subunit_count = uint32_t(subunits.end() - subunits.begin());
+				float cur_strength = military::unit_get_strength(state, unit) * state.defines.pop_size_per_regiment;
+				float max_str = subunit_count * state.defines.pop_size_per_regiment;
+				text::add_line(state, contents, "military_strength_tooltip2", text::variable_type::percent, uint8_t(progress * 100), text::variable_type::value, uint32_t(cur_strength), text::variable_type::max, uint32_t(max_str) );
+			}
+			else {
+				text::add_line(state, contents, "MILITARY_SHIPSTRENGTH_TOOLTIP2", text::variable_type::percent, uint8_t(progress * 100));
+			}
+		}
+		
+		//text::close_layout_box(contents, box);
 	}
 };
 
@@ -239,8 +253,7 @@ public:
 		auto container = retrieve<military_unit_info<T>>(state, parent);
 		if(std::holds_alternative<T>(container)) {
 			T id = std::get<T>(container);
-			state.selected_armies.clear();
-			state.selected_navies.clear();
+			game_scene::deselect_units(state);
 
 			if constexpr(std::is_same_v<T, dcon::army_id>) {
 				state.map_state.center_map_on_province(state, state.world.army_get_location_from_army_location(id));
@@ -252,6 +265,51 @@ public:
 		}
 	}
 };
+
+
+
+
+
+template<typename T>
+class unit_move_icon : public image_element_base {
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto container = retrieve<military_unit_info<T>>(state, parent);
+		if(std::holds_alternative<T>(container)) {
+			T unit = std::get<T>(container);
+			sys::date arrival = [&]() {
+				if constexpr(std::is_same_v<T, dcon::army_id>) {
+					return state.world.army_get_arrival_time(unit);
+				}
+				else {
+					return state.world.navy_get_arrival_time(unit);
+				}
+			}();
+			dcon::province_id location = military::unit_get_location(state, unit);
+			text::add_line(state, contents, "MILITARY_MOVING_TOOLTIP", text::variable_type::location, location, text::variable_type::date, arrival);
+		}
+	}
+};
+
+class army_dig_in_icon : public image_element_base {
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto container = retrieve<military_unit_info<dcon::army_id>>(state, parent);
+		if(std::holds_alternative<dcon::army_id>(container)) {
+			dcon::army_id unit = std::get<dcon::army_id>(container);
+			auto dig_in = state.world.army_get_dig_in(unit);
+			text::add_line(state, contents, "MILITARY_DIGIN_TOOLTIP", text::variable_type::days, dig_in);
+		}
+	}
+};
+
+
 
 template<typename T>
 class military_unit_entry : public listbox_row_element_base<military_unit_info<T>> {
@@ -265,7 +323,7 @@ class military_unit_entry : public listbox_row_element_base<military_unit_info<T
 	simple_text_element_base* unit_regiments_text = nullptr;
 	simple_text_element_base* unit_men_text = nullptr;
 	military_unit_morale_progress_bar* unit_morale_progress = nullptr;
-	military_unit_strength_progress_bar* unit_strength_progress = nullptr;
+	military_unit_strength_progress_bar<T>* unit_strength_progress = nullptr;
 	image_element_base* unit_moving_icon = nullptr;
 	image_element_base* unit_digin_icon = nullptr;
 	image_element_base* unit_combat_icon = nullptr;
@@ -316,17 +374,22 @@ public:
 			unit_morale_progress = ptr.get();
 			return ptr;
 		} else if(name == "strength_progress") {
-			auto ptr = make_element_by_type<military_unit_strength_progress_bar>(state, id);
+			auto ptr = make_element_by_type<military_unit_strength_progress_bar<T>>(state, id);
 			unit_strength_progress = ptr.get();
 			return ptr;
 		} else if(name == "moving") {
-			auto ptr = make_element_by_type<image_element_base>(state, id);
+			auto ptr = make_element_by_type<unit_move_icon<T>>(state, id);
 			unit_moving_icon = ptr.get();
 			return ptr;
 		} else if(name == "digin") {
-			auto ptr = make_element_by_type<image_element_base>(state, id);
-			unit_digin_icon = ptr.get();
-			return ptr;
+			if constexpr(std::is_same_v<T, dcon::army_id>) {
+				auto ptr = make_element_by_type<army_dig_in_icon>(state, id);
+				unit_digin_icon = ptr.get();
+				return ptr;
+			}
+			else {
+				return make_element_by_type<invisible_element>(state, id);
+			}
 		} else if(name == "combat") {
 			auto ptr = make_element_by_type<image_element_base>(state, id);
 			unit_combat_icon = ptr.get();
@@ -366,25 +429,39 @@ public:
 			auto regiments = 0;
 			auto strength = 0.f;
 			auto full_strength = 0.f;
+			auto organization = 0.0f;
+			auto full_organization = 0.0f;
 			// Armies
 			if constexpr(std::is_same_v<T, dcon::army_id>) {
-				state.world.army_for_each_army_membership_as_army(std::get<dcon::army_id>(content), [&](dcon::army_membership_id amid) {
+				dcon::army_id army = std::get<dcon::army_id>(content);
+				is_digin =  (state.world.army_get_dig_in(army) > 0);
+				is_moving = bool(state.world.army_get_arrival_time(army));
+				is_combat = bool(state.world.army_get_battle_from_army_battle_participation(army));
+				state.world.army_for_each_army_membership_as_army(army, [&](dcon::army_membership_id amid) {
 					auto rid = state.world.army_membership_get_regiment(amid);
 					full_strength += 1.f * state.defines.pop_size_per_regiment;
 					strength += state.world.regiment_get_strength(rid) * state.defines.pop_size_per_regiment;
+					full_organization += 1.0f;
+					organization += state.world.regiment_get_org(rid);
 					++regiments;
 				});
 			}
 			// Navies
 			if constexpr(std::is_same_v<T, dcon::navy_id>) {
-				state.world.navy_for_each_navy_membership_as_navy(std::get<dcon::navy_id>(content), [&](dcon::navy_membership_id nmid) {
+				dcon::navy_id navy = std::get<dcon::navy_id>(content);
+				is_moving = bool(state.world.navy_get_arrival_time(navy));
+				is_combat = bool(state.world.navy_get_battle_from_navy_battle_participation(navy));
+				state.world.navy_for_each_navy_membership_as_navy(navy, [&](dcon::navy_membership_id nmid) {
 					auto sid = state.world.navy_membership_get_ship(nmid);
 					full_strength += 1.f;
 					strength += state.world.ship_get_strength(sid);
+					full_organization += 1.0f;
+					organization += state.world.ship_get_org(sid);
 					++regiments;
 				});
 			}
 			if(unit_strength_progress) unit_strength_progress->progress = (full_strength != 0.0f) ? strength / full_strength : 0.f;
+			if(unit_morale_progress) unit_morale_progress->progress = (full_organization != 0.0f) ? organization / full_organization : 0.0f;
 			if(unit_men_text) unit_men_text->set_text(state, text::prettify(int32_t(strength)));
 			if(unit_regiments_text) unit_regiments_text->set_text(state, std::to_string(regiments));
 		}
@@ -442,6 +519,7 @@ public:
 			Cyto::Any payload = dcon::nation_id{};
 			listbox_element_base<military_unit_entry<T>, military_unit_info<T>>::parent->impl_get(state, payload);
 			dcon::nation_id n = Cyto::any_cast<dcon::nation_id>(payload);
+			auto sort_data = retrieve<unit_sort_data>(state, listbox_element_base<military_unit_entry<T>, military_unit_info<T>>::parent);
 			// Armies
 			if constexpr(std::is_same_v<T, dcon::army_id>) {
 				state.world.nation_for_each_army_control_as_controller(n, [&](dcon::army_control_id acid) {
@@ -460,6 +538,113 @@ public:
 				state.world.nation_for_each_province_naval_construction_as_nation(n,
 						[&](dcon::province_naval_construction_id p) { row_contents.push_back(military_unit_info<T>{p}); });
 			}
+
+			// sort armies/navies
+			auto get_unit_name = [&](T unit) {
+				if constexpr(std::is_same_v<T, dcon::navy_id>) {
+					return state.to_string_view(state.world.navy_get_name(unit));
+				}
+				else {
+					return state.to_string_view(state.world.army_get_name(unit));
+				}
+			};
+			auto get_construction = [&](military_unit_info<T> variant) {
+				if constexpr(std::is_same_v<T, dcon::navy_id>) {
+					return std::get<dcon::province_naval_construction_id>(variant);
+				} else {
+					return std::get<dcon::province_land_construction_id>(variant);
+				}
+			};
+			switch(sort_data.sort_by) {
+			case unit_sort_type::name:
+			{
+				if(sort_data.ascending) {
+					std::sort(row_contents.begin(), row_contents.end(), [&](military_unit_info<T> a, military_unit_info<T> b) {
+						if(std::holds_alternative<T>(a) && std::holds_alternative<T>(b)) {
+							T a_unit = std::get<T>(a);
+							T b_unit = std::get<T>(b);
+							std::string_view a_name = get_unit_name(a_unit);
+							std::string_view b_name = get_unit_name(b_unit);
+							return a_name > b_name;
+						}
+						else if(std::holds_alternative<T>(a)) {
+							return true;
+						}
+						else if(std::holds_alternative<T>(b)) {
+							return false;
+						}
+						else {
+							auto a_construction = get_construction(a);
+							auto b_construction = get_construction(a);
+							return a_construction.value > b_construction.value;
+						}
+					});
+				}
+				else {
+					std::sort(row_contents.begin(), row_contents.end(), [&](military_unit_info<T> a, military_unit_info<T> b) {
+						if(std::holds_alternative<T>(a) && std::holds_alternative<T>(b)) {
+							T a_unit = std::get<T>(a);
+							T b_unit = std::get<T>(b);
+							std::string_view a_name = get_unit_name(a_unit);
+							std::string_view b_name = get_unit_name(b_unit);
+							return b_name > a_name;
+						} else if(std::holds_alternative<T>(a)) {
+							return true;
+						} else if(std::holds_alternative<T>(b)) {
+							return false;
+						} else {
+							auto a_construction = get_construction(a);
+							auto b_construction = get_construction(a);
+							return a_construction.value > b_construction.value;
+						}
+					});
+				}
+				break;
+			}
+			case unit_sort_type::strength:
+			{
+				if(sort_data.ascending) {
+					std::sort(row_contents.begin(), row_contents.end(), [&](military_unit_info<T> a, military_unit_info<T> b) {
+						if(std::holds_alternative<T>(a) && std::holds_alternative<T>(b)) {
+							T a_unit = std::get<T>(a);
+							T b_unit = std::get<T>(b);
+							float a_str = military::unit_get_strength(state, a_unit);
+							float b_str = military::unit_get_strength(state, b_unit);
+							return a_str > b_str;
+						} else if(std::holds_alternative<T>(a)) {
+							return true;
+						} else if(std::holds_alternative<T>(b)) {
+							return false;
+						} else {
+							auto a_construction = get_construction(a);
+							auto b_construction = get_construction(a);
+							return a_construction.value > b_construction.value;
+						}
+					});
+				}
+				else {
+					std::sort(row_contents.begin(), row_contents.end(), [&](military_unit_info<T> a, military_unit_info<T> b) {
+						if(std::holds_alternative<T>(a) && std::holds_alternative<T>(b)) {
+							T a_unit = std::get<T>(a);
+							T b_unit = std::get<T>(b);
+							float a_str = military::unit_get_strength(state, a_unit);
+							float b_str = military::unit_get_strength(state, b_unit);
+							return b_str > a_str;
+						} else if(std::holds_alternative<T>(a)) {
+							return true;
+						} else if(std::holds_alternative<T>(b)) {
+							return false;
+						} else {
+							auto a_construction = get_construction(a);
+							auto b_construction = get_construction(a);
+							return a_construction.value > b_construction.value;
+						}
+					});
+				}
+				break;
+			}
+			}
+
 		}
 		listbox_element_base<military_unit_entry<T>, military_unit_info<T>>::update(state);
 	}
@@ -611,6 +796,16 @@ public:
 		auto cstr_range = state.world.nation_get_province_land_construction(state.local_player_nation);
 		set_text(state, std::to_string(cstr_range.end() - cstr_range.begin()));
 	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto box = text::open_layout_box(contents, 0);
+		auto cstr_range = state.world.nation_get_province_land_construction(state.local_player_nation);
+		text::localised_single_sub_box(state, contents, box, std::string_view("MILITARY_ARMY_CONSTRUCTION_TOOLTIP"),
+				text::variable_type::value, int64_t(cstr_range.end() - cstr_range.begin()));
+		text::close_layout_box(contents, box);
+	}
 };
 
 class military_navies_construction_text : public simple_text_element_base {
@@ -619,12 +814,38 @@ public:
 		auto cstr_range = state.world.nation_get_province_naval_construction(state.local_player_nation);
 		set_text(state, std::to_string(cstr_range.end() - cstr_range.begin()));
 	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto box = text::open_layout_box(contents, 0);
+		auto cstr_range = state.world.nation_get_province_naval_construction(state.local_player_nation);
+		text::localised_single_sub_box(state, contents, box, std::string_view("MILITARY_NAVY_CONSTRUCTION_TOOLTIP"),
+				text::variable_type::value, int64_t(cstr_range.end() - cstr_range.begin()));
+		text::close_layout_box(contents, box);
+	}
+};
+
+struct change_unit_sort {
+	unit_sort_data data{ };
 };
 
 class military_units_sortby_name : public button_element_base {
 public:
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
+	}
+
+	void button_action(sys::state& state) noexcept override {
+		unit_sort_data new_sorting{ };
+		auto current_sorting = retrieve<unit_sort_data>(state, parent);
+		if(current_sorting.sort_by == unit_sort_type::name) {
+			new_sorting.ascending = !current_sorting.ascending;
+		} else {
+			new_sorting.ascending = true;
+		}
+		new_sorting.sort_by = unit_sort_type::name;
+		send(state, parent, change_unit_sort{ new_sorting });
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
@@ -640,12 +861,25 @@ public:
 		return tooltip_behavior::variable_tooltip;
 	}
 
+	void button_action(sys::state& state) noexcept override {
+		unit_sort_data new_sorting{ };
+		auto current_sorting = retrieve<unit_sort_data>(state, parent);
+		if(current_sorting.sort_by == unit_sort_type::strength) {
+			new_sorting.ascending = !current_sorting.ascending;
+		} else {
+			new_sorting.ascending = true;
+		}
+		new_sorting.sort_by = unit_sort_type::strength;
+		send(state, parent, change_unit_sort{ new_sorting });
+	}
+
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
 		text::localised_format_box(state, contents, box, std::string_view("military_sort_by_strength_tooltip"));
 		text::close_layout_box(contents, box);
 	}
 };
+
 
 template<class T>
 std::unique_ptr<element_base> military_units_window<T>::make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept {
@@ -682,6 +916,20 @@ std::unique_ptr<element_base> military_units_window<T>::make_child(sys::state& s
 		return make_element_by_type<military_units_listbox<T>>(state, id);
 	} else {
 		return nullptr;
+	}
+}
+template<class T>
+message_result military_units_window<T>::get(sys::state& state, Cyto::Any& payload) noexcept {
+	if(payload.holds_type<unit_sort_data>()) {
+		payload.emplace<unit_sort_data>(unit_sort);
+		return message_result::consumed;
+	} else if(payload.holds_type<change_unit_sort>()) {
+		change_unit_sort new_sort = any_cast<change_unit_sort>(payload);
+		unit_sort = new_sort.data;
+		state.game_state_updated.store(true, std::memory_order::release);
+		return message_result::consumed;
+	} else {
+		return message_result::unseen;
 	}
 }
 

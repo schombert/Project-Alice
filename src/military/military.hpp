@@ -579,7 +579,10 @@ dcon::nation_id get_land_battle_lead_defender(sys::state& state, dcon::land_batt
 dcon::nation_id get_naval_battle_lead_defender(sys::state& state, dcon::naval_battle_id b);
 dcon::nation_id get_naval_battle_lead_attacker(sys::state& state, dcon::naval_battle_id b);
 
-float get_leader_select_score(sys::state& state, dcon::leader_id l, bool is_attacking);
+// The select score for battles, taking only attack/defence into account
+float get_leader_battle_select_score(sys::state& state, dcon::leader_id l, bool is_attacking);
+// The more general select score algorithm. Takes all stats of the general into account
+float get_leader_select_score(sys::state& state, dcon::leader_id l);
 bool is_attacker_in_battle(const sys::state& state, dcon::army_id a);
 bool is_attacker_in_battle(sys::state& state, dcon::navy_id a);
 dcon::leader_trait_id get_leader_background_wrapper(const sys::state& state, dcon::leader_id id);
@@ -614,8 +617,8 @@ bool move_army_ai(sys::state& state, dcon::army_id army, dcon::province_id desti
 
 bool pop_eligible_for_mobilization(sys::state& state, dcon::pop_id p);
 
-float navy_get_strength(const sys::state& state, dcon::navy_id navy);
-float army_get_strength(const sys::state& state, dcon::army_id army);
+float unit_get_strength(const sys::state& state, dcon::navy_id navy);
+float unit_get_strength(const sys::state& state, dcon::army_id army);
 
 template<regiment_dmg_source damage_source>
 void disband_regiment_w_pop_death(sys::state& state, dcon::regiment_id reg_id);

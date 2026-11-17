@@ -1135,7 +1135,15 @@ struct alignas(64) state {
 
 				// US6AC3 Reset selected army orders
 				ui_state.selected_army_order = military::special_army_order::none;
-				return;
+				break;
+			}
+		}
+		for(size_t i = ui_state.pending_shift_selected_armies.size(); i-- > 0;) {
+			if(ui_state.pending_shift_selected_armies[i] == a) {
+				ui_state.pending_shift_selected_armies[i] = ui_state.pending_shift_selected_armies.back();
+				ui_state.pending_shift_selected_armies.pop_back();
+				game_state_updated.store(true, std::memory_order_release);
+				break;
 			}
 		}
 	}
@@ -1145,7 +1153,15 @@ struct alignas(64) state {
 				selected_navies[i] = selected_navies.back();
 				selected_navies.pop_back();
 				game_state_updated.store(true, std::memory_order_release);
-				return;
+				break;
+			}
+		}
+		for(size_t i = ui_state.pending_shift_selected_navies.size(); i-- > 0;) {
+			if(ui_state.pending_shift_selected_navies[i] == a) {
+				ui_state.pending_shift_selected_navies[i] = ui_state.pending_shift_selected_navies.back();
+				ui_state.pending_shift_selected_navies.pop_back();
+				game_state_updated.store(true, std::memory_order_release);
+				break;
 			}
 		}
 	}
@@ -1211,5 +1227,7 @@ void selected_regiments_clear(sys::state& state);
 void selected_ships_remove(sys::state& state, dcon::ship_id ship);
 void selected_ships_add(sys::state& state, dcon::ship_id sh);
 void selected_ships_clear(sys::state& state);
+bool is_shift(virtual_key key);
+bool is_ctrl(virtual_key key);
 
 } // namespace sys

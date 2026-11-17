@@ -13,6 +13,7 @@
 #include "immediate_mode.hpp"
 #include "commands.hpp"
 
+
 namespace game_scene {
 
 void highlight_given_state(sys::state& state, std::vector<uint32_t>& data, dcon::province_id selected_province);
@@ -93,7 +94,8 @@ void switch_scene(sys::state& state, scene_id ui_scene) {
 			.lbutton_up = do_nothing,
 			.on_province_selected = select_production_state,
 			.keycode_mapping = replace_keycodes_map_movement,
-			.handle_hotkeys = production_screen_hotkeys,
+			.handle_hotkeys_key_down = production_screen_hotkeys,
+			.handle_hotkeys_key_up = do_nothing_hotkeys,
 			.console_log = console_log_other,
 			.render_ui = render_unitless_ui_ingame,
 			.recalculate_mouse_probe = recalculate_mouse_probe_unitless,
@@ -413,11 +415,19 @@ void on_lbutton_up_ui_click_hold_and_release(sys::state& state, int32_t x, int32
 		}
 	}
 }
+void deselect_armies(sys::state& state) {
+	state.selected_armies.clear();
+	state.ui_state.pending_shift_selected_armies.clear();
+}
+void deselect_navies(sys::state& state) {
+	state.selected_navies.clear();
+	state.ui_state.pending_shift_selected_navies.clear();
+}
 
 // Should be called only from the UI thread
 void deselect_units(sys::state& state) {
-	state.selected_armies.clear();
-	state.selected_navies.clear();
+	deselect_armies(state);
+	deselect_navies(state);
 }
 
 bool province_mid_point_is_in_selection(sys::state& state, int32_t x, int32_t y, dcon::province_id province) {
@@ -566,7 +576,6 @@ void handle_drag_stop(sys::state& state, int32_t x, int32_t y, sys::key_modifier
 		state.drag_selecting = false;
 		window::change_cursor(state, window::cursor_type::normal);
 		send_selected_province_to_province_window(state);
-		deselect_units(state);
 		state.game_state_updated.store(true, std::memory_order_release);
 	} else {
 		// stop dragging and select units
@@ -851,6 +860,25 @@ void in_game_hotkeys(sys::state& state, sys::virtual_key keycode, sys::key_modif
 	}
 }
 
+void in_game_hotkeys_key_up(sys::state& state, sys::virtual_key keycode, sys::key_modifiers mod) {
+	if(sys::is_shift(keycode)) {
+		if(!state.ui_state.pending_shift_selected_armies.empty()) {
+			state.selected_armies.clear();
+			for(auto army : state.ui_state.pending_shift_selected_armies) {
+				state.select(army);
+			}
+			state.ui_state.pending_shift_selected_armies.clear();
+		}
+		else if(!state.ui_state.pending_shift_selected_navies.empty()) {
+			state.selected_navies.clear();
+			for(auto navy : state.ui_state.pending_shift_selected_navies) {
+				state.select(navy);
+			}
+			state.ui_state.pending_shift_selected_navies.clear();
+		}
+	}
+}
+
 void do_nothing_hotkeys(sys::state& state, sys::virtual_key keycode, sys::key_modifiers mod) {
 	return;
 }
@@ -861,8 +889,16 @@ void on_key_down(sys::state& state, sys::virtual_key keycode, sys::key_modifiers
 		state.ui_state.edit_target_internal->impl_on_key_down(state, keycode, mod);
 	} else {
 		keycode = replace_keycodes(state, keycode, mod);
-		state.current_scene.handle_hotkeys(state, keycode, mod);
+		state.current_scene.handle_hotkeys_key_down(state, keycode, mod);
 	}
+}
+
+void on_key_up(sys::state& state, sys::virtual_key keycode, sys::key_modifiers mod) {
+	state.map_state.on_key_up(keycode, mod);
+	// No need for on_key_up for regular up elements for now. If it becomes nessecary, add it here and in the base ui classes
+	keycode = replace_keycodes(state, keycode, mod);
+	state.current_scene.handle_hotkeys_key_up(state, keycode, mod);
+	
 }
 
 void console_log_other(sys::state& state, std::string_view message) {
@@ -1173,11 +1209,11 @@ void clean_up_selected_armies_and_navies(sys::state& state) {
 	// Allow player to select single enemy army or enemy navy to view them
 	if(state.selected_armies.size() == 1) {
 		if(!state.world.army_is_valid(state.selected_armies[0])) {
-			state.selected_armies.clear();
+			deselect_armies(state);
 		}
 	} else if(state.selected_navies.size() == 1) {
 		if(!state.world.navy_is_valid(state.selected_navies[0])) {
-			state.selected_navies.clear();
+			deselect_navies(state);
 		}
 	} else {
 		for(auto i = state.selected_armies.size(); i-- > 0; ) {
@@ -1186,10 +1222,22 @@ void clean_up_selected_armies_and_navies(sys::state& state) {
 				state.selected_armies.pop_back();
 			}
 		}
+		for(auto i = state.ui_state.pending_shift_selected_armies.size(); i-- > 0; ) {
+			if(!state.world.army_is_valid(state.ui_state.pending_shift_selected_armies[i]) || military::get_effective_unit_commander(state, state.ui_state.pending_shift_selected_armies[i]) != state.local_player_nation) {
+				state.ui_state.pending_shift_selected_armies[i] = state.ui_state.pending_shift_selected_armies.back();
+				state.ui_state.pending_shift_selected_armies.pop_back();
+			}
+		}
 		for(auto i = state.selected_navies.size(); i-- > 0; ) {
 			if(!state.world.navy_is_valid(state.selected_navies[i]) || military::get_effective_unit_commander(state, state.selected_navies[i]) != state.local_player_nation) {
 				state.selected_navies[i] = state.selected_navies.back();
 				state.selected_navies.pop_back();
+			}
+		}
+		for(auto i = state.ui_state.pending_shift_selected_navies.size(); i-- > 0; ) {
+			if(!state.world.navy_is_valid(state.ui_state.pending_shift_selected_navies[i]) || military::get_effective_unit_commander(state, state.ui_state.pending_shift_selected_navies[i]) != state.local_player_nation) {
+				state.ui_state.pending_shift_selected_navies[i] = state.ui_state.pending_shift_selected_navies.back();
+				state.ui_state.pending_shift_selected_navies.pop_back();
 			}
 		}
 	}
