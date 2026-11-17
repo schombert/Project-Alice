@@ -41,6 +41,7 @@
 #include "logistics_templates.hpp"
 #include "math_fns.hpp"
 #include "trade_network.hpp"
+#include "nations_templates.hpp"
 
 namespace sys {
 
@@ -3783,6 +3784,12 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	trade_network::generate_initial_trade_routes(*this);
 
 	economy::sanity_check(*this);
+	// Give all existing nations 9 diplo points to start with
+	world.execute_serial_over_nation([&](auto nations)
+	{
+		auto nations_exists = nations::exists(*this, nations);
+		world.nation_set_diplomatic_points(nations, ve::select(nations_exists, ve::fp_vector{9.0f}, world.nation_get_diplomatic_points(nations)));
+	});
 
 	economy::presimulate(*this);
 

@@ -93,6 +93,9 @@ constexpr float vic2_hull_to_tonn = 20.f;
 constexpr float vic2_ship_crew_size = 150.f;
 constexpr float cargo_ship_maintenance_reduction = 0.01f;
 
+constexpr float base_gold_rgo_size = 250.0f;
+constexpr float base_gold_rgo_potential = 500.0f;
+
 float pop_min_wage_factor(sys::state& state, dcon::nation_id n) {
 	return state.world.nation_get_modifier_values(n, sys::national_mod_offsets::minimum_wage);
 }
@@ -1479,8 +1482,8 @@ void initialize(sys::state& state) {
 			});
 
 			// add a trickle of money rgo everywhere to produce a source of inflation
-			state.world.province_set_rgo_size(p, economy::money, state.world.province_get_rgo_size(p, economy::money) + 2500.f);
-			state.world.province_set_rgo_potential(p, economy::money, state.world.province_get_rgo_size(p, economy::money) + 5000.f);
+			state.world.province_set_rgo_size(p, economy::money, state.world.province_get_rgo_size(p, economy::money) + base_gold_rgo_size);
+			state.world.province_set_rgo_potential(p, economy::money, state.world.province_get_rgo_size(p, economy::money) + base_gold_rgo_potential);
 			state.world.province_set_rgo_efficiency(p, economy::money, 1.f);
 			state.world.province_set_rgo_max_efficiency(p, economy::money, 1.f);
 		});
