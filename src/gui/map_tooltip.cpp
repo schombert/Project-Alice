@@ -934,7 +934,7 @@ void supply_route_efficiency_map_tt_box(sys::state& state, text::columnar_layout
 		bool supply_access = province::has_supply_access_to_province(state, state.local_player_nation, prov);
 		bool fow_enabled = gamerule::nation_has_fow_enabled(state, state.local_player_nation);
 		
-		for(auto adj : fat.get_province_adjacency()) {
+		for(auto adj : fat.get_province_adjacency_as_connected_provinces()) {
 			auto indx = (adj.get_connected_provinces(0).id != prov ? 0 : 1);
 			auto adj_prov = adj.get_connected_provinces(indx);
 			bool is_coastal_adj = (state.world.province_adjacency_get_type(adj) & province::border::coastal_bit) != 0;

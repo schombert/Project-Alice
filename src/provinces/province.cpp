@@ -69,7 +69,7 @@ bool provinces_are_adjacent(const sys::state& state, dcon::province_id a, dcon::
 bool province_is_deep_waters(const sys::state& state, dcon::province_id prov) {
 	assert(prov.index() >= state.province_definitions.first_sea_province.index());
 	
-	for(auto adj : state.world.province_get_province_adjacency(prov)) {
+	for(auto adj : state.world.province_get_province_adjacency_as_connected_provinces(prov)) {
 		auto indx = adj.get_connected_provinces(0).id != prov ? 0 : 1;
 		auto adj_prov = adj.get_connected_provinces(indx);
 		if(adj_prov.id.index() < state.province_definitions.first_sea_province.index()) {
@@ -83,7 +83,7 @@ bool province_is_deep_waters(const sys::state& state, dcon::province_id prov) {
 bool sea_province_is_adjacent_to_accessible_coast(sys::state& state, dcon::province_id prov, dcon::nation_id nation) {
 	assert(prov.index() >= state.province_definitions.first_sea_province.index());
 
-	for(auto adj : state.world.province_get_province_adjacency(prov)) {
+	for(auto adj : state.world.province_get_province_adjacency_as_connected_provinces(prov)) {
 		auto indx = adj.get_connected_provinces(0).id != prov ? 0 : 1;
 		auto adj_prov = adj.get_connected_provinces(indx);
 		if(adj_prov.id.index() < state.province_definitions.first_sea_province.index()) {
@@ -130,7 +130,7 @@ void update_connected_regions(sys::state& state) {
 					found_coast = found_coast || state.world.province_get_is_coast(current_id);
 
 					state.world.province_set_connected_region_id(current_id, current_fill_id);
-					for(auto rel : state.world.province_get_province_adjacency(current_id)) {
+					for(auto rel : state.world.province_get_province_adjacency_as_connected_provinces(current_id)) {
 						if((rel.get_type() & (province::border::coastal_bit | province::border::impassible_bit)) ==
 								0) { // not entering sea, not impassible
 							auto owner_a = rel.get_connected_provinces(0).get_nation_from_province_ownership();
@@ -174,7 +174,7 @@ void update_connected_regions(sys::state& state) {
 					to_fill_list.pop_back();
 
 					state.world.province_set_connected_coast_id(current_id, current_fill_id);
-					for(auto rel : state.world.province_get_province_adjacency(current_id)) {
+					for(auto rel : state.world.province_get_province_adjacency_as_connected_provinces(current_id)) {
 						if(
 							(
 								rel.get_type()
@@ -543,6 +543,11 @@ void set_province_controller(sys::state& state, dcon::province_id p, dcon::natio
 		state.world.province_set_nation_from_province_control(p, n);
 		// Schedule supply route update for routes which pass through this province
 		logistics::schedule_prov_all_supply_paths_update(state, p);
+		// Schedule update for all enemy routes which pass through adjacencies which might be blocked by us occupying this canal
+		for (auto blocked_adj : state.world.province_get_province_adjacency_as_blocking_prov(p)) {
+			logistics::schedule_prov_enemy_supply_paths_update(state, blocked_adj.get_connected_provinces(0), n);
+			logistics::schedule_prov_enemy_supply_paths_update(state, blocked_adj.get_connected_provinces(1), n);
+		}
 		state.military_definitions.pending_blackflag_update = true;
 		// Delete unit constructions in the occupied province
 		for(auto pop_loc : state.world.province_get_pop_location(p)) {
@@ -593,6 +598,11 @@ void set_province_controller(sys::state& state, dcon::province_id p, dcon::rebel
 		state.world.province_set_nation_from_province_control(p, dcon::nation_id{});
 		// Schedule supply route update for routes which pass through this province
 		logistics::schedule_prov_all_supply_paths_update(state, p);
+		// Schedule update for all routes which pass through adjacencies which might be blocked by rebels occupying this canal
+		for (auto blocked_adj : state.world.province_get_province_adjacency_as_blocking_prov(p)) {
+			logistics::schedule_prov_all_supply_paths_update(state, blocked_adj.get_connected_provinces(1));
+			logistics::schedule_prov_all_supply_paths_update(state, blocked_adj.get_connected_provinces(1));
+		}
 		state.military_definitions.pending_blackflag_update = true;
 	}
 }
@@ -719,7 +729,7 @@ void restore_unsaved_values(sys::state& state) {
 	for(int32_t i = 0; i < state.province_definitions.first_sea_province.index(); ++i) {
 		dcon::province_id pid{dcon::province_id::value_base_t(i)};
 
-		for(auto adj : state.world.province_get_province_adjacency(pid)) {
+		for(auto adj : state.world.province_get_province_adjacency_as_connected_provinces(pid)) {
 			if((state.world.province_adjacency_get_type(adj) & province::border::coastal_bit) != 0 &&
 					(state.world.province_adjacency_get_type(adj) & province::border::impassible_bit) == 0) {
 				state.world.province_set_is_coast(pid, true);
@@ -1198,7 +1208,7 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 			std::set<dcon::state_instance_id::value_base_t> trade_route_candidates{};
 
 			// try to create trade routes to neighbors
-			for(auto adj : state.world.province_get_province_adjacency(id)) {
+			for(auto adj : state.world.province_get_province_adjacency_as_connected_provinces(id)) {
 				if((adj.get_type() & (province::border::impassible_bit | province::border::coastal_bit)) == 0) {
 					auto other =
 						adj.get_connected_provinces(0) != id
@@ -1220,7 +1230,7 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 			Create trade routes through lakes.
 			Lake coasts have both impassible bit and coastal bit
 			*/
-			for(auto adj : state.world.province_get_province_adjacency(id)) {
+			for(auto adj : state.world.province_get_province_adjacency_as_connected_provinces(id)) {
 				auto bits = adj.get_type();
 				if((bits & province::border::impassible_bit) == 0) {
 					continue;
@@ -1240,7 +1250,7 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 					continue;
 				}
 
-				for(auto adj2 : state.world.province_get_province_adjacency(through)) {
+				for(auto adj2 : state.world.province_get_province_adjacency_as_connected_provinces(through)) {
 					auto bits2 = adj2.get_type();
 					if((bits2 & province::border::impassible_bit) == 0) {
 						continue;
@@ -1316,7 +1326,7 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 			std::set<dcon::state_instance_id::value_base_t> trade_route_candidates{};
 
 			// try to create trade routes to neighbors
-			for(auto adj : state.world.province_get_province_adjacency(id)) {
+			for(auto adj : state.world.province_get_province_adjacency_as_connected_provinces(id)) {
 				if((adj.get_type() & (province::border::impassible_bit | province::border::coastal_bit)) == 0) {
 					auto other =
 						adj.get_connected_provinces(0) != id
@@ -1340,7 +1350,7 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 			Create trade routes through lakes.
 			Lake coasts have both impassible bit and coastal bit
 			*/
-			for(auto adj : state.world.province_get_province_adjacency(id)) {
+			for(auto adj : state.world.province_get_province_adjacency_as_connected_provinces(id)) {
 				auto bits = adj.get_type();
 				if((bits & province::border::impassible_bit) == 0) {
 					continue;
@@ -1360,7 +1370,7 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 					continue;
 				}
 
-				for(auto adj2 : state.world.province_get_province_adjacency(through)) {
+				for(auto adj2 : state.world.province_get_province_adjacency_as_connected_provinces(through)) {
 					auto bits2 = adj2.get_type();
 					if((bits2 & province::border::impassible_bit) == 0) {
 						continue;
@@ -1603,7 +1613,7 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 		}
 	}
 
-	for(auto adj : state.world.province_get_province_adjacency(id)) {
+	for(auto adj : state.world.province_get_province_adjacency_as_connected_provinces(id)) {
 		auto other = adj.get_connected_provinces(0) != id ? adj.get_connected_provinces(0) : adj.get_connected_provinces(1);
 		if(other.get_nation_from_province_ownership() == new_owner) {
 			adj.set_type(adj.get_type() & ~province::border::national_bit);
@@ -1638,17 +1648,16 @@ bool is_crossing_blocked(const sys::state& state, dcon::nation_id thisnation, dc
 }
 
 bool is_crossing_blocked(const sys::state& state, dcon::nation_id thisnation, dcon::province_adjacency_id adjacency) {
-	auto path_bits = state.world.province_adjacency_get_type(adjacency);
-	auto strait_prov = state.world.province_adjacency_get_canal_or_blockade_province(adjacency);
-	if(strait_prov) { // strait crossing or canal control province
-		// if land province, check if we own the canal control province
-		if(strait_prov.index() < state.province_definitions.first_sea_province.index()) {
-			auto controller = state.world.province_get_nation_from_province_control(strait_prov);
+	auto canal_or_block_prov  = state.world.province_adjacency_get_blocking_prov(adjacency);
+	if(canal_or_block_prov) { // strait crossing or canal control province
+		// if canal, check if we own the canal control province
+		if(is_land(state, canal_or_block_prov)) {
+			auto controller = state.world.province_get_nation_from_province_control(canal_or_block_prov);
 			return military::are_enemies(state, thisnation, controller);
 		}
 		// otherwise, its a blockadable strait
 		else {
-			return military::province_has_fleet<military::battle_included::yes, military::retreat_included::no, military::participants_included::enemies>(state, strait_prov, thisnation);
+			return military::province_has_fleet<military::battle_included::yes, military::retreat_included::no, military::participants_included::enemies>(state, canal_or_block_prov, thisnation);
 		}
 	}
 	return false;
@@ -1874,7 +1883,7 @@ bool state_borders_nation(sys::state& state, dcon::nation_id n, dcon::state_inst
 	auto owner = state.world.state_instance_get_nation_from_state_ownership(si);
 	for(auto p : state.world.state_definition_get_abstract_state_membership(d)) {
 		if(p.get_province().get_nation_from_province_ownership() == owner) {
-			for(auto adj : p.get_province().get_province_adjacency()) {
+			for(auto adj : p.get_province().get_province_adjacency_as_connected_provinces()) {
 				auto indx = adj.get_connected_provinces(0) != p.get_province() ? 0 : 1;
 				auto o = adj.get_connected_provinces(indx).get_nation_from_province_ownership();
 				if(o == n)
@@ -1952,7 +1961,7 @@ bool can_start_colony(sys::state& state, dcon::nation_id n, dcon::state_definiti
 	bool adjacent = [&]() {
 		for(auto p : state.world.state_definition_get_abstract_state_membership(d)) {
 			if(!p.get_province().get_nation_from_province_ownership()) {
-				for(auto adj : p.get_province().get_province_adjacency()) {
+				for(auto adj : p.get_province().get_province_adjacency_as_connected_provinces()) {
 					auto indx = adj.get_connected_provinces(0) != p.get_province() ? 0 : 1;
 					auto o = adj.get_connected_provinces(indx).get_nation_from_province_ownership();
 					if(o == n)
@@ -2081,7 +2090,7 @@ bool fast_can_start_colony(sys::state& state, dcon::nation_id n, dcon::state_def
 	adjacent = [&]() {
 		for(auto p : state.world.state_definition_get_abstract_state_membership(d)) {
 			if(!p.get_province().get_nation_from_province_ownership()) {
-				for(auto adj : p.get_province().get_province_adjacency()) {
+				for(auto adj : p.get_province().get_province_adjacency_as_connected_provinces()) {
 					auto indx = adj.get_connected_provinces(0) != p.get_province() ? 0 : 1;
 					auto o = adj.get_connected_provinces(indx).get_nation_from_province_ownership();
 					if(o == n)

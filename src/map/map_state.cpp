@@ -505,13 +505,13 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 
 		auto nation = get_top_overlord(state, state.world.province_get_nation_from_province_ownership(candidate));
 
-		for(auto adj : candidate.get_province_adjacency()) {
+		for(auto adj : candidate.get_province_adjacency_as_connected_provinces()) {
 			auto indx = adj.get_connected_provinces(0) != candidate.id ? 0 : 1;
 			auto neighbor = adj.get_connected_provinces(indx);
 
 			// if sea, try to jump to the next province
 			if(neighbor.id.index() >= state.province_definitions.first_sea_province.index()) {
-				for(auto adj_of_neighbor : neighbor.get_province_adjacency()) {
+				for(auto adj_of_neighbor : neighbor.get_province_adjacency_as_connected_provinces()) {
 					auto indx2 = adj_of_neighbor.get_connected_provinces(0) != neighbor.id ? 0 : 1;
 					auto neighbor_of_neighbor = adj_of_neighbor.get_connected_provinces(indx2);
 
@@ -549,7 +549,7 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 		glm::vec2 mp { };
 		bool sea_is_claimed = false;
 
-		for(auto neigh : p.get_province_adjacency()) {
+		for(auto neigh : p.get_province_adjacency_as_connected_provinces()) {
 			auto other_idx = neigh.get_connected_provinces(0) != p.id ? 0 : 1;
 			auto other = neigh.get_connected_provinces(other_idx);
 

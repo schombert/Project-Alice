@@ -8913,7 +8913,7 @@ void navy_arrives_in_province(sys::state& state, dcon::navy_id n, dcon::province
 
 
 	auto prev_location = state.world.navy_get_location_from_navy_location(n);
-
+	bool is_sea_prov = province::is_sea(state, p);
 	// Schedule a supply route paths update if the location was changed from the previous one, and updates supply routes passing through destination and previous location if they are enemies with the army owner
 	if(prev_location != p) {
 		auto navy_owner = state.world.navy_get_controller_from_navy_control(n);
@@ -8928,13 +8928,19 @@ void navy_arrives_in_province(sys::state& state, dcon::navy_id n, dcon::province
 			state.world.force_create_navy_route_path(sup_route, sup_path);
 			logistics::schedule_immediate_supply_path_update(state, sup_path);
 		}
+		// If new province is a sea province, schedule a logistics path update for enemy routes in all connected adjacencies which could be blocked
+		if (is_sea_prov) {
+			for (auto blocked_adj : state.world.province_get_province_adjacency_as_blocking_prov(p)) {
+				logistics::schedule_prov_enemy_supply_paths_update(state, blocked_adj.get_connected_provinces(0), navy_owner);
+				logistics::schedule_prov_enemy_supply_paths_update(state, blocked_adj.get_connected_provinces(1), navy_owner);
+			}
+		}
 		if(prev_location) {
 			logistics::schedule_prov_enemy_supply_paths_update(state, prev_location, navy_owner);
 		}
 
 	}
 
-	bool is_sea_prov = province::is_sea(state, p);
 
 
 	state.world.navy_set_location_from_navy_location(n, p);

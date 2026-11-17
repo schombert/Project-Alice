@@ -1050,7 +1050,7 @@ std::vector<uint32_t> supply_route_efficiency_map_from(sys::state& state) {
 			auto prov = p.get_province();
 			// Skip provinces which we do not have supply access to
 			if(province::has_supply_access_to_province(state, state.local_player_nation, prov)) {
-				for(auto adj : prov.get_province_adjacency()) {
+				for(auto adj : prov.get_province_adjacency_as_connected_provinces()) {
 					auto indx = (adj.get_connected_provinces(0).id != prov ? 0 : 1);
 					auto adj_prov = adj.get_connected_provinces(indx);
 					auto available_throughput = logistics::calculate_supply_throughput_in_adjacency(state, adj, state.local_player_nation);
@@ -1071,7 +1071,7 @@ std::vector<uint32_t> supply_route_efficiency_map_from(sys::state& state) {
 			auto prov = p.get_province();
 			if(province::has_supply_access_to_province(state, state.local_player_nation, prov)) {
 				float eff = 1.0f;
-				for(auto adj : prov.get_province_adjacency()) {
+				for(auto adj : prov.get_province_adjacency_as_connected_provinces()) {
 					auto indx = (adj.get_connected_provinces(0).id != prov ? 0 : 1);
 					auto adj_prov = adj.get_connected_provinces(indx);
 					auto available_throughput = logistics::calculate_supply_throughput_in_adjacency(state, adj, state.local_player_nation);
@@ -1106,7 +1106,7 @@ std::vector<uint32_t> supply_route_efficiency_map_from(sys::state& state) {
 			auto prov = fatten(state.world, p);
 			// Skip provinces which we do not have supply access to
 			if(province::has_supply_access_to_province(state, state.local_player_nation, prov)) {
-				for(auto adj : prov.get_province_adjacency()) {
+				for(auto adj : prov.get_province_adjacency_as_connected_provinces()) {
 					auto indx = (adj.get_connected_provinces(0).id != prov ? 0 : 1);
 					auto adj_prov = adj.get_connected_provinces(indx);
 					auto available_throughput = logistics::calculate_supply_throughput_in_adjacency(state, adj, state.local_player_nation);
@@ -1123,7 +1123,7 @@ std::vector<uint32_t> supply_route_efficiency_map_from(sys::state& state) {
 			auto i = province::to_map_id(prov);
 			if(province::has_supply_access_to_province(state, state.local_player_nation, prov)) {
 				auto eff = 1.0f;
-				for(auto adj : prov.get_province_adjacency()) {
+				for(auto adj : prov.get_province_adjacency_as_connected_provinces()) {
 					auto indx = (adj.get_connected_provinces(0).id != prov ? 0 : 1);
 					auto adj_prov = adj.get_connected_provinces(indx);
 					auto available_throughput = logistics::calculate_supply_throughput_in_adjacency(state, adj, state.local_player_nation);

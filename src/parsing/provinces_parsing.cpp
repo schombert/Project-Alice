@@ -112,7 +112,7 @@ void read_map_adjacency(char const* start, char const* end, error_handler& err, 
 					auto ttex = parsers::remove_surrounding_whitespace(values[2]);
 					if(is_fixed_token_ci(ttex.data(), ttex.data() + ttex.length(), "sea")) {
 						if(!existing_rel) {
-							auto new_rel = context.state.world.force_create_province_adjacency(province_id_a, province_id_b);
+							auto new_rel = context.state.world.force_create_province_adjacency(province_id_a, province_id_b, dcon::province_id{});
 							auto& cur_type = context.state.world.province_adjacency_get_type(new_rel);
 							context.state.world.province_adjacency_set_type(new_rel, cur_type | province::border::non_adjacent_bit); // The two provinces may be adjacent, but the non_adjacent flag will be cleared later if it ends up being adjacent
 							context.state.world.province_adjacency_set_type(new_rel, cur_type | province::border::sea_strait_crossing_bit); 
@@ -121,18 +121,18 @@ void read_map_adjacency(char const* start, char const* end, error_handler& err, 
 							auto blockade_prov_value = parsers::parse_int(blockade_prov_text, line, err);
 							if(blockade_prov_value > 0) {
 								auto blockadeable_prov = context.original_id_to_prov_id_map[blockade_prov_value];
-								context.state.world.province_adjacency_set_canal_or_blockade_province(new_rel, blockadeable_prov);
+								context.state.world.province_adjacency_try_set_blocking_prov(new_rel, blockadeable_prov);
 							}
 						}
 						// Land strait is a non-blockadable strait which does not give a sea strait crossing penalty (some mods use these for "shortcuts" around the map for land units)
 					} else if(is_fixed_token_ci(ttex.data(), ttex.data() + ttex.length(), "land")) {
 						if(!existing_rel) {
-							auto new_rel = context.state.world.force_create_province_adjacency(province_id_a, province_id_b);
+							auto new_rel = context.state.world.force_create_province_adjacency(province_id_a, province_id_b, dcon::province_id{});
 							auto& cur_type = context.state.world.province_adjacency_get_type(new_rel);
 							context.state.world.province_adjacency_set_type(new_rel, cur_type | province::border::non_adjacent_bit);
 						}
 					} else if(is_fixed_token_ci(ttex.data(), ttex.data() + ttex.length(), "impassable")) {
-						auto new_rel = context.state.world.force_create_province_adjacency(province_id_a, province_id_b);
+						auto new_rel = context.state.world.force_create_province_adjacency(province_id_a, province_id_b, dcon::province_id{});
 						context.state.world.province_adjacency_set_type(new_rel, province::border::impassible_bit);
 					} else if(is_fixed_token_ci(ttex.data(), ttex.data() + ttex.length(), "canal")) {
 						auto canal_id = parsers::parse_uint(parsers::remove_surrounding_whitespace(values[4]), line, err);
@@ -144,14 +144,14 @@ void read_map_adjacency(char const* start, char const* end, error_handler& err, 
 						}
 
 						if(!existing_rel) {
-							auto new_rel = context.state.world.force_create_province_adjacency(province_id_a, province_id_b);
+							auto new_rel = context.state.world.force_create_province_adjacency(province_id_a, province_id_b, dcon::province_id{});
 							context.state.world.province_adjacency_set_type(new_rel, province::border::non_adjacent_bit | province::border::impassible_bit);
 							if(context.original_id_to_prov_id_map[canal_province_id].index() >= context.state.province_definitions.first_sea_province.index()) {
 								err.accumulated_warnings += "Canal control province ID " + std::to_string(canal_province_id) + " in Canal ID " + std::to_string(canal_id) + " is a sea province, setting control province to ID 0. On line " + std::to_string(line) + " in file (" + err.file_name + ")\n";
-								context.state.world.province_adjacency_set_canal_or_blockade_province(new_rel, dcon::province_id{ });
+								//context.state.world.province_adjacency_set_canal_or_blockade_province(new_rel, dcon::province_id{ });
 							}
 							else {
-								context.state.world.province_adjacency_set_canal_or_blockade_province(new_rel, context.original_id_to_prov_id_map[canal_province_id]);
+								context.state.world.province_adjacency_try_set_blocking_prov(new_rel, context.original_id_to_prov_id_map[canal_province_id]);
 							}
 							if(context.state.province_definitions.canals.size() < canal_id) {
 								context.state.province_definitions.canals.resize(canal_id);

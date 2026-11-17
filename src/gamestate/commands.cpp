@@ -1965,7 +1965,7 @@ void execute_invest_in_colony(sys::state& state, dcon::nation_id source, dcon::p
 		bool adjacent = [&]() {
 			for(auto p : state.world.state_definition_get_abstract_state_membership(state_def)) {
 				if(!p.get_province().get_nation_from_province_ownership()) {
-					for(auto adj : p.get_province().get_province_adjacency()) {
+					for(auto adj : p.get_province().get_province_adjacency_as_connected_provinces()) {
 						auto indx = adj.get_connected_provinces(0) != p.get_province() ? 0 : 1;
 						auto o = adj.get_connected_provinces(indx).get_nation_from_province_ownership();
 						if(o == source)

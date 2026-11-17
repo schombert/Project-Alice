@@ -980,7 +980,7 @@ void distribute_guards(sys::state& state, dcon::nation_id n) {
 		if(c.get_province() == cap)
 			cls = province_class::border;
 
-		for(auto padj : c.get_province().get_province_adjacency()) {
+		for(auto padj : c.get_province().get_province_adjacency_as_connected_provinces()) {
 			auto other = padj.get_connected_provinces(0) == c.get_province() ? padj.get_connected_provinces(1) : padj.get_connected_provinces(0);
 			auto n_controller = other.get_nation_from_province_control();
 			auto ovr = n_controller.get_overlord_as_subject().get_ruler();

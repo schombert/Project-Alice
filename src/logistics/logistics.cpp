@@ -2649,16 +2649,16 @@ void update_supply_routes_daily(sys::state& state) {
 			}
 			auto path = state.world.supply_route_path_get_path(path_handle);
 			dcon::nation_id owner = supply_route_path_get_owner(state, path_handle);
+			// Check if the nation is flagged to have all of its' supply routes updated
+			if(state.world.nation_get_supply_routes_requires_path_update(owner)) {
+				schedule_immediate_supply_path_update(state, path_handle);
+				return;
+			}
 			for(dcon::province_id prov : path) {
 				// Check if the province is flagged to update ALL routes which pass through it
 				if(state.world.province_get_supply_routes_requires_update(prov)) {
 					schedule_immediate_supply_path_update(state, path_handle);
 					return; // Leave loop iteration 
-				}
-				// Check if the nation is flagged to have all of its' supply routes updated
-				if(state.world.nation_get_supply_routes_requires_path_update(owner)) {
-					schedule_immediate_supply_path_update(state, path_handle);
-					return;
 				}
 				// Check which nations' routes should be updated. Only routes which belong to one of those nations will be updated
 				auto nations_to_update = state.world.province_get_nation_routes_to_be_updated(prov);

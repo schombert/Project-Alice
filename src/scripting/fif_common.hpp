@@ -63,7 +63,7 @@ inline int32_t* f_date_to_month_b(fif::state_stack& s, int32_t* p, fif::environm
 
 inline bool f_empty_adjacent_province(sys::state* state, int32_t p_index) {
 	dcon::province_id p{ dcon::province_id::value_base_t(p_index) };
-	for(auto a : state->world.province_get_province_adjacency(p)) {
+	for(auto a : state->world.province_get_province_adjacency_as_connected_provinces(p)) {
 		auto other = a.get_connected_provinces(0) == p ? a.get_connected_provinces(1) : a.get_connected_provinces(0);
 		if(other.get_nation_from_province_ownership() == dcon::nation_id() && other.id.index() < state->province_definitions.first_sea_province.index())
 			return true;
@@ -94,7 +94,7 @@ inline bool f_empty_adjacent_state(sys::state* state, int32_t p_index) {
 	auto owner = state->world.state_instance_get_nation_from_state_ownership(s);
 	for(auto p : state->world.state_instance_get_definition(s).get_abstract_state_membership()) {
 		if(p.get_province().get_nation_from_province_ownership() == owner) {
-			for(auto a : p.get_province().get_province_adjacency()) {
+			for(auto a : p.get_province().get_province_adjacency_as_connected_provinces()) {
 				auto other = a.get_connected_provinces(0) == p.get_province() ? a.get_connected_provinces(1) : a.get_connected_provinces(0);
 				if(other.get_nation_from_province_ownership() == dcon::nation_id() && other.id.index() < state->province_definitions.first_sea_province.index())
 					return true;

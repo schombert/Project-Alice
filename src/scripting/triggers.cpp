@@ -394,7 +394,7 @@ TRIGGER_FUNCTION(tf_x_neighbor_province_scope) {
 				if(*tval & trigger::is_existence_scope) {
 					auto accumulator = existence_accumulator(ws, tval, t_slot, f_slot);
 
-					for(auto adj : ws.world.province_get_province_adjacency(prov_tag)) {
+					for(auto adj : ws.world.province_get_province_adjacency_as_connected_provinces(prov_tag)) {
 						if((adj.get_type() & province::border::impassible_bit) == 0) {
 							auto other = adj.get_connected_provinces(prov_tag == adj.get_connected_provinces(0) ? 1 : 0).id;
 							accumulator.add_value(to_generic(other));
@@ -406,7 +406,7 @@ TRIGGER_FUNCTION(tf_x_neighbor_province_scope) {
 				} else {
 					auto accumulator = universal_accumulator(ws, tval, t_slot, f_slot);
 
-					for(auto adj : ws.world.province_get_province_adjacency(prov_tag)) {
+					for(auto adj : ws.world.province_get_province_adjacency_as_connected_provinces(prov_tag)) {
 						if((adj.get_type() & province::border::impassible_bit) == 0) {
 							auto other = adj.get_connected_provinces(prov_tag == adj.get_connected_provinces(0) ? 1 : 0).id;
 							accumulator.add_value(to_generic(other));
@@ -429,7 +429,7 @@ TRIGGER_FUNCTION(tf_x_neighbor_province_scope_state) {
 
 				for(auto p : ws.world.state_definition_get_abstract_state_membership(ws.world.state_instance_get_definition(state_tag))) {
 					if(p.get_province().get_state_membership() == state_tag) {
-						for(auto adj : p.get_province().get_province_adjacency()) {
+						for(auto adj : p.get_province().get_province_adjacency_as_connected_provinces()) {
 							if((adj.get_type() & province::border::impassible_bit) == 0) {
 								auto other = (p.get_province() == adj.get_connected_provinces(0)) ? adj.get_connected_provinces(1).id : adj.get_connected_provinces(0).id;
 								if(std::find(vadj.begin(), vadj.end(), other) == vadj.end())
@@ -1244,7 +1244,7 @@ TRIGGER_FUNCTION(tf_has_empty_adjacent_state_province) {
 				auto pid = to_prov(p_slot);
 				auto acc = empty_province_accumulator(ws);
 
-				for(auto p : ws.world.province_get_province_adjacency(pid)) {
+				for(auto p : ws.world.province_get_province_adjacency_as_connected_provinces(pid)) {
 					auto other = p.get_connected_provinces(0) == pid ? p.get_connected_provinces(1) : p.get_connected_provinces(0);
 					acc.add_value(to_generic(other));
 					if(acc.result)
@@ -1278,7 +1278,7 @@ TRIGGER_FUNCTION(tf_has_empty_adjacent_state_state) {
 
 				for(auto sp : ws.world.state_definition_get_abstract_state_membership(region_id)) {
 					if(sp.get_province().get_nation_from_province_ownership() == region_owner) {
-						for(auto p : ws.world.province_get_province_adjacency(sp.get_province())) {
+						for(auto p : ws.world.province_get_province_adjacency_as_connected_provinces(sp.get_province())) {
 							auto other =
 									p.get_connected_provinces(0) == sp.get_province() ? p.get_connected_provinces(1) : p.get_connected_provinces(0);
 							acc.add_value(to_generic(other));
@@ -3483,7 +3483,7 @@ TRIGGER_FUNCTION(tf_has_empty_adjacent_province) {
 	auto result = ve::apply(
 			[&ws](dcon::province_id p) {
 				auto acc = empty_province_accumulator(ws);
-				for(auto a : ws.world.province_get_province_adjacency(p)) {
+				for(auto a : ws.world.province_get_province_adjacency_as_connected_provinces(p)) {
 					auto other = a.get_connected_provinces(0) != p ? a.get_connected_provinces(0) : a.get_connected_provinces(1);
 					acc.add_value(to_generic(other));
 					if(acc.result)

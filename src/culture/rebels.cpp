@@ -1490,7 +1490,7 @@ void update_armies(sys::state& state) {
 		}
 		dcon::province_fat_id best_prov = location;
 		float best_weight = 0.f;// trigger::evaluate_multiplicative_modifier(state, type.get_movement_evaluation(), trigger::to_generic(best_prov), trigger::to_generic(best_prov), 0);;
-		for(const auto adj : location.get_province_adjacency()) {
+		for(const auto adj : location.get_province_adjacency_as_connected_provinces()) {
 			auto indx = adj.get_connected_provinces(0) != location.id ? 0 : 1;
 			auto prov = adj.get_connected_provinces(indx);
 			/* sea province */

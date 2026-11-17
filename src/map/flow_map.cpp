@@ -269,7 +269,7 @@ void build_graph_administration(sys::state const& state, flow_map_data& data) {
 		}
 		auto total_weight = total_adjacency_weight.get(pid) + 0.00001f;
 		auto control_to_transfer = control_buffer.get(pid) * 0.05f;
-		state.world.province_for_each_province_adjacency(pid, [&](auto adj) {
+		state.world.province_for_each_province_adjacency_as_connected_provinces(pid, [&](auto adj) {
 			auto other = state.world.province_adjacency_get_connected_provinces(adj, 0);
 			if(other == pid) {
 				other = state.world.province_adjacency_get_connected_provinces(adj, 1);

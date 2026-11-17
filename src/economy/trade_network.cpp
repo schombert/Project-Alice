@@ -526,7 +526,7 @@ void generate_initial_trade_routes(sys::state& state) {
 
 		province::for_each_province_in_state_instance(state, sid, [&](auto prov) {
 			// try to create trade routes to neighbors
-			for(auto adj : state.world.province_get_province_adjacency(prov)) {
+			for(auto adj : state.world.province_get_province_adjacency_as_connected_provinces(prov)) {
 				if((adj.get_type() & (province::border::impassible_bit | province::border::coastal_bit)) == 0) {
 					auto other =
 						adj.get_connected_provinces(0) != prov
@@ -548,7 +548,7 @@ void generate_initial_trade_routes(sys::state& state) {
 			Create trade routes through lakes.
 			Lake coasts have both impassible bit and coastal bit
 			*/
-			for(auto adj : state.world.province_get_province_adjacency(prov)) {
+			for(auto adj : state.world.province_get_province_adjacency_as_connected_provinces(prov)) {
 				auto bits = adj.get_type();
 				if((bits & province::border::impassible_bit) == 0) {
 					continue;
@@ -568,7 +568,7 @@ void generate_initial_trade_routes(sys::state& state) {
 					continue;
 				}
 
-				for(auto adj2 : state.world.province_get_province_adjacency(through)) {
+				for(auto adj2 : state.world.province_get_province_adjacency_as_connected_provinces(through)) {
 					auto bits2 = adj2.get_type();
 					if((bits2 & province::border::impassible_bit) == 0) {
 						continue;

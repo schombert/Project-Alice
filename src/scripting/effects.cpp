@@ -71,7 +71,7 @@ uint32_t es_else_if_scope(EFFECT_PARAMTERS) {
 }
 
 uint32_t es_x_neighbor_province_scope(EFFECT_PARAMTERS) {
-	auto neighbor_range = ws.world.province_get_province_adjacency(trigger::to_prov(primary_slot));
+	auto neighbor_range = ws.world.province_get_province_adjacency_as_connected_provinces(trigger::to_prov(primary_slot));
 
 	if((tval[0] & effect::is_random_scope) != 0) {
 		std::vector<dcon::province_id> rlist;
@@ -127,9 +127,9 @@ std::vector<dcon::province_id> country_get_province_adjacency(sys::state& state,
 
 	for(auto own : state.world.nation_get_province_ownership(nat_id)) {
 		auto prov = own.get_province().id;
-		auto neighbor_range = state.world.province_get_province_adjacency(prov);
+		auto neighbor_range = state.world.province_get_province_adjacency_as_connected_provinces(prov);
 
-		for(auto adj : state.world.province_get_province_adjacency(prov)) {
+		for(auto adj : state.world.province_get_province_adjacency_as_connected_provinces(prov)) {
 			if((adj.get_type() & (province::border::impassible_bit | province::border::coastal_bit)) == 0) {
 				auto other = adj.get_connected_provinces(0) != prov ? adj.get_connected_provinces(0) : adj.get_connected_provinces(1);
 
@@ -428,7 +428,7 @@ uint32_t es_x_decision_country_scope(EFFECT_PARAMTERS) {
 	return es_x_decision_country_scope_nation(tval, ws, trigger::to_generic(dcon::nation_id{}), this_slot, from_slot, r_hi, r_lo, els);
 }
 uint32_t es_x_empty_neighbor_province_scope(EFFECT_PARAMTERS) {
-	auto neighbor_range = ws.world.province_get_province_adjacency(trigger::to_prov(primary_slot));
+	auto neighbor_range = ws.world.province_get_province_adjacency_as_connected_provinces(trigger::to_prov(primary_slot));
 	if((tval[0] & effect::is_random_scope) != 0) {
 		std::vector<dcon::province_id> rlist;
 		if((tval[0] & effect::scope_has_limit) != 0) {
@@ -1255,7 +1255,7 @@ uint32_t es_from_scope_pop(EFFECT_PARAMTERS) {
 }
 uint32_t es_sea_zone_scope(EFFECT_PARAMTERS) {
 	auto pid = fatten(ws.world, trigger::to_prov(primary_slot));
-	for(auto adj : pid.get_province_adjacency()) {
+	for(auto adj : pid.get_province_adjacency_as_connected_provinces()) {
 		if(adj.get_connected_provinces(0).id.index() >= ws.province_definitions.first_sea_province.index()) {
 			return apply_subeffects(tval, ws, trigger::to_generic(adj.get_connected_provinces(0).id), this_slot, from_slot, r_hi, r_lo, els);
 		} else if(adj.get_connected_provinces(1).id.index() >= ws.province_definitions.first_sea_province.index()) {

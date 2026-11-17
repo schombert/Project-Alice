@@ -3460,7 +3460,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 					region_sizes.back() += 1;
 
 					world.province_set_connected_region_id(current_id, current_fill_id);
-					for(auto rel : world.province_get_province_adjacency(current_id)) {
+					for(auto rel : world.province_get_province_adjacency_as_connected_provinces(current_id)) {
 						if((rel.get_type() & (province::border::coastal_bit | province::border::impassible_bit)) == 0) { // not leaving sea, not impassible
 							if(rel.get_connected_provinces(0).get_connected_region_id() == 0)
 								to_fill_list.push_back(rel.get_connected_provinces(0));
@@ -3486,7 +3486,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 				if(world.province_get_connected_region_id(p) != int16_t(max + 1)) {
 					world.province_set_is_coast(p, false);
 					world.province_set_port_to(p, dcon::province_id{});
-					for(auto adj : context.state.world.province_get_province_adjacency(p)) {
+					for(auto adj : context.state.world.province_get_province_adjacency_as_connected_provinces(p)) {
 						auto other = adj.get_connected_provinces(0) != p ? adj.get_connected_provinces(0) : adj.get_connected_provinces(1);
 						other.set_is_coast(false);
 						other.set_port_to(dcon::province_id{});
@@ -3498,7 +3498,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	}
 
 	for(auto ip : context.special_impassible) {
-		for(auto adj : world.province_get_province_adjacency(ip)) {
+		for(auto adj : world.province_get_province_adjacency_as_connected_provinces(ip)) {
 			adj.set_type(uint8_t(adj.get_type() | province::border::impassible_bit));
 		}
 	}
@@ -3507,7 +3507,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	province::for_each_land_province(*this, [&](dcon::province_id p) {
 		auto best_port = dcon::province_id{ };
 		auto best_border_length = 0;
-		for(auto adj : world.province_get_province_adjacency(p)) {
+		for(auto adj : world.province_get_province_adjacency_as_connected_provinces(p)) {
 			auto& border = map_state.map_data.adj_index_to_border_edge[adj.id.index()];
 			auto& edge = map_state.map_data.border_edges[border];
 			auto other = adj.get_connected_provinces(0) != p ? adj.get_connected_provinces(0) : adj.get_connected_provinces(1);
@@ -3866,8 +3866,9 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 
 	auto step_count_hint = 10.f;
 
-	world.for_each_province_adjacency([&](auto adj) {
-		auto ignore_sea_land_province = world.province_adjacency_get_canal_or_blockade_province(adj);
+	world.for_each_province_adjacency([&](auto adj) {;
+		dcon::province_id ignore_sea_land_province = world.province_adjacency_get_blocking_prov(adj);
+		// Ignore land province connections if there is blocking prov defined for it (either strait crossing or canal)
 
 		if(!ignore_sea_land_province) {
 			if((world.province_adjacency_get_type(adj) & province::border::impassible_bit) == province::border::impassible_bit) {
@@ -6111,7 +6112,7 @@ dcon::province_id state::find_available_ferry_origin(dcon::automated_army_group_
 			continue;
 		}
 
-		for(auto adj : world.province_get_province_adjacency(current_location)) {
+		for(auto adj : world.province_get_province_adjacency_as_connected_provinces(current_location)) {
 			auto other = adj.get_connected_provinces(adj.get_connected_provinces(0) == current_location ? 1 : 0);
 
 			if(std::find(origin_port_candidates.begin(), origin_port_candidates.end(), other) == origin_port_candidates.end()) {
@@ -6460,7 +6461,7 @@ void state::army_group_distribute_tasks(dcon::automated_army_group_id group) {
 		}
 		l += 1;
 
-		for(auto adj : world.province_get_province_adjacency(current_location)) {
+		for(auto adj : world.province_get_province_adjacency_as_connected_provinces(current_location)) {
 			auto other = adj.get_connected_provinces(adj.get_connected_provinces(0) == current_location ? 1 : 0);
 
 			if(std::find(province_queue.begin(), province_queue.end(), other) == province_queue.end()) {

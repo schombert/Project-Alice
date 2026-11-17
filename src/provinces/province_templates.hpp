@@ -250,7 +250,7 @@ bool make_path_to_prov(const sys::state& state, dcon::province_id start, dcon::p
 			stateinit_from_prov_func(current_prov, local_state);
 		}
 
-		for(auto adj : state.world.province_get_province_adjacency(current_prov)) {
+		for(auto adj : state.world.province_get_province_adjacency_as_connected_provinces(current_prov)) {
 			auto other_prov =
 				adj.get_connected_provinces(0) == current_prov ? adj.get_connected_provinces(1) : adj.get_connected_provinces(0);
 			auto distance = adj.get_distance();
@@ -407,7 +407,7 @@ std::vector<dcon::province_id> make_path_to_prov_fast(sys::state const& state, d
 			return path_result;
 		}
 
-		for(auto adj : state.world.province_get_province_adjacency(nearest.province)) {
+		for(auto adj : state.world.province_get_province_adjacency_as_connected_provinces(nearest.province)) {
 			auto other_prov =
 				adj.get_connected_provinces(0) == nearest.province ? adj.get_connected_provinces(1) : adj.get_connected_provinces(0);
 			auto bits = adj.get_type();
@@ -526,7 +526,7 @@ std::vector<dcon::province_id> make_path_to_expression(const sys::state& state, 
 		current_node.is_in_open_list = false;
 		current_node.is_in_closed_list = true;
 
-		for(auto adj : state.world.province_get_province_adjacency(current_prov)) {
+		for(auto adj : state.world.province_get_province_adjacency_as_connected_provinces(current_prov)) {
 			auto other_prov =
 				adj.get_connected_provinces(0) == current_prov ? adj.get_connected_provinces(1) : adj.get_connected_provinces(0);
 			auto bits = adj.get_type();
@@ -616,7 +616,7 @@ std::vector<dcon::province_id> make_path_to_expression_fast(sys::state& state, d
 			return path_result;
 		}
 
-		for(auto adj : state.world.province_get_province_adjacency(nearest.province)) {
+		for(auto adj : state.world.province_get_province_adjacency_as_connected_provinces(nearest.province)) {
 			auto other_prov =
 				adj.get_connected_provinces(0) == nearest.province ? adj.get_connected_provinces(1) : adj.get_connected_provinces(0);
 			auto bits = adj.get_type();

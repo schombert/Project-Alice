@@ -1982,6 +1982,12 @@ relationship{
 		index_storage{array}
 		multiple{2}
 	}
+	link{
+        object{ province }
+        name{ blocking_prov }
+        type{ many }{optional}
+        index_storage{ array }
+    }
 	
 	composite_key{
 		name{province_pair}
@@ -1997,11 +2003,6 @@ relationship{
 		name{ distance_km }
 		type{ float }
 		
-	}
-	property{
-		name{ canal_or_blockade_province }
-		type{ dcon::province_id }
-		tag{ save }
 	}
 	property{
 		name{ used_supply_throughput }
