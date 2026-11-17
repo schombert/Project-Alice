@@ -158,9 +158,6 @@ void draw_small_square(sys::state& state, display_data& map_data, square::point 
 }
 
 void update_supply_route_arrows(sys::state& state, display_data& map_data) {
-	map_data.strategy_unit_arrow_vertices.clear();
-	map_data.strategy_unit_arrow_counts.clear();
-	map_data.strategy_unit_arrow_starts.clear();
 	if(state.cheat_data.show_mil_routes) {
 		for(auto selected_army : state.selected_armies) {
 			for(auto route : state.world.army_get_army_supply_route(selected_army)) {
@@ -195,10 +192,6 @@ void update_supply_route_arrows(sys::state& state, display_data& map_data) {
 			}
 		}
 	}
-	if(!map_data.strategy_unit_arrow_vertices.empty()) {
-		glBindBuffer(GL_ARRAY_BUFFER, map_data.vbo_array[map_data.vo_strategy_unit_arrow]);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(curved_line_vertex) * map_data.strategy_unit_arrow_vertices.size(), map_data.strategy_unit_arrow_vertices.data(), GL_STATIC_DRAW);
-	}	
 }
 
 void update_unit_arrows(sys::state& state, display_data& map_data) {
@@ -213,6 +206,10 @@ void update_unit_arrows(sys::state& state, display_data& map_data) {
 	map_data.retreat_unit_arrow_vertices.clear();
 	map_data.retreat_unit_arrow_counts.clear();
 	map_data.retreat_unit_arrow_starts.clear();
+
+	map_data.strategy_unit_arrow_vertices.clear();
+	map_data.strategy_unit_arrow_counts.clear();
+	map_data.strategy_unit_arrow_starts.clear();
 
 	map_data.objective_unit_arrow_vertices.clear();
 	map_data.objective_unit_arrow_counts.clear();
@@ -290,9 +287,8 @@ void update_unit_arrows(sys::state& state, display_data& map_data) {
 		if(std::find(state.selected_armies.begin(), state.selected_armies.end(), map_army) != state.selected_armies.end()) {
 			continue;
 		}
-		// TODO: arrow for allied units
 		if(auto ps = state.world.army_get_path(map_army); ps.size() > 0) {
-			auto army_controller = state.world.army_get_controller_from_army_control(map_army);
+			auto army_controller = military::get_effective_unit_commander(state, map_army);
 			if(state.local_player_nation && army_controller && military::are_at_war(state, army_controller, state.local_player_nation)) {
 				if(state.world.army_get_is_retreating(map_army)) {
 					auto old_size = map_data.retreat_unit_arrow_vertices.size();
@@ -311,6 +307,14 @@ void update_unit_arrows(sys::state& state, display_data& map_data) {
 				map_data.unit_arrow_starts.push_back(GLint(old_size));
 				map::make_army_direction(state, map_data.unit_arrow_vertices, map_army, float(map_data.size_x), float(map_data.size_y));
 				map_data.unit_arrow_counts.push_back(GLsizei(map_data.unit_arrow_vertices.size() - old_size));
+			}
+			// allies
+			else if (military::are_on_same_side_in_common_war(state, army_controller, state.local_player_nation))
+			{
+				auto old_size = map_data.strategy_unit_arrow_vertices.size();
+				map_data.strategy_unit_arrow_starts.push_back(GLint(old_size));
+				map::make_army_direction(state, map_data.strategy_unit_arrow_vertices, map_army, float(map_data.size_x), float(map_data.size_y));
+				map_data.strategy_unit_arrow_counts.push_back(GLsizei(map_data.strategy_unit_arrow_vertices.size() - old_size));
 			}
 		}
 	}
@@ -335,9 +339,9 @@ void update_unit_arrows(sys::state& state, display_data& map_data) {
 		if(std::find(state.selected_navies.begin(), state.selected_navies.end(), map_navy) != state.selected_navies.end()) {
 			continue;
 		}
-		// TODO: arrow for allied units
+
 		if(auto ps = state.world.navy_get_path(map_navy); ps.size() > 0) {
-			auto navy_controller = state.world.navy_get_controller_from_navy_control(map_navy);
+			auto navy_controller = military::get_effective_unit_commander(state, map_navy);
 			if(military::are_at_war(state, navy_controller, state.local_player_nation)) {
 				if(state.world.navy_get_is_retreating(map_navy)) {
 					auto old_size = map_data.retreat_unit_arrow_vertices.size();
@@ -345,10 +349,10 @@ void update_unit_arrows(sys::state& state, display_data& map_data) {
 					map::make_navy_direction(state, map_data.retreat_unit_arrow_vertices, map_navy, float(map_data.size_x), float(map_data.size_y));
 					map_data.retreat_unit_arrow_counts.push_back(GLsizei(map_data.retreat_unit_arrow_vertices.size() - old_size));
 				} else {
-					auto old_size = map_data.unit_arrow_vertices.size();
-					map_data.unit_arrow_starts.push_back(GLint(old_size));
-					map::make_navy_direction(state, map_data.unit_arrow_vertices, map_navy, float(map_data.size_x), float(map_data.size_y));
-					map_data.unit_arrow_counts.push_back(GLsizei(map_data.unit_arrow_vertices.size() - old_size));
+					auto old_size = map_data.attack_unit_arrow_vertices.size();
+					map_data.attack_unit_arrow_starts.push_back(GLint(old_size));
+					map::make_navy_direction(state, map_data.attack_unit_arrow_vertices, map_navy, float(map_data.size_x), float(map_data.size_y));
+					map_data.attack_unit_arrow_counts.push_back(GLsizei(map_data.attack_unit_arrow_vertices.size() - old_size));
 				}
 			} else if (state.local_player_nation == navy_controller) {
 				auto old_size = map_data.unit_arrow_vertices.size();
@@ -356,8 +360,19 @@ void update_unit_arrows(sys::state& state, display_data& map_data) {
 				map::make_navy_direction(state, map_data.unit_arrow_vertices, map_navy, float(map_data.size_x), float(map_data.size_y));
 				map_data.unit_arrow_counts.push_back(GLsizei(map_data.unit_arrow_vertices.size() - old_size));
 			}
+			// allies
+			else if (military::are_on_same_side_in_common_war(state, navy_controller, state.local_player_nation))
+			{
+				auto old_size = map_data.strategy_unit_arrow_vertices.size();
+				map_data.strategy_unit_arrow_starts.push_back(GLint(old_size));
+				map::make_navy_direction(state, map_data.strategy_unit_arrow_vertices, map_navy, float(map_data.size_x), float(map_data.size_y));
+				map_data.strategy_unit_arrow_counts.push_back(GLsizei(map_data.strategy_unit_arrow_vertices.size() - old_size));
+			}
 		}
 	}
+
+	// Only renders arrows of selected units or navies, and only when debugging it
+	update_supply_route_arrows(state, map_data);
 
 	if(!map_data.unit_arrow_vertices.empty()) {
 		glBindBuffer(GL_ARRAY_BUFFER, map_data.vbo_array[map_data.vo_unit_arrow]);
@@ -371,10 +386,10 @@ void update_unit_arrows(sys::state& state, display_data& map_data) {
 		glBindBuffer(GL_ARRAY_BUFFER, map_data.vbo_array[map_data.vo_retreat_unit_arrow]);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(curved_line_vertex) * map_data.retreat_unit_arrow_vertices.size(), map_data.retreat_unit_arrow_vertices.data(), GL_STATIC_DRAW);
 	}
-	/*if(!map_data.strategy_unit_arrow_vertices.empty()) {
+	if(!map_data.strategy_unit_arrow_vertices.empty()) {
 		glBindBuffer(GL_ARRAY_BUFFER, map_data.vbo_array[map_data.vo_strategy_unit_arrow]);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(curved_line_vertex) * map_data.strategy_unit_arrow_vertices.size(), map_data.strategy_unit_arrow_vertices.data(), GL_STATIC_DRAW);
-	}*/
+	}
 	if(!map_data.objective_unit_arrow_vertices.empty()) {
 		glBindBuffer(GL_ARRAY_BUFFER, map_data.vbo_array[map_data.vo_objective_unit_arrow]);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(curved_line_vertex) * map_data.objective_unit_arrow_vertices.size(), map_data.objective_unit_arrow_vertices.data(), GL_STATIC_DRAW);
@@ -1853,8 +1868,6 @@ void map_state::update(sys::state& state) {
 	flow_map::update(state);
 
 	update_unit_arrows(state, map_data);
-	// Only renders arrows of selected units or navies, and only when debugging it
-	update_supply_route_arrows(state, map_data);
 	
 	// Update railroads, only if railroads are being built and we have 'em enabled
 	if(state.user_settings.railroads_enabled && state.sprawl_update_requested.load(std::memory_order::acquire)) {
