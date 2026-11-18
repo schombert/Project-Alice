@@ -742,6 +742,7 @@ void display_data::load_shaders(simple_fs::directory& root) {
 		shader_uniforms[i][uniform_subroutines_index] = glGetUniformLocation(shaders[i], "subroutines_index");
 		shader_uniforms[i][uniform_time] = glGetUniformLocation(shaders[i], "time");
 		shader_uniforms[i][uniform_light_direction] = glGetUniformLocation(shaders[i], "light_direction");
+		shader_uniforms[i][uniform_camera_position] = glGetUniformLocation(shaders[i], "camera_position");
 		shader_uniforms[i][uniform_ignore_light] = glGetUniformLocation(shaders[i], "ignore_light");
 		shader_uniforms[i][uniform_railroad_level] = glGetUniformLocation(shaders[i], "railroad_level");
 		shader_uniforms[i][uniform_terrain_texture_sampler] = glGetUniformLocation(shaders[i], "terrain_texture_sampler");
@@ -832,6 +833,12 @@ void display_data::render(
 				state.map_state.light_direction.x,
 				state.map_state.light_direction.y,
 				state.map_state.light_direction.z
+			);
+		if(shader_uniforms[program][uniform_camera_position] != -1)
+			glUniform3f(shader_uniforms[program][uniform_camera_position],
+				state.map_state.camera_over_sphere_point.y, // due to unfortunate circumstances, shader has x and y inverted...
+				state.map_state.camera_over_sphere_point.x,
+				state.map_state.camera_over_sphere_point.z
 			);
 		if(shader_uniforms[program][uniform_ignore_light] != -1) {
 			if(state.map_state.light_on) {
@@ -3602,7 +3609,14 @@ void display_data::update_sprawl(sys::state& state) {
 	}
 }
 
-float desired_font_size_index(float curve_length, float text_extent) {
+float desired_font_size_index_polynomial(float curve_length, float text_extent) {
+	float size = (curve_length / text_extent) * 0.8f;
+	float font_size_index = std::round(5.f * log(size) / log(1.618034f));
+	if(font_size_index > 60.f) font_size_index = 60.f;
+	if(font_size_index > 5.f) font_size_index = 5.f * std::round(font_size_index / 5.f);
+	return font_size_index;
+}
+float desired_font_size_index_spherical(float curve_length, float text_extent) {
 	float size = (curve_length / text_extent) * 0.8f;
 	float font_size_index = std::round(5.f * log(size) / log(1.618034f));
 	if(font_size_index > 30.f) font_size_index = 30.f;
@@ -3707,7 +3721,7 @@ void push_polynomial_text_to_vertex_array(sys::state& state, display_data& displ
 
 	float text_length = state.font_collection.mfont.text_extent(state, e.text, 0, uint32_t(e.text.glyph_info.size())) / (1.0f * text::dr_size);
 	assert(std::isfinite(text_length) && text_length != 0.f);
-	auto font_size_index = desired_font_size_index(curve_length, text_length);
+	auto font_size_index = desired_font_size_index_polynomial(curve_length, text_length);
 	auto size = font_size_from_font_size_index(font_size_index);
 
 	auto real_text_half_size = size  / 2.f / size_x * 4.f;
@@ -3790,11 +3804,11 @@ void push_polynomial_text_to_vertex_array(sys::state& state, display_data& displ
 		equirectangular::point center_rect{ glm::vec2(cur_x, poly_fn(cur_x)) * ratio + basis };
 		square::point center = equirectangular::to_square(center_rect, (float)size_x, (float)size_y);
 
-		auto shift_up = (-max_glyph_height / 2.f + y_bearing - y_offset) * size / 64.f + expansion * size - embold_y * size;
+		auto shift_up = (-max_glyph_height / 2.f + y_bearing - y_offset) * size / 64.f + 2.f * expansion * size - embold_y * size;
 		auto shift_down = (-max_glyph_height / 2.f +y_bearing - y_offset - glyph_height) * size / 64.f - expansion * size - embold_y * size;
 
 		auto left_base = center.data - forward.data * expansion * size - forward.data * embold_x * size;
-		auto right_base = center.data + forward.data * size / 64.f * glyph_width + forward.data * expansion * size - forward.data * embold_x * size;
+		auto right_base = center.data + forward.data * size / 64.f * glyph_width + forward.data * 2.f * expansion * size - forward.data * embold_x * size;
 
 		auto p00 = left_base + up.data * shift_down;
 		auto p01 = left_base + up.data * shift_up;
@@ -3804,8 +3818,8 @@ void push_polynomial_text_to_vertex_array(sys::state& state, display_data& displ
 
 		float u0 = float(gi.ft_x_bearing) / (64.0f * text::dr_size) - expansion;
 		float v0 = float(gi.ft_y_bearing - gi.ft_height) / (64.0f * text::dr_size) - expansion;
-		float u1 = float(gi.ft_x_bearing + gi.ft_width) / (64.0f * text::dr_size) + expansion;
-		float v1 = float(gi.ft_y_bearing) / (64.0f * text::dr_size) + expansion;
+		float u1 = float(gi.ft_x_bearing + gi.ft_width) / (64.0f * text::dr_size) + 2.f * expansion;
+		float v1 = float(gi.ft_y_bearing) / (64.0f * text::dr_size) + 2.f * expansion;
 
 
 		float height_scale = float(gi.ft_height) / (64.0f * text::dr_size);
@@ -3927,7 +3941,7 @@ void push_spherical_text_to_vertex_array(
 
 	float text_length = state.font_collection.mfont.text_extent(state, e.text, 0, uint32_t(e.text.glyph_info.size())) / (1.0f * text::dr_size);
 	assert(std::isfinite(text_length) && text_length != 0.f);
-	auto font_size_index = std::min((float)size_limit, desired_font_size_index(curve_length, text_length));
+	auto font_size_index = std::min((float)size_limit, desired_font_size_index_spherical(curve_length, text_length));
 	if(font_size_index < min_size_cutoff) {
 		return;
 	}
