@@ -562,6 +562,7 @@ void unit_counter_window::update_province_data(sys::state& state, dcon::province
 			display.player_involved_battle = false;
 			lbattle = b.get_battle();
 		}
+		display.has_battle = true;
 	}
 
 	// if a land battle was not found, try to find a naval battle
@@ -576,6 +577,7 @@ void unit_counter_window::update_province_data(sys::state& state, dcon::province
 				player_involved_battle = false;
 				nbattle = b.get_battle();
 			}
+			display.has_battle = true;
 		}
 	}
 
@@ -678,6 +680,7 @@ void unit_counter_window::update_province_data(sys::state& state, dcon::province
 			land_battle_attacker_is_player = true;
 
 		display.player_is_attacker = land_battle_attacker_is_player;
+		display.player_is_war_attacker = player_is_attacker;
 
 		display.top_left_status = 6;
 
@@ -794,6 +797,8 @@ void unit_counter_window::update_province_data(sys::state& state, dcon::province
 
 		auto w = state.world.naval_battle_get_war_from_naval_battle_in_war(nbattle);
 		bool player_is_attacker = w ? military::is_attacker(state, w, state.local_player_nation) : false;
+
+		display.player_is_war_attacker = player_is_attacker;
 
 		display.top_left_status = 6;
 
@@ -1259,13 +1264,14 @@ void unit_counter_window::update_text(sys::state& state, dcon::province_id prov,
 			}
 		}
 	}
+	if (params.player_involved_battle)
 	{
 		{
+			// Us
 			auto& label = battle.attacker_casualties;
 			auto& layout = casualties_layout_cache[prov.index()];
-			auto loss = params.attacker_casualties * state.defines.pop_size_per_regiment;
+			auto loss = (params.player_is_attacker  ? params.attacker_casualties * state.defines.pop_size_per_regiment : params.defender_casualties * state.defines.pop_size_per_regiment);
 			auto& cached = casualties_cache[prov.index()];
-
 			if(loss != cached) {
 				cached = loss;
 				auto pretty = text::prettify(int32_t(loss));
@@ -1288,9 +1294,10 @@ void unit_counter_window::update_text(sys::state& state, dcon::province_id prov,
 			}
 		}
 		{
+			// Them
 			auto& label = battle.defender_casualties;
 			auto& layout = casualties_right_layout_cache[prov.index()];
-			auto loss = params.defender_casualties * state.defines.pop_size_per_regiment;
+			auto loss = (params.player_is_attacker  ? params.defender_casualties * state.defines.pop_size_per_regiment : params.attacker_casualties * state.defines.pop_size_per_regiment);
 			auto& cached = casualties_right_cache[prov.index()];
 
 			if(loss != cached) {
@@ -1313,6 +1320,22 @@ void unit_counter_window::update_text(sys::state& state, dcon::province_id prov,
 				};
 				sl.add_text(state, pretty);
 			}
+		}
+	}
+	else if (params.has_battle)
+	{
+		// Clear casualties we are not supposed to see (not involved)
+		auto& left_layout = casualties_layout_cache[prov.index()];
+		auto& right_layout = casualties_right_layout_cache[prov.index()];
+		if (!left_layout.contents.empty())
+		{
+			left_layout.contents.clear();
+			left_layout.number_of_lines = 0;
+		}
+		if (!right_layout.contents.empty())
+		{
+			right_layout.contents.clear();
+			right_layout.number_of_lines = 0;
 		}
 	}
 	{

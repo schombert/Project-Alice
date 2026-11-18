@@ -334,6 +334,8 @@ struct top_display_parameters {
 	std::array<outline_color, 5> colors;
 	outline_color top_right_color;
 	bool is_army = false;
+	bool has_battle = false;
+	bool player_is_war_attacker = false;
 	float attacker_casualties = 0.0f;
 	float defender_casualties = 0.0f;
 	bool player_involved_battle = false;
