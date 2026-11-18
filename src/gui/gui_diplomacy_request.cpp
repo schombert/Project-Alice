@@ -539,6 +539,7 @@ void diplomatic_message_topbar_button::button_right_action(sys::state& state) no
 			[&](auto& e) { return e.from == m.from && e.to == m.to && e.type == m.type && e.when == m.when; });
 	auto r = std::distance(it, dmtl->messages.end());
 	dmtl->messages.erase(it, dmtl->messages.end());
+	command::respond_to_diplomatic_message(state, state.local_player_nation, m.from, m.type, false);
 	dmtl->impl_on_update(state);
 };
 
