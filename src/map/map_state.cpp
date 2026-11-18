@@ -219,6 +219,11 @@ void update_unit_arrows(sys::state& state, display_data& map_data) {
 	map_data.other_objective_unit_arrow_counts.clear();
 	map_data.other_objective_unit_arrow_starts.clear();
 
+	if (!state.current_scene.renders_units)
+	{
+		return;
+	}
+
 	for(auto selected_army : state.selected_armies) {
 		if(auto ps = state.world.army_get_path(selected_army); ps.size() > 0) {
 			auto dest_controller = state.world.province_get_nation_from_province_control(ps[0]);

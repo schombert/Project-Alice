@@ -142,7 +142,7 @@ inline scene_properties basic_game() {
 		.get_root = root_game_basic,
 
 		.accept_events = true,
-
+		.renders_units = true,
 		.rbutton_selected_units = selected_units_control,
 		.rbutton_province = open_diplomacy,
 		.allow_drag_selection = true,
@@ -170,7 +170,7 @@ inline scene_properties battleplan_editor() { return scene_properties{
 		.id = scene_id::in_game_military,
 
 		.get_root = root_game_battleplanner,
-
+		.renders_units = true,
 		.rbutton_selected_units = do_nothing_province_target,
 		.rbutton_province = do_nothing_province_target,
 		.allow_drag_selection = false,
@@ -197,7 +197,7 @@ inline scene_properties battleplan_editor_add_army() {
 		.id = scene_id::in_game_military_selector,
 
 		.get_root = root_game_battleplanner_add_army,
-
+		.renders_units = true,
 		.rbutton_selected_units = do_nothing_province_target,
 		.rbutton_province = do_nothing_province_target,
 		.allow_drag_selection = true,
