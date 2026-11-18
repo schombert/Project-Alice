@@ -1085,7 +1085,7 @@ void distribute_guards(sys::state& state, dcon::nation_id n) {
 					for(uint32_t k = uint32_t(guards_list.size()); k-- > 0;) {
 						auto guard_loc = state.world.army_get_location_from_army_location(guards_list[k]);
 
-						if(military::relative_attrition_amount(state, guards_list[k], p) >= 2.f)
+						if(military::relative_monthly_attrition_amount(state, guards_list[k], p) >= 2.f)
 							continue; //too heavy
 
 						/*

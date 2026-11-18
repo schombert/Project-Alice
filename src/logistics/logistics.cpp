@@ -1815,6 +1815,16 @@ void update_unit_commodity_satisfaction(sys::state& state, unit_type u) {
 				total_supply_goods_consumed += to_consume;
 			});
 			float supply_satisfaction = (total_supply_goods_required == 0.0f ? 1.0f : total_supply_goods_consumed / total_supply_goods_required);
+			// If it's a ship, update the days of low supply
+			if constexpr(std::is_same_v<unit_type, dcon::navy_id>) {
+				if (supply_satisfaction < state.defines.naval_low_supply_damage_supply_status) {
+					uint8_t current_val = subunit.get_days_low_supply();
+					subunit.set_days_low_supply(current_val != std::numeric_limits<uint8_t>::max() ? current_val + 1 : current_val);
+				}
+				else {
+					subunit.set_days_low_supply(0);
+				}
+			}
 			subunit.set_supply_satisfaction(supply_satisfaction);
 		}
 		// Compute reinforcement satisfaction

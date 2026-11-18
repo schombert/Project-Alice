@@ -5187,6 +5187,7 @@ void state::single_game_tick() {
 				break;
 			}
 		});
+		military::apply_daily_attrition(*this);
 		// unit movement update should happen before supply routes update at minimum so routes can be immediately updated upon movement completion
 		military::update_movement(*this);
 
@@ -5296,7 +5297,7 @@ void state::single_game_tick() {
 			ai::update_ai_general_status(*this);
 			break;
 		case 8:
-			military::apply_attrition(*this);
+			military::apply_monthly_attrition(*this);
 			break;
 		case 9:
 			military::update_fastest_units(*this);

@@ -80,7 +80,7 @@ bool province_is_deep_waters(const sys::state& state, dcon::province_id prov) {
 
 }
 
-bool sea_province_is_adjacent_to_accessible_coast(sys::state& state, dcon::province_id prov, dcon::nation_id nation) {
+bool sea_province_is_adjacent_to_accessible_coast(const sys::state& state, dcon::province_id prov, dcon::nation_id nation) {
 	assert(prov.index() >= state.province_definitions.first_sea_province.index());
 
 	for(auto adj : state.world.province_get_province_adjacency_as_connected_provinces(prov)) {
@@ -2436,7 +2436,7 @@ void enable_canal(sys::state& state, int32_t id) {
 }
 
 // distance between to adjacent provinces
-float distance(sys::state& state, dcon::province_adjacency_id pair) {
+float distance(const sys::state& state, dcon::province_adjacency_id pair) {
 	return state.world.province_adjacency_get_distance(pair);
 }
 
@@ -2465,7 +2465,7 @@ float direct_distance_km(sys::state const& state, dcon::province_id a, dcon::pro
 }
 
 // naval range distance between a port and a sea province. Must take the distance of a naval path instead of direct distance
-naval_range_data naval_range_distance(sys::state& state, dcon::province_id port_prov, dcon::province_id sea_prov, dcon::nation_id nation_as) {
+naval_range_data naval_range_distance(const sys::state& state, dcon::province_id port_prov, dcon::province_id sea_prov, dcon::nation_id nation_as) {
 	assert(port_prov.index() < state.province_definitions.first_sea_province.index());
 	assert(sea_prov.index() >= state.province_definitions.first_sea_province.index());
 	const std::vector<dcon::province_id> path = make_naval_unit_path(state, port_prov, sea_prov, nation_as);
@@ -2490,7 +2490,7 @@ float sorting_distance(sys::state& state, dcon::province_id a, dcon::province_id
 }
 
 // whether a ship can dock at a land province
-bool has_naval_access_to_province(sys::state& state, dcon::nation_id nation_as, dcon::province_id prov) {
+bool has_naval_access_to_province(const sys::state& state, dcon::nation_id nation_as, dcon::province_id prov) {
 	auto controller = state.world.province_get_nation_from_province_control(prov);
 
 	if(!controller)
@@ -2778,7 +2778,7 @@ std::vector<dcon::province_id> make_unowned_land_path(sys::state& state, dcon::p
 
 
 
-bool make_naval_unit_path_adjacency_valid(sys::state& state, dcon::nation_id nation_as, dcon::province_id to, dcon::province_id from, dcon::province_adjacency_id adj) {
+bool make_naval_unit_path_adjacency_valid(const sys::state& state, dcon::nation_id nation_as, dcon::province_id to, dcon::province_id from, dcon::province_adjacency_id adj) {
 	bool to_prov_is_land = to.index() < state.province_definitions.first_sea_province.index();
 	bool from_prov_is_land = from.index() < state.province_definitions.first_sea_province.index();
 	if(to_prov_is_land) { // is land
@@ -2796,7 +2796,7 @@ bool make_naval_unit_path_adjacency_valid(sys::state& state, dcon::nation_id nat
 	}
 }
 
-bool make_naval_unit_path_province_valid(sys::state& state, dcon::nation_id nation_as, dcon::province_id to) {
+bool make_naval_unit_path_province_valid(const sys::state& state, dcon::nation_id nation_as, dcon::province_id to) {
 	if(to.index() < state.province_definitions.first_sea_province.index()) { // is land
 		// Land prov must be coastal and have naval access to be considered
 		return state.world.province_get_is_coast(to) && province::has_naval_access_to_province(state, nation_as, to);
@@ -2807,7 +2807,7 @@ bool make_naval_unit_path_province_valid(sys::state& state, dcon::nation_id nati
 }
 
 // naval unit pathfinding; start and end provinces may be land provinces; function assumes you have naval access to both
-std::vector<dcon::province_id> make_naval_unit_path(sys::state& state, dcon::province_id start, dcon::province_id end, dcon::nation_id nation_as) {
+std::vector<dcon::province_id> make_naval_unit_path(const sys::state& state, dcon::province_id start, dcon::province_id end, dcon::nation_id nation_as) {
 
 
 
