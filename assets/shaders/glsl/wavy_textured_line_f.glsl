@@ -27,7 +27,12 @@ void main() {
 
 	if (ignore_light > 0.f) {
 		if (texture(provinces_sea_mask, prov_id).x > 0) {
-			frag_color = vec4(0.0f, 0.0f, 0.0f, sin(o_dist * 2.f));
+			float score = sin(o_dist * 2.f);
+			if (score > 0.5f) {
+				frag_color = vec4(0.0f, 0.0f, 0.0f, 1.f);
+			} else {
+				frag_color = vec4(0.0f, 0.0f, 0.0f, 0.f);
+			}
 		} else {
 			float rail = max(0.f, sin(railroad_level * o_dist * 2.f));
 			rail = rail * rail;
