@@ -4764,9 +4764,9 @@ void state::fill_unsaved_data() { // reconstructs derived values that are not di
 	for(uint8_t idx = 0; idx < map::national_groups_count; idx++) {
 		map_state.map_data.national_group_is_clean[idx] = false;
 	}
-
-	province::update_connected_regions(*this);
 	province::restore_unsaved_values(*this);
+	province::update_connected_regions(*this);
+
 
 	culture::update_all_nations_issue_rules(*this);
 	culture::restore_unsaved_values(*this);

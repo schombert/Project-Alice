@@ -966,7 +966,6 @@ float calculate_supply_route_supply_loss(const sys::state& state, std::span<cons
 		auto prov_1 = state.world.province_adjacency_get_connected_provinces(adj, 0);
 		auto prov_2 = state.world.province_adjacency_get_connected_provinces(adj, 1);
 		dcon::province_id next_province = (prov_1 == last_province ? prov_2 : prov_1);
-
 		assert(adj_province_pair_valid(state, adj, last_province, next_province));
 
 		float next_province_sup_loss = logistics::calculate_supply_loss_in_province(state, next_province, controller);
@@ -1733,28 +1732,34 @@ void update_unit_commodity_satisfaction(sys::state& state, unit_type u) {
 	auto routes = military::unit_get_supply_routes(state, unit.id);
 
 	static thread_local ve::vectorizable_buffer<float, dcon::unit_supply_commodity_id> available_supply_goods_buffer(state.world.unit_supply_commodity_size());
+	static thread_local ve::vectorizable_buffer<float, dcon::unit_supply_commodity_id> supply_goods_weights_buffer(state.world.unit_supply_commodity_size());
 	{
 		static thread_local uint32_t old_count = state.world.unit_supply_commodity_size();
 		auto new_count = state.world.unit_supply_commodity_size();
 		if(new_count > old_count) {
 			available_supply_goods_buffer = state.world.unit_supply_commodity_make_vectorizable_float_buffer();
+			supply_goods_weights_buffer = state.world.unit_supply_commodity_make_vectorizable_float_buffer();
 			old_count = new_count;
 		}
 	}
 	static thread_local ve::vectorizable_buffer<float, dcon::unit_build_commodity_id> available_reinforcement_goods_buffer(state.world.unit_build_commodity_size());
+	static thread_local ve::vectorizable_buffer<float, dcon::unit_build_commodity_id> reinforcement_goods_weights_buffer(state.world.unit_build_commodity_size());
 	{
 		static thread_local uint32_t old_count = state.world.unit_build_commodity_size();
 		auto new_count = state.world.unit_build_commodity_size();
 		if(new_count > old_count) {
 			available_reinforcement_goods_buffer = state.world.unit_build_commodity_make_vectorizable_float_buffer();
+			reinforcement_goods_weights_buffer = state.world.unit_build_commodity_make_vectorizable_float_buffer();
 			old_count = new_count;
 		}
 	}
 	state.world.execute_serial_over_unit_supply_commodity([&](auto ids) {
 		available_supply_goods_buffer.set(ids, 0.0f);
+		supply_goods_weights_buffer.set(ids, 0.0f);
 	});
 	state.world.execute_serial_over_unit_build_commodity([&](auto ids) {
 		available_reinforcement_goods_buffer.set(ids, 0.0f);
+		reinforcement_goods_weights_buffer.set(ids, 0.0f);
 	});
 
 	// Sum up available supply and reinforcement goods from routes
@@ -1781,6 +1786,21 @@ void update_unit_commodity_satisfaction(sys::state& state, unit_type u) {
 		}
 	}
 
+	// compute weights for each good, to attempt to spread it evently for all subunits in a unit if we didnt get all the supply we wanted
+	state.world.for_each_unit_supply_commodity([&](dcon::unit_supply_commodity_id com_id) {
+		float total_unit_need = unit_total_supply_need_get(state, unit.id, com_id);
+		float available = available_supply_goods_buffer.get(com_id);
+		float weight = adaptive_ve::select(total_unit_need != 0.0f, std::min(available / total_unit_need, 1.0f), 1.0f);
+		supply_goods_weights_buffer.set(com_id, weight);
+	});
+
+	state.world.for_each_unit_build_commodity([&](dcon::unit_build_commodity_id com_id) {
+		float total_unit_need = unit_total_reinforcement_need_get(state, unit.id, com_id);
+		float available = available_reinforcement_goods_buffer.get(com_id);
+		float weight = adaptive_ve::select(total_unit_need != 0.0f, std::min(available / total_unit_need, 1.0f), 1.0f);
+		reinforcement_goods_weights_buffer.set(com_id, weight);
+	});
+
 	// Consume supplies or reinforcement goods
 	for(auto r : unit_membership) {
 		auto subunit = [&]() {
@@ -1804,9 +1824,10 @@ void update_unit_commodity_satisfaction(sys::state& state, unit_type u) {
 			// required_amount is what we need to get 100% supply satisfaction, desired amount is what we actually wish to consume decided by national consumption setting
 			supply_goods_cost.for_each_commodity([&](dcon::commodity_id com_id, float base_amount) {
 				auto sup_com_id = state.world.commodity_get_unit_supply_commodity(com_id);
+				float consume_weight = supply_goods_weights_buffer.get(sup_com_id); // Scale down the consumption if there are less than the desired amount of goods so everyone gets a fair share
 				assert(sup_com_id);
 				float required_amount = base_amount * supply_goods_cost_mod;
-				float desired_amount = base_amount * desired_supply_mult;
+				float desired_amount = base_amount * desired_supply_mult * consume_weight;
 				float max_available = available_supply_goods_buffer.get(sup_com_id);
 				float to_consume = std::min(max_available, desired_amount);
 				assert(max_available - to_consume >= 0.0f);
@@ -1840,9 +1861,10 @@ void update_unit_commodity_satisfaction(sys::state& state, unit_type u) {
 			float total_reinf_goods_consumed = 0.0f;
 			reinf_goods_cost.for_each_commodity([&](dcon::commodity_id com_id, float base_amount) {
 				auto build_com_id = state.world.commodity_get_unit_build_commodity(com_id);
+				float consume_weight = reinforcement_goods_weights_buffer.get(build_com_id); // Scale down the consumption if there are less than the desired amount of goods so everyone gets a fair share
 				assert(build_com_id);
 				float required_amount = base_amount * reinf_goods_cost_mod;
-				float desired_amount = base_amount * desired_reinf_mult;
+				float desired_amount = base_amount * desired_reinf_mult * consume_weight;
 				float max_available = available_reinforcement_goods_buffer.get(build_com_id);
 				float to_consume = std::min(max_available, desired_amount);
 				assert(max_available - to_consume >= 0.0f);
@@ -2281,14 +2303,18 @@ void update_supply_routes_daily(sys::state& state) {
 		// Multiply the supply we want to dispatch to each unit by the consumption setting. We only want to fufill that percentage
 		auto accumulate_supply = [&](dcon::commodity_id com_id, float amount) {
 			dcon::unit_supply_commodity_id supply_id = state.world.commodity_get_unit_supply_commodity(com_id);
-			unit_supply_need_set(state, unit, supply_id, unit_supply_need_get(state, unit, supply_id) + (amount * supply_consumption_setting));
 			assert(supply_id);
+			float new_supply_need = unit_supply_need_get(state, unit, supply_id) + (amount * supply_consumption_setting);
+			unit_supply_need_set(state, unit, supply_id, new_supply_need);
+			unit_total_supply_need_set(state, unit, supply_id, new_supply_need);
 			unit_set_needs_supply_goods(state, unit, unit_get_needs_supply_goods(state, unit) || amount > 0.0f); // set bool flag if this unit now needs more than 0 supply goods
 		};
 		auto accumulate_reinf = [&](dcon::commodity_id com_id, float amount) {
 			dcon::unit_build_commodity_id build_id = state.world.commodity_get_unit_build_commodity(com_id);
 			assert(build_id);
-			unit_reinforcement_need_set(state, unit, build_id, unit_reinforcement_need_get(state, unit, build_id) + (amount * reinf_consumption_setting));
+			float new_reinf_need = unit_reinforcement_need_get(state, unit, build_id) + (amount * reinf_consumption_setting);
+			unit_reinforcement_need_set(state, unit, build_id, new_reinf_need);
+			unit_total_reinforcement_need_set(state, unit, build_id, new_reinf_need);
 			unit_set_needs_reinforcement_goods(state, unit, unit_get_needs_reinforcement_goods(state, unit) || amount > 0.0f); // set bool flag if this unit now needs more than 0 reinforcement goods
 		};
 
