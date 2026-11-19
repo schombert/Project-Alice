@@ -30,6 +30,7 @@ uniform vec2 screen_size;
 uniform float time;
 uniform float gamma;
 uniform vec3 light_direction;
+uniform vec3 camera_position;
 uniform float ignore_light;
 uniform int terrain_is_array;
 uniform int map_mode_is_data;
@@ -601,7 +602,7 @@ void main() {
 	if (ignore_light == 0.f) {
 		float darkness = max(0.f, -dot(light_direction, space_coords));
 		frag_color *= light;
-		frag_color.xyz += vec3(0.05f, 0.05f, 0.2f);
+		frag_color.xyz += vec3(0.05f, 0.05f, 0.05f);
 	}
 	frag_color.a = 1.f;
 	frag_color = gamma_correct(frag_color);

@@ -435,7 +435,8 @@ public:
 	static constexpr uint32_t uniform_railroad_level = 52;
 	static constexpr uint32_t uniform_bold_curves = 53;
 	static constexpr uint32_t uniform_outline_color = 54;
-	static constexpr uint32_t uniform_count = 55;
+	static constexpr uint32_t uniform_camera_position = 55;
+	static constexpr uint32_t uniform_count = 56;
 	GLint shader_uniforms[shader_count][uniform_count] = { };
 
 	// models: Textures for static meshes
