@@ -29,14 +29,14 @@ void main() {
 		if (texture(provinces_sea_mask, prov_id).x > 0) {
 			float score = sin(o_dist * 2.f);
 			if (score > 0.5f) {
-				frag_color = vec4(0.0f, 0.0f, 0.0f, 1.f);
+				frag_color = vec4(0.0f, 0.0f, 0.5f, 1.f);
 			} else {
-				frag_color = vec4(0.0f, 0.0f, 0.0f, 0.f);
+				frag_color = vec4(0.0f, 0.0f, 0.5f, 0.f);
 			}
 		} else {
 			float rail = max(0.f, sin(railroad_level * o_dist * 2.f));
 			rail = rail * rail;
-			frag_color = vec4(0.0f, 0.0f, 0.0f, (value) * (value) * 4.f + rail);
+			frag_color = vec4(0.5f, 0.0f, 0.0f, (value) * (value) * 4.f + rail);
 		}
 		return ;
 	}
