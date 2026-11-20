@@ -1158,7 +1158,7 @@ void display_data::render(
 
 	// Draw the railroads and city
 
-	if(zoom > map::zoom_close && !railroad_vertices.empty() && state.user_settings.railroads_enabled) {
+	if((zoom > map::zoom_close || state.map_state.light_on) && !railroad_vertices.empty() && state.user_settings.railroads_enabled) {
 		glEnable(GL_BLEND);
 		glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE);
 
@@ -1182,19 +1182,56 @@ void display_data::render(
 
 		glBindVertexArray(vao_array[vo_railroad]);
 		glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_railroad]);
+		auto& flow_data = state.flow_map;
 
 		for(uint32_t idx = 0; idx < railroad_counts.size(); idx++) {
 			dcon::province_adjacency_id adj { (dcon::province_adjacency_id::value_base_t)idx };
 			float railroad_level = 0.f;
+			auto trade_volume = 0.f;
+			bool is_sea = false;
 			if(state.world.province_adjacency_is_valid(adj)) {
 				auto p0 = state.world.province_adjacency_get_connected_provinces(adj, 0);
-				auto p1 = state.world.province_adjacency_get_connected_provinces(adj, 0);
+				auto p1 = state.world.province_adjacency_get_connected_provinces(adj, 1);
+				if(p0.index() >= state.province_definitions.first_sea_province.index()) {
+					is_sea = true;
+				}
+				if(p1.index() >= state.province_definitions.first_sea_province.index()) {
+					is_sea = true;
+				}
 				auto rail0 = state.world.province_get_building_level(p0, uint8_t(economy::province_building_type::railroad));
 				auto rail1 = state.world.province_get_building_level(p1, uint8_t(economy::province_building_type::railroad));
 				railroad_level = (float)std::max(rail0, rail1);
+				if(flow_data.source == flow_map::commodity && zoom <= map::zoom_very_close) {
+					if(
+						auto it = flow_data.flow_graph_total[p0.index()].find(p1.index());
+						it != flow_data.flow_graph_total[p0.index()].end()
+					) {
+						trade_volume += std::abs(flow_data.flow_graph_total[p0.index()][p1.index()]);
+					}
+					if(
+						auto it = flow_data.flow_graph_total[p1.index()].find(p0.index());
+						it != flow_data.flow_graph_total[p1.index()].end()
+					) {
+						trade_volume += std::abs(flow_data.flow_graph_total[p1.index()][p0.index()]);
+					}
+				}
 			}
-			glUniform1f(shader_uniforms[shader_railroad_line][uniform_railroad_level], railroad_level);
-			glDrawArrays(GL_TRIANGLE_STRIP, railroad_starts[idx], railroad_counts[idx]);
+			if(zoom > map::zoom_very_close) {
+				//float score = ((railroad_level > 0) ? 1.f : 0.f);
+				glUniform1f(shader_uniforms[shader_railroad_line][uniform_width], 0.00005f);
+				glUniform1f(shader_uniforms[shader_railroad_line][uniform_railroad_level], railroad_level);
+				glDrawArrays(GL_TRIANGLE_STRIP, railroad_starts[idx], railroad_counts[idx]);
+			} else if(zoom > map::zoom_close) {
+				float score = ((railroad_level > 0) ? 1.f : 0.f) + sqrt(trade_volume / 200.f);
+				glUniform1f(shader_uniforms[shader_railroad_line][uniform_width], 0.00005f * score);
+				glUniform1f(shader_uniforms[shader_railroad_line][uniform_railroad_level], railroad_level);
+				glDrawArrays(GL_TRIANGLE_STRIP, railroad_starts[idx], railroad_counts[idx]);
+			} else {
+				float score = sqrt(trade_volume / 100.f);
+				glUniform1f(shader_uniforms[shader_railroad_line][uniform_width], 0.00005f * score);
+				glUniform1f(shader_uniforms[shader_railroad_line][uniform_railroad_level], railroad_level);
+				glDrawArrays(GL_TRIANGLE_STRIP, railroad_starts[idx], railroad_counts[idx]);
+			}
 		}
 	}
 
@@ -3310,7 +3347,7 @@ void display_data::update_sprawl(sys::state& state) {
 	connectors.resize(state.world.province_size());
 
 	//auto minimal_population_per_visible_settlement = 2500.f;
-	auto population_per_km2 = 5000.f;
+	auto population_per_km2 = 25000.f;
 	auto minimal_size_per_visible_settlement_km2 = 20.f;
 
 	// Populate paths with railroads - only account provinces that have been visited
@@ -3472,7 +3509,7 @@ void display_data::update_sprawl(sys::state& state) {
 
 			int N = 10;
 			for(int layer = 0; layer >= ((center == 0 && is_capital) ? -1 : 0); layer--) {
-				float city_radius = exp(std::min(2.f, round(log(sqrt(city_size_km2 * settlement.second)))) + layer);
+				float city_radius = exp(std::min(2.f, round(log(sqrt(city_size_km2 * settlement.second)) * 5.f) / 5.f) + layer);
 
 				for(int i = 0; i < N; i++) {
 					//auto center = settlement.first;
