@@ -1618,6 +1618,12 @@ guiTypes = {
 			format = centre
 		}
 		iconType = {
+            name ="small_attrition_icon"
+            spriteType = "GFX_unit_attr"
+            position = { 20 -22 }
+            Orientation = "UPPER_LEFT"
+        }
+		iconType = {
 			name ="level1"
 			spriteType = "GFX_alice_port_levels"
 			position = { -23 -7 }

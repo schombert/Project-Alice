@@ -110,12 +110,36 @@ public:
 	}
 };
 
+struct display_attrition_status {
+	bool display_attrition;
+};
+
+class small_attrition_icon : public image_element_base {
+public:
+	bool visible = false;
+	void on_update(sys::state& state) noexcept override {
+		visible = retrieve<display_attrition_status>(state, parent).display_attrition;
+	}
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		if (visible) {
+			if(state.map_state.get_zoom() >= big_counter_cutoff) {
+				image_element_base::render(state, x, y);
+			}
+			// Nudge to the left so that it the small rectangular port icons
+			else {
+				image_element_base::render(state, x + 14, y);
+			}
+		}
+	}
+};
+
 class port_window : public window_element_base {
 public:
 	bool visible = true;
 	bool populated = false;
 	float map_x = 0;
 	float map_y = 0;
+	bool has_attrition = false;
 	dcon::province_id port_for;
 	outline_color color = outline_color::gray;
 	int32_t displayed_count = 0;
@@ -157,9 +181,14 @@ public:
 			return make_element_by_type<port_sm_bg<false>>(state, id);
 		} else if(name == "collapsed_ship_count") {
 			return make_element_by_type<port_ship_count<false>>(state, id);
-		} else {
+		}
+		else if(name == "small_attrition_icon") {
+			return make_element_by_type<small_attrition_icon>(state, id);
+		}
+		else {
 			return nullptr;
 		}
+
 	}
 
 	void set_province(sys::state& state, dcon::province_id p) {
@@ -186,7 +215,7 @@ public:
 
 		populated = true;
 		displayed_count = 0;
-
+		has_attrition = false;
 		if(navies.begin() == navies.end()) {
 			auto controller = state.world.province_get_nation_from_province_control(port_for);
 			if(controller == state.local_player_nation) {
@@ -204,6 +233,7 @@ public:
 			bool enemy_navy = false;
 			bool selected_navy = false;
 			for(auto n : navies) {
+				has_attrition = has_attrition || military::will_recieve_attrition(state, n.get_navy());
 				auto controller = n.get_navy().get_controller_from_navy_control();
 				if(state.is_selected(n.get_navy())) {
 					selected_navy = true;
@@ -266,6 +296,9 @@ public:
 			return message_result::consumed;
 		} else if(payload.holds_type<int32_t>()) {
 			payload.emplace<int32_t>(displayed_count);
+			return message_result::consumed;
+		} else if (payload.holds_type<display_attrition_status>()) {
+			payload.emplace<display_attrition_status>(has_attrition && populated && visible);
 			return message_result::consumed;
 		} else if(payload.holds_type< toggle_unit_grid>()) {
 			auto with_shift = any_cast<toggle_unit_grid>(payload).with_shift;

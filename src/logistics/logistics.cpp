@@ -735,10 +735,13 @@ auto supply_route_path_potential_throughput(const sys::state& state, supply_path
 
 void regenerate_unsaved_values(sys::state& state) {
 	// Recreate adjacency paths from the stored province paths for all paths which are longer than 1 province
-	parallel_for_each_supply_route_path_predicate(state, [&](dcon::supply_route_path_id path) { return state.world.supply_route_path_get_path(path).size() > 1; }, [&](dcon::supply_route_path_id path) {
-		auto prov_path = state.world.supply_route_path_get_path(path);
+	parallel_for_each_supply_route_path(state, [&](dcon::supply_route_path_id path) {
 		auto adj_path = state.world.supply_route_path_get_adjacency_path(path);
-		province::make_adjacency_path_from_prov_path(state, prov_path, adj_path);
+		auto prov_path = state.world.supply_route_path_get_path(path);
+		adj_path.clear();
+		if (prov_path.size() > 1) {
+			province::make_adjacency_path_from_prov_path(state, prov_path, adj_path);
+		}
 	});
 }
 
@@ -991,7 +994,6 @@ void update_supply_path_throughput_attrition(sys::state& state, dcon::supply_rou
 	auto prov_path = state.world.supply_route_path_get_path(path_handle);
 	assert(prov_path.size() > 0); // A valid province path should never be empty
 	auto adj_path = state.world.supply_route_path_get_adjacency_path(path_handle);
-	float old_throughput = state.world.supply_route_path_get_throughput(path_handle);
 	float supply_loss;
 	float new_throughput;
 	// If adjacency path is greater than 0 then compute the throughput and loss. If size is 0 it must mean that the path is only a single province (and thus no edges). In that case there is no travel between edges needed, and throughput is always 100%, and loss 0%
