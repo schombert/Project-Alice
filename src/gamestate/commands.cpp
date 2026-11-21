@@ -6350,11 +6350,11 @@ void execute_notify_start_game(sys::state& state, dcon::nation_id source) {
 		});
 
 		// take ai decisions on start incase important ai decisions need to fire exactly at the start, and not later
-		ai::take_ai_decisions(state);
+		//ai::take_ai_decisions(state);
 		// Run nations garbage collection incase any nations were made non-existant in the effects
-		nations::run_gc(state);
+		//nations::run_gc(state);
 		// update any events which were queued, so that they appear for players as soon as the game has started
-		event::update_future_events(state);
+		//event::update_future_events(state);
 	}
 }
 void notify_start_game(sys::state& state) {
