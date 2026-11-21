@@ -2215,3 +2215,6 @@ refund_explanation;Ratio of desired goods and services which was actually purcha
 expected_import_price;Expected import price
 expected_export_price;Expected export price
 trade_volume_speed_multiplier;Speed mulltiplier
+leader_entry_tt;?GLeft-click?W to select. Star(*) means they are currently assigned.
+show_assigned_leaders_tt;Show already-assigned leaders in the leader listbox
+

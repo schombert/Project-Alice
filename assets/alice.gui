@@ -2831,6 +2831,11 @@ guiTypes = {
 			buttonText = "NO_LEADER"
 			buttonFont = "vic_18_black"
 		}
+		guiButtonType = {
+            name = "show_assigned_leaders_checkbox"
+            position = { 24 382 }
+            quadTextureSprite = "GFX_checkbox_default"
+        }
 
 		listboxType = {
 			name ="leaderlist"

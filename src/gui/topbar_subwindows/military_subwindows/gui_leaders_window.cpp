@@ -49,6 +49,48 @@ class leader_portrait : public image_element_base {
 		display_leader_attributes(state, retrieve<dcon::leader_id>(state, parent), contents, 0);
 	}
  };
+class leader_attack_text : public color_text_element
+{
+	void on_update(sys::state& state) noexcept override {
+		auto leader = retrieve<dcon::leader_id>(state, parent);
+		auto per = military::get_leader_personality_wrapper(state, leader);
+		auto back = military::get_leader_background_wrapper(state, leader);
+		auto attack = int32_t(state.world.leader_trait_get_attack(per)) + int32_t(state.world.leader_trait_get_attack(back));
+		if (attack == 0) {
+			set_text(state, "0 " + text::produce_simple_string(state, "TRAIT_ATTACK") );
+			color = text::text_color::black;
+		}
+		else if (attack > 0){
+			set_text(state, "+" + std::to_string(attack) + " " + text::produce_simple_string(state, "TRAIT_ATTACK") );
+			color = text::text_color::dark_green;
+		}
+		else {
+			set_text(state, std::to_string(attack) + " " + text::produce_simple_string(state, "TRAIT_ATTACK") );
+			color = text::text_color::red;
+		}
+	}
+};
+class leader_defence_text : public color_text_element
+{
+	void on_update(sys::state& state) noexcept override {
+		auto leader = retrieve<dcon::leader_id>(state, parent);
+		auto per = military::get_leader_personality_wrapper(state, leader);
+		auto back = military::get_leader_background_wrapper(state, leader);
+		auto defence = int32_t(state.world.leader_trait_get_defense(per)) + int32_t(state.world.leader_trait_get_defense(back));
+		if (defence == 0) {
+			set_text(state, "0 " + text::produce_simple_string(state, "TRAIT_DEFEND") );
+			color = text::text_color::black;
+		}
+		else if (defence > 0){
+			set_text(state, "+" + std::to_string(defence) + " " + text::produce_simple_string(state, "TRAIT_DEFEND") );
+			color = text::text_color::dark_green;
+		}
+		else {
+			set_text(state, std::to_string(defence) + " " + text::produce_simple_string(state, "TRAIT_DEFEND") );
+			color = text::text_color::red;
+		}
+	}
+};
 
 class military_leaders : public listbox_row_element_base<dcon::leader_id> {
 public:
@@ -65,6 +107,7 @@ public:
 	}
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		// Replace background and personality names with the atk and def values in the ui. Those are much more useful to the player
 		if(name == "name") {
 			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
 			leader_name = ptr.get();
@@ -72,12 +115,12 @@ public:
 		} else if (name == "leader") {
 			return make_element_by_type<leader_portrait>(state, id);
 		} else if(name == "background") {
-			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
+			auto ptr = make_element_by_type<leader_attack_text>(state, id);
 			background = ptr.get();
 			return ptr;
 
 		} else if(name == "personality") {
-			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
+			auto ptr = make_element_by_type<leader_defence_text>(state, id);
 			personality = ptr.get();
 			return ptr;
 

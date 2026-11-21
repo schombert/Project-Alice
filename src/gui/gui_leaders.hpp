@@ -26,6 +26,7 @@ class leader_selection_window : public window_element_base {
 public:
 	dcon::army_id a;
 	dcon::navy_id v;
+	bool show_assigned_leaders = false;
 	leader_select_listbox* lb = nullptr;
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override;
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override;

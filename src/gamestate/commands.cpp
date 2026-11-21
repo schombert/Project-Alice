@@ -5041,12 +5041,28 @@ bool can_change_general(sys::state& state, dcon::nation_id source, dcon::army_id
 	if(!state.current_scene.game_in_progress) {
 		return false;
 	}
-	return state.world.army_get_controller_from_army_control(a) == source && !state.world.army_get_is_retreating(a) &&
-		!bool(state.world.army_get_battle_from_army_battle_participation(a)) &&
-		province::has_naval_access_to_province(state, source, state.world.army_get_location_from_army_location(a)) &&
-		(!l || state.world.leader_get_nation_from_leader_loyalty(l) == source);
+	auto can_move_leader = [&](dcon::army_id army, dcon::leader_id leader) {
+		return state.world.army_get_controller_from_army_control(army) == source && !state.world.army_get_is_retreating(army) &&
+			!bool(state.world.army_get_battle_from_army_battle_participation(army)) &&
+			province::has_safe_access_to_province(state, source, state.world.army_get_location_from_army_location(army)) &&
+			(!leader || state.world.leader_get_nation_from_leader_loyalty(leader) == source);
+	};
+	bool can_unassign_other_leader = true;
+	auto leader_army = state.world.leader_get_army_from_army_leadership(l);
+	// If the general we want to assign already is at a army and it isn't the same as the one we want to move it to, then check if they can be swapped
+	if (leader_army && leader_army != a) {
+		auto existing_leader = state.world.army_get_general_from_army_leadership(a);
+		can_unassign_other_leader = can_move_leader(leader_army, existing_leader);
+	}
+	return can_unassign_other_leader && can_move_leader(a, l);
 }
 void execute_change_general(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::leader_id l) {
+	auto leader_army = state.world.leader_get_army_from_army_leadership(l);
+	// swap leaders if applicable
+	if (leader_army && leader_army != a) {
+		auto existing_leader = state.world.army_get_general_from_army_leadership(a);
+		state.world.army_set_general_from_army_leadership(leader_army, existing_leader);
+	}
 	state.world.army_set_general_from_army_leadership(a, l);
 }
 
@@ -5062,12 +5078,28 @@ bool can_change_admiral(sys::state& state, dcon::nation_id source, dcon::navy_id
 	if(!state.current_scene.game_in_progress) {
 		return false;
 	}
-	return state.world.navy_get_controller_from_navy_control(a) == source && !state.world.navy_get_is_retreating(a) &&
-		!bool(state.world.navy_get_battle_from_navy_battle_participation(a)) &&
-		province::has_naval_access_to_province(state, source, state.world.navy_get_location_from_navy_location(a)) &&
-		(!l || state.world.leader_get_nation_from_leader_loyalty(l) == source);
+	auto can_move_leader = [&](dcon::navy_id navy, dcon::leader_id leader) {
+		return state.world.navy_get_controller_from_navy_control(navy) == source && !state.world.navy_get_is_retreating(navy) &&
+			!bool(state.world.navy_get_battle_from_navy_battle_participation(navy)) &&
+			province::has_naval_access_to_province(state, source, state.world.navy_get_location_from_navy_location(navy)) &&
+			(!leader || state.world.leader_get_nation_from_leader_loyalty(leader) == source);
+	};
+	bool can_unassign_other_leader = true;
+	auto leader_navy = state.world.leader_get_navy_from_navy_leadership(l);
+	// If the admiral we want to assign already is at a navy and it isn't the same as the one we want to move it to, then check if they can be swapped
+	if (leader_navy && leader_navy != a) {
+		auto existing_leader = state.world.navy_get_admiral_from_navy_leadership(a);
+		can_unassign_other_leader = can_move_leader(leader_navy, existing_leader);
+	}
+	return can_unassign_other_leader && can_move_leader(a, l);
 }
 void execute_change_admiral(sys::state& state, dcon::nation_id source, dcon::navy_id a, dcon::leader_id l) {
+	auto leader_navy = state.world.leader_get_navy_from_navy_leadership(l);
+	// swap leaders if applicable
+	if (leader_navy && leader_navy != a) {
+		auto existing_leader = state.world.navy_get_admiral_from_navy_leadership(a);
+		state.world.navy_set_admiral_from_navy_leadership(leader_navy, existing_leader);
+	}
 	state.world.navy_set_admiral_from_navy_leadership(a, l);
 }
 
@@ -5795,7 +5827,6 @@ dcon::mp_player_id execute_notify_player_joins(sys::state& state, dcon::client_i
 	}
 	// make the chat message appear as if it is sent by the host
 	auto host = network::get_host_player(state);
-	auto host_nation = state.world.mp_player_get_nation_from_player_nation(host);
 	text::substitution_map sub{};
 	text::add_to_substitution_map(sub, text::variable_type::playername, name.to_string_view());
 	std::string msg = text::resolve_string_substitution(state, "chat_player_joins", sub);
