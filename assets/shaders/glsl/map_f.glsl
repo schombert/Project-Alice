@@ -363,8 +363,6 @@ vec4 get_land_political_gores() {
 		line_mult = min(line_mult, 0.2f * softness_mult * (1.f + 0.5f * inside_h) + max(0.5f - zoom / 100.f, smootherstep(v2 / (line_width_h))));
 	}
 
-	vec4 wc = texture(watercolor, vec2(horisontal_coord_before_cutting_paper, vertical_segment) * 10.f);
-	vec4 wc_global = texture(watercolor, vec2(horisontal_coord_before_cutting_paper, vertical_segment) / 2.f);
 
 	float hatching = texture(hatching, vec2(horisontal_coord_before_cutting_paper * (mod(vertical_segment_number_area, 2.f) * 2.f - 1.f), vertical_segment * (mod(equator_segment_number_area, 2.f) * 2.f - 1.f)) * 4.f).r;
 		
@@ -380,6 +378,30 @@ vec4 get_land_political_gores() {
 	}
 	vec4 prov_color = texture(province_color, vec3(prov_id, 0.));
 	vec4 stripe_color = texture(province_color, vec3(prov_id, 1.));
+	
+	prov_color = mix(prov_color, stripe_color, clamp(hatching * 2.f + 5.f - line_mult * 5.f, 0.f, 1.f));
+
+	vec4 wc = texture(watercolor, vec2(horisontal_coord_before_cutting_paper, vertical_segment) * 10.f);
+	wc = wc * wc * wc;
+	RGB wc_rgb;
+	wc_rgb.r = wc.r;
+	wc_rgb.g = wc.g;
+	wc_rgb.b = wc.b;
+	Lab wc_lab = linear_srgb_to_oklab(wc_rgb);
+
+	vec4 wc_global = texture(watercolor, vec2(horisontal_coord_before_cutting_paper, vertical_segment) / 2.f);
+	RGB wc_global_rgb;
+	wc_global_rgb.r = wc_global.r;
+	wc_global_rgb.g = wc_global.g;
+	wc_global_rgb.b = wc_global.b;
+	Lab wc_global_lab = linear_srgb_to_oklab(wc_global_rgb);
+
+	RGB prov_color_rgb;
+	prov_color_rgb.r = prov_color.r;
+	prov_color_rgb.g = prov_color.g;
+	prov_color_rgb.b = prov_color.b;
+	Lab prov_color_lab = linear_srgb_to_oklab(prov_color_rgb);
+
 	//float stripeFactor = texture(stripes_texture, stripe_coord).a;
 	//vec4 base_color = vec4(1.f, 247.f / 255.f, 220.f / 255.f, 1.f) * 0.9f;
 	vec4 base_color = vec4(0.80, 0.76, 0.63, 1.f);
@@ -388,12 +410,11 @@ vec4 get_land_political_gores() {
 	const vec3 GREYIFY = vec3( 0.212671, 0.715160, 0.072169 );
 	float grey = dot( terrain.rgb, GREYIFY ) * 2.f;
 
-	float weight_base = 0.0015f;
-	float weight_hatching = 0.05f;
-	float weight_border = 3.0f * clamp(0.1f + hatching, 0.f, 1.f);
+	float weight_base = 0.15f;
+	float weight_hatching = 0.0005f;
+	float weight_border = 3.0f * clamp(0.1f + hatching * 0.2f, 0.f, 1.f);
 	float weight_watercolor = 0.005f;
-	//float total_weight = weight_base + weight_hatching + weight_border + weight_watercolor;
-	float wc_g = dot(wc.xyz, GREYIFY);
+	float wc_g = wc_lab.L;
 
 	float final_weight = min(1, sqrt(
 		weight_base
@@ -405,11 +426,17 @@ vec4 get_land_political_gores() {
 	if (stripe_color != prov_color) {
 		base_color = stripe_color * final_weight + base_color * (1.f - final_weight);
 	}
-	vec4 mixed_color = prov_color * final_weight + base_color * (1.f - final_weight);
 
-	//vec4 color = prov_color * wc
+	float from_zoom = min(0.2, zoom / 50.f);
 
-	vec4 result = (mixed_color - 0.f * hatching) * min(1.f, line_mult) * (0.85f + 0.05f * wc + 0.10f * dot(wc_global.xyz, GREYIFY)) * min(1.f, 0.2f + gradient);
+	Lab final;
+	final.L = (0.3f + 0.65f * prov_color_lab.L) * (1.f - from_zoom + wc_lab.L * from_zoom) * (1.f - from_zoom + wc_global_lab.L * from_zoom);
+	final.a = prov_color_lab.a * 0.35f;
+	final.b = prov_color_lab.b * 0.35f;
+
+	RGB result_rgb = oklab_to_linear_srgb(final);
+
+	vec4 result = vec4(result_rgb.r, result_rgb.g, result_rgb.b, 1.f);
 	result.a = is_land;
 
 	return result;
@@ -609,8 +636,8 @@ vec4 get_water_gores() {
 	vec4 wc = texture(watercolor, vec2(horisontal_coord_before_cutting_paper, vertical_segment) * 10.f);
 	vec4 wc_global = texture(watercolor, vec2(horisontal_coord_before_cutting_paper, vertical_segment) / 2.f);
 
-	float hatching = 0.4f * texture(hatching, vec2(horisontal_coord_before_cutting_paper * (mod(vertical_segment_number_area, 2.f) * 2.f - 1.f), vertical_segment * (mod(equator_segment_number_area, 2.f) * 2.f - 1.f)) * 4.f).r;
-	return vec4(0.57f - hatching, 0.65f - hatching, 0.70f, 1.f) * (0.25f + 0.5f * wc + 0.25f * wc_global) * vec4(0.2f + 0.8f * line_mult, 0.2f + 0.8f *line_mult, 1.f, 1.f);
+	float hatching = 0.15f * texture(hatching, vec2(horisontal_coord_before_cutting_paper * (mod(vertical_segment_number_area, 2.f) * 2.f - 1.f), vertical_segment * (mod(equator_segment_number_area, 2.f) * 2.f - 1.f)) * 4.f).r;
+	return vec4(0.50f - hatching, 0.55f - hatching, 0.60f, 1.f) * (0.5f + 0.25f * wc + 0.25f * wc_global) * vec4(0.2f + 0.8f * line_mult, 0.2f + 0.8f *line_mult, 1.f, 1.f);
 }
 
 vec4 get_water() {

@@ -793,6 +793,127 @@ constexpr float axial_tilt_angle = 0.409f;
 const glm::mat3 axial_rotation = glm::rotate(axial_tilt_angle, glm::vec3 { 0.f, -1.f, 0.f });
 
 
+enum class border_kind : uint8_t {
+	province, state_instance, nation, impassible, border_gradient, hovered_province, selected_province
+};
+
+enum class zoom_level : uint8_t {
+	very_close, close, far_away
+};
+
+template <border_kind BorderKind>
+bool should_render_border(const sys::state& state, zoom_level Zoom) {
+	if(BorderKind == border_kind::province && Zoom != zoom_level::very_close) {
+		return false;
+	}
+	if(BorderKind == border_kind::state_instance && Zoom == zoom_level::far_away) {
+		return false;
+	}
+	if(BorderKind == border_kind::selected_province) {
+		if(state.local_player_nation && state.current_scene.borders == game_scene::borders_granularity::nation) {
+			return true;
+		}
+		if(state.map_state.selected_province && state.map_state.selected_province) {
+			return true;
+		}
+	}
+	if(state.user_settings.current_borders_style == sys::borders_style::none) {
+		return false;
+	}
+	return true;
+}
+
+template <border_kind BorderKind>
+void set_border_width(const sys::state& state, zoom_level Zoom) {
+	float width = 0.00005f;
+	if(state.user_settings.current_borders_style == sys::borders_style::thin) {
+		width = 0.00001f;
+	} else if(state.user_settings.current_borders_style == sys::borders_style::thick) {
+		width = 0.0001f;
+	}
+
+	if (Zoom == zoom_level::very_close) {
+	} else if (Zoom == zoom_level::close) {
+		width = width * 2.f;
+	} else {
+		width = width * 4.f;
+	}
+
+	if constexpr(BorderKind == border_kind::province) {
+	} else if constexpr(BorderKind == border_kind::state_instance) {
+		width = width * 2.f;
+	} else if constexpr(BorderKind == border_kind::nation) {
+		width = width * 4.f;
+	} else if constexpr(BorderKind == border_kind::impassible) {
+		width = width * 8.f;
+	} else if constexpr(BorderKind == border_kind::border_gradient) {
+		width = width * 64.f;
+	} else if constexpr(BorderKind == border_kind::hovered_province) {
+		width = width * 32.f;
+	} else if constexpr(BorderKind == border_kind::selected_province) {
+		width = width * 64.f;
+	}
+
+	if constexpr(BorderKind == border_kind::border_gradient) {
+		glUniform1f(state.map_state.map_data.shader_uniforms[state.map_state.map_data.shader_borders_provinces][state.map_state.map_data.uniform_width], 0.001f);
+	} else {
+		glUniform1f(state.map_state.map_data.shader_uniforms[state.map_state.map_data.shader_borders][state.map_state.map_data.uniform_width], width);
+	}
+}
+
+void display_data::render_nation_border(const sys::state& state, dcon::nation_id nation) {
+	glBindVertexArray(vao_array[vo_border]);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_border]);
+	for(auto b : border_edges) {
+		if(!b.adj) continue;
+		auto p0 = state.world.province_adjacency_get_connected_provinces(b.adj, 0);
+		auto p1 = state.world.province_adjacency_get_connected_provinces(b.adj, 1);
+		auto n0 = state.world.province_get_nation_from_province_ownership(p0);
+		auto n1 = state.world.province_get_nation_from_province_ownership(p1);
+		auto correct_adjacency =	(n0 == nation && b.associated_province == p0) || (n1 == nation && b.associated_province == p1);
+		auto bits = (province::border::non_adjacent_bit | province::border::coastal_bit | province::border::state_bit | province::border::national_bit);
+		if(
+			correct_adjacency
+			&& b.count > 0
+			&& (state.world.province_adjacency_get_type(b.adj) & bits)
+		) {
+			glDrawArrays(GL_TRIANGLE_STRIP, b.offset, b.count);
+		}
+	}
+}
+void display_data::render_state_instance_border(const sys::state& state, dcon::state_instance_id s) {
+	glBindVertexArray(vao_array[vo_border]);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_border]);
+	for(auto b : border_edges) {
+		if(!b.adj) continue;
+		auto p0 = state.world.province_adjacency_get_connected_provinces(b.adj, 0);
+		auto p1 = state.world.province_adjacency_get_connected_provinces(b.adj, 1);
+		auto s0 = state.world.province_get_state_membership(p0);
+		auto s1 = state.world.province_get_state_membership(p1);
+		auto correct_adjacency =	(s0 == s && b.associated_province == p0) || (s1 == s && b.associated_province == p1);
+		auto bits = (province::border::non_adjacent_bit | province::border::coastal_bit | province::border::state_bit | province::border::national_bit);
+		if(
+			correct_adjacency
+			&& b.count > 0
+			&& (state.world.province_adjacency_get_type(b.adj) & bits)
+		) {
+			glDrawArrays(GL_TRIANGLE_STRIP, b.offset, b.count);
+		}
+	}
+}
+void display_data::render_province_border(sys::state& state, dcon::province_id s) {
+	glBindVertexArray(vao_array[vo_border]);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_border]);
+
+	for(auto selected_province_mesh : state.map_state.map_data.province_to_province_border[s.value]) {
+		glDrawArrays(
+			GL_TRIANGLE_STRIP,
+			state.map_state.map_data.province_border_starts[selected_province_mesh],
+			state.map_state.map_data.province_border_counts[selected_province_mesh]
+		);
+	}
+}
+
 void display_data::render(
 	sys::state& state,
 	glm::vec2 screen_size,
@@ -980,8 +1101,18 @@ void display_data::render(
 	}
 
 
+	zoom_level current_zoom = zoom_level::far_away;
+	if(zoom > zoom_very_close) {
+		current_zoom = zoom_level::very_close;
+	} else if(zoom > zoom_close) {
+		current_zoom = zoom_level::close;
+	}
+
 	// BORDERS TO FIX HUGE PIXELS
-	if(state.user_settings.graphics_mode != sys::graphics_mode::ugly && pixel_size > 0.5f) {
+	if (
+		state.user_settings.current_borders_style != sys::borders_style::none
+		&& pixel_size > 0.5f
+	) {
 		load_shader(shader_borders_provinces);
 		glUniform1i(shader_uniforms[shader_borders_provinces][uniform_provinces_real_texture_sampler], 12);
 
@@ -992,7 +1123,7 @@ void display_data::render(
 
 		glm::vec2 map_size_vec{ size_x, size_y };
 
-		glUniform1f(shader_uniforms[shader_borders_provinces][uniform_width], 0.002f);// * std::min(1.f, (pixel_size - 1.f))); // width
+		set_border_width<border_kind::border_gradient>(state, current_zoom);
 
 		glUniform1f(shader_uniforms[shader_borders_provinces][uniform_is_national_border], 1.f);
 
@@ -1297,187 +1428,68 @@ void display_data::render(
 	static int border_index = 0;
 	border_index++;
 
-	if(state.user_settings.graphics_mode != sys::graphics_mode::ugly) {
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, textures[texture_provinces]);
-		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, textures[texture_province_fow]);
-		if(zoom > map::zoom_close) {
-			if(zoom > map::zoom_very_close) { // Render province borders
-				glUniform1f(shader_uniforms[shader_borders][uniform_width], 0.0001f); // width
-				glActiveTexture(GL_TEXTURE2);
-				glBindTexture(GL_TEXTURE_2D, textures[texture_prov_border]);
-				glBindVertexArray(vao_array[vo_border]);
-				glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_border]);
-				//glBindBuffer(GL_DRAW_INDIRECT_BUFFER, province_indirect_buffer);
-				//glMultiDrawArraysIndirect(GL_TRIANGLE_STRIP, 0, (GLsizei)province_border_starts.size(), 0);
-				glDrawArrays(GL_TRIANGLE_STRIP, 0, (GLsizei)province_border_vertices.size());
-				//glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);
-			}
-			{ // Render state borders
-				glUniform1f(shader_uniforms[shader_borders][uniform_width], 0.0002f); // width
-				glActiveTexture(GL_TEXTURE2);
-				glBindTexture(GL_TEXTURE_2D, textures[texture_state_border]);
-				glBindVertexArray(vao_array[vo_state_border]);
-				glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_state_border]);
-				//glBindBuffer(GL_DRAW_INDIRECT_BUFFER, state_indirect_buffer);
-				//glMultiDrawArraysIndirect(GL_TRIANGLE_STRIP, 0, (GLsizei)state_border_starts.size(), 0);
-				glDrawArrays(GL_TRIANGLE_STRIP, 0, (GLsizei)state_border_vertices.size());
-				//glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);
-			}
-			// impassible borders
-			if (impassible_count > 0 && impassible_indirect_buffer != 0) {
-				glUniform1f(shader_uniforms[shader_borders][uniform_width], 0.001f); // width
-				glActiveTexture(GL_TEXTURE2);
-				glBindTexture(GL_TEXTURE_2D, textures[texture_imp_border]);
-				glBindVertexArray(vao_array[vo_border]);
-				glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_border]);
-				glBindBuffer(GL_DRAW_INDIRECT_BUFFER, impassible_indirect_buffer);
-				glMultiDrawArraysIndirect(GL_TRIANGLE_STRIP, 0, (GLsizei)impassible_count, 0);
-				glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);
-			}
-			// national borders
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, textures[texture_provinces]);
 
-			//static int frame = 0;
-			//frame++;
-			{
-				glUniform1f(shader_uniforms[shader_borders][uniform_width], 0.00015f * scale_borders); // width
-				glActiveTexture(GL_TEXTURE2);
-				glBindTexture(GL_TEXTURE_2D, textures[texture_national_border]);
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, textures[texture_province_fow]);
 
-				for(uint8_t group_idx = 0; group_idx < map::national_groups_count; group_idx++) {
-					glBindVertexArray(vao_national_borders_array[group_idx]);
-					glBindBuffer(GL_ARRAY_BUFFER, vbo_national_borders_array[group_idx]);
-					//glBindBuffer(GL_DRAW_INDIRECT_BUFFER, national_borders_draw_command[group_idx]);
-					glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);
-					//glMultiDrawArraysIndirect(GL_TRIANGLE_STRIP, 0, (GLsizei)national_borders_count[group_idx], 0);
-					glDrawArrays(GL_TRIANGLE_STRIP, 0, (GLsizei)national_borders_count[group_idx]);
-				}
+	if(should_render_border<border_kind::province>(state, current_zoom)) {
+		set_border_width<border_kind::province>(state, current_zoom);
+		glActiveTexture(GL_TEXTURE2);
+		glBindTexture(GL_TEXTURE_2D, textures[texture_prov_border]);
+		glBindVertexArray(vao_array[vo_border]);
+		glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_border]);
+		glDrawArrays(GL_TRIANGLE_STRIP, 0, (GLsizei)province_border_vertices.size());
+	}
 
-				glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);
-			}
-		} else {
-			if(zoom > map::zoom_very_close) { // Render province borders
-				glUniform1f(shader_uniforms[shader_borders][uniform_width], 0.00005f); // width
-				glActiveTexture(GL_TEXTURE2);
-				glBindTexture(GL_TEXTURE_2D, textures[texture_prov_border]);
-				glBindVertexArray(vao_array[vo_border]);
-				glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_border]);
-				//glBindBuffer(GL_DRAW_INDIRECT_BUFFER, province_indirect_buffer);
-				//glMultiDrawArraysIndirect(GL_TRIANGLE_STRIP, 0, (GLsizei)province_border_starts.size(), 0);
-				glDrawArrays(GL_TRIANGLE_STRIP, 0, (GLsizei)province_border_vertices.size());
-				//glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);
-			}
-			if(zoom > map::zoom_close) { // Render state borders
-				glUniform1f(shader_uniforms[shader_borders][uniform_width], 0.00005f); // width
-				glActiveTexture(GL_TEXTURE2);
-				glBindTexture(GL_TEXTURE_2D, textures[texture_state_border]);
-				glBindVertexArray(vao_array[vo_state_border]);
-				glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_state_border]);
-				//glBindBuffer(GL_DRAW_INDIRECT_BUFFER, state_indirect_buffer);
-				//glMultiDrawArraysIndirect(GL_TRIANGLE_STRIP, 0, (GLsizei)state_border_starts.size(), 0);
-				glDrawArrays(GL_TRIANGLE_STRIP, 0, (GLsizei)state_border_vertices.size());
-				//glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);
-			}
-			// national borders
-			{
-				glUniform1f(shader_uniforms[shader_borders][uniform_width], 0.00015f * scale_borders); // width
-				glActiveTexture(GL_TEXTURE2);
-				glBindTexture(GL_TEXTURE_2D, textures[texture_national_border]);
-				for(uint8_t group_idx = 0; group_idx < map::national_groups_count; group_idx++) {
-					glBindVertexArray(vao_national_borders_array[group_idx]);
-					glBindBuffer(GL_ARRAY_BUFFER, vbo_national_borders_array[group_idx]);
-					//glBindBuffer(GL_DRAW_INDIRECT_BUFFER, national_borders_draw_command[group_idx]);
-					glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);
-					//glMultiDrawArraysIndirect(GL_TRIANGLE_STRIP, 0, (GLsizei)national_borders_count[group_idx], 0);
-					glDrawArrays(GL_TRIANGLE_STRIP, 0, (GLsizei)national_borders_count[group_idx]);
-				}
-				glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);
-			}
+	if(should_render_border<border_kind::state_instance>(state, current_zoom)) {
+		set_border_width<border_kind::state_instance>(state, current_zoom);
+		glActiveTexture(GL_TEXTURE2);
+		glBindTexture(GL_TEXTURE_2D, textures[texture_state_border]);
+		glBindVertexArray(vao_array[vo_state_border]);
+		glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_state_border]);
+		glDrawArrays(GL_TRIANGLE_STRIP, 0, (GLsizei)state_border_vertices.size());
+	}
+
+	if(should_render_border<border_kind::impassible>(state, current_zoom)) {
+		set_border_width<border_kind::impassible>(state, current_zoom);
+		glActiveTexture(GL_TEXTURE2);
+		glBindTexture(GL_TEXTURE_2D, textures[texture_imp_border]);
+		glBindVertexArray(vao_array[vo_border]);
+		glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_border]);
+		glBindBuffer(GL_DRAW_INDIRECT_BUFFER, impassible_indirect_buffer);
+		glMultiDrawArraysIndirect(GL_TRIANGLE_STRIP, 0, (GLsizei)impassible_count, 0);
+		glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);
+	}
+
+	if(should_render_border<border_kind::nation>(state, current_zoom)) {
+		set_border_width<border_kind::nation>(state, current_zoom);
+		glActiveTexture(GL_TEXTURE2);
+		glBindTexture(GL_TEXTURE_2D, textures[texture_national_border]);
+		for(uint8_t group_idx = 0; group_idx < map::national_groups_count; group_idx++) {
+			glBindVertexArray(vao_national_borders_array[group_idx]);
+			glBindBuffer(GL_ARRAY_BUFFER, vbo_national_borders_array[group_idx]);
+			glDrawArrays(GL_TRIANGLE_STRIP, 0, (GLsizei)national_borders_count[group_idx]);
 		}
 	}
 
-	glUniform1f(shader_uniforms[shader_borders][uniform_width], 0.0016f); // width
-	glActiveTexture(GL_TEXTURE2);
-	glBindTexture(GL_TEXTURE_2D, textures[texture_imp_border]);
-
-	if(state.map_state.selected_province || (state.local_player_nation && state.current_scene.borders == game_scene::borders_granularity::nation)) {
-		glUniform1f(shader_uniforms[shader_borders][uniform_width], zoom > map::zoom_close ? 0.0008f : 0.0019f); // width
+	if(should_render_border<border_kind::selected_province>(state, current_zoom)) {
+		set_border_width<border_kind::selected_province>(state, current_zoom);
 		glActiveTexture(GL_TEXTURE2);
 		glBindTexture(GL_TEXTURE_2D, textures[texture_hover_border]);
 		if(state.local_player_nation && state.current_scene.borders == game_scene::borders_granularity::nation) {
-
-			glBindVertexArray(vao_array[vo_border]);
-			glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_border]);
-
-			for(auto b : border_edges) {
-				if(!b.adj) continue;
-				auto p0 = state.world.province_adjacency_get_connected_provinces(b.adj, 0);
-				auto p1 = state.world.province_adjacency_get_connected_provinces(b.adj, 1);
-				if(
-					(
-						(
-							state.world.province_get_nation_from_province_ownership(p0) == state.local_player_nation
-							&& b.associated_province == p0
-							)
-						||
-						(
-							state.world.province_get_nation_from_province_ownership(p1) == state.local_player_nation
-							&& b.associated_province == p1
-							)
-						)
-					&&
-					(
-						state.world.province_adjacency_get_type(b.adj)
-						& (province::border::non_adjacent_bit | province::border::coastal_bit | province::border::state_bit | province::border::national_bit)
-						) != 0
-				) {
-					glDrawArrays(GL_TRIANGLE_STRIP, b.offset, b.count);
-				}
-			}
+			render_nation_border(state, state.local_player_nation);
 		} else if(state.current_scene.borders == game_scene::borders_granularity::state) {
 			auto owner = state.world.province_get_nation_from_province_ownership(state.map_state.selected_province);
-
-			glBindVertexArray(vao_array[vo_border]);
-			glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_border]);
-
-			if(owner) {
-				auto siid = state.world.province_get_state_membership(state.map_state.selected_province);
-				//per state
-				for(auto b : border_edges) {
-					if(!b.adj) continue;
-					auto p0 = state.world.province_adjacency_get_connected_provinces(b.adj, 0);
-					auto p1 = state.world.province_adjacency_get_connected_provinces(b.adj, 1);
-					if(
-						(
-							(
-								state.world.province_get_state_membership(p0) == siid
-								&& b.associated_province == p0
-							)
-							||
-							(
-								state.world.province_get_state_membership(p1) == siid
-								&& b.associated_province == p1
-							)
-						)
-						&&
-						(
-							state.world.province_adjacency_get_type(b.adj)
-							& (province::border::non_adjacent_bit | province::border::coastal_bit | province::border::state_bit | province::border::national_bit)
-						) != 0
-					) {
-						glDrawArrays(GL_TRIANGLE_STRIP, b.offset, b.count);
-					}
-				}
+			auto siid = state.world.province_get_state_membership(state.map_state.selected_province);
+			if(owner && siid) {
+				render_state_instance_border(state, siid);
 			}
 		} else if(state.current_scene.borders == game_scene::borders_granularity::province) {
 			auto selected = state.map_state.selected_province;
-
-			glBindVertexArray(vao_array[vo_border]);
-			glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_border]);
-
-			for(auto selected_province_mesh : state.map_state.map_data.province_to_province_border[selected.value]) {
-				glDrawArrays(GL_TRIANGLE_STRIP, state.map_state.map_data.province_border_starts[selected_province_mesh], state.map_state.map_data.province_border_counts[selected_province_mesh]);
+			if(selected) {
+				render_province_border(state, selected);
 			}
 		}
 	}
@@ -1495,8 +1507,9 @@ void display_data::render(
 		)
 	) {		
 		auto idx = map_space::to_idx(raw_map_pos, (float)state.map_state.map_data.size_x, (float)state.map_state.map_data.size_y);
-
 		if(0 <= idx && size_t(idx) < state.map_state.map_data.province_id_map.size() && state.map_state.map_data.province_id_map[idx] < province::to_map_id(state.province_definitions.first_sea_province)) {
+			set_border_width<border_kind::hovered_province>(state, current_zoom);
+
 			auto fat_id = dcon::fatten(state.world, province::from_map_id(state.map_state.map_data.province_id_map[idx]));
 			prov = province::from_map_id(state.map_state.map_data.province_id_map[idx]);
 			glUniform1f(shader_uniforms[shader_borders][uniform_width], zoom > map::zoom_close ? 0.0004f : 0.00085f); // width
@@ -1504,64 +1517,14 @@ void display_data::render(
 			glBindTexture(GL_TEXTURE_2D, textures[texture_hover_border]);
 			auto owner = state.world.province_get_nation_from_province_ownership(prov);
 			if(owner && state.current_scene.borders == game_scene::borders_granularity::nation) {
-				//per nation
-				for(auto b : border_edges) {
-					if(!b.adj) continue;
-					auto p0 = state.world.province_adjacency_get_connected_provinces(b.adj, 0);
-					auto p1 = state.world.province_adjacency_get_connected_provinces(b.adj, 1);
-					if(
-						(
-							(
-								state.world.province_get_nation_from_province_ownership(p0) == owner
-								&& b.associated_province == p0
-								)
-							||
-							(
-								state.world.province_get_nation_from_province_ownership(p1) == owner
-								&& b.associated_province == p1
-								)
-							)
-						&&
-						(
-							state.world.province_adjacency_get_type(b.adj)
-							& (province::border::non_adjacent_bit | province::border::coastal_bit | province::border::state_bit | province::border::national_bit)
-							) != 0
-					) {
-						glDrawArrays(GL_TRIANGLE_STRIP, b.offset, b.count);
-					}
-				}
+				render_nation_border(state, owner);
 			} else if(owner && state.current_scene.borders == game_scene::borders_granularity::state) {
 				auto siid = state.world.province_get_state_membership(prov);
-				//per state
-				for(auto b : border_edges) {
-					if(!b.adj) continue;
-					auto p0 = state.world.province_adjacency_get_connected_provinces(b.adj, 0);
-					auto p1 = state.world.province_adjacency_get_connected_provinces(b.adj, 1);
-					if(
-						(
-							(
-								state.world.province_get_state_membership(p0) == siid
-								&& b.associated_province == p0
-								)
-							||
-							(
-								state.world.province_get_state_membership(p1) == siid
-								&& b.associated_province == p1
-								)
-							)
-						&&
-						(
-							state.world.province_adjacency_get_type(b.adj)
-							& (province::border::non_adjacent_bit | province::border::coastal_bit | province::border::state_bit | province::border::national_bit)
-							) != 0
-					) {
-						glDrawArrays(GL_TRIANGLE_STRIP, b.offset, b.count);
-					}
+				if(siid) {
+					render_state_instance_border(state, siid);
 				}
 			} else if(owner && state.current_scene.borders == game_scene::borders_granularity::province) {
-				for(auto selected_province_mesh : state.map_state.map_data.province_to_province_border[prov.value]) {
-					glDrawArrays(GL_TRIANGLE_STRIP, state.map_state.map_data.province_border_starts[selected_province_mesh], state.map_state.map_data.province_border_counts[selected_province_mesh]);
-				}
+				render_province_border(state, prov);
 			}
 		}
 	}

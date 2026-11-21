@@ -171,6 +171,9 @@ public:
 		sys::projection_mode map_view_mode, map_mode::mode active_map_mode,
 		glm::mat3 globe_rotation, float time_counter
 	);
+	void render_nation_border(const sys::state& state, dcon::nation_id);
+	void render_state_instance_border(const sys::state& state, dcon::state_instance_id);
+	void render_province_border(sys::state& state, dcon::province_id);
 	void update_borders(sys::state& state);
 	void update_fog_of_war(sys::state& state);
 	void update_highlight(sys::state& state);

@@ -23,7 +23,7 @@ vec4 calc_gl_position(vec2 position) {
 }
 
 void main() {
-	vec2 normal_vector = normalize(normal_direction) * width;
+	vec2 normal_vector = normalize(normal_direction) * width * 0.5f;
 	vec2 world_pos = vertex_position;
 	
 	space_coords = point_to_sphere(vertex_position);
