@@ -38,6 +38,7 @@ struct flow_map_data {
 	std::vector<int32_t> flow_particles_content {};
 
 	std::vector<ankerl::unordered_dense::map<int32_t, std::vector<float>>> flow_graph {};
+	std::vector<ankerl::unordered_dense::map<int32_t, float>> flow_graph_total{};
 	std::vector<ankerl::unordered_dense::map<int32_t, std::vector<float>>> particle_next_node_probability{};
 	std::vector<std::vector<float>> node_probability_create{};
 	std::vector<float> edge_layer_probability{};

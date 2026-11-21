@@ -220,11 +220,57 @@ vec4 get_land_data_modern() {
 	return vec4(result.rgb * 0.8f, is_land);
 }
 
+// https://bottosson.github.io/posts/oklab/
+struct Lab {float L; float a; float b;};
+struct RGB {float r; float g; float b;};
+
+Lab linear_srgb_to_oklab(RGB c) 
+{
+	float l = 0.4122214708f * c.r + 0.5363325363f * c.g + 0.0514459929f * c.b;
+	float m = 0.2119034982f * c.r + 0.6806995451f * c.g + 0.1073969566f * c.b;
+	float s = 0.0883024619f * c.r + 0.2817188376f * c.g + 0.6299787005f * c.b;
+
+	float l_ = pow(l, 1.0/3.0);
+	float m_ = pow(m, 1.0/3.0);
+	float s_ = pow(s, 1.0/3.0);
+
+	Lab result;
+	result.L = 0.2104542553f*l_ + 0.7936177850f*m_ - 0.0040720468f*s_;
+	result.a = 1.9779984951f*l_ - 2.4285922050f*m_ + 0.4505937099f*s_;
+	result.b = 0.0259040371f*l_ + 0.7827717662f*m_ - 0.8086757660f*s_;
+
+	return result;
+}
+
+RGB oklab_to_linear_srgb(Lab c) 
+{
+	float l_ = c.L + 0.3963377774f * c.a + 0.2158037573f * c.b;
+	float m_ = c.L - 0.1055613458f * c.a - 0.0638541728f * c.b;
+	float s_ = c.L - 0.0894841775f * c.a - 1.2914855480f * c.b;
+
+	float l = l_*l_*l_;
+	float m = m_*m_*m_;
+	float s = s_*s_*s_;
+
+	RGB result;
+	result.r = +4.0767416621f * l - 3.3077115913f * m + 0.2309699292f * s;
+	result.g = -1.2684380046f * l + 2.6097574011f * m - 0.3413193965f * s;
+	result.b  =-0.0041960863f * l - 0.7034186147f * m + 1.7076147010f * s;
+
+	return result;
+}
+
 vec4 get_land_political_modern() {
 	vec4 terrain = get_terrain_mix();
 	float is_land = terrain.a;
-	const vec3 GREYIFY = vec3( 0.212671, 0.715160, 0.072169 );
-	float grey = dot( terrain.rgb, GREYIFY );
+	//const vec3 GREYIFY = vec3( 0.212671, 0.715160, 0.072169 );
+	//float grey = dot( terrain.rgb, GREYIFY );
+
+	RGB terrain_rgb;
+	terrain_rgb.r =  terrain.r;
+	terrain_rgb.g =  terrain.g;
+	terrain_rgb.b =  terrain.b;
+	Lab terrain_oklab = linear_srgb_to_oklab ( terrain_rgb );
 
 	vec4 province_sample = texture(provinces_texture_sampler, gl_FragCoord.xy / screen_size);
 	vec2 prov_id = province_sample.xy;
@@ -238,8 +284,11 @@ vec4 get_land_political_modern() {
 	float stripeFactor = texture(stripes_texture, stripe_coord).a;
 	float prov_highlight = texture(province_highlight, prov_id).r * (abs(cos(time * 3.f)) + 1.f);
 	vec3 political = clamp(mix(prov_color, stripe_color, stripeFactor) + vec4(prov_highlight), 0.0, 1.0).rgb;
-
-	vec4 OutColor = vec4(0.5f, 0.5f, 0.5f, is_land);
+	RGB political_rgb;
+	political_rgb.r =  political.r;
+	political_rgb.g =  political.g;
+	political_rgb.b =  political.b;
+	Lab political_oklab = linear_srgb_to_oklab ( political_rgb );
 
 	float sum_of_prov_colors = dot(prov_color, vec4(1.f, 1.f, 1.f, 0.f));
 	bool is_colonised = true;
@@ -247,15 +296,25 @@ vec4 get_land_political_modern() {
 		is_colonised = false;
 	}
 
+	Lab out_oklab = {0.f, 0.f, 0.f};
+
 	if (is_colonised) {
-		OutColor.rgb = mix((grey + terrain.rgb) / 2.f, political, 0.3f + 0.5f / zoom + (1.f - to_national_border) * 0.7f);
-		OutColor.rgb -= (1.f - to_national_border) * 0.1f;
+		float t = 0.3f + 0.5f / zoom + (1.f - to_national_border) * 0.7f;
+		out_oklab.L = mix(terrain_oklab.L, political_oklab.L, t); 
+		out_oklab.a = mix(terrain_oklab.a / 3, political_oklab.a, t); 
+		out_oklab.b = mix(terrain_oklab.b / 3, political_oklab.b, t);
+		out_oklab.L -= (1.f - to_national_border) * 0.1f;
 	} else {
-		OutColor.rgb = (grey * 2.f + terrain.rgb) / 3.f + 0.2f;
+		out_oklab.L = terrain_oklab.L + 0.1f;
+		out_oklab.a = terrain_oklab.a / 3.f;
+		out_oklab.b = terrain_oklab.b / 3.f;
 	}
 
-	OutColor.rgb *= texture(province_fow, prov_id).rgb * (to_national_border * 0.3f + 0.7f);
+	out_oklab.L = out_oklab.L * (to_national_border * 0.3f + 0.7f);
+	RGB out_rgb = oklab_to_linear_srgb(out_oklab);
 
+	vec4 OutColor = vec4(out_rgb.r, out_rgb.g, out_rgb.b, is_land);
+	OutColor.rgb *= texture(province_fow, prov_id).rgb;
 	return OutColor;
 }
 
