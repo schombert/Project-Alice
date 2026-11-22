@@ -1289,7 +1289,7 @@ void display_data::render(
 
 	// Draw the railroads and city
 
-	if((zoom > map::zoom_close || state.map_state.light_on) && !railroad_vertices.empty() && state.user_settings.railroads_enabled) {
+	if(!railroad_vertices.empty() && state.user_settings.railroads_enabled) {
 		glEnable(GL_BLEND);
 		glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE);
 
@@ -1323,10 +1323,10 @@ void display_data::render(
 			if(state.world.province_adjacency_is_valid(adj)) {
 				auto p0 = state.world.province_adjacency_get_connected_provinces(adj, 0);
 				auto p1 = state.world.province_adjacency_get_connected_provinces(adj, 1);
-				if(p0.index() >= state.province_definitions.first_sea_province.index()) {
-					is_sea = true;
-				}
-				if(p1.index() >= state.province_definitions.first_sea_province.index()) {
+				if(
+					p0.index() >= state.province_definitions.first_sea_province.index()
+					&& p1.index() >= state.province_definitions.first_sea_province.index()
+				) {
 					is_sea = true;
 				}
 				auto rail0 = state.world.province_get_building_level(p0, uint8_t(economy::province_building_type::railroad));
@@ -1347,6 +1347,13 @@ void display_data::render(
 					}
 				}
 			}
+
+			if(is_sea) {
+				glUniform1f(shader_uniforms[shader_railroad_line][uniform_graphics_mode], 1.f);
+			} else {
+				glUniform1f(shader_uniforms[shader_railroad_line][uniform_graphics_mode], 0.f);
+			}
+
 			if(zoom > map::zoom_very_close) {
 				//float score = ((railroad_level > 0) ? 1.f : 0.f);
 				glUniform1f(shader_uniforms[shader_railroad_line][uniform_width], 0.00005f);
@@ -1358,7 +1365,7 @@ void display_data::render(
 				glUniform1f(shader_uniforms[shader_railroad_line][uniform_railroad_level], railroad_level);
 				glDrawArrays(GL_TRIANGLE_STRIP, railroad_starts[idx], railroad_counts[idx]);
 			} else {
-				float score = sqrt(trade_volume / 100.f);
+				float score = trade_volume / 500.f;
 				glUniform1f(shader_uniforms[shader_railroad_line][uniform_width], 0.00005f * score);
 				glUniform1f(shader_uniforms[shader_railroad_line][uniform_railroad_level], railroad_level);
 				glDrawArrays(GL_TRIANGLE_STRIP, railroad_starts[idx], railroad_counts[idx]);
