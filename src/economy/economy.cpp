@@ -4261,8 +4261,10 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			auto expected_probability_sell = ve::min(1.f, (demand_labor + 10.f) / (supply_labor + 10.f));
 
 #ifndef NDEBUG
-			ve::apply([&](auto value) { assert(std::isfinite(value) && value >= 0.f); }, sold);
-			ve::apply([&](auto value) { assert(std::isfinite(value) && value >= 0.f); }, satisfaction);
+			ve::apply([&](auto value) { assert(std::isfinite(value) && value >= 0.f); }, probability_sell);
+			ve::apply([&](auto value) { assert(std::isfinite(value) && value >= 0.f); }, probability_buy);
+			ve::apply([&](auto value) { assert(std::isfinite(value) && value >= 0.f); }, expected_probability_sell);
+			ve::apply([&](auto value) { assert(std::isfinite(value) && value >= 0.f); }, expected_probability_buy);
 #endif
 
 			state.world.province_set_labor_actual_probability_to_buy(ids, j, probability_buy);

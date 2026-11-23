@@ -2299,7 +2299,7 @@ void update_employment(sys::state& state, bool ignore_reality, float presim_empl
 		scaler = scaler * decay;
 
 #ifndef NDEBUG
-		ve::apply([&](auto p) { assert(std::isfinite(state.world.province_get_labor_demand_satisfaction(p, labor::high_education))); },
+		ve::apply([&](auto p) { assert(std::isfinite(state.world.province_get_labor_actual_probability_to_buy(p, labor::high_education))); },
 			pid
 		);
 		ve::apply([&](auto factory) { if(state.world.factory_is_valid(factory)) {
