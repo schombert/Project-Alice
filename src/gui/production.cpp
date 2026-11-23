@@ -1438,11 +1438,11 @@ void  production_main_main_list_t::update(sys::state& state, layout_window_eleme
 				if(economy::valid_artisan_good(state, state.local_player_nation, c)) {
 					if(main.selected_location) {
 						province::for_each_province_in_state_instance(state, main.selected_location, [&](dcon::province_id p) {
-							total += state.world.province_get_artisan_score(p, c) * state.world.province_get_labor_demand_satisfaction(p, economy::labor::guild_education);
+							total += state.world.province_get_artisan_score(p, c) * state.world.province_get_labor_actual_probability_to_buy(p, economy::labor::guild_education);
 						});
 					} else {
 						for(auto op : state.world.nation_get_province_ownership(state.local_player_nation)) {
-							total += state.world.province_get_artisan_score(op.get_province(), c) * state.world.province_get_labor_demand_satisfaction(op.get_province(), economy::labor::guild_education);
+							total += state.world.province_get_artisan_score(op.get_province(), c) * state.world.province_get_labor_actual_probability_to_buy(op.get_province(), economy::labor::guild_education);
 						}
 					}
 				}
@@ -1476,9 +1476,9 @@ void  production_main_main_list_t::update(sys::state& state, layout_window_eleme
 				float cavg_worker_sat = 0.0f;
 				float count = 0;
 				province::for_each_province_in_state_instance(state, main.selected_location, [&](dcon::province_id p) {
-					avg_worker_sat += state.world.province_get_labor_demand_satisfaction(p, economy::labor::basic_education);
-					bavg_worker_sat += state.world.province_get_labor_demand_satisfaction(p, economy::labor::no_education);
-					cavg_worker_sat += state.world.province_get_labor_demand_satisfaction(p, economy::labor::high_education);
+					avg_worker_sat += state.world.province_get_labor_actual_probability_to_buy(p, economy::labor::basic_education);
+					bavg_worker_sat += state.world.province_get_labor_actual_probability_to_buy(p, economy::labor::no_education);
+					cavg_worker_sat += state.world.province_get_labor_actual_probability_to_buy(p, economy::labor::high_education);
 					++count;
 				});
 				if(count > 0) {
@@ -1550,11 +1550,11 @@ void  production_main_main_list_t::update(sys::state& state, layout_window_eleme
 					if(economy::valid_artisan_good(state, state.local_player_nation, c)) {
 						if(main.selected_location) {
 							province::for_each_province_in_state_instance(state, main.selected_location, [&](dcon::province_id p) {
-								total += state.world.province_get_artisan_score(p, c) * state.world.province_get_labor_demand_satisfaction(p, economy::labor::guild_education);
+								total += state.world.province_get_artisan_score(p, c) * state.world.province_get_labor_actual_probability_to_buy(p, economy::labor::guild_education);
 							});
 						} else {
 							for(auto op : state.world.nation_get_province_ownership(state.local_player_nation)) {
-								total += state.world.province_get_artisan_score(op.get_province(), c) * state.world.province_get_labor_demand_satisfaction(op.get_province(), economy::labor::guild_education);
+								total += state.world.province_get_artisan_score(op.get_province(), c) * state.world.province_get_labor_actual_probability_to_buy(op.get_province(), economy::labor::guild_education);
 							}
 						}
 						seen_commodities.add(c, total);
@@ -1575,7 +1575,7 @@ void  production_main_main_list_t::update(sys::state& state, layout_window_eleme
 				float avg_worker_sat = 0.0f;
 				float count = 0;
 				province::for_each_province_in_state_instance(state, main.selected_location, [&](dcon::province_id p) {
-					avg_worker_sat += state.world.province_get_labor_demand_satisfaction(p, economy::labor::no_education);
+					avg_worker_sat += state.world.province_get_labor_actual_probability_to_buy(p, economy::labor::no_education);
 					++count;
 				});
 				if(count > 0)
@@ -2480,11 +2480,11 @@ void production_primary_row_amount_t::on_update(sys::state& state) noexcept {
 			if(economy::valid_artisan_good(state, state.local_player_nation, primary_row.commodity_type)) {
 				if(main.selected_location) {
 					province::for_each_province_in_state_instance(state, main.selected_location, [&](dcon::province_id p) {
-						total += state.world.province_get_artisan_score(p, primary_row.commodity_type) * state.world.province_get_labor_demand_satisfaction(p, economy::labor::guild_education);
+						total += state.world.province_get_artisan_score(p, primary_row.commodity_type) * state.world.province_get_labor_actual_probability_to_buy(p, economy::labor::guild_education);
 					});
 				} else {
 					for(auto op : state.world.nation_get_province_ownership(state.local_player_nation)) {
-						total += state.world.province_get_artisan_score(op.get_province(), primary_row.commodity_type) * state.world.province_get_labor_demand_satisfaction(op.get_province(), economy::labor::guild_education);
+						total += state.world.province_get_artisan_score(op.get_province(), primary_row.commodity_type) * state.world.province_get_labor_actual_probability_to_buy(op.get_province(), economy::labor::guild_education);
 					}
 				}
 			}
@@ -2590,11 +2590,11 @@ void production_primary_row_amount_t::on_update(sys::state& state) noexcept {
 			if(economy::valid_artisan_good(state, state.local_player_nation, primary_row.commodity_type)) {
 				if(main.selected_location) {
 					province::for_each_province_in_state_instance(state, main.selected_location, [&](dcon::province_id p) {
-						total += state.world.province_get_artisan_score(p, primary_row.commodity_type) * state.world.province_get_labor_demand_satisfaction(p, economy::labor::guild_education);
+						total += state.world.province_get_artisan_score(p, primary_row.commodity_type) * state.world.province_get_labor_actual_probability_to_buy(p, economy::labor::guild_education);
 					});
 				} else {
 					for(auto op : state.world.nation_get_province_ownership(state.local_player_nation)) {
-						total += state.world.province_get_artisan_score(op.get_province(), primary_row.commodity_type) * state.world.province_get_labor_demand_satisfaction(op.get_province(), economy::labor::guild_education);
+						total += state.world.province_get_artisan_score(op.get_province(), primary_row.commodity_type) * state.world.province_get_labor_actual_probability_to_buy(op.get_province(), economy::labor::guild_education);
 					}
 				}
 			}
@@ -3216,11 +3216,11 @@ void production_sub_item_row_amount_t::on_update(sys::state& state) noexcept {
 			if(economy::valid_artisan_good(state, state.local_player_nation, sub_item_row.main_commodity)) {
 				if(main.selected_location) {
 					province::for_each_province_in_state_instance(state, main.selected_location, [&](dcon::province_id p) {
-						total += state.world.province_get_artisan_score(p, sub_item_row.main_commodity) * state.world.province_get_labor_demand_satisfaction(p, economy::labor::guild_education);
+						total += state.world.province_get_artisan_score(p, sub_item_row.main_commodity) * state.world.province_get_labor_actual_probability_to_buy(p, economy::labor::guild_education);
 					});
 				} else {
 					for(auto op : state.world.nation_get_province_ownership(state.local_player_nation)) {
-						total += state.world.province_get_artisan_score(op.get_province(), sub_item_row.main_commodity) * state.world.province_get_labor_demand_satisfaction(op.get_province(), economy::labor::guild_education);
+						total += state.world.province_get_artisan_score(op.get_province(), sub_item_row.main_commodity) * state.world.province_get_labor_actual_probability_to_buy(op.get_province(), economy::labor::guild_education);
 					}
 				}
 			}

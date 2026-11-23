@@ -33,7 +33,7 @@ float estimate_education_spending_after_refund(sys::state const& state, dcon::na
 		auto p = state.world.province_ownership_get_province(ownership);
 		auto local_hire = state.world.province_get_advanced_province_building_national_size(p, advanced_province_buildings::list::schools_and_universities);
 		auto local_wage = state.world.province_get_labor_price(p, def.throughput_labour_type);
-		auto sat = state.world.province_get_labor_demand_satisfaction(p, def.throughput_labour_type);
+		auto sat = state.world.province_get_labor_actual_probability_to_buy(p, def.throughput_labour_type);
 		total = total + local_hire * local_wage * sat;
 	});
 	return total;

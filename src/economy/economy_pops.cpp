@@ -1579,19 +1579,19 @@ void update_income_national_subsidy(sys::state& state){
 std::vector<labor_ratio_wage> estimate_wage(sys::state const& state, dcon::province_id pid, dcon::pop_type_id ptid, bool accepted, float size) {
 	float no_education_wage =
 		state.world.province_get_labor_price(pid, labor::no_education)
-		* state.world.province_get_labor_supply_sold(pid, labor::no_education);
+		* state.world.province_get_labor_actual_probability_to_sell(pid, labor::no_education);
 	float basic_education_wage =
 		state.world.province_get_labor_price(pid, labor::basic_education)
-		* state.world.province_get_labor_supply_sold(pid, labor::basic_education); // craftsmen
+		* state.world.province_get_labor_actual_probability_to_sell(pid, labor::basic_education); // craftsmen
 	float high_education_wage =
 		state.world.province_get_labor_price(pid, labor::high_education)
-		* state.world.province_get_labor_supply_sold(pid, labor::high_education); // clerks, clergy and bureaucrats
+		* state.world.province_get_labor_actual_probability_to_sell(pid, labor::high_education); // clerks, clergy and bureaucrats
 	float guild_education_wage =
 		state.world.province_get_labor_price(pid, labor::guild_education)
-		* state.world.province_get_labor_supply_sold(pid, labor::guild_education); // artisans
+		* state.world.province_get_labor_actual_probability_to_sell(pid, labor::guild_education); // artisans
 	float high_education_and_accepted_wage =
 		state.world.province_get_labor_price(pid, labor::high_education_and_accepted)
-		* state.world.province_get_labor_supply_sold(pid, labor::high_education_and_accepted); // clerks, clergy and bureaucrats of accepted culture
+		* state.world.province_get_labor_actual_probability_to_sell(pid, labor::high_education_and_accepted); // clerks, clergy and bureaucrats of accepted culture
 
 	if(state.world.pop_type_get_is_paid_rgo_worker(ptid)) {
 		return { {labor::no_education, 1.f, size * no_education_wage } };
@@ -1651,7 +1651,7 @@ float estimate_total_wage(sys::state const& state, dcon::pop_id pop) {
 float estimate_slave_income(sys::state const& state, dcon::province_id pid, dcon::pop_type_id ptid, float size) {
 	float no_education_wage =
 		state.world.province_get_labor_price(pid, labor::no_education)
-		* state.world.province_get_labor_supply_sold(pid, labor::no_education);
+		* state.world.province_get_labor_actual_probability_to_sell(pid, labor::no_education);
 	float rgo_workers_wage =
 		state.world.province_get_pop_labor_distribution(pid, pop_labor::rgo_worker_no_education)
 		* no_education_wage;
@@ -1701,19 +1701,19 @@ void update_income_wages(sys::state& state){
 	province::ve_parallel_for_each_land_province(state, [&](auto pid) {
 		auto no_education_wage =
 			state.world.province_get_labor_price(pid, labor::no_education)
-			* state.world.province_get_labor_supply_sold(pid, labor::no_education);
+			* state.world.province_get_labor_actual_probability_to_sell(pid, labor::no_education);
 		auto basic_education_wage =
 			state.world.province_get_labor_price(pid, labor::basic_education)
-			* state.world.province_get_labor_supply_sold(pid, labor::basic_education); // craftsmen
+			* state.world.province_get_labor_actual_probability_to_sell(pid, labor::basic_education); // craftsmen
 		auto high_education_wage =
 			state.world.province_get_labor_price(pid, labor::high_education)
-			* state.world.province_get_labor_supply_sold(pid, labor::high_education); // clerks, clergy and bureaucrats
+			* state.world.province_get_labor_actual_probability_to_sell(pid, labor::high_education); // clerks, clergy and bureaucrats
 		auto guild_education_wage =
 			state.world.province_get_labor_price(pid, labor::guild_education)
-			* state.world.province_get_labor_supply_sold(pid, labor::guild_education); // artisans
+			* state.world.province_get_labor_actual_probability_to_sell(pid, labor::guild_education); // artisans
 		auto high_education_and_accepted_wage =
 			state.world.province_get_labor_price(pid, labor::high_education_and_accepted)
-			* state.world.province_get_labor_supply_sold(pid, labor::high_education_and_accepted); // clerks, clergy and bureaucrats of accepted culture
+			* state.world.province_get_labor_actual_probability_to_sell(pid, labor::high_education_and_accepted); // clerks, clergy and bureaucrats of accepted culture
 
 		auto rgo_workers_wage =
 			state.world.province_get_pop_labor_distribution(pid, pop_labor::rgo_worker_no_education)

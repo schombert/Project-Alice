@@ -1167,10 +1167,10 @@ market_budget breakdown_market_budget(sys::state const& state, dcon::market_id m
 			auto private_size = state.world.province_get_advanced_province_building_private_size(pid, i);
 			auto cost_of_input = state.world.province_get_labor_price(pid, def.throughput_labour_type);
 			auto cost_of_output = state.world.province_get_service_price(pid, def.output);
-			auto actually_bought = state.world.province_get_labor_demand_satisfaction(pid, def.throughput_labour_type);
+			auto actually_bought = state.world.province_get_labor_actual_probability_to_buy(pid, def.throughput_labour_type);
 
 			auto output = state.world.province_get_advanced_province_building_private_output(pid, i);
-			auto actually_sold = state.world.province_get_service_sold(pid, def.output);
+			auto actually_sold = state.world.province_get_service_actual_probability_to_sell(pid, def.output);
 
 			auto profit = output * actually_sold * cost_of_output - private_size * cost_of_input * actually_bought;
 
@@ -1486,7 +1486,7 @@ nation_monetary_breakdown breakdown_nation_monetary_structure(sys::state const& 
 			auto size = state.world.province_get_rgo_size(pid, c);
 			auto actual_amount_of_workers =
 				state.world.province_get_rgo_target_employment(pid, c)
-				* state.world.province_get_labor_demand_satisfaction(pid, labor::no_education);
+				* state.world.province_get_labor_actual_probability_to_buy(pid, labor::no_education);
 			auto per_worker = state.world.province_get_rgo_output_per_worker(pid, c);
 			auto amount = actual_amount_of_workers * per_worker;
 			result.rgo_sales += state.world.commodity_get_money_rgo(c)

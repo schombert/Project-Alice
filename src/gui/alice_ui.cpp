@@ -3532,7 +3532,7 @@ void describe_lit(sys::state& state, text::columnar_layout& contents, dcon::pop_
 	auto loc = state.world.pop_get_province_from_pop_location(ids);
 
 	text::add_line(state, contents, "pop_literacy_spending_actually_spent",
-		text::variable_type::val, text::format_percentage(state.world.province_get_service_satisfaction(loc, services::list::education))
+		text::variable_type::val, text::format_percentage(state.world.province_get_service_actual_probability_to_buy(loc, services::list::education))
 	);
 
 	text::add_line(state, contents, "pop_literacy_spending_required",

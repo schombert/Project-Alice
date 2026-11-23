@@ -3357,8 +3357,10 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	world.province_resize_labor_price(economy::labor::total);
 	world.province_resize_labor_supply(economy::labor::total);
 	world.province_resize_labor_demand(economy::labor::total);
-	world.province_resize_labor_demand_satisfaction(economy::labor::total);
-	world.province_resize_labor_supply_sold(economy::labor::total);
+	world.province_resize_labor_actual_probability_to_buy(economy::labor::total);
+	world.province_resize_labor_expected_probability_to_buy(economy::labor::total);
+	world.province_resize_labor_actual_probability_to_sell(economy::labor::total);
+	world.province_resize_labor_expected_probability_to_sell(economy::labor::total);
 	world.province_resize_pop_labor_distribution(economy::pop_labor::total);
 
 	services::initialize_size_of_dcon_arrays(*this);
