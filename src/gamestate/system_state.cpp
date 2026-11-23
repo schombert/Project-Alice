@@ -1634,6 +1634,7 @@ void state::save_user_settings() const {
 	US_SAVE(graphics_mode);
 	US_SAVE(unit_disband_confirmation);
 	US_SAVE(trade_particles_count);
+	US_SAVE(current_borders_style);
 #undef US_SAVE
 
 	simple_fs::write_file(settings_location, NATIVE("user_settings.dat"), &buffer[0], uint32_t(ptr - buffer));
@@ -1705,6 +1706,7 @@ void state::load_user_settings() {
 			US_LOAD(graphics_mode);
 			US_LOAD(unit_disband_confirmation);
 			US_LOAD(trade_particles_count);
+			US_LOAD(current_borders_style);
 #undef US_LOAD
 		} while(false);
 

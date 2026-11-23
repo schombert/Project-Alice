@@ -581,7 +581,6 @@ enum class graphics_mode {
 	ugly, classic, modern, modern_classic, total
 };
 
-
 constexpr uint32_t max_languages = 64;
 
 enum save_type : uint8_t {
