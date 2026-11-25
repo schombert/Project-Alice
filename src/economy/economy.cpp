@@ -1465,7 +1465,8 @@ void initialize(sys::state& state) {
 					);
 					state.world.province_set_rgo_efficiency(p, c, 1.f);
 					state.world.province_set_rgo_max_efficiency(p, c, 1.f);
-					state.world.province_set_rgo_target_employment(p, c, main_rgo == c ? pop_amount : 0.f);
+					auto base_output = state.world.commodity_get_rgo_amount(c);
+					state.world.province_set_rgo_target_employment(p, c, (main_rgo == c && base_output > 0) ? pop_amount : 0.f);
 					state.world.province_set_rgo_base_efficiency(p, c, state.world.province_get_rgo_base_efficiency(p, c) + efficiency);
 
 					auto area = state.world.province_get_state_membership(p);
@@ -4963,10 +4964,12 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 				auto cost = state.world.market_get_cost_per_consumption_category(local_market, cat_id);
 				auto actually_bought = state.world.market_get_satisfied_demand_ratio_per_consumption_category(local_market, cat_id);
 				auto demanded = demand_consumption_category[cat_id.index()].get(ids);
+				auto pop_size = state.world.pop_get_size(ids);
+				auto multiplier = (pop_size + 1.f) / state.defines.alice_needs_scaling_factor;
 				auto refund = (1.f - actually_bought) * cost * demanded;
 				auto savings = state.world.pop_get_savings(ids);
 				state.world.pop_set_savings(ids, savings + refund);
-				total_satisfaction_from_categories = total_satisfaction_from_categories + actually_bought * demanded * state.world.consumption_category_get_satisfaction_score(cat_id);
+				total_satisfaction_from_categories = total_satisfaction_from_categories + actually_bought * demanded / multiplier * state.world.consumption_category_get_satisfaction_score(cat_id);
 			});
 			auto satisfaction = state.world.pop_get_satisfaction(ids);
 			satisfaction = satisfaction * 0.999f + total_satisfaction_from_categories * 0.001f;
