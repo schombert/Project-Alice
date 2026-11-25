@@ -84,11 +84,10 @@ void text_render(
 			pixel_x_off = trunc_pixel_x_off + 1.0f;
 		}
 
-		font_instance.make_glyph(uint16_t(glyphid), subpixel);
-		auto& gso = font_instance.get_glyph(uint16_t(glyphid), subpixel);
+		auto gso = font_instance.insert_or_find_glyph(uint16_t(glyphid), subpixel).get();
 		float x_advance = float(glyph_info[i].x_advance) / text::fixed_to_fp;
 
-		if(gso.width != 0) {
+		if (gso.width != 0) {
 			float x_offset = pixel_x_off + float(gso.bitmap_left);
 			float y_offset = float(-gso.bitmap_top) - float(glyph_info[i].y_offset) / text::fixed_to_fp;
 
