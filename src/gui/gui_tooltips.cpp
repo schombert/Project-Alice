@@ -327,7 +327,7 @@ void province_owner_rgo_commodity_tooltip(sys::state& state, text::columnar_layo
 
 	text::add_line(state, contents, "PROVINCEVIEW_EMPLOYMENT", text::variable_type::value, text::fp_two_places{ economy::rgo_employment(state, rgo_good, prov_id) });
 	auto target_employment = state.world.province_get_rgo_target_employment(prov_id, rgo_good);
-	auto satisfaction = state.world.province_get_labor_demand_satisfaction(prov_id, economy::labor::no_education);
+	auto satisfaction = state.world.province_get_labor_actual_probability_to_buy(prov_id, economy::labor::no_education);
 	text::add_line(state, contents, labour_type_to_employment_type_text_key(economy::labor::no_education), 15);
 	text::add_line(state, contents, "target_employment", text::variable_type::value, text::fp_one_place{ target_employment }, 15);
 	text::add_line(state, contents, "employment_satisfaction", text::variable_type::value, text::fp_percentage{ satisfaction }, 15);

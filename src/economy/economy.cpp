@@ -1672,19 +1672,19 @@ struct commodity_profit_holder {
 float factory_unqualified_employment(sys::state const& state, dcon::factory_id f) {
 	auto pid = state.world.factory_get_province_from_factory_location(f);
 	auto employment = state.world.factory_get_unqualified_employment(f)
-		* state.world.province_get_labor_demand_satisfaction(pid, labor::no_education);
+		* state.world.province_get_labor_actual_probability_to_buy(pid, labor::no_education);
 	return employment;
 }
 float factory_primary_employment(sys::state const& state, dcon::factory_id f) {
 	auto pid = state.world.factory_get_province_from_factory_location(f);
 	auto primary_employment = state.world.factory_get_primary_employment(f)
-		* state.world.province_get_labor_demand_satisfaction(pid, labor::basic_education);
+		* state.world.province_get_labor_actual_probability_to_buy(pid, labor::basic_education);
 	return primary_employment;
 }
 float factory_secondary_employment(sys::state const& state, dcon::factory_id f) {
 	auto pid = state.world.factory_get_province_from_factory_location(f);
 	auto secondary_employment = state.world.factory_get_secondary_employment(f)
-		* state.world.province_get_labor_demand_satisfaction(pid, labor::high_education);
+		* state.world.province_get_labor_actual_probability_to_buy(pid, labor::high_education);
 	return secondary_employment;
 }
 
@@ -1692,13 +1692,13 @@ float factory_total_employment(sys::state const& state, dcon::factory_id f) {
 	auto pid = state.world.factory_get_province_from_factory_location(f);
 	return (
 		state.world.factory_get_unqualified_employment(f)
-		* state.world.province_get_labor_demand_satisfaction(pid, labor::no_education)
+		* state.world.province_get_labor_actual_probability_to_buy(pid, labor::no_education)
 		+
 		state.world.factory_get_primary_employment(f)
-		* state.world.province_get_labor_demand_satisfaction(pid, labor::basic_education)
+		* state.world.province_get_labor_actual_probability_to_buy(pid, labor::basic_education)
 		+
 		state.world.factory_get_secondary_employment(f)
-		* state.world.province_get_labor_demand_satisfaction(pid, labor::high_education)
+		* state.world.province_get_labor_actual_probability_to_buy(pid, labor::high_education)
 	);
 }
 
@@ -1711,11 +1711,11 @@ void update_pops_employment(sys::state& state) {
 		auto nation = state.world.province_get_nation_from_province_ownership(pids);
 		// calculate total pops employment:
 
-		auto no_education = state.world.province_get_labor_supply_sold(pids, labor::no_education);
-		auto basic_education = state.world.province_get_labor_supply_sold(pids, labor::basic_education); // craftsmen
-		auto high_education = state.world.province_get_labor_supply_sold(pids, labor::high_education); // clerks, clergy and bureaucrats
-		auto guild_education = state.world.province_get_labor_supply_sold(pids, labor::guild_education); // artisans
-		auto high_education_and_accepted = state.world.province_get_labor_supply_sold(pids, labor::high_education_and_accepted); // clerks, clergy and bureaucrats of accepted culture
+		auto no_education = state.world.province_get_labor_actual_probability_to_sell(pids, labor::no_education);
+		auto basic_education = state.world.province_get_labor_actual_probability_to_sell(pids, labor::basic_education); // craftsmen
+		auto high_education = state.world.province_get_labor_actual_probability_to_sell(pids, labor::high_education); // clerks, clergy and bureaucrats
+		auto guild_education = state.world.province_get_labor_actual_probability_to_sell(pids, labor::guild_education); // artisans
+		auto high_education_and_accepted = state.world.province_get_labor_actual_probability_to_sell(pids, labor::high_education_and_accepted); // clerks, clergy and bureaucrats of accepted culture
 
 		auto rgo_workers_employment =
 			state.world.province_get_pop_labor_distribution(pids, pop_labor::rgo_worker_no_education)
@@ -3376,7 +3376,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 		auto local_weight = size / (price_properties::service::epsilon + price);
 		auto total_weight = port_total_weight.get(mid);
 		auto local_demand_ratio = local_weight / total_weight;
-		auto sat = state.world.province_get_service_satisfaction(pid, services::list::port_capacity);
+		auto sat = state.world.province_get_service_actual_probability_to_buy(pid, services::list::port_capacity);
 		port_availability.set(mid, port_availability.get(mid) + local_demand_ratio * sat);
 		price_port_capacity.set(mid, price_port_capacity.get(mid) + local_demand_ratio * price);
 	});
@@ -4255,16 +4255,22 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			auto supply_labor = state.world.province_get_labor_supply(ids, j);
 			auto demand_labor = state.world.province_get_labor_demand(ids, j);
 
-			auto satisfaction = ve::select(demand_labor > 0.f, ve::min(1.f, supply_labor / demand_labor), 1.f);
-			auto sold = ve::select(supply_labor > 0.f, ve::min(1.f, demand_labor / supply_labor), 1.f);
+			auto probability_buy = ve::select(demand_labor > 0.f, ve::min(1.f, supply_labor / demand_labor), 1.f);
+			auto probability_sell = ve::select(supply_labor > 0.f, ve::min(1.f, demand_labor / supply_labor), 1.f);
+			auto expected_probability_buy = ve::min(1.f, (supply_labor + 10.f) / (demand_labor + 10.f));
+			auto expected_probability_sell = ve::min(1.f, (demand_labor + 10.f) / (supply_labor + 10.f));
 
 #ifndef NDEBUG
-			ve::apply([&](auto value) { assert(std::isfinite(value) && value >= 0.f); }, sold);
-			ve::apply([&](auto value) { assert(std::isfinite(value) && value >= 0.f); }, satisfaction);
+			ve::apply([&](auto value) { assert(std::isfinite(value) && value >= 0.f); }, probability_sell);
+			ve::apply([&](auto value) { assert(std::isfinite(value) && value >= 0.f); }, probability_buy);
+			ve::apply([&](auto value) { assert(std::isfinite(value) && value >= 0.f); }, expected_probability_sell);
+			ve::apply([&](auto value) { assert(std::isfinite(value) && value >= 0.f); }, expected_probability_buy);
 #endif
 
-			state.world.province_set_labor_demand_satisfaction(ids, j, satisfaction);
-			state.world.province_set_labor_supply_sold(ids, j, sold);
+			state.world.province_set_labor_actual_probability_to_buy(ids, j, probability_buy);
+			state.world.province_set_labor_actual_probability_to_sell(ids, j, probability_sell);
+			state.world.province_set_labor_expected_probability_to_buy(ids, j, expected_probability_buy);
+			state.world.province_set_labor_expected_probability_to_sell(ids, j, expected_probability_sell);
 		});
 	});
 
@@ -4532,7 +4538,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			auto current_weight = state.world.market_get_total_port_capacity_weight(mid);
 
 			auto bought_locally = current_weight == 0.f ? 0.f : local_weight / current_weight;
-			auto local_satisfied = state.world.province_get_service_satisfaction(pid, services::list::port_capacity);
+			auto local_satisfied = state.world.province_get_service_actual_probability_to_buy(pid, services::list::port_capacity);
 
 			auto sat_contribution = bought_locally * local_satisfied;
 			total_sat = total_sat + sat_contribution;
@@ -4971,9 +4977,9 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			auto literacy = pop_demographics::get_literacy(state, ids);
 			auto old_literacy = literacy;
 
-			auto literacy_sat_paid = state.world.province_get_service_satisfaction(province, services::list::education);
-			auto literacy_sat_public = state.world.province_get_service_satisfaction_for_free(province, services::list::education);
-			auto housing_sat = state.world.province_get_service_satisfaction(province, services::list::urban_housing);
+			auto literacy_sat_paid = state.world.province_get_service_actual_probability_to_buy(province, services::list::education);
+			auto literacy_sat_public = state.world.province_get_service_actual_probability_to_obtain_for_free(province, services::list::education);
+			auto housing_sat = state.world.province_get_service_actual_probability_to_buy(province, services::list::urban_housing);
 
 			literacy =
 				literacy
@@ -5710,7 +5716,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 
 			price_control =
 				price_control
-				* ve::max(0.f, state.world.province_get_labor_supply_sold(ids, i) - 0.8f) * 5.f
+				* ve::max(0.f, state.world.province_get_labor_expected_probability_to_sell(ids, i) - 0.8f) * 5.f
 				* state.world.province_get_control_ratio(ids)
 				/ state.defines.alice_needs_scaling_factor
 				* min_wage_factor;

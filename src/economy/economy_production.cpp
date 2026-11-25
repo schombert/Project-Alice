@@ -344,11 +344,11 @@ float employment_units(
 	assert(target_workers_no_education >= 0.f);
 	assert(target_workers_basic_education >= 0.f);
 	float workers_no_education = target_workers_no_education
-		* state.world.province_get_labor_demand_satisfaction(labor_market, labor::no_education);
+		* state.world.province_get_labor_actual_probability_to_buy(labor_market, labor::no_education);
 	float workers_basic_education = target_workers_basic_education
-		* state.world.province_get_labor_demand_satisfaction(labor_market, labor::basic_education);
+		* state.world.province_get_labor_actual_probability_to_buy(labor_market, labor::basic_education);
 	float workers_high_education = target_workers_high_education
-		* state.world.province_get_labor_demand_satisfaction(labor_market, labor::high_education);
+		* state.world.province_get_labor_actual_probability_to_buy(labor_market, labor::high_education);
 	assert(workers_no_education >= 0.f);
 	assert(workers_basic_education >= 0.f);
 	assert(workers_high_education >= 0.f);
@@ -367,7 +367,7 @@ ve::fp_vector employment_units_guild(
 ) {
 	ve::fp_vector guild_actual_size =
 		target_workers_guild
-		* state.world.province_get_labor_demand_satisfaction(labor_market, labor::guild_education);
+		* state.world.province_get_labor_actual_probability_to_buy(labor_market, labor::guild_education);
 	return guild_actual_size / artisans_per_employment_unit;
 }
 float employment_units_guild(
@@ -377,7 +377,7 @@ float employment_units_guild(
 ) {
 	float guild_actual_size =
 		target_workers_guild
-		* state.world.province_get_labor_demand_satisfaction(labor_market, labor::guild_education);
+		* state.world.province_get_labor_actual_probability_to_buy(labor_market, labor::guild_education);
 	return guild_actual_size / artisans_per_employment_unit;
 }
 
@@ -399,7 +399,7 @@ float output_multiplier_from_workers_with_high_education(
 	float target_workers_high_education
 ) {
 	assert(target_workers_high_education >= 0.f);
-	float workers_high_education = target_workers_high_education * state.world.province_get_labor_demand_satisfaction(labor_market, labor::high_education);
+	float workers_high_education = target_workers_high_education * state.world.province_get_labor_actual_probability_to_buy(labor_market, labor::high_education);
 	assert(workers_high_education >= 0.f);
 	return (1.f + high_education_power(state, state.world.province_get_nation_from_province_ownership(labor_market), output) * workers_high_education);
 }
@@ -1057,15 +1057,15 @@ float factory_throughput_additional_multiplier(sys::state const& state, dcon::fa
 float get_total_wage(const sys::state& state, dcon::factory_id f) {
 	auto labor_market = state.world.factory_get_province_from_factory_location(f);
 	return state.world.province_get_labor_price(labor_market, labor::no_education)
-		* state.world.province_get_labor_demand_satisfaction(labor_market, labor::no_education)
+		* state.world.province_get_labor_actual_probability_to_buy(labor_market, labor::no_education)
 		* state.world.factory_get_unqualified_employment(f)
 		+
 		state.world.province_get_labor_price(labor_market, labor::basic_education)
-		* state.world.province_get_labor_demand_satisfaction(labor_market, labor::basic_education)
+		* state.world.province_get_labor_actual_probability_to_buy(labor_market, labor::basic_education)
 		* state.world.factory_get_primary_employment(f)
 		+
 		state.world.province_get_labor_price(labor_market, labor::high_education)
-		* state.world.province_get_labor_demand_satisfaction(labor_market, labor::high_education)
+		* state.world.province_get_labor_actual_probability_to_buy(labor_market, labor::high_education)
 		* state.world.factory_get_secondary_employment(f);
 }
 float get_total_target_wage(const sys::state& state, dcon::factory_id f) {
@@ -1539,7 +1539,7 @@ void update_production_investement_consumption(
 				float labor_to_expand_rgo = 20.f * (1.f + size / 100'000.f);
 
 				auto expansion_cost = labor_to_expand_rgo * state.world.province_get_labor_price(province, economy::labor::basic_education);
-				auto available_labor = state.world.province_get_labor_demand_satisfaction(province, economy::labor::basic_education);
+				auto available_labor = state.world.province_get_labor_actual_probability_to_buy(province, economy::labor::basic_education);
 				auto can_expand = std::max(0.f, std::min(500.f, investment_rgo_expansion / expansion_cost - 1.f));
 				auto new_size = std::min(current_max_size, size * 0.9999f + can_expand * available_labor);
 				state.world.province_set_rgo_size(province, c, new_size);
@@ -1739,7 +1739,7 @@ void update_rgo_consumption(
 
 		// estimate amount of workers using previous day data
 		auto estimated_amount_of_workers = state.world.province_get_rgo_target_employment(p, c)
-			* state.world.province_get_labor_demand_satisfaction(p, labor::no_education)
+			* state.world.province_get_labor_actual_probability_to_buy(p, labor::no_education)
 			* mobilization_impact;
 
 		// DEMAND ON LABOR
@@ -1786,7 +1786,7 @@ void update_rgo_production(sys::state& state) {
 			// INPUT LABOUR -> COMMODITY			
 			auto actual_amount_of_workers =
 				state.world.province_get_rgo_target_employment(p, c)
-				* state.world.province_get_labor_demand_satisfaction(p, labor::no_education)
+				* state.world.province_get_labor_actual_probability_to_buy(p, labor::no_education)
 				* mobilization_impact;
 			auto per_worker = state.world.province_get_rgo_output_per_worker(p, c);
 			auto amount = actual_amount_of_workers * per_worker;
@@ -1875,7 +1875,7 @@ void update_rgo_profit(sys::state& state) {
 			}
 			auto actual_amount_of_workers =
 				state.world.province_get_rgo_target_employment(p, c)
-				* state.world.province_get_labor_demand_satisfaction(p, labor::no_education)
+				* state.world.province_get_labor_actual_probability_to_buy(p, labor::no_education)
 				* mobilization_impact;
 			auto per_worker = state.world.province_get_rgo_output_per_worker(p, c);
 			auto amount = actual_amount_of_workers * per_worker;
@@ -2082,7 +2082,7 @@ void update_employment(sys::state& state, bool ignore_reality, float presim_empl
 
 			auto wage_per_worker = state.world.province_get_labor_price(pids, labor::no_education);
 
-			auto workers_availability = state.world.province_get_labor_demand_satisfaction(pids, labor::no_education);
+			auto workers_availability = state.world.province_get_labor_expected_probability_to_buy(pids, labor::no_education);
 			if(ignore_reality) {
 				workers_availability = 1.f;
 			}
@@ -2179,18 +2179,18 @@ void update_employment(sys::state& state, bool ignore_reality, float presim_empl
 		auto wage_basic_education = state.world.province_get_labor_price(pid, labor::basic_education);
 		auto wage_high_education = state.world.province_get_labor_price(pid, labor::high_education);
 
-		auto probability_to_hire_uneducated_worker = state.world.province_get_labor_demand_satisfaction(pid, labor::no_education);
+		auto probability_to_hire_uneducated_worker = state.world.province_get_labor_expected_probability_to_buy(pid, labor::no_education);
 
 		employment_data<2, decltype(wage_no_education)> primary_employment{
 			{ unqualified, primary },
 			{
 				unqualified * probability_to_hire_uneducated_worker,
-				primary * state.world.province_get_labor_demand_satisfaction(pid, labor::basic_education)
+				primary * state.world.province_get_labor_expected_probability_to_buy(pid, labor::basic_education)
 			},
 			{ unqualified_throughput_multiplier, 1.f },
 			{
-				2.f * wage_no_education * (1.f + capitalists_greed) / (0.01f + state.world.province_get_labor_demand_satisfaction(pid, labor::no_education)),
-				2.f * wage_basic_education * (1.f + capitalists_greed) / (0.01f + state.world.province_get_labor_demand_satisfaction(pid, labor::basic_education))
+				2.f * wage_no_education * (1.f + capitalists_greed) / (0.01f + state.world.province_get_labor_expected_probability_to_buy(pid, labor::no_education)),
+				2.f * wage_basic_education * (1.f + capitalists_greed) / (0.01f + state.world.province_get_labor_expected_probability_to_buy(pid, labor::basic_education))
 			}
 		};
 
@@ -2223,30 +2223,30 @@ void update_employment(sys::state& state, bool ignore_reality, float presim_empl
 			return high_education_power(state, local_nation, output_commodity);
 		}, nation, output);
 
-		auto current_secondary_multiplier = 1.f + secondary_power * secondary * state.world.province_get_labor_demand_satisfaction(pid, labor::high_education);
+		auto current_secondary_multiplier = 1.f + secondary_power * secondary * state.world.province_get_labor_expected_probability_to_buy(pid, labor::high_education);
 
 		auto gradient = get_profit_gradient(
 			profit_per_worker,
 			input_cost_per_worker,
 			secondary,
-			secondary * state.world.province_get_labor_demand_satisfaction(pid, labor::high_education),
+			secondary * state.world.province_get_labor_expected_probability_to_buy(pid, labor::high_education),
 			current_secondary_multiplier,
 			secondary_power,
-			wage_high_education * (1.f + capitalists_greed) / (0.01f + state.world.province_get_labor_demand_satisfaction(pid, labor::high_education)),
+			wage_high_education * (1.f + capitalists_greed) / (0.01f + state.world.province_get_labor_expected_probability_to_buy(pid, labor::high_education)),
 			primary_employment
 		);
 
-		auto unqualified_now = unqualified * state.world.province_get_labor_demand_satisfaction(pid, labor::no_education);
+		auto unqualified_now = unqualified * state.world.province_get_labor_actual_probability_to_buy(pid, labor::no_education);
 		auto unqualified_next = unqualified
-			+ gradient_to_employment_change(gradient.primary[0] * presim_employment_mult, wage_no_education, unqualified, state.world.province_get_labor_demand_satisfaction(pid, labor::no_education) * unstable_market_conditions_indicator);
+			+ gradient_to_employment_change(gradient.primary[0] * presim_employment_mult, wage_no_education, unqualified, state.world.province_get_labor_expected_probability_to_buy(pid, labor::no_education) * unstable_market_conditions_indicator);
 
-		auto primary_now = primary * state.world.province_get_labor_demand_satisfaction(pid, labor::basic_education);
+		auto primary_now = primary * state.world.province_get_labor_actual_probability_to_buy(pid, labor::basic_education);
 		auto primary_next = primary
-			+ gradient_to_employment_change(gradient.primary[1] * presim_employment_mult, wage_basic_education, primary, state.world.province_get_labor_demand_satisfaction(pid, labor::basic_education) * unstable_market_conditions_indicator);
+			+ gradient_to_employment_change(gradient.primary[1] * presim_employment_mult, wage_basic_education, primary, state.world.province_get_labor_expected_probability_to_buy(pid, labor::basic_education) * unstable_market_conditions_indicator);
 
-		auto secondary_now = secondary * state.world.province_get_labor_demand_satisfaction(pid, labor::high_education);
+		auto secondary_now = secondary * state.world.province_get_labor_actual_probability_to_buy(pid, labor::high_education);
 		auto secondary_next = secondary
-			+ gradient_to_employment_change(gradient.secondary * presim_employment_mult, wage_high_education, secondary, state.world.province_get_labor_demand_satisfaction(pid, labor::high_education) * unstable_market_conditions_indicator);
+			+ gradient_to_employment_change(gradient.secondary * presim_employment_mult, wage_high_education, secondary, state.world.province_get_labor_expected_probability_to_buy(pid, labor::high_education) * unstable_market_conditions_indicator);
 
 		// do not hire too expensive workers:
 		// ideally decided by factory budget but it is what it is
@@ -2299,7 +2299,7 @@ void update_employment(sys::state& state, bool ignore_reality, float presim_empl
 		scaler = scaler * decay;
 
 #ifndef NDEBUG
-		ve::apply([&](auto p) { assert(std::isfinite(state.world.province_get_labor_demand_satisfaction(p, labor::high_education))); },
+		ve::apply([&](auto p) { assert(std::isfinite(state.world.province_get_labor_actual_probability_to_buy(p, labor::high_education))); },
 			pid
 		);
 		ve::apply([&](auto factory) { if(state.world.factory_is_valid(factory)) {
@@ -2386,7 +2386,7 @@ void update_employment(sys::state& state, bool ignore_reality, float presim_empl
 
 				auto current_employment_target = state.world.province_get_artisan_score(ids, cid);
 				auto current_employment_actual = current_employment_target
-					* state.world.province_get_labor_demand_satisfaction(ids, labor::guild_education);
+					* state.world.province_get_labor_actual_probability_to_buy(ids, labor::guild_education);
 				auto profit_per_worker = ve::select(
 					mask,
 					base_output_cost_per_worker,
@@ -2773,7 +2773,7 @@ float rgo_potential_size(sys::state const& state, dcon::nation_id n, dcon::provi
 
 float rgo_employment(sys::state& state, dcon::commodity_id c, dcon::province_id p) {
 	auto target = state.world.province_get_rgo_target_employment(p, c);
-	auto sat = state.world.province_get_labor_demand_satisfaction(p, labor::no_education);
+	auto sat = state.world.province_get_labor_actual_probability_to_buy(p, labor::no_education);
 	return target * sat;
 }
 
@@ -2990,10 +2990,10 @@ bool commodity_shortage(sys::state& state, dcon::commodity_id c, dcon::state_ins
 	return state.world.market_get_expected_probability_to_buy(market, c) < 0.8f;
 }
 bool labor_surplus(sys::state& state, int32_t c, dcon::province_id id){
-	return state.world.province_get_labor_supply_sold(id, c) < 1.f;
+	return state.world.province_get_labor_actual_probability_to_sell(id, c) < 1.f;
 }
 bool labor_shortage(sys::state& state, int32_t c, dcon::province_id id){
-	return state.world.province_get_labor_demand_satisfaction(id, c) < 1.f;
+	return state.world.province_get_labor_actual_probability_to_buy(id, c) < 1.f;
 }
 
 float factory_total_desired_employment(sys::state const& state, dcon::factory_id f) {
@@ -3058,9 +3058,9 @@ detailed_explanation explain_everything(sys::state const& state, dcon::factory_i
 	};
 
 	result.employment_available_ratio = {
-		state.world.province_get_labor_demand_satisfaction(p, labor::no_education),
-		state.world.province_get_labor_demand_satisfaction(p, labor::basic_education),
-		state.world.province_get_labor_demand_satisfaction(p, labor::high_education),
+		state.world.province_get_labor_actual_probability_to_buy(p, labor::no_education),
+		state.world.province_get_labor_actual_probability_to_buy(p, labor::basic_education),
+		state.world.province_get_labor_actual_probability_to_buy(p, labor::high_education),
 	};
 
 	result.employment = {

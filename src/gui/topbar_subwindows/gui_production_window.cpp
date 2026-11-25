@@ -1283,9 +1283,9 @@ class per_state_primary_worker_amount : public simple_text_element_base {
 			state.world.province_get_labor_supply(content, economy::labor::no_education)
 			+ state.world.province_get_labor_supply(content, economy::labor::basic_education);
 		auto employed =
-			state.world.province_get_labor_supply_sold(content, economy::labor::no_education)
+			state.world.province_get_labor_actual_probability_to_sell(content, economy::labor::no_education)
 			* state.world.province_get_labor_supply(content, economy::labor::no_education)
-			+ state.world.province_get_labor_supply_sold(content, economy::labor::basic_education)
+			+ state.world.province_get_labor_actual_probability_to_sell(content, economy::labor::basic_education)
 			* state.world.province_get_labor_supply(content, economy::labor::basic_education);
 		auto unemployed = total - employed;
 		set_text(state, text::prettify(int64_t(unemployed)) + "/" + text::prettify(int64_t(employed)));
@@ -1300,9 +1300,9 @@ class per_state_primary_worker_amount : public simple_text_element_base {
 			state.world.province_get_labor_supply(content, economy::labor::no_education)
 			+ state.world.province_get_labor_supply(content, economy::labor::basic_education);
 		auto employed =
-			state.world.province_get_labor_supply_sold(content, economy::labor::no_education)
+			state.world.province_get_labor_actual_probability_to_sell(content, economy::labor::no_education)
 			* state.world.province_get_labor_supply(content, economy::labor::no_education)
-			+ state.world.province_get_labor_supply_sold(content, economy::labor::basic_education)
+			+ state.world.province_get_labor_actual_probability_to_sell(content, economy::labor::basic_education)
 			* state.world.province_get_labor_supply(content, economy::labor::basic_education);
 		auto unemployed = total - employed;
 		text::add_line(state, contents, "alice_factory_worker_1", text::variable_type::x, text::pretty_integer{ int32_t(employed) });
@@ -1317,7 +1317,7 @@ class per_state_secondary_worker_amount : public simple_text_element_base {
 		auto total =
 			state.world.province_get_labor_supply(content, economy::labor::high_education);
 		auto employed =
-			state.world.province_get_labor_supply_sold(content, economy::labor::high_education)
+			state.world.province_get_labor_actual_probability_to_sell(content, economy::labor::high_education)
 			* state.world.province_get_labor_supply(content, economy::labor::high_education);
 
 		auto unemployed = total - employed;
@@ -1332,7 +1332,7 @@ class per_state_secondary_worker_amount : public simple_text_element_base {
 		auto total =
 			state.world.province_get_labor_supply(content, economy::labor::high_education);
 		auto employed =
-			state.world.province_get_labor_supply_sold(content, economy::labor::high_education)
+			state.world.province_get_labor_actual_probability_to_sell(content, economy::labor::high_education)
 			* state.world.province_get_labor_supply(content, economy::labor::high_education);
 
 		auto unemployed = total - employed;
