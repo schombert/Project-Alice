@@ -104,6 +104,7 @@ EFFICIENCY.RGO = {}
 ---@param volume number
 function EFFICIENCY.RGO.add(target, commodity, volume)
 	ffi.C.lua_add_rgo_efficiency_commodity(target, commodity, volume);
+	COMMODITY.set_rgo_efficiency_inputs_are_defined_in_content(target, true);
 end
 
 STATE = {}

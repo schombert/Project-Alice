@@ -517,8 +517,8 @@ void update_private_size(sys::state& state) {
 
 		state.world.execute_serial_over_province([&](auto pids) {
 			auto owner = state.world.province_get_nation_from_province_ownership(pids);
-			auto tmod = state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::education_efficiency) + 1.0f;
-			auto nmod = state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::education_efficiency_modifier) + 1.0f;
+			auto tmod = ve::max(ve::fp_vector{ 0.1f }, state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::education_efficiency) + 1.0f);
+			auto nmod = ve::max(ve::fp_vector{ 0.1f }, state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::education_efficiency_modifier) + 1.0f);
 
 			/*
 			Urbanisation influences access to education facilities:
@@ -617,8 +617,8 @@ void update_national_size(sys::state& state) {
 		state.world.execute_serial_over_province([&](auto pids) {
 			auto owner = state.world.province_get_nation_from_province_ownership(pids);
 			auto invalid = owner == dcon::nation_id { };
-			auto tmod = state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::education_efficiency) + 1.0f;
-			auto nmod = state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::education_efficiency_modifier) + 1.0f;
+			auto tmod = ve::max(ve::fp_vector{ 0.1f }, state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::education_efficiency) + 1.0f);
+			auto nmod = ve::max(ve::fp_vector{ 0.1f }, state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::education_efficiency_modifier) + 1.0f);
 
 			auto local_education_efficiency = ve::min(
 				1.f,
@@ -659,8 +659,8 @@ void update_production(sys::state& state) {
 
 		state.world.execute_serial_over_province([&](auto pids) {
 			auto owner = state.world.province_get_nation_from_province_ownership(pids);
-			auto tmod = state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::education_efficiency) + 1.0f;
-			auto nmod = state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::education_efficiency_modifier) + 1.0f;
+			auto tmod = ve::max(ve::fp_vector{ 0.1f }, state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::education_efficiency) + 1.0f);
+			auto nmod = ve::max(ve::fp_vector{ 0.1f }, state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::education_efficiency_modifier) + 1.0f);
 
 			auto local_education_efficiency = ve::min(
 				1.f,
