@@ -5307,7 +5307,14 @@ void state::single_game_tick() {
 			economy::recreate_total_government_stockpiles(*this);
 			break;
 		case 11:
-			province::update_nationalism(*this);
+			concurrency::parallel_invoke(
+			[&]() {
+				ai::delete_bad_ships(*this);
+			},
+			[&]() {
+				province::update_nationalism(*this);
+			}
+			);
 			break;
 		case 12:
 			ai::update_ai_research(*this);

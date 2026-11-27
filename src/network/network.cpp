@@ -29,6 +29,7 @@ using std::format;
 #include <fcntl.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
+#include <netinet/tcp.h>
 #include <netdb.h>
 #include <arpa/inet.h>
 #include <stdio.h>
