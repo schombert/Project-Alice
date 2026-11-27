@@ -15,6 +15,7 @@
 #include "money.hpp"
 #include "advanced_province_buildings.hpp"
 #include "economy_constants.hpp"
+#include "logistics.hpp"
 #include "nations_templates.hpp"
 
 namespace ai {

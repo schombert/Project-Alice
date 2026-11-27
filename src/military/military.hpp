@@ -486,6 +486,8 @@ void set_siege_progress(sys::state& state, dcon::province_id prov, float new_val
 void update_siege_progress(sys::state& state);
 void single_ship_start_retreat(sys::state& state, ship_in_battle& ship, dcon::naval_battle_id battle);
 
+float get_over_naval_cap_penalty_modifier(const sys::state& state, dcon::nation_id nation);
+
 unit_priority get_effective_unit_supply_priority(const sys::state& state, dcon::army_id army, dcon::nation_id owner);
 unit_priority get_effective_unit_supply_priority(const sys::state& state, dcon::navy_id navy, dcon::nation_id owner);
 
