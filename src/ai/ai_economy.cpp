@@ -712,7 +712,11 @@ void update_stockpile_targets(sys::state& state) {
 		if(state.world.nation_get_is_player_controlled(nid)) {
 			return;
 		}
-		auto army_navy_consumption = economy::estimate_nation_army_and_navy_consumption(state, nid);
+		static thread_local tagged_vector<float, dcon::unit_supply_and_build_commodity_id> army_navy_consumption;
+		army_navy_consumption.resize(state.world.unit_supply_and_build_commodity_size());
+		state.world.for_each_unit_supply_and_build_commodity([&](dcon::unit_supply_and_build_commodity_id id) { army_navy_consumption[id] = 0.0f;  });
+
+		economy::estimate_nation_army_and_navy_consumption(state, nid, army_navy_consumption);
 		state.world.for_each_unit_supply_and_build_commodity([&](dcon::unit_supply_and_build_commodity_id com_id) {
 			auto base_com_id = economy::unit_commodity_get_base_commodity(state, com_id);
 			float expected_consume = army_navy_consumption[com_id];

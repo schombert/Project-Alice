@@ -9942,7 +9942,6 @@ float get_land_org_regain_modifiers(const sys::state& state, dcon::regiment_id r
 float get_naval_org_regain_modifiers(const sys::state& state, dcon::ship_id ship) {
 	auto navy = state.world.ship_get_navy_from_navy_membership(ship);
 	auto owner_nation = state.world.navy_get_controller_from_navy_control(navy);
-	float over_size_penalty = get_over_naval_cap_penalty_modifier(state, owner_nation);
 
 	auto leader = state.world.navy_get_admiral_from_navy_leadership(navy);
 	auto leader_per = get_leader_personality_wrapper(state, leader);
@@ -9950,7 +9949,7 @@ float get_naval_org_regain_modifiers(const sys::state& state, dcon::ship_id ship
 	auto morale_modifiers = state.world.nation_get_modifier_values(owner_nation, sys::national_mod_offsets::org_regain)
 		+ state.world.leader_trait_get_morale(leader_per) + state.world.leader_trait_get_morale(leader_bg) + 1.0f
 		+ (state.world.leader_get_prestige(leader) * state.defines.leader_prestige_to_morale_factor);
-	return morale_modifiers * over_size_penalty;
+	return morale_modifiers;
 
 }
 
@@ -10240,13 +10239,9 @@ float get_naval_reinforcement_modifiers(const sys::state& state, dcon::navy_id n
 	}
 	auto repair_mod = state.world.province_get_modifier_values(location, sys::provincial_mod_offsets::local_repair) + 1.0f;
 	auto main_mods = get_national_reinforcement_modifiers(state, nation);
-	float over_size_penalty = get_over_naval_cap_penalty_modifier(state, nation);
-
-
 
 	assert(std::isfinite(main_mods));
-	assert(std::isfinite(over_size_penalty));
-	return main_mods * repair_mod  * over_size_penalty;
+	return main_mods * repair_mod;
 
 }
 

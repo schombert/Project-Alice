@@ -1731,6 +1731,15 @@ void update_unit_commodity_satisfaction(sys::state& state, unit_type u) {
 			return;
 		}
 	}
+	// Calculate the penalty to apply to the final result. If its an army, there is no extra penalty
+	float supply_reinf_penalty =  [&]() {
+		if constexpr(std::is_same_v<unit_type, dcon::navy_id>) {
+			return military::get_over_naval_cap_penalty_modifier(state, nation);
+		}
+		else {
+			return 1.0f;
+		}
+	}();
 	auto routes = military::unit_get_supply_routes(state, unit.id);
 
 	static thread_local ve::vectorizable_buffer<float, dcon::unit_supply_commodity_id> available_supply_goods_buffer(state.world.unit_supply_commodity_size());
@@ -1837,7 +1846,7 @@ void update_unit_commodity_satisfaction(sys::state& state, unit_type u) {
 				total_supply_goods_required += required_amount;
 				total_supply_goods_consumed += to_consume;
 			});
-			float supply_satisfaction = (total_supply_goods_required == 0.0f ? 1.0f : total_supply_goods_consumed / total_supply_goods_required);
+			float supply_satisfaction = (total_supply_goods_required == 0.0f ? 1.0f : total_supply_goods_consumed / total_supply_goods_required) * supply_reinf_penalty;
 			// If it's a ship, update the days of low supply
 			if constexpr(std::is_same_v<unit_type, dcon::navy_id>) {
 				if (supply_satisfaction < state.defines.naval_low_supply_damage_supply_status) {
@@ -1874,7 +1883,7 @@ void update_unit_commodity_satisfaction(sys::state& state, unit_type u) {
 				total_reinf_goods_required += required_amount;
 				total_reinf_goods_consumed += to_consume;
 			});
-			float reinf_satisfaction = (total_reinf_goods_required == 0.0f ? 1.0f : total_reinf_goods_consumed / total_reinf_goods_required);
+			float reinf_satisfaction = (total_reinf_goods_required == 0.0f ? 1.0f : total_reinf_goods_consumed / total_reinf_goods_required) * supply_reinf_penalty;
 			subunit.set_reinforcement_satisfaction(reinf_satisfaction);
 			if constexpr(std::is_same_v<unit_type, dcon::army_id>) {
 				// For armies, we accumulate the reinforcement first and then apply it monthly (for balance reasons), whereas navies repair once a day, so navies can skip this section

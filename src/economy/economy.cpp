@@ -789,12 +789,11 @@ float estimate_government_stockpile_filling_spending_after_refund(const sys::sta
 }
 
 
-tagged_vector<float, dcon::unit_supply_and_build_commodity_id> estimate_nation_army_and_navy_consumption(const sys::state& state, dcon::nation_id nation) {
-	tagged_vector<float, dcon::unit_supply_and_build_commodity_id> consumption(state.world.unit_supply_and_build_commodity_size());
+void estimate_nation_army_and_navy_consumption(const sys::state& state, dcon::nation_id nation, tagged_vector<float, dcon::unit_supply_and_build_commodity_id>& buf_out) {
 	auto accumulate_func = [&](dcon::commodity_id com_id, float amount) {
 		auto sup_build_com_id = state.world.commodity_get_unit_supply_and_build_commodity(com_id);
 		assert(sup_build_com_id);
-		consumption[sup_build_com_id] += amount;
+		buf_out[sup_build_com_id] += amount;
 	};
 	for(auto a : state.world.nation_get_army_control(nation)) {
 		for(auto r : a.get_army().get_army_membership()) {
@@ -808,6 +807,12 @@ tagged_vector<float, dcon::unit_supply_and_build_commodity_id> estimate_nation_a
 			military::accumulate_subunit_daily_goods_requirements<military::unit_consumption_type::reinforcement>(state, nation, r.get_ship().id, accumulate_func);
 		}
 	}
+}
+
+
+tagged_vector<float, dcon::unit_supply_and_build_commodity_id> estimate_nation_army_and_navy_consumption(const sys::state& state, dcon::nation_id nation) {
+	tagged_vector<float, dcon::unit_supply_and_build_commodity_id> consumption(state.world.unit_supply_and_build_commodity_size());
+	estimate_nation_army_and_navy_consumption(state, nation, consumption);
 	return consumption;
 }
 
