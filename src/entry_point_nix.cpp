@@ -208,7 +208,8 @@ void enforce_list_order() {
 
 int main(int argc, char* argv[]) {
 	// headless batch flags: -seed N (fixed game seed), -years N (with -headless: run N game years at full speed, then exit),
-	// -dump DIR (monthly CSVs, see headless_run.hpp), -threads N (cap worker threads; 1 makes runs reproducible)
+	// -dump DIR (monthly CSVs, see headless_run.hpp), -threads N (cap worker threads; 1 makes runs reproducible),
+	// -single_pass_demographics 1 (demographic totals in one serial pass over the pops; quicker only with -threads 1)
 	int run_years = -1;
 	std::optional<uint32_t> seed;
 	std::string dump_dir;
@@ -220,6 +221,8 @@ int main(int argc, char* argv[]) {
 			run_years = std::atoi(argv[i + 1]);
 		else if(std::string(argv[i]) == "-dump")
 			dump_dir = argv[i + 1];
+		else if(std::string(argv[i]) == "-single_pass_demographics")
+			game_state.single_pass_demographics = std::atoi(argv[i + 1]) != 0;
 		else if(std::string(argv[i]) == "-threads")
 			thread_cap = std::make_unique<oneapi::tbb::global_control>(oneapi::tbb::global_control::max_allowed_parallelism, size_t(std::atoi(argv[i + 1])));
 	}
