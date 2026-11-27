@@ -1019,7 +1019,7 @@ void  budgetwindow_main_espenses_table_t::update(sys::state& state, layout_windo
 			auto pid = state.world.province_ownership_get_province(poid);
 			auto wage = state.world.province_get_labor_price(pid, def.throughput_labour_type);
 			auto current_size = state.world.province_get_advanced_province_building_national_size(pid, bid);
-			auto sat = state.world.province_get_labor_demand_satisfaction(pid, def.throughput_labour_type);
+			auto sat = state.world.province_get_labor_actual_probability_to_buy(pid, def.throughput_labour_type);
 
 			if(current_size > 0.0f) {
 				add_budget_row(text::produce_simple_string(state, state.world.province_get_name(pid)), wage * current_size * sat);

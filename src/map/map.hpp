@@ -171,6 +171,9 @@ public:
 		sys::projection_mode map_view_mode, map_mode::mode active_map_mode,
 		glm::mat3 globe_rotation, float time_counter
 	);
+	void render_nation_border(const sys::state& state, dcon::nation_id);
+	void render_state_instance_border(const sys::state& state, dcon::state_instance_id);
+	void render_province_border(sys::state& state, dcon::province_id);
 	void update_borders(sys::state& state);
 	void update_fog_of_war(sys::state& state);
 	void update_highlight(sys::state& state);
@@ -435,7 +438,8 @@ public:
 	static constexpr uint32_t uniform_railroad_level = 52;
 	static constexpr uint32_t uniform_bold_curves = 53;
 	static constexpr uint32_t uniform_outline_color = 54;
-	static constexpr uint32_t uniform_count = 55;
+	static constexpr uint32_t uniform_camera_position = 55;
+	static constexpr uint32_t uniform_count = 56;
 	GLint shader_uniforms[shader_count][uniform_count] = { };
 
 	// models: Textures for static meshes

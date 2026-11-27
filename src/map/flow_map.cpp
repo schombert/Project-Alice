@@ -32,10 +32,23 @@ void reserve_graph_edge(
 		graph[A][B].resize(edges_mult);
 	}
 }
+void reserve_total_graph_edge(
+	std::vector<ankerl::unordered_dense::map<int32_t, float>>& graph,
+	int A, int B
+) {
+	if(graph[A].contains(B)) {
+		return;
+	} else {
+		graph[A][B] = 0.f;
+	}
+}
 
 void perform_negation(flow_map_data& data, int node1, int node2, int edge_index, int edges_mult) {
 	reserve_graph_edge(data.flow_graph, node1, node2, edge_index, edges_mult);
 	reserve_graph_edge(data.flow_graph, node2, node1, edge_index, edges_mult);
+	reserve_total_graph_edge(data.flow_graph_total, node1, node2);
+	reserve_total_graph_edge(data.flow_graph_total, node2, node1);
+
 	float forward = data.flow_graph[node1][node2][edge_index];
 	float backward = data.flow_graph[node2][node1][edge_index];
 
@@ -53,6 +66,8 @@ void register_trade_flow(flow_map_data& data, int node1, int node2, float volume
 	assert(node2 >= 0);
 	assert(volume >= 0.f);
 	reserve_graph_edge(data.flow_graph, node1, node2, edge_index, edges_mult);
+	reserve_total_graph_edge(data.flow_graph_total, node1, node2);
+	data.flow_graph_total[node1][node2] += volume;
 	data.flow_graph[node1][node2][edge_index] += volume;
 	data.node_total_in[node2][edge_index] = data.node_total_in[node2][edge_index] + volume;
 	data.node_total_out[node1][edge_index] = data.node_total_out[node1][edge_index] + volume;
@@ -932,6 +947,10 @@ void update(sys::state& state) {
 		data.source = data.requested_source;
 
 		data.flow_graph.clear();
+
+		data.flow_graph_total.clear();
+		data.flow_graph_total.resize(state.world.province_size());
+
 		data.particle_next_node_probability.clear();
 		data.node_probability_create.clear();
 

@@ -76,7 +76,7 @@ void main() {
 	// pass data to frag shader
 	tex_coord = texture_coord;
 	border_width_coord = abs(texture_coord);
-	o_dist = distance / (2.0f * width);
+	o_dist = distance / (2.0f * true_width);
 	map_coord = vertex_position + corner_shift;
 	space_coord = gl_Position.xy;
 	frag_province_index = province_index;

@@ -97,7 +97,7 @@ float estimate_spendings_administration_capital_after_refund(sys::state const& s
 	auto capital_of_capital_state = state.world.state_instance_get_capital(capital_state);
 	auto wage = state.world.province_get_labor_price(capital_of_capital_state, economy::labor::high_education_and_accepted);
 	auto demand = budget / wage;
-	return demand * wage * state.world.province_get_labor_demand_satisfaction(capital_of_capital_state, economy::labor::high_education_and_accepted);
+	return demand * wage * state.world.province_get_labor_actual_probability_to_buy(capital_of_capital_state, economy::labor::high_education_and_accepted);
 }
 float estimate_spendings_administration_capital_before_refund(sys::state const& state, dcon::nation_id n, float budget) {
 	auto capital = state.world.nation_get_capital(n);
@@ -120,7 +120,7 @@ float estimate_spendings_administration_local_after_refund(sys::state const& sta
 	auto capital_of_capital_state = state.world.state_instance_get_capital(capital_state);
 	auto wage = state.world.province_get_labor_price(capital_of_capital_state, economy::labor::high_education_and_accepted);
 	auto demand = budget / wage;
-	return demand * wage * state.world.province_get_labor_demand_satisfaction(capital_of_capital_state, economy::labor::high_education_and_accepted);
+	return demand * wage * state.world.province_get_labor_actual_probability_to_buy(capital_of_capital_state, economy::labor::high_education_and_accepted);
 }
 float estimate_spendings_administration_local_before_refund(sys::state const& state, dcon::nation_id n, dcon::administration_id admin, float budget) {
 	auto capital = state.world.administration_get_capital(admin);
@@ -227,7 +227,7 @@ void refund_demand_administration(sys::state& state, dcon::nation_id n) {
 			auto capital_of_capital_state = state.world.state_instance_get_capital(capital_state);
 			auto wage = state.world.province_get_labor_price(capital_of_capital_state, economy::labor::high_education_and_accepted);
 			auto demand = state.world.nation_get_administration_employment_target_in_capital(n);
-			auto bought = state.world.province_get_labor_demand_satisfaction(capital_of_capital_state, economy::labor::high_education_and_accepted);
+			auto bought = state.world.province_get_labor_actual_probability_to_buy(capital_of_capital_state, economy::labor::high_education_and_accepted);
 			auto current = state.world.nation_get_treasury(n);
 			assert(std::isfinite(current + (1.f - bought) * demand * wage));
 			state.world.nation_set_treasury(n, current + (1.f - bought) * demand * wage);
@@ -244,7 +244,7 @@ void refund_demand_administration(sys::state& state, dcon::nation_id n) {
 		auto capital_of_capital_state = state.world.state_instance_get_capital(capital_state);
 		auto wage = state.world.province_get_labor_price(capital_of_capital_state, economy::labor::high_education_and_accepted);
 		auto demand = state.world.province_get_administration_employment_target(capital_of_capital_state);
-		auto bought = state.world.province_get_labor_demand_satisfaction(capital_of_capital_state, economy::labor::high_education_and_accepted);
+		auto bought = state.world.province_get_labor_actual_probability_to_buy(capital_of_capital_state, economy::labor::high_education_and_accepted);
 		auto current = state.world.nation_get_treasury(n);
 		assert(std::isfinite(current + (1.f - bought) * demand * wage));
 		state.world.nation_set_treasury(n, current + (1.f - bought) * demand * wage);
@@ -257,7 +257,7 @@ float capital_administration_control_production(sys::state const& state, dcon::n
 		auto capital_of_capital_state = state.world.state_instance_get_capital(capital_state);
 
 		auto demand = state.world.nation_get_administration_employment_target_in_capital(n);
-		auto sat = state.world.province_get_labor_demand_satisfaction(capital_of_capital_state, economy::labor::high_education_and_accepted);
+		auto sat = state.world.province_get_labor_actual_probability_to_buy(capital_of_capital_state, economy::labor::high_education_and_accepted);
 		// capitals generate base amount of control to avoid death spirals
 		return demand * sat * population_per_admin(state, n) + 10'000.f;
 	}
@@ -270,7 +270,7 @@ float local_administration_control_production(sys::state const& state, dcon::nat
 	auto capital_state = state.world.province_get_state_membership(p);
 	auto capital_of_capital_state = state.world.state_instance_get_capital(capital_state);
 	auto demand = state.world.province_get_administration_employment_target(capital_of_capital_state);
-	auto sat = state.world.province_get_labor_demand_satisfaction(capital_of_capital_state, economy::labor::high_education_and_accepted);
+	auto sat = state.world.province_get_labor_actual_probability_to_buy(capital_of_capital_state, economy::labor::high_education_and_accepted);
 	// additional administrations are less efficient
 	// and require additional people to generate control
 	return std::max(0.f, (demand * sat - base_admin_employment) * population_per_admin(state, n) * local_administration_efficiency);
@@ -476,7 +476,7 @@ std::vector<employment_record> explain_local_administration_employment(sys::stat
 			auto capital_state = state.world.province_get_state_membership(p);
 			auto capital_of_capital_state = state.world.state_instance_get_capital(capital_state);
 			record.target_employment = state.world.province_get_administration_employment_target(capital_of_capital_state);
-			record.satisfaction = state.world.province_get_labor_demand_satisfaction(capital_of_capital_state, economy::labor::high_education_and_accepted);
+			record.satisfaction = state.world.province_get_labor_actual_probability_to_buy(capital_of_capital_state, economy::labor::high_education_and_accepted);
 			record.actual_employment = record.target_employment * record.satisfaction;
 			return std::vector<employment_record> {record};
 		}
@@ -493,7 +493,7 @@ std::vector<employment_record> explain_capital_administration_employment(sys::st
 	auto record = employment_record{ economy::labor::high_education_and_accepted, 0.f, 0.f, 0.f };
 
 	record.target_employment = state.world.nation_get_administration_employment_target_in_capital(n);
-	record.satisfaction = state.world.province_get_labor_demand_satisfaction(capital_of_capital_state, economy::labor::high_education_and_accepted);
+	record.satisfaction = state.world.province_get_labor_actual_probability_to_buy(capital_of_capital_state, economy::labor::high_education_and_accepted);
 	record.actual_employment = record.target_employment * record.satisfaction;
 	
 	return std::vector<employment_record> {record};

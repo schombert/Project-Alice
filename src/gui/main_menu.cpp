@@ -62,6 +62,7 @@ struct main_menu_graphics_railroad_label_t;
 struct main_menu_graphics_fonts_label_t;
 struct main_menu_graphics_trade_particles_count_dropdown_t;
 struct main_menu_graphics_trade_particles_label_t;
+struct main_menu_graphics_border_width_dropdown_t;
 struct main_menu_graphics_t;
 struct main_menu_message_settings_message_notify_rebels_defeat_t;
 struct main_menu_message_settings_reset_t;
@@ -521,6 +522,21 @@ struct main_menu_graphics_trade_particles_label_t : public alice_ui::template_te
 	bool button_action(sys::state& state) noexcept override;
 	void on_update(sys::state& state) noexcept override;
 };
+struct main_menu_graphics_border_width_dropdown_t : public alice_ui::template_drop_down_control {
+// BEGIN graphics::border_width_dropdown::variables
+// END
+	struct string_dropdown_choice_option { int32_t index; std::string display_value; };
+	std::vector<string_dropdown_choice_option> list_contents;
+	std::vector<std::unique_ptr<main_menu_string_dropdown_choice_t >> list_pool;
+	std::unique_ptr<main_menu_string_dropdown_choice_t> label_window_internal;
+	void add_item( int32_t index,  std::string display_value);
+	ui::element_base* get_nth_item(sys::state& state, int32_t id, int32_t pool_id) override;
+	void quiet_on_selection(sys::state& state, int32_t id);
+	void on_selection(sys::state& state, int32_t id) override;
+	void clear_list();
+	void on_create(sys::state& state) noexcept override;
+	void on_update(sys::state& state) noexcept override;
+};
 struct main_menu_message_settings_message_notify_rebels_defeat_t : public alice_ui::template_toggle_button {
 // BEGIN message_settings::message_notify_rebels_defeat::variables
 // END
@@ -829,6 +845,8 @@ struct main_menu_graphics_t : public layout_window_element {
 	std::unique_ptr<main_menu_graphics_trade_particles_label_t> trade_particles_label;
 	std::unique_ptr<template_label> trade_particles_section_label;
 	std::unique_ptr<template_label> trade_particles_count_label;
+	std::unique_ptr<template_label> border_width_label;
+	std::unique_ptr<main_menu_graphics_border_width_dropdown_t> border_width_dropdown;
 	std::vector<std::unique_ptr<ui::element_base>> gui_inserts;
 	void create_layout_level(sys::state& state, layout_level& lvl, char const* ldata, size_t sz);
 	void on_create(sys::state& state) noexcept override;
@@ -4347,6 +4365,52 @@ bool main_menu_graphics_trade_particles_label_t::button_action(sys::state& state
 // END
 	return true;
 }
+void main_menu_graphics_border_width_dropdown_t::add_item( int32_t index,  std::string display_value) {
+	list_contents.emplace_back(string_dropdown_choice_option{index, display_value});
+	++total_items;
+}
+ui::element_base* main_menu_graphics_border_width_dropdown_t::get_nth_item(sys::state& state, int32_t id, int32_t pool_id) {
+	while(pool_id >= int32_t(list_pool.size())) {
+		list_pool.emplace_back(static_cast<main_menu_string_dropdown_choice_t*>(make_main_menu_string_dropdown_choice(state).release()));
+	}
+	list_pool[pool_id]->index = list_contents[id].index; 
+	list_pool[pool_id]->display_value = list_contents[id].display_value; 
+	return list_pool[pool_id].get();
+}
+void main_menu_graphics_border_width_dropdown_t::quiet_on_selection(sys::state& state, int32_t id) {
+	if(id < 0 || id >= int32_t(list_contents.size())) return;
+	selected_item = id;
+	label_window_internal->index = list_contents[id].index; 
+	label_window_internal->display_value = list_contents[id].display_value; 
+	label_window_internal->impl_on_update(state); 
+}
+void main_menu_graphics_border_width_dropdown_t::on_selection(sys::state& state, int32_t id) {
+	quiet_on_selection(state, id);
+	main_menu_graphics_t& graphics = *((main_menu_graphics_t*)(parent)); 
+// BEGIN graphics::border_width_dropdown::on_selection
+	state.user_settings.current_borders_style = (sys::borders_style)(list_contents[id].index);
+	state.user_setting_changed = true;
+// END
+}
+void main_menu_graphics_border_width_dropdown_t::clear_list() {	list_contents.clear();
+	total_items = 0;
+}
+void main_menu_graphics_border_width_dropdown_t::on_update(sys::state& state) noexcept {
+	main_menu_graphics_t& graphics = *((main_menu_graphics_t*)(parent)); 
+// BEGIN graphics::border_width_dropdown::update
+	clear_list();
+	add_item(int32_t(sys::borders_style::none), text::produce_simple_string(state, "borders_none"));
+	add_item(int32_t(sys::borders_style::thin), text::produce_simple_string(state, "borders_thin"));
+	add_item(int32_t(sys::borders_style::normal), text::produce_simple_string(state, "borders_normal"));
+	add_item(int32_t(sys::borders_style::thick), text::produce_simple_string(state, "borders_thick"));
+	quiet_on_selection(state, int32_t(state.user_settings.current_borders_style));
+// END
+}
+void main_menu_graphics_border_width_dropdown_t::on_create(sys::state& state) noexcept {
+	template_drop_down_control::on_create(state);
+// BEGIN graphics::border_width_dropdown::create
+// END
+}
 ui::message_result main_menu_graphics_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
 	state.ui_state.drag_target = this;
 	return ui::message_result::consumed;
@@ -4489,6 +4553,12 @@ void main_menu_graphics_t::create_layout_level(sys::state& state, layout_level& 
 				} else
 				if(cname == "trade_particles_count_label") {
 					temp.ptr = trade_particles_count_label.get();
+				} else
+				if(cname == "border_width_label") {
+					temp.ptr = border_width_label.get();
+				} else
+				if(cname == "border_width_dropdown") {
+					temp.ptr = border_width_dropdown.get();
 				} else
 				{
 					std::string str_cname {cname};
@@ -5033,6 +5103,44 @@ void main_menu_graphics_t::on_create(sys::state& state) noexcept {
 				cptr->default_text = state.lookup_key(child_data.text_key);
 			if(child_data.tooltip_text_key.length() > 0)
 				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		} else 
+		if(child_data.name == "border_width_label") {
+			border_width_label = std::make_unique<template_label>();
+			border_width_label->parent = this;
+			auto cptr = border_width_label.get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->template_id = child_data.template_id;
+			if(child_data.text_key.length() > 0)
+				cptr->default_text = state.lookup_key(child_data.text_key);
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		} else 
+		if(child_data.name == "border_width_dropdown") {
+			border_width_dropdown = std::make_unique<main_menu_graphics_border_width_dropdown_t>();
+			border_width_dropdown->parent = this;
+			auto cptr = border_width_dropdown.get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->template_id = child_data.template_id;
+			cptr->two_columns = (child_data.text_type != aui_text_type::body);
+			cptr->target_page_height = child_data.border_size;
+			cptr->label_window_internal = std::unique_ptr<main_menu_string_dropdown_choice_t>(static_cast<main_menu_string_dropdown_choice_t*>(make_main_menu_string_dropdown_choice(state).release()));
+			cptr->element_x_size = cptr->label_window_internal->base_data.size.x;
+			cptr->element_y_size = cptr->label_window_internal->base_data.size.y;
+			cptr->label_window = cptr->label_window_internal.get();
 			cptr->parent = this;
 			cptr->on_create(state);
 			children.push_back(cptr);

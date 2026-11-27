@@ -45,6 +45,15 @@ struct lua_scripted_element;
 // it will also include the game state itself eventually as a member
 
 namespace sys {
+
+enum class borders_style : uint8_t {
+	none,
+	thin,
+	normal,
+	thick
+};
+
+
 struct user_settings_s {
 	float ui_scale = 1.0f;
 	float master_volume = 0.5f;
@@ -403,6 +412,7 @@ struct user_settings_s {
 	uint32_t UNUSED_UINT32_T = 0;
 	char locale[16] = "en-US";
 	uint8_t trade_particles_count = 2;
+	borders_style current_borders_style = borders_style::normal;
 };
 
 

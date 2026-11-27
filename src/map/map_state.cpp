@@ -157,6 +157,32 @@ void draw_small_square(sys::state& state, display_data& map_data, square::point 
 	map_data.map_drawing_mutex.unlock();
 }
 
+void draw_line(sys::state& state, display_data& map_data, square::point x, square::point y, float size) {
+	map_data.map_drawing_mutex.lock();
+	auto current_size = map_data.arbitrary_map_triangles.size();
+	map_data.arbitrary_map_triangles_starts.push_back(GLint(current_size));
+
+	square::point top_right = { {y.data.x + size, y.data.y + size} };
+	square::point top_left = { {y.data.x - size, y.data.y + size} };
+	square::point bottom_right = { {x.data.x + size, x.data.y - size} };
+	square::point bottom_left = { {x.data.x - size, x.data.y - size} };
+
+	map_data.arbitrary_map_triangles.push_back(top_right);
+	map_data.arbitrary_map_triangles.push_back(top_left);
+	map_data.arbitrary_map_triangles.push_back(bottom_left);
+
+	map_data.arbitrary_map_triangles.push_back(top_right);
+	map_data.arbitrary_map_triangles.push_back(bottom_left);
+	map_data.arbitrary_map_triangles.push_back(bottom_right);
+
+	map_data.arbitrary_map_triangles_counts.push_back(
+		int(map_data.arbitrary_map_triangles.size() - current_size)
+	);
+
+	map_data.new_arbitrary_map_triangle = true;
+	map_data.map_drawing_mutex.unlock();
+}
+
 void update_supply_route_arrows(sys::state& state, display_data& map_data) {
 	if(state.cheat_data.show_mil_routes) {
 		for(auto selected_army : state.selected_armies) {
@@ -851,7 +877,7 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 			}
 			if(group_of_regions[state.world.province_get_connected_region_id(pid)] == rid) {
 				return
-					10.f + state.world.province_get_demographics(pid, demographics::total)
+					10.f + (round(state.world.province_get_demographics(pid, demographics::total) / 50'000.f) * 50'000.f)
 					/ (1.f + state.map_state.map_data.province_area_km2[province::to_map_id(pid)]);
 					//* (1.f / (1.f + glm::distance(capital_mp, {x, y })));
 			}
@@ -1065,7 +1091,10 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 				float weight = 100.f;
 
 				grid.push_back(glm::vec3{ result.x, result.y, weight });
-				//draw_small_square(state, state.map_state.map_data, { { result.x / (float)map_data.size_x, result.y / (float)map_data.size_y } }, 0.0001f);
+
+				//if(name.starts_with("Russian")) {
+				//	draw_small_square(state, state.map_state.map_data, { { result.x / (float)map_data.size_x, result.y / (float)map_data.size_y } }, 0.0003f);
+				//}
 
 				points.push_back(glm::vec3{ result.x, result.y, weight });
 				points_R3.push_back(sphere_R3::from_square(sq));
@@ -1174,6 +1203,10 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 				new_centroids[closest] += point * weight;
 				new_centroids_R3[closest].data += point_sphere.data * weight;
 				counters[closest] += weight;
+
+				//if(name.starts_with("Russian")) {
+					//draw_line(state, state.map_state.map_data, sphere_R3::to_square(point_sphere), sphere_R3::to_square(centroids_R3[closest]), 0.00002f * step);
+				//}
 			}
 
 			for(size_t i = 0; i < new_centroids.size(); i++) {
@@ -1189,6 +1222,9 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 			}
 
 			for(size_t i = 0; i < new_centroids.size(); i++) {
+				//if(name.starts_with("Russian")) {
+				//	draw_line(state, state.map_state.map_data, sphere_R3::to_square(centroids_R3[i]), sphere_R3::to_square(new_centroids_R3[i]), 0.00005f * step);
+				//}
 				centroids[i] = new_centroids[i];
 				centroids_R3[i] = new_centroids_R3[i];
 				centroid_weight[i] = counters[i];
@@ -1207,11 +1243,6 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 		}
 		average_weight /= (float)(points.size());
 
-		
-		//for(auto point : centroids) {
-			//draw_small_square(state, map_data, { {point.x / (float)map_data.size_x, point.y / (float)map_data.size_y} }, 0.0005f);
-		//}
-
 		std::vector<glm::vec2> next_centroids { };
 		std::vector<sphere_R3::point> next_centroids_R3{ };
 		for (size_t i = 0; i < centroids.size(); i++) {
@@ -1223,16 +1254,132 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 		centroids = next_centroids;
 		centroids_R3 = next_centroids_R3;
 
-		if(!(state.user_settings.map_label == sys::map_label_mode::cubic || state.user_settings.map_label == sys::map_label_mode::quadratic)) {
+		//if(name.starts_with("Russian")) {
+		//	for(size_t i = 0; i < centroids.size(); i++) {
+		//		draw_small_square(state, map_data, sphere_R3::to_square(centroids_R3[i]), 0.0008f);
+		//	}
+		//}
+
+		auto sphere_shift = [&](glm::vec3 runner, glm::vec3 end, float distance) -> glm::vec3 {
+			auto away = runner / glm::length(runner);
+			auto direction = end - runner;
+			auto coordinate_away = glm::dot(direction, away);
+			direction -= away * coordinate_away;
+			direction /= glm::length(direction);
+			runner += direction * tanf(distance);
+			return runner / glm::length(runner);
+		};
+
+		// !(state.user_settings.map_label == sys::map_label_mode::cubic || state.user_settings.map_label == sys::map_label_mode::quadratic)
+		// here we look for the best linear label
+		if(state.user_settings.map_label == sys::map_label_mode::linear || state.user_settings.map_label == sys::map_label_mode::spherical) {
+
 			size_t best_start = 0;
 			size_t best_end = 0;
 			float best_length = 0.f;
-			std::vector<std::tuple<size_t, size_t>> candidates;
+			bool best_is_alt = false;
 
-			for (size_t i = 0; i < next_centroids.size(); i++) {
+			for (size_t i = 0; i < centroids.size(); i++) {
 				auto start = centroids[i];
-				for (size_t j = i +  1; j < next_centroids.size(); j++) {
-					auto end = next_centroids[j];
+				auto start_R3 = centroids_R3[i];
+				for (size_t j = i +  1; j < centroids.size(); j++) {
+					auto end = centroids[j];
+					auto end_R3 = centroids_R3[j];
+
+					if(state.user_settings.map_label == sys::map_label_mode::spherical) {
+
+						auto mid = (start_R3.data + end_R3.data) / 2.f;
+						if(glm::length(mid) == 0.f) {
+							continue;
+						}
+
+						mid = glm::normalize(mid);
+						auto mid_alt = -mid;
+
+						auto cos_projection = glm::dot(start_R3.data, end_R3.data);
+						auto sin_projection = sqrt(1.f - cos_projection * cos_projection);
+						auto sin_projection_alt = -sin_projection;
+
+						bool good_enough = true;
+
+						auto dist_forward = atan2f(sin_projection, cos_projection);
+						auto dist_forward_alt = atan2f(sin_projection_alt, cos_projection);
+
+						size_t steps = 2 * name.length() + 5;
+						float steps_f = float(steps);
+
+						if(dist_forward > best_length) {
+							auto letter_size = dist_forward / (float)(name.length());
+							auto runner = start_R3.data;
+							for(size_t step = 0; step <= steps; step++) {
+								float t = (float)step / steps_f;
+								float tolerance = 0.1f + 10000000.f * std::max(t, 1.f - t);
+								sphere_R3::point runner_sph = { runner };
+								auto sq = sphere_R3::to_square(runner_sph).data;
+
+								for(int local_grid_x = -3; local_grid_x < 4; local_grid_x++) {
+									for(int local_grid_y = -3; local_grid_y < 4; local_grid_y++) {
+										auto local_x = (sq.x + (letter_size * (float)local_grid_x / 3.f / 20.f)) * (float)map_data.size_x;
+										auto local_y = (sq.y + (letter_size * (float)local_grid_y / 3.f / 20.f)) * (float)map_data.size_y;
+										if(avoid_point(local_x, local_y, tolerance)) {
+											good_enough = false;
+											break;
+										}
+									}
+								}
+
+								if(step < steps / 2) {
+									runner = sphere_shift(runner, mid, dist_forward / steps_f);
+								} else {
+									runner = sphere_shift(runner, end_R3.data, dist_forward / steps_f);
+								}
+							}
+
+							if(good_enough) {
+								best_length = dist_forward;
+								best_start = i;
+								best_end = j;
+								best_is_alt = false;
+							}
+						}
+
+						if(dist_forward_alt > best_length && dist_forward_alt <= dist_forward * 2.f) {
+							auto letter_size = dist_forward_alt / (float)(name.length());
+							auto runner = start_R3.data;
+							for(size_t step = 0; step <= steps; step++) {
+								float t = (float)step / steps_f;
+								float tolerance = 0.1f + 10000000.f * std::max(t, 1.f - t);
+								sphere_R3::point runner_sph = { runner };
+								auto sq = sphere_R3::to_square(runner_sph).data;
+
+								for(int local_grid_x = -3; local_grid_x < 4; local_grid_x++) {
+									for(int local_grid_y = -3; local_grid_y < 4; local_grid_y++) {
+										auto local_x = (sq.x + (letter_size * (float)local_grid_x / 3.f / 20.f)) * (float)map_data.size_x;
+										auto local_y = (sq.y + (letter_size * (float)local_grid_y / 3.f / 20.f)) * (float)map_data.size_y;
+										if(avoid_point(local_x, local_y, tolerance)) {
+											good_enough = false;
+											break;
+										}
+									}
+								}
+
+								if(step < steps / 2) {
+									runner = sphere_shift(runner, mid_alt, dist_forward / steps_f);
+								} else {
+									runner = sphere_shift(runner, end_R3.data, dist_forward / steps_f);
+								}
+							}
+
+							if(good_enough) {
+								best_length = dist_forward_alt;
+								best_start = i;
+								best_end = j;
+								best_is_alt = true;
+							}
+						}
+
+						continue;
+					}
 
 					auto diff = end - start;
 					auto dist = glm::length(diff);
@@ -1467,28 +1614,47 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 		//draw_small_square(state, state.map_state.map_data, { { basis.x / (float)map_data.size_x, basis.y / (float)map_data.size_y } }, 0.005f);
 		//draw_small_square(state, state.map_state.map_data, { { (basis.x + ratio.x) / (float)map_data.size_x, (basis.y + ratio.y) / (float)map_data.size_y } }, 0.005f);
 
-		for (auto point : centroids) {
-			auto e = point;
+		if(state.user_settings.map_label == sys::map_label_mode::spherical) {
+			for(auto point : centroids_R3) {
+				auto e = sphere_R3::to_square(point).data;
+				e.x *= state.map_state.map_data.size_x;
+				e.y *= state.map_state.map_data.size_y;
 
-			//draw_small_square(state, state.map_state.map_data, { { point.x / (float)map_data.size_x, point.y / (float)map_data.size_y } }, 0.0005f);
+				w.push_back(1);
 
-			if(e.x < basis.x) {
-				continue;
+				e -= basis;
+				e /= ratio;
+				out_y.push_back(e.y);
+				out_x.push_back(e.x);
+				//w.push_back(10 * float(map_data.province_area[province::to_map_id(p2)]));
+
+				in_x.push_back(std::array<float, 4>{ l_0 * 1.f, l_1* e.x, l_1* e.x* e.x, l_3* e.x* e.x* e.x});
+				in_y.push_back(std::array<float, 4>{ l_0 * 1.f, l_1* e.y, l_1* e.y* e.y, l_3* e.y* e.y* e.y});
 			}
-			if(e.x > basis.x + ratio.x) {
-				continue;
+		} else {
+			for (auto point : centroids) {
+				auto e = point;
+
+				//draw_small_square(state, state.map_state.map_data, { { point.x / (float)map_data.size_x, point.y / (float)map_data.size_y } }, 0.0005f);
+
+				if(e.x < basis.x) {
+					continue;
+				}
+				if(e.x > basis.x + ratio.x) {
+					continue;
+				}
+
+				w.push_back(1);
+
+				e -= basis;
+				e /= ratio;
+				out_y.push_back(e.y);
+				out_x.push_back(e.x);
+				//w.push_back(10 * float(map_data.province_area[province::to_map_id(p2)]));
+
+				in_x.push_back(std::array<float, 4>{ l_0 * 1.f, l_1* e.x, l_1* e.x* e.x, l_3* e.x* e.x* e.x});
+				in_y.push_back(std::array<float, 4>{ l_0 * 1.f, l_1* e.y, l_1* e.y* e.y, l_3* e.y* e.y* e.y});
 			}
-
-			w.push_back(1);
-
-			e -= basis;
-			e /= ratio;
-			out_y.push_back(e.y);
-			out_x.push_back(e.x);
-			//w.push_back(10 * float(map_data.province_area[province::to_map_id(p2)]));
-
-			in_x.push_back(std::array<float, 4>{ l_0 * 1.f, l_1* e.x, l_1* e.x* e.x, l_3* e.x* e.x* e.x});
-			in_y.push_back(std::array<float, 4>{ l_0 * 1.f, l_1* e.y, l_1* e.y* e.y, l_3* e.y* e.y* e.y});
 		}
 
 		if(in_x.size() < 2) {

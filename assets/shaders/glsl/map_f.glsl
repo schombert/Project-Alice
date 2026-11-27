@@ -30,6 +30,7 @@ uniform vec2 screen_size;
 uniform float time;
 uniform float gamma;
 uniform vec3 light_direction;
+uniform vec3 camera_position;
 uniform float ignore_light;
 uniform int terrain_is_array;
 uniform int map_mode_is_data;
@@ -219,11 +220,57 @@ vec4 get_land_data_modern() {
 	return vec4(result.rgb * 0.8f, is_land);
 }
 
+// https://bottosson.github.io/posts/oklab/
+struct Lab {float L; float a; float b;};
+struct RGB {float r; float g; float b;};
+
+Lab linear_srgb_to_oklab(RGB c) 
+{
+	float l = 0.4122214708f * c.r + 0.5363325363f * c.g + 0.0514459929f * c.b;
+	float m = 0.2119034982f * c.r + 0.6806995451f * c.g + 0.1073969566f * c.b;
+	float s = 0.0883024619f * c.r + 0.2817188376f * c.g + 0.6299787005f * c.b;
+
+	float l_ = pow(l, 1.0/3.0);
+	float m_ = pow(m, 1.0/3.0);
+	float s_ = pow(s, 1.0/3.0);
+
+	Lab result;
+	result.L = 0.2104542553f*l_ + 0.7936177850f*m_ - 0.0040720468f*s_;
+	result.a = 1.9779984951f*l_ - 2.4285922050f*m_ + 0.4505937099f*s_;
+	result.b = 0.0259040371f*l_ + 0.7827717662f*m_ - 0.8086757660f*s_;
+
+	return result;
+}
+
+RGB oklab_to_linear_srgb(Lab c) 
+{
+	float l_ = c.L + 0.3963377774f * c.a + 0.2158037573f * c.b;
+	float m_ = c.L - 0.1055613458f * c.a - 0.0638541728f * c.b;
+	float s_ = c.L - 0.0894841775f * c.a - 1.2914855480f * c.b;
+
+	float l = l_*l_*l_;
+	float m = m_*m_*m_;
+	float s = s_*s_*s_;
+
+	RGB result;
+	result.r = +4.0767416621f * l - 3.3077115913f * m + 0.2309699292f * s;
+	result.g = -1.2684380046f * l + 2.6097574011f * m - 0.3413193965f * s;
+	result.b  =-0.0041960863f * l - 0.7034186147f * m + 1.7076147010f * s;
+
+	return result;
+}
+
 vec4 get_land_political_modern() {
 	vec4 terrain = get_terrain_mix();
 	float is_land = terrain.a;
-	const vec3 GREYIFY = vec3( 0.212671, 0.715160, 0.072169 );
-	float grey = dot( terrain.rgb, GREYIFY );
+	//const vec3 GREYIFY = vec3( 0.212671, 0.715160, 0.072169 );
+	//float grey = dot( terrain.rgb, GREYIFY );
+
+	RGB terrain_rgb;
+	terrain_rgb.r =  terrain.r;
+	terrain_rgb.g =  terrain.g;
+	terrain_rgb.b =  terrain.b;
+	Lab terrain_oklab = linear_srgb_to_oklab ( terrain_rgb );
 
 	vec4 province_sample = texture(provinces_texture_sampler, gl_FragCoord.xy / screen_size);
 	vec2 prov_id = province_sample.xy;
@@ -237,8 +284,11 @@ vec4 get_land_political_modern() {
 	float stripeFactor = texture(stripes_texture, stripe_coord).a;
 	float prov_highlight = texture(province_highlight, prov_id).r * (abs(cos(time * 3.f)) + 1.f);
 	vec3 political = clamp(mix(prov_color, stripe_color, stripeFactor) + vec4(prov_highlight), 0.0, 1.0).rgb;
-
-	vec4 OutColor = vec4(0.5f, 0.5f, 0.5f, is_land);
+	RGB political_rgb;
+	political_rgb.r =  political.r;
+	political_rgb.g =  political.g;
+	political_rgb.b =  political.b;
+	Lab political_oklab = linear_srgb_to_oklab ( political_rgb );
 
 	float sum_of_prov_colors = dot(prov_color, vec4(1.f, 1.f, 1.f, 0.f));
 	bool is_colonised = true;
@@ -246,15 +296,25 @@ vec4 get_land_political_modern() {
 		is_colonised = false;
 	}
 
+	Lab out_oklab = {0.f, 0.f, 0.f};
+
 	if (is_colonised) {
-		OutColor.rgb = mix((grey + terrain.rgb) / 2.f, political, 0.3f + 0.5f / zoom + (1.f - to_national_border) * 0.7f);
-		OutColor.rgb -= (1.f - to_national_border) * 0.1f;
+		float t = 0.3f + 0.5f / zoom + (1.f - to_national_border) * 0.7f;
+		out_oklab.L = mix(terrain_oklab.L, political_oklab.L, t); 
+		out_oklab.a = mix(terrain_oklab.a / 3, political_oklab.a, t); 
+		out_oklab.b = mix(terrain_oklab.b / 3, political_oklab.b, t);
+		out_oklab.L -= (1.f - to_national_border) * 0.1f;
 	} else {
-		OutColor.rgb = (grey * 2.f + terrain.rgb) / 3.f + 0.2f;
+		out_oklab.L = terrain_oklab.L + 0.1f;
+		out_oklab.a = terrain_oklab.a / 3.f;
+		out_oklab.b = terrain_oklab.b / 3.f;
 	}
 
-	OutColor.rgb *= texture(province_fow, prov_id).rgb * (to_national_border * 0.3f + 0.7f);
+	out_oklab.L = out_oklab.L * (to_national_border * 0.3f + 0.7f);
+	RGB out_rgb = oklab_to_linear_srgb(out_oklab);
 
+	vec4 OutColor = vec4(out_rgb.r, out_rgb.g, out_rgb.b, is_land);
+	OutColor.rgb *= texture(province_fow, prov_id).rgb;
 	return OutColor;
 }
 
@@ -303,8 +363,6 @@ vec4 get_land_political_gores() {
 		line_mult = min(line_mult, 0.2f * softness_mult * (1.f + 0.5f * inside_h) + max(0.5f - zoom / 100.f, smootherstep(v2 / (line_width_h))));
 	}
 
-	vec4 wc = texture(watercolor, vec2(horisontal_coord_before_cutting_paper, vertical_segment) * 10.f);
-	vec4 wc_global = texture(watercolor, vec2(horisontal_coord_before_cutting_paper, vertical_segment) / 2.f);
 
 	float hatching = texture(hatching, vec2(horisontal_coord_before_cutting_paper * (mod(vertical_segment_number_area, 2.f) * 2.f - 1.f), vertical_segment * (mod(equator_segment_number_area, 2.f) * 2.f - 1.f)) * 4.f).r;
 		
@@ -320,6 +378,30 @@ vec4 get_land_political_gores() {
 	}
 	vec4 prov_color = texture(province_color, vec3(prov_id, 0.));
 	vec4 stripe_color = texture(province_color, vec3(prov_id, 1.));
+	
+	prov_color = mix(prov_color, stripe_color, clamp(hatching * 2.f + 5.f - line_mult * 5.f, 0.f, 1.f));
+
+	vec4 wc = texture(watercolor, vec2(horisontal_coord_before_cutting_paper, vertical_segment) * 10.f);
+	wc = wc * wc * wc;
+	RGB wc_rgb;
+	wc_rgb.r = wc.r;
+	wc_rgb.g = wc.g;
+	wc_rgb.b = wc.b;
+	Lab wc_lab = linear_srgb_to_oklab(wc_rgb);
+
+	vec4 wc_global = texture(watercolor, vec2(horisontal_coord_before_cutting_paper, vertical_segment) / 2.f);
+	RGB wc_global_rgb;
+	wc_global_rgb.r = wc_global.r;
+	wc_global_rgb.g = wc_global.g;
+	wc_global_rgb.b = wc_global.b;
+	Lab wc_global_lab = linear_srgb_to_oklab(wc_global_rgb);
+
+	RGB prov_color_rgb;
+	prov_color_rgb.r = prov_color.r;
+	prov_color_rgb.g = prov_color.g;
+	prov_color_rgb.b = prov_color.b;
+	Lab prov_color_lab = linear_srgb_to_oklab(prov_color_rgb);
+
 	//float stripeFactor = texture(stripes_texture, stripe_coord).a;
 	//vec4 base_color = vec4(1.f, 247.f / 255.f, 220.f / 255.f, 1.f) * 0.9f;
 	vec4 base_color = vec4(0.80, 0.76, 0.63, 1.f);
@@ -328,12 +410,11 @@ vec4 get_land_political_gores() {
 	const vec3 GREYIFY = vec3( 0.212671, 0.715160, 0.072169 );
 	float grey = dot( terrain.rgb, GREYIFY ) * 2.f;
 
-	float weight_base = 0.0015f;
-	float weight_hatching = 0.05f;
-	float weight_border = 3.0f * clamp(0.1f + hatching, 0.f, 1.f);
+	float weight_base = 0.15f;
+	float weight_hatching = 0.0005f;
+	float weight_border = 3.0f * clamp(0.1f + hatching * 0.2f, 0.f, 1.f);
 	float weight_watercolor = 0.005f;
-	//float total_weight = weight_base + weight_hatching + weight_border + weight_watercolor;
-	float wc_g = dot(wc.xyz, GREYIFY);
+	float wc_g = wc_lab.L;
 
 	float final_weight = min(1, sqrt(
 		weight_base
@@ -345,11 +426,17 @@ vec4 get_land_political_gores() {
 	if (stripe_color != prov_color) {
 		base_color = stripe_color * final_weight + base_color * (1.f - final_weight);
 	}
-	vec4 mixed_color = prov_color * final_weight + base_color * (1.f - final_weight);
 
-	//vec4 color = prov_color * wc
+	float from_zoom = min(0.2, zoom / 50.f);
 
-	vec4 result = (mixed_color - 0.f * hatching) * min(1.f, line_mult) * (0.85f + 0.05f * wc + 0.10f * dot(wc_global.xyz, GREYIFY)) * min(1.f, 0.2f + gradient);
+	Lab final;
+	final.L = (0.3f + 0.65f * prov_color_lab.L) * (1.f - from_zoom + wc_lab.L * from_zoom) * (1.f - from_zoom + wc_global_lab.L * from_zoom);
+	final.a = prov_color_lab.a * 0.35f;
+	final.b = prov_color_lab.b * 0.35f;
+
+	RGB result_rgb = oklab_to_linear_srgb(final);
+
+	vec4 result = vec4(result_rgb.r, result_rgb.g, result_rgb.b, 1.f);
 	result.a = is_land;
 
 	return result;
@@ -549,8 +636,8 @@ vec4 get_water_gores() {
 	vec4 wc = texture(watercolor, vec2(horisontal_coord_before_cutting_paper, vertical_segment) * 10.f);
 	vec4 wc_global = texture(watercolor, vec2(horisontal_coord_before_cutting_paper, vertical_segment) / 2.f);
 
-	float hatching = 0.4f * texture(hatching, vec2(horisontal_coord_before_cutting_paper * (mod(vertical_segment_number_area, 2.f) * 2.f - 1.f), vertical_segment * (mod(equator_segment_number_area, 2.f) * 2.f - 1.f)) * 4.f).r;
-	return vec4(0.57f - hatching, 0.65f - hatching, 0.70f, 1.f) * (0.25f + 0.5f * wc + 0.25f * wc_global) * vec4(0.2f + 0.8f * line_mult, 0.2f + 0.8f *line_mult, 1.f, 1.f);
+	float hatching = 0.15f * texture(hatching, vec2(horisontal_coord_before_cutting_paper * (mod(vertical_segment_number_area, 2.f) * 2.f - 1.f), vertical_segment * (mod(equator_segment_number_area, 2.f) * 2.f - 1.f)) * 4.f).r;
+	return vec4(0.50f - hatching, 0.55f - hatching, 0.60f, 1.f) * (0.5f + 0.25f * wc + 0.25f * wc_global) * vec4(0.2f + 0.8f * line_mult, 0.2f + 0.8f *line_mult, 1.f, 1.f);
 }
 
 vec4 get_water() {
@@ -601,7 +688,7 @@ void main() {
 	if (ignore_light == 0.f) {
 		float darkness = max(0.f, -dot(light_direction, space_coords));
 		frag_color *= light;
-		frag_color.xyz += vec3(0.05f, 0.05f, 0.2f);
+		frag_color.xyz += vec3(0.05f, 0.05f, 0.05f);
 	}
 	frag_color.a = 1.f;
 	frag_color = gamma_correct(frag_color);

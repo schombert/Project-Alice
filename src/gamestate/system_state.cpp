@@ -1635,6 +1635,7 @@ void state::save_user_settings() const {
 	US_SAVE(graphics_mode);
 	US_SAVE(unit_disband_confirmation);
 	US_SAVE(trade_particles_count);
+	US_SAVE(current_borders_style);
 #undef US_SAVE
 
 	simple_fs::write_file(settings_location, NATIVE("user_settings.dat"), &buffer[0], uint32_t(ptr - buffer));
@@ -1706,6 +1707,7 @@ void state::load_user_settings() {
 			US_LOAD(graphics_mode);
 			US_LOAD(unit_disband_confirmation);
 			US_LOAD(trade_particles_count);
+			US_LOAD(current_borders_style);
 #undef US_LOAD
 		} while(false);
 
@@ -3356,8 +3358,10 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	world.province_resize_labor_price(economy::labor::total);
 	world.province_resize_labor_supply(economy::labor::total);
 	world.province_resize_labor_demand(economy::labor::total);
-	world.province_resize_labor_demand_satisfaction(economy::labor::total);
-	world.province_resize_labor_supply_sold(economy::labor::total);
+	world.province_resize_labor_actual_probability_to_buy(economy::labor::total);
+	world.province_resize_labor_expected_probability_to_buy(economy::labor::total);
+	world.province_resize_labor_actual_probability_to_sell(economy::labor::total);
+	world.province_resize_labor_expected_probability_to_sell(economy::labor::total);
 	world.province_resize_pop_labor_distribution(economy::pop_labor::total);
 
 	services::initialize_size_of_dcon_arrays(*this);
@@ -4092,6 +4096,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 
 		map_state.map_data.railroad_starts.push_back(GLint(map_state.map_data.railroad_vertices.size()));
 		float distance = 0.f;
+		float prev_distance = 0.f;
 
 		int step = 0;
 
@@ -4132,7 +4137,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 			auto norm_pos = current_pos / glm::vec2(map_state.map_data.size_x, map_state.map_data.size_y);
 			auto norm_next = next_pos / glm::vec2(map_state.map_data.size_x, map_state.map_data.size_y);
 
-			auto prev_distance = distance;
+			prev_distance = distance;
 			distance += glm::length(next_pos - current_pos) / float(map_state.map_data.size_y);
 
 			map_state.map_data.railroad_vertices.emplace_back(map::textured_line_vertex{ norm_pos, +start_normal, 0.0f, prev_distance });//C
@@ -4149,6 +4154,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 		}
 
 		glm::vec2 next_pos = put_in_local(mid_point_1, current_pos, float(map_state.map_data.size_x));
+		prev_distance = distance;
 		distance += glm::length(next_pos - current_pos) / float(map_state.map_data.size_y);
 
 		if(mid_point_1 != current_pos) {
@@ -4157,8 +4163,8 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 			auto norm_pos = current_pos / glm::vec2(map_state.map_data.size_x, map_state.map_data.size_y);
 			auto norm_next = next_pos / glm::vec2(map_state.map_data.size_x, map_state.map_data.size_y);
 
-			map_state.map_data.railroad_vertices.emplace_back(map::textured_line_vertex{ norm_pos, +start_normal, 0.0f, 0.f });//C
-			map_state.map_data.railroad_vertices.emplace_back(map::textured_line_vertex{ norm_pos, -start_normal, 1.0f, 0.f });//D
+			map_state.map_data.railroad_vertices.emplace_back(map::textured_line_vertex{ norm_pos, +start_normal, 0.0f, prev_distance });//C
+			map_state.map_data.railroad_vertices.emplace_back(map::textured_line_vertex{ norm_pos, -start_normal, 1.0f, prev_distance });//D
 			map_state.map_data.railroad_vertices.emplace_back(map::textured_line_vertex{ norm_next, +start_normal, 0.0f, distance });
 			map_state.map_data.railroad_vertices.emplace_back(map::textured_line_vertex{ norm_next, -start_normal, 1.0f, distance });
 		}

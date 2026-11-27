@@ -295,7 +295,7 @@ json format_province(sys::state& state, dcon::province_id pid) {
 				t["employment"]["total"]["actual"] = economy::rgo_employment(state, c, prov);
 
 				auto target_employment = state.world.province_get_rgo_target_employment(prov, c);
-				auto satisfaction = state.world.province_get_labor_demand_satisfaction(prov, economy::labor::no_education);
+				auto satisfaction = state.world.province_get_labor_actual_probability_to_buy(prov, economy::labor::no_education);
 
 				t["employed"] = target_employment * satisfaction;
 

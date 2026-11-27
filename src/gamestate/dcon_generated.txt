@@ -1897,17 +1897,32 @@ object {
 		tag{ save }
 	}
 	property {
-		name{ service_satisfaction }
+		name{ service_actual_probability_to_buy }
 		type{ array{int32_t}{float} }
 		tag{ save }
 	}
 	property {
-		name{ service_satisfaction_for_free }
+		name{ service_expected_probability_to_buy }
 		type{ array{int32_t}{float} }
 		tag{ save }
 	}
 	property {
-		name{ service_sold }
+		name{ service_actual_probability_to_obtain_for_free }
+		type{ array{int32_t}{float} }
+		tag{ save }
+	}
+	property {
+		name{ service_expected_probability_to_obtain_for_free }
+		type{ array{int32_t}{float} }
+		tag{ save }
+	}
+	property {
+		name{ service_actual_probability_to_sell }
+		type{ array{int32_t}{float} }
+		tag{ save }
+	}
+	property {
+		name{ service_expected_probability_to_sell }
 		type{ array{int32_t}{float} }
 		tag{ save }
 	}
@@ -1928,12 +1943,22 @@ object {
 		tag{ save }
 	}
 	property {
-		name{ labor_demand_satisfaction }
+		name{ labor_expected_probability_to_buy }
 		type{ array{int32_t}{float} }
 		tag{ save }
 	}
 	property {
-		name{ labor_supply_sold }
+		name{ labor_actual_probability_to_buy }
+		type{ array{int32_t}{float} }
+		tag{ save }
+	}
+	property {
+		name{ labor_expected_probability_to_sell }
+		type{ array{int32_t}{float} }
+		tag{ save }
+	}
+	property {
+		name{ labor_actual_probability_to_sell }
 		type{ array{int32_t}{float} }
 		tag{ save }
 	}

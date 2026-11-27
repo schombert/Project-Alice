@@ -15,9 +15,12 @@ void initialize_size_of_dcon_arrays(sys::state& state) {
 	state.world.province_resize_service_demand_allowed_public_supply(list::total);
 	state.world.province_resize_service_demand_forbidden_public_supply(list::total);
 	state.world.province_resize_service_price(list::total);
-	state.world.province_resize_service_sold(list::total);
-	state.world.province_resize_service_satisfaction(list::total);
-	state.world.province_resize_service_satisfaction_for_free(list::total);
+	state.world.province_resize_service_actual_probability_to_sell(list::total);;
+	state.world.province_resize_service_expected_probability_to_sell(list::total);
+	state.world.province_resize_service_actual_probability_to_buy(list::total);
+	state.world.province_resize_service_expected_probability_to_buy(list::total);
+	state.world.province_resize_service_actual_probability_to_obtain_for_free(list::total);
+	state.world.province_resize_service_expected_probability_to_obtain_for_free(list::total);
 }
 
 void update_price(sys::state& state) {
@@ -68,6 +71,8 @@ void match_supply_and_demand(sys::state& state) {
 			auto demand_public = state.world.province_get_service_demand_allowed_public_supply(pids, i);
 			auto demand_private = state.world.province_get_service_demand_forbidden_public_supply(pids, i);
 
+			auto optimism = 10.f;
+
 			auto supply_public = state.world.province_get_service_supply_public(pids, i);
 			auto supply_private = state.world.province_get_service_supply_private(pids, i);
 
@@ -77,16 +82,25 @@ void match_supply_and_demand(sys::state& state) {
 			// for public service it doesn't matter how much of produced services were actually consumed
 			// the only interesting things is how much of demand on public service was satisfied
 
-			auto free_ratio = ve::select(demand_public == 0.f, 1.f, matched_free_demand / demand_public);
+			auto probability_to_get_for_free = ve::select(demand_public == 0.f, 1.f, matched_free_demand / demand_public);
+			auto expected_probability_to_get_for_free = ve::min(1.f, (matched_free_demand + optimism) / (demand_public + optimism));
 
 			// for paid demand, business as usual
 
-			auto satisfaction_paid = ve::select(demand_private == 0.f, 0.f, ve::min(1.f, supply_private / demand_private));
-			auto supply_sold_paid = ve::select(supply_private == 0.f, 0.f, ve::min(1.f, demand_private / supply_private));
+			auto probability_to_buy = ve::select(demand_private == 0.f, 0.f, ve::min(1.f, supply_private / demand_private));
+			auto probability_to_sell = ve::select(supply_private == 0.f, 0.f, ve::min(1.f, demand_private / supply_private));
 
-			state.world.province_set_service_satisfaction_for_free(pids, i, free_ratio);
-			state.world.province_set_service_satisfaction(pids, i, satisfaction_paid);
-			state.world.province_set_service_sold(pids, i, supply_sold_paid);
+			auto expected_probability_to_buy = ve::min(1.f, (supply_private + optimism) / (demand_private + optimism));
+			auto expected_probability_to_sell = ve::min(1.f, (demand_private + optimism) / (supply_private + optimism));
+
+			state.world.province_set_service_actual_probability_to_obtain_for_free(pids, i, probability_to_get_for_free);
+			state.world.province_set_service_expected_probability_to_obtain_for_free(pids, i, expected_probability_to_get_for_free);
+
+			state.world.province_set_service_actual_probability_to_buy(pids, i, probability_to_buy);
+			state.world.province_set_service_expected_probability_to_buy(pids, i, expected_probability_to_buy);
+
+			state.world.province_set_service_actual_probability_to_sell(pids, i, probability_to_sell);
+			state.world.province_set_service_expected_probability_to_sell(pids, i, expected_probability_to_sell);
 		}
 	});
 }
@@ -229,7 +243,7 @@ void update_consumption(sys::state& state) {
 			/*
 			We don't want to expand faster than local labor allows us
 			*/
-			auto sat = state.world.province_get_labor_demand_satisfaction(pid, economy::labor_constants::construction_labor);
+			auto sat = state.world.province_get_labor_expected_probability_to_buy(pid, economy::labor_constants::construction_labor);
 			demand_scale = std::min(max_demand_scale, demand_scale * std::max(0.f, sat - 0.8f) * 5.f);
 
 			/*
@@ -308,7 +322,7 @@ void update_profit_and_refund(sys::state& state) {
 			if(state.world.nation_is_valid(local_nation)) { // Check that it is valid, or we may have an invalid write on uncolonized!
 				auto cost_of_input = state.world.province_get_labor_price(pids, def.throughput_labour_type);
 				auto national_size = state.world.province_get_advanced_province_building_national_size(pids, i);
-				auto actually_bought = state.world.province_get_labor_demand_satisfaction(pids, def.throughput_labour_type);
+				auto actually_bought = state.world.province_get_labor_actual_probability_to_buy(pids, def.throughput_labour_type);
 				auto treasury = state.world.nation_get_treasury(local_nation);
 				assert(std::isfinite(treasury + (1.f - actually_bought) * national_size * cost_of_input));
 				state.world.nation_set_treasury(local_nation, treasury + (1.f - actually_bought) * national_size * cost_of_input);
@@ -329,10 +343,10 @@ void update_profit_and_refund(sys::state& state) {
 				cost_of_input = 0.f;
 			}
 			auto cost_of_output = state.world.province_get_service_price(pid, def.output);
-			auto actually_bought = state.world.province_get_labor_demand_satisfaction(pid, def.throughput_labour_type);
+			auto actually_bought = state.world.province_get_labor_actual_probability_to_buy(pid, def.throughput_labour_type);
 
 			auto output = state.world.province_get_advanced_province_building_private_output(pid, i);
-			auto actually_sold = state.world.province_get_service_sold(pid, def.output);
+			auto actually_sold = state.world.province_get_service_actual_probability_to_sell(pid, def.output);
 
 			auto profit = output * actually_sold * cost_of_output - private_size * cost_of_input * actually_bought;
 
@@ -430,14 +444,19 @@ void update_profit_and_refund(sys::state& state) {
 			auto size = state.world.province_get_advanced_province_building_private_size(pid, id);
 			auto max_expansion_speed = max_size * max_city_expansion_rate + max_city_expansion_speed;
 
-			auto lots_of_empty_housing = size < max_size * 0.8f || state.world.province_get_service_sold(pid, id) < 0.8f;
+			auto lots_of_empty_housing = size < max_size * 0.8f || state.world.province_get_service_expected_probability_to_sell(pid, id) < 0.8f;
 
 			auto construction_scale = 0.f;
 
 			auto budget = std::max(0.f, state.world.province_get_advanced_province_building_private_savings(pid, id));
 			auto max_demand_scale = budget / material_cost_per_constructed_unit;
 
-			if((expected_profit_per_size - expected_maintenance > 0.f) && expected_days_to_payoff > 0.f && expected_days_to_payoff < 365.f * 5.f && !lots_of_empty_housing) {
+			if(
+				(expected_profit_per_size - expected_maintenance > 0.f)
+				&& expected_days_to_payoff > 0.f
+				&& expected_days_to_payoff < 365.f * 5.f
+				&& !lots_of_empty_housing
+			) {
 				/*
 				If new housing could pay off in a few months, we construct it as fast as possible.
 				If new housing could pay off only in 5 years, we stop construction.
@@ -449,8 +468,9 @@ void update_profit_and_refund(sys::state& state) {
 			Used property requires maintenance
 			*/
 
-			auto labor_sat = state.world.province_get_labor_demand_satisfaction(pid, economy::labor_constants::construction_labor);
-			auto demand_scale = std::min(max_demand_scale, construction_scale * std::max(0.f, labor_sat - 0.8f) * 5.f);
+			auto labor_sat = state.world.province_get_labor_actual_probability_to_buy(pid, economy::labor_constants::construction_labor);
+			auto labor_expected_sat = state.world.province_get_labor_expected_probability_to_buy(pid, economy::labor_constants::construction_labor);
+			auto demand_scale = std::min(max_demand_scale, construction_scale * std::max(0.f, labor_expected_sat - 0.8f) * 5.f);
 
 			/*
 			Find out how much we were able to buy.
@@ -467,9 +487,12 @@ void update_profit_and_refund(sys::state& state) {
 				auto amount =  costs.commodity_amounts[i] / build_time;
 				spendings += amount * state.world.market_get_price(mid, cid) * demand_scale * sat;
 			}
-			auto sat = state.world.province_get_labor_demand_satisfaction(pid, economy::labor_constants::construction_labor);
-			actually_bought = std::min(actually_bought, sat);
-			spendings += economy::labor_constants::labor_per_construction_unit * state.world.province_get_labor_price(pid, economy::labor_constants::construction_labor) * demand_scale * sat;
+
+			spendings +=
+				economy::labor_constants::labor_per_construction_unit
+				* state.world.province_get_labor_price(pid, economy::labor_constants::construction_labor)
+				* demand_scale
+				* labor_sat;
 
 			/*
 			Finally, we can advance construction and decay 
@@ -494,8 +517,8 @@ void update_private_size(sys::state& state) {
 
 		state.world.execute_serial_over_province([&](auto pids) {
 			auto owner = state.world.province_get_nation_from_province_ownership(pids);
-			auto tmod = state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::education_efficiency) + 1.0f;
-			auto nmod = state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::education_efficiency_modifier) + 1.0f;
+			auto tmod = ve::max(ve::fp_vector{ 0.1f }, state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::education_efficiency) + 1.0f);
+			auto nmod = ve::max(ve::fp_vector{ 0.1f }, state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::education_efficiency_modifier) + 1.0f);
 
 			/*
 			Urbanisation influences access to education facilities:
@@ -512,8 +535,8 @@ void update_private_size(sys::state& state) {
 			auto wage = state.world.province_get_labor_price(pids, def.throughput_labour_type) * 2.5f;
 			auto cost_of_output = state.world.province_get_service_price(pids, def.output) * local_education_efficiency * tmod * nmod * def.output_amount;
 			auto current_private_size = state.world.province_get_advanced_province_building_private_size(pids, bid);
-			auto sat = state.world.province_get_labor_demand_satisfaction(pids, def.throughput_labour_type);
-			auto sold = state.world.province_get_service_sold(pids, def.output) * 0.25f + 0.75f;
+			auto sat = state.world.province_get_labor_expected_probability_to_buy(pids, def.throughput_labour_type);
+			auto sold = state.world.province_get_service_expected_probability_to_sell(pids, def.output) * 0.25f + 0.75f;
 			auto gradient = economy::gradient_employment_i<ve::fp_vector>(cost_of_output, ve::fp_vector{0.f}, ve::fp_vector{1.f}, wage);
 			auto employment_change = economy::gradient_to_employment_change<ve::fp_vector>(gradient, wage, current_private_size, sat * sold);
 			auto new_private_size = current_private_size + employment_change;
@@ -533,7 +556,7 @@ void update_private_size(sys::state& state) {
 			auto efficiency = ports_efficiency(state, owner, max_size);
 			auto cost_of_output = state.world.province_get_service_price(pid, def.output) * efficiency * def.output_amount;
 			auto current_private_size = state.world.province_get_advanced_province_building_private_size(pid, bid);
-			auto sat = state.world.province_get_labor_demand_satisfaction(pid, def.throughput_labour_type);
+			auto sat = state.world.province_get_labor_expected_probability_to_buy(pid, def.throughput_labour_type);
 			auto gradient = economy::gradient_employment_i<ve::fp_vector>(cost_of_output, ve::fp_vector{ 0.f }, ve::fp_vector{ 1.f }, wage);
 			auto employment_change = economy::gradient_to_employment_change<ve::fp_vector>(gradient, wage, current_private_size, sat);
 			auto new_private_size = current_private_size + employment_change;
@@ -594,8 +617,8 @@ void update_national_size(sys::state& state) {
 		state.world.execute_serial_over_province([&](auto pids) {
 			auto owner = state.world.province_get_nation_from_province_ownership(pids);
 			auto invalid = owner == dcon::nation_id { };
-			auto tmod = state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::education_efficiency) + 1.0f;
-			auto nmod = state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::education_efficiency_modifier) + 1.0f;
+			auto tmod = ve::max(ve::fp_vector{ 0.1f }, state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::education_efficiency) + 1.0f);
+			auto nmod = ve::max(ve::fp_vector{ 0.1f }, state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::education_efficiency_modifier) + 1.0f);
 
 			auto local_education_efficiency = ve::min(
 				1.f,
@@ -618,9 +641,9 @@ void update_national_size(sys::state& state) {
 			auto limitation = ve::max(0.f, local_education_budget / cost_of_input);
 
 			auto current_size = state.world.province_get_advanced_province_building_national_size(pids, bid);
-			auto sat = state.world.province_get_labor_demand_satisfaction(pids, def.throughput_labour_type);
-			auto demand_education_satisfaction = state.world.province_get_service_satisfaction_for_free(pids, def.output);
-			auto expansion_rate = (sat - 0.5f) * (current_size * 0.01f + 1.f) * (1.f - demand_education_satisfaction);
+			auto sat = state.world.province_get_labor_expected_probability_to_buy(pids, def.throughput_labour_type);
+			//auto demand_education_satisfaction = state.world.province_get_service_expected_probability_to_obtain_for_free(pids, def.output);
+			auto expansion_rate = (sat - 0.5f) * (current_size * 0.01f + 1.f);
 			auto next_size = ve::min(ve::max(current_size + expansion_rate, 0.f), limitation);
 
 			state.world.province_set_advanced_province_building_national_size(pids, bid, ve::select(invalid, 0.f, next_size));
@@ -636,8 +659,8 @@ void update_production(sys::state& state) {
 
 		state.world.execute_serial_over_province([&](auto pids) {
 			auto owner = state.world.province_get_nation_from_province_ownership(pids);
-			auto tmod = state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::education_efficiency) + 1.0f;
-			auto nmod = state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::education_efficiency_modifier) + 1.0f;
+			auto tmod = ve::max(ve::fp_vector{ 0.1f }, state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::education_efficiency) + 1.0f);
+			auto nmod = ve::max(ve::fp_vector{ 0.1f }, state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::education_efficiency_modifier) + 1.0f);
 
 			auto local_education_efficiency = ve::min(
 				1.f,
@@ -645,7 +668,7 @@ void update_production(sys::state& state) {
 				/ (state.world.province_get_demographics(pids, demographics::total) + 1.f)
 			);
 
-			auto input_satisfaction = state.world.province_get_labor_demand_satisfaction(pids, def.throughput_labour_type);
+			auto input_satisfaction = state.world.province_get_labor_actual_probability_to_buy(pids, def.throughput_labour_type);
 			auto output = local_education_efficiency * tmod * nmod * input_satisfaction * def.output_amount;
 
 			auto current_private_size = state.world.province_get_advanced_province_building_private_size(pids, bid);
@@ -668,7 +691,7 @@ void update_production(sys::state& state) {
 		auto& def = definitions[bid];
 
 		state.world.execute_serial_over_province([&](auto pids) {
-			auto input_satisfaction = state.world.province_get_labor_demand_satisfaction(pids, def.throughput_labour_type);
+			auto input_satisfaction = state.world.province_get_labor_actual_probability_to_buy(pids, def.throughput_labour_type);
 			auto current_private_size = state.world.province_get_advanced_province_building_private_size(pids, bid);
 			auto owner = state.world.province_get_nation_from_province_ownership(pids);
 			auto max_size = state.world.province_get_advanced_province_building_max_private_size(pids, bid);

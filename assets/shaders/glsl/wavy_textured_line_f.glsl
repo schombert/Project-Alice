@@ -10,6 +10,7 @@ uniform float ignore_light;
 uniform float gamma;
 uniform vec2 screen_size;
 uniform float railroad_level;
+uniform float graphics_mode;
 
 uniform sampler2D provinces_texture_sampler;
 uniform sampler2D province_fow;
@@ -26,12 +27,17 @@ void main() {
 	vec2 prov_id = texture(provinces_texture_sampler, gl_FragCoord.xy / screen_size).xy;
 
 	if (ignore_light > 0.f) {
-		if (texture(provinces_sea_mask, prov_id).x > 0) {
-			frag_color = vec4(0.0f, 0.0f, 0.0f, sin(o_dist * 2.f));
+		if (texture(provinces_sea_mask, prov_id).x > 0 || graphics_mode > 0.5f) {
+			float score = sin(o_dist * 4.f);
+			if (score > -0.25f) {
+				frag_color = vec4(0.0f, 0.0f, 0.5f, 1.f);
+			} else {
+				frag_color = vec4(0.0f, 0.0f, 0.5f, 0.f);
+			}
 		} else {
 			float rail = max(0.f, sin(railroad_level * o_dist * 2.f));
 			rail = rail * rail;
-			frag_color = vec4(0.0f, 0.0f, 0.0f, (value) * (value) * 4.f + rail);
+			frag_color = vec4(0.5f, 0.0f, 0.0f, (value) * (value) * 4.f + rail);
 		}
 		return ;
 	}
@@ -39,7 +45,7 @@ void main() {
 	float darkness = max(0.f, -dot(light_direction, space_coords) + 0.1f);
 
 	float texture_mask = texture(line_texture, vec2(o_dist, tex_coord)).r;
-	if (texture(provinces_sea_mask, prov_id).x > 0 || (prov_id.x == 0.f && prov_id.y == 0.f)) {
+	if (texture(provinces_sea_mask, prov_id).x > 0 || (prov_id.x == 0.f && prov_id.y == 0.f) || (graphics_mode > 0.5f)) {
 		discard;
 	}
 	//out_color.rgb *= texture(province_fow, prov_id).rgb;
