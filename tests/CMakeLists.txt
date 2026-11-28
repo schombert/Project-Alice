@@ -63,7 +63,6 @@ catch_discover_tests(tests_project)
 set_target_properties(tests_project PROPERTIES BUILD_RPATH "$ORIGIN")
 
 
-target_compile_definitions(tests_project PRIVATE ALICE_NO_ENTRY_POINT)
 
 # add_custom_command(
 #    TARGET tests_project

@@ -760,13 +760,9 @@ void update_budget(sys::state& state, bool presim) {
 		float overseas_maintenance_budget_ratio = 0.10f;
 
 		if (presim) {
-			// set military supply sliders high in presim to simulate demand for military goods, and dont consume anything yet, just stockpile
+			// set military supply sliders high in presim to simulate demand for military goods
 			land_budget_ratio = 0.3f;
 			sea_budget_ratio = 0.3f;
-			naval_supply_consumption = 0.0f;
-			naval_reinf_consumption = 0.0f;
-			land_supply_consumption = 0.0f;
-			land_reinf_consumption = 0.0f;
 		}
 		else if(n.get_is_at_war()) {
 			land_budget_ratio *= 3.0f;

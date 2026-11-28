@@ -93,8 +93,8 @@ constexpr float vic2_hull_to_tonn = 20.f;
 constexpr float vic2_ship_crew_size = 150.f;
 constexpr float cargo_ship_maintenance_reduction = 0.01f;
 
-constexpr float base_gold_rgo_size = 250.0f;
-constexpr float base_gold_rgo_potential = 500.0f;
+constexpr float base_gold_rgo_size = 2500.0f;
+constexpr float base_gold_rgo_potential = 5000.0f;
 
 float pop_min_wage_factor(sys::state& state, dcon::nation_id n) {
 	return state.world.nation_get_modifier_values(n, sys::national_mod_offsets::minimum_wage);
