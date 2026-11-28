@@ -2224,6 +2224,15 @@ void explain_unit_consumption(sys::state& state, unit_type unit, text::columnar_
 		}
 	};
 
+	float national_penalty = [&]() {
+		if constexpr(std::is_same_v<unit_type, dcon::navy_id>) {
+			return military::get_over_naval_cap_penalty_modifier(state, military::unit_get_controller(state, unit));
+		}
+		else {
+			return 1.0f;
+		}
+	}();
+
 	auto routes = military::unit_get_supply_routes(state, unit);
 
 	for(auto route : routes) {
@@ -2235,10 +2244,10 @@ void explain_unit_consumption(sys::state& state, unit_type unit, text::columnar_
 				float com_supply_loss_mod = state.world.commodity_get_supply_loss_rate(base_commodity);
 				float loss_mult = logistics::supply_loss_to_loss_multiplier(state, supply_loss, com_supply_loss_mod);
 				float buffered_amount = logistics::military_route_get_buffered_goods(state, route.id, com_id);
-				commodities_actual_satisfied[base_commodity] += (buffered_amount * throughput * loss_mult);
-				commodities_satisfied_no_loss[base_commodity] += buffered_amount;
-				commodities_satisfied_w_throughput[base_commodity] += (buffered_amount * throughput);
-				commodities_satisfied_w_loss[base_commodity] += (buffered_amount * loss_mult);
+				commodities_actual_satisfied[base_commodity] += (buffered_amount * throughput * loss_mult * national_penalty);
+				commodities_satisfied_no_loss[base_commodity] += buffered_amount * national_penalty;
+				commodities_satisfied_w_throughput[base_commodity] += (buffered_amount * throughput * national_penalty);
+				commodities_satisfied_w_loss[base_commodity] += (buffered_amount * loss_mult * national_penalty);
 			});
 		}
 	}
@@ -2312,12 +2321,13 @@ public:
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto army = retrieve<dcon::army_id>(state, parent);
 		auto navy = retrieve<dcon::navy_id>(state, parent);
-
-		text::add_line(state, contents, "unit_current_supply", text::variable_type::val, int16_t(progress * 100.0f));
 		if(army) {
+			text::add_line(state, contents, "unit_current_supply_land", text::variable_type::val, int16_t(progress * 100.0f));
 			explain_unit_consumption<military::unit_consumption_type::supply>(state, army, contents);
 		}
 		else if(navy) {
+			float naval_cap_penalty = military::get_over_naval_cap_penalty_modifier(state, state.world.navy_get_controller_from_navy_control(navy));
+			text::add_line(state, contents, "unit_current_supply_naval", text::variable_type::val, int16_t(progress * 100.0f), text::variable_type::penalty, int16_t((1.0f - naval_cap_penalty) * 100.0f));
 			explain_unit_consumption<military::unit_consumption_type::supply>(state, navy, contents);
 		}
 
@@ -2368,7 +2378,8 @@ public:
 			explain_unit_consumption<military::unit_consumption_type::reinforcement>(state, army, contents);
 		}
 		else if(navy) {
-			text::add_line(state, contents, "unit_current_reinforcement_naval", text::variable_type::val, int16_t(progress * 100.0f));
+			float naval_limit_penalty = military::get_over_naval_cap_penalty_modifier(state, state.world.navy_get_controller_from_navy_control(navy));
+			text::add_line(state, contents, "unit_current_reinforcement_naval", text::variable_type::val, int16_t(progress * 100.0f), text::variable_type::penalty, int16_t((1.0f - naval_limit_penalty) * 100.0f));
 			explain_unit_consumption<military::unit_consumption_type::reinforcement>(state, navy, contents);
 		}
 

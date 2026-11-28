@@ -1389,12 +1389,13 @@ alice_mw_create_lp;We need ?R$x$?W ?Yleadership points?W to add
 alice_mw_controls_1;?YRight-click?W create ?Gall?W possible as generals
 alice_mw_controls_2;?YRight-click?W create ?Gall?W possible as admirals
 alice_daily_leadership_tt;$poptype$ provide ?G$value$?W leadership points (?Y$fraction$?W of the population, ?Y$optimal$?W is optimal). Extra leadership points will automatically be spent on creating new generals.
-unit_current_supply;This unit received ?Y$val$%?W of the supplies needed in the last day.\nThe amount we could get of our current supply consumption was:
+unit_current_supply_land;This unit received ?Y$val$%?W of the supplies needed in the last day.\nThe amount we could get of our current supply consumption was:
+unit_current_supply_naval;This unit received ?Y$val$%?W of the supplies needed in the last day.\nThe navy is losing ?Y$penalty$%?W of goods due to naval limit.\nThe amount we could get of our current supply consumption was:
 unit_current_supply_high;: ?Y$val$?W/?Y$value$?! ?l(?W?G$total$%?W?l satisfaction) (?Y$x$?W loss from supply routes) (?Y$y$?W throughput)
 unit_current_supply_mid;: ?Y$val$?!/?Y$value$?! ?l(?O$total$%?W?l satisfaction) (?Y$x$?W loss from routes) (?Y$y$?W throughput)
 unit_current_supply_low;: ?Y$val$?!/?Y$value$?! ?l(?R$total$%?W?l satisfaction) (?Y$x$?W loss from routes) (?Y$y$?W throughput)
 unit_current_reinforcement_land;This unit received ?Y$val$%?W of the reinforcements needed in the last day.\nThe amount we could get of our current reinforcement consumption was:
-unit_current_reinforcement_naval;This unit received ?Y$val$%?W of the repairs needed in the last day.\nThe amount we could get of our current repair consumption was:
+unit_current_reinforcement_naval;This unit received ?Y$val$%?W of the repairs needed in the last day.\nThe navy is losing ?Y$penalty$%?W of goods due to naval limit.\n The amount we could get of our current repair consumption was:
 alice_crisis_inactive;No current active crisis
 alice_crisis_finding_attacker;Finding an attacker for the current crisis
 alice_crisis_finding_defender;Finding a defender for the current crisis
