@@ -6975,7 +6975,9 @@ void apply_daily_attrition_to_navy(sys::state& state, dcon::navy_id navy) {
 void apply_daily_attrition(sys::state& state) {
 	concurrency::parallel_for(uint32_t(0), state.world.navy_size(), [&](uint32_t i) {
 		dcon::navy_id navy{ dcon::navy_id::value_base_t(i) };
-		apply_daily_attrition_to_navy(state, navy);
+		if (state.world.navy_is_valid(navy)) {
+			apply_daily_attrition_to_navy(state, navy);
+		}
 	});
 }
 
