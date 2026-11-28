@@ -525,7 +525,7 @@ json format_navy(sys::state& state, dcon::navy_id id) {
 	}
 	j["arrival_time"] = format_date(state, state.world.navy_get_arrival_time(id));
 	j["unused_travel_days"] = state.world.navy_get_unused_travel_days(id);
-	j["months_outside_naval_range"] = state.world.navy_get_months_outside_naval_range(id);
+	j["days_outside_naval_range"] = state.world.navy_get_days_outside_naval_range(id);
 	j["is_retreating"] = state.world.navy_get_is_retreating(id);
 	j["moving_to_merge"] = state.world.navy_get_moving_to_merge(id);
 	j["ai_activity"] = state.world.navy_get_ai_activity(id);

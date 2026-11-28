@@ -27,6 +27,7 @@ struct scene_properties {
 	bool accept_events = false;
 	bool is_lobby = false;
 	bool game_in_progress = true;
+	bool renders_units = false;
 
 	borders_granularity borders = borders_granularity::province;
 

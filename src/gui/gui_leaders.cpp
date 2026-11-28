@@ -2,6 +2,7 @@
 #include "gui_templates.hpp"
 #include "gui_listbox_templates.hpp"
 #include "commands.hpp"
+#include "game_scene.hpp"
 
 namespace ui {
 
@@ -18,6 +19,28 @@ public:
 			command::change_admiral(state, state.local_player_nation, v, dcon::leader_id{});
 		}
 		state.ui_state.change_leader_window->set_visible(state, false);
+	}
+};
+struct toggle_show_assigned_leaders {
+
+};
+struct get_show_assigned_leaders {
+	bool value;
+};
+class show_assigned_leaders_checkbox : public checkbox_button {
+public:
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		text::add_line(state, contents, "show_assigned_leaders_tt");
+	}
+	bool is_active(sys::state& state) noexcept override {
+		bool value = retrieve<get_show_assigned_leaders>(state, parent).value;
+		return value;
+	}
+	void button_action(sys::state& state) noexcept override {
+		send(state, parent, toggle_show_assigned_leaders{ });
 	}
 };
 
@@ -62,7 +85,14 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		dcon::leader_id lid = retrieve<dcon::leader_id>(state, parent);
 		if(lid) {
-			set_text(state, std::string(state.to_string_view(state.world.leader_get_name(lid))));
+			auto leader_is_assigned = bool(state.world.leader_get_army_from_army_leadership(lid)) || bool(state.world.leader_get_navy_from_navy_leadership(lid));
+			if (leader_is_assigned) {
+				// A star shows they are currently assigned
+				set_text(state, std::string(state.to_string_view(state.world.leader_get_name(lid))) + " *");
+			}
+			else{
+				set_text(state, std::string(state.to_string_view(state.world.leader_get_name(lid))));
+			}
 		} else {
 			set_text(state, text::produce_simple_string(state, "no_leader"));
 		}
@@ -329,6 +359,21 @@ public:
 
 class set_leader_button : public button_element_base {
 public:
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		text::add_line(state, contents, "leader_entry_tt");
+	}
+	void on_update(sys::state& state) noexcept override {
+		auto lid = retrieve<dcon::leader_id>(state, parent);
+		if(auto selected_army = retrieve<dcon::army_id>(state, parent);  selected_army) {
+			disabled = !command::can_change_general(state, state.local_player_nation, selected_army, lid);
+
+		} else if(auto selected_navy = retrieve<dcon::navy_id>(state, parent); selected_navy) {
+			disabled = !command::can_change_admiral(state, state.local_player_nation, selected_navy, lid);
+		}
+	}
 	void button_action(sys::state& state) noexcept override {
 		auto lid = retrieve<dcon::leader_id>(state, parent);
 		if(auto a = retrieve<dcon::army_id>(state, parent);  a) {
@@ -442,18 +487,22 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
 
+		bool show_assigned_leaders = retrieve<get_show_assigned_leaders>(state, parent).value;
+
 		if(auto a = retrieve<dcon::army_id>(state, parent);  a) {
+			auto current_leader = state.world.army_get_general_from_army_leadership(a);
 			for(auto l : state.world.nation_get_leader_loyalty(state.local_player_nation)) {
-				if(l.get_leader().get_is_admiral() == false) {
-					if(bool(l.get_leader().get_army_from_army_leadership()) == false)
-						row_contents.push_back(l.get_leader());
+				bool is_assigned = bool(state.world.leader_get_army_from_army_leadership(l.get_leader()));
+				if(l.get_leader().get_is_admiral() == false && current_leader != l.get_leader() && (!is_assigned  || show_assigned_leaders)) {
+					row_contents.push_back(l.get_leader());
 				}
 			}
 		} else if(auto v = retrieve<dcon::navy_id>(state, parent); v) {
+			auto current_leader = state.world.navy_get_admiral_from_navy_leadership(v);
 			for(auto l : state.world.nation_get_leader_loyalty(state.local_player_nation)) {
-				if(l.get_leader().get_is_admiral() == true) {
-					if(bool(l.get_leader().get_navy_from_navy_leadership()) == false)
-						row_contents.push_back(l.get_leader());
+				bool is_assigned = bool(state.world.leader_get_navy_from_navy_leadership(l.get_leader()));
+				if(l.get_leader().get_is_admiral() == true && current_leader != l.get_leader() && (!is_assigned  || show_assigned_leaders)) {
+					row_contents.push_back(l.get_leader());
 				}
 			}
 		}
@@ -602,6 +651,8 @@ std::unique_ptr<element_base> leader_selection_window::make_child(sys::state& st
 		auto ptr = make_element_by_type<leader_select_listbox>(state, id);
 		lb = ptr.get();
 		return ptr;
+	} else if(name == "show_assigned_leaders_checkbox") {
+		return make_element_by_type<show_assigned_leaders_checkbox>(state, id);
 	} else {
 		return nullptr;
 	}
@@ -623,6 +674,13 @@ message_result leader_selection_window::get(sys::state& state, Cyto::Any& payloa
 	} else if(payload.holds_type<leader_select_sort>()) {
 		lb->sort_type = any_cast<leader_select_sort>(payload);
 		lb->impl_on_update(state);
+		return message_result::consumed;
+	} else if (payload.holds_type<toggle_show_assigned_leaders>()) {
+		show_assigned_leaders = !show_assigned_leaders;
+		state.game_state_updated.store(true, std::memory_order::release);
+		return message_result::consumed;
+	} else if (payload.holds_type<get_show_assigned_leaders>()) {
+		payload.emplace<get_show_assigned_leaders>(show_assigned_leaders);
 		return message_result::consumed;
 	}
 	return window_element_base::get(state, payload);

@@ -11,4 +11,6 @@ enum class projection_mode : uint8_t {
 	globe_stereographic = 3,
 	num_of_modes = 4
 };
+// The amount of days to use as an approximation of a month when scaling up daily things to be monthly
+constexpr inline uint32_t month_approx_days = 30;
 }

@@ -45,7 +45,7 @@ struct naval_range_data {
 };
 
 bool province_is_deep_waters(const sys::state& state, dcon::province_id prov);
-bool sea_province_is_adjacent_to_accessible_coast(sys::state& state, dcon::province_id prov, dcon::nation_id nation);
+bool sea_province_is_adjacent_to_accessible_coast(const sys::state& state, dcon::province_id prov, dcon::nation_id nation);
 
 bool nations_are_adjacent(sys::state& state, dcon::nation_id a, dcon::nation_id b);
 bool provinces_are_adjacent(const sys::state& state, dcon::province_id a, dcon::province_id b);
@@ -116,7 +116,7 @@ void upgrade_colonial_state(sys::state& state, dcon::nation_id owner, dcon::stat
 // distance from a state to a given province (does not pathfind)
 float state_distance(sys::state& state, dcon::state_instance_id state_id, dcon::province_id prov_id);
 // distance between to adjacent provinces
-float distance(sys::state& state, dcon::province_adjacency_id pair);
+float distance(const sys::state& state, dcon::province_adjacency_id pair);
 
 // distance in kilometers between to adjacent provinces
 float distance_km(sys::state const& state, dcon::province_adjacency_id pair);
@@ -127,7 +127,7 @@ float direct_distance(sys::state const& state, dcon::province_id a, dcon::provin
 float direct_distance_km(sys::state const& state, dcon::province_id a, dcon::province_id b);
 
 // naval range distance between a port and a sea province. Must take the distance of a naval path instead of direct distance
-naval_range_data naval_range_distance(sys::state& state, dcon::province_id port_prov, dcon::province_id sea_prov, dcon::nation_id nation_as);
+naval_range_data naval_range_distance(const sys::state& state, dcon::province_id port_prov, dcon::province_id sea_prov, dcon::nation_id nation_as);
 // sorting distance returns values such that a smaller sorting distance between two provinces
 // means that they are closer, but does not translate 1 to 1 to actual distances (i.e. is the negative dot product)
 float sorting_distance(sys::state& state, dcon::province_id a, dcon::province_id b);
@@ -136,7 +136,7 @@ float state_sorting_distance(sys::state& state, dcon::state_instance_id state_id
 // determines whether a land unit is allowed to move to / be in a province
 bool has_access_to_province(const sys::state& state, dcon::nation_id nation_as, dcon::province_id prov);
 // whether a ship can dock at a land province
-bool has_naval_access_to_province(sys::state& state, dcon::nation_id nation_as, dcon::province_id prov);
+bool has_naval_access_to_province(const sys::state& state, dcon::nation_id nation_as, dcon::province_id prov);
 // determines whether a land unit is allowed to move to / be in a province that isn't an active enemy
 bool has_safe_access_to_province(sys::state& state, dcon::nation_id nation_as, dcon::province_id prov);
 
@@ -170,13 +170,13 @@ std::vector<dcon::province_id> make_land_trade_path(sys::state const& state, dco
 std::vector<dcon::province_id> make_unowned_land_path(sys::state& state, dcon::province_id start, dcon::province_id end);
 
 // wrapper for checking if adjacencies are valid for make_naval_unit_path
-bool make_naval_unit_path_adjacency_valid(sys::state& state, dcon::nation_id nation_as, dcon::province_id to, dcon::province_id from, dcon::province_adjacency_id adj);
+bool make_naval_unit_path_adjacency_valid(const sys::state& state, dcon::nation_id nation_as, dcon::province_id to, dcon::province_id from, dcon::province_adjacency_id adj);
 
 // wrapper for checking if provinces are valid for make_naval_unit_path
-bool make_naval_unit_path_province_valid(sys::state& state, dcon::nation_id nation_as, dcon::province_id to);
+bool make_naval_unit_path_province_valid(const sys::state& state, dcon::nation_id nation_as, dcon::province_id to);
 
 // naval unit pathfinding; start and end provinces may be land provinces; function assumes you have naval access to both
-std::vector<dcon::province_id> make_naval_unit_path(sys::state& state, dcon::province_id start, dcon::province_id end, dcon::nation_id nation_as);
+std::vector<dcon::province_id> make_naval_unit_path(const sys::state& state, dcon::province_id start, dcon::province_id end, dcon::nation_id nation_as);
 //for sea trade routes
 std::vector<dcon::province_id> make_sea_trade_route_path(sys::state const& state, dcon::province_id start, dcon::province_id end);
 //naval retreats

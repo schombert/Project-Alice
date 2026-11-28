@@ -167,7 +167,7 @@ int32_t get_border_index(uint16_t map_province_id1, uint16_t map_province_id2, p
 	auto province_id2 = province::from_map_id(map_province_id2);
 	auto border_index = context.state.world.get_province_adjacency_by_province_pair(province_id1, province_id2);
 	if(!border_index)
-		border_index = context.state.world.force_create_province_adjacency(province_id1, province_id2);
+		border_index = context.state.world.force_create_province_adjacency(province_id1, province_id2, dcon::province_id{});
 	if(!province_id1 || !province_id2) {
 		context.state.world.province_adjacency_set_type(border_index, province::border::impassible_bit);
 	}
@@ -218,7 +218,7 @@ void display_data::load_border_data(parsers::scenario_building_context& context)
 
 			if(prov_id_ul != prov_id_ur || prov_id_ul != prov_id_dl || prov_id_ul != prov_id_dr) {
 				if(prov_id_ul != prov_id_ur && prov_id_ur != 0 && prov_id_ul != 0) {
-					context.state.world.try_create_province_adjacency(province::from_map_id(prov_id_ul), province::from_map_id(prov_id_ur));
+					context.state.world.try_create_province_adjacency(province::from_map_id(prov_id_ul), province::from_map_id(prov_id_ur), dcon::province_id{});
 
 					auto aval = context.state.world.get_province_adjacency_by_province_pair(province::from_map_id(prov_id_ul), province::from_map_id(prov_id_ur));
 					if((context.state.world.province_adjacency_get_type(aval) & province::border::non_adjacent_bit) != 0)
@@ -226,7 +226,7 @@ void display_data::load_border_data(parsers::scenario_building_context& context)
 					
 				}
 				if(prov_id_ul != prov_id_dl && prov_id_dl != 0 && prov_id_ul != 0) {
-					context.state.world.try_create_province_adjacency(province::from_map_id(prov_id_ul), province::from_map_id(prov_id_dl));
+					context.state.world.try_create_province_adjacency(province::from_map_id(prov_id_ul), province::from_map_id(prov_id_dl), dcon::province_id{});
 
 					auto aval = context.state.world.get_province_adjacency_by_province_pair(province::from_map_id(prov_id_ul), province::from_map_id(prov_id_dl));
 					if((context.state.world.province_adjacency_get_type(aval) & province::border::non_adjacent_bit) != 0)
@@ -282,10 +282,10 @@ void display_data::load_border_data(parsers::scenario_building_context& context)
 			if(prov_id_ul != prov_id_ur || prov_id_ul != prov_id_dl || prov_id_ul != prov_id_dr) {
 
 				if(prov_id_ul != prov_id_ur && prov_id_ur != 0 && prov_id_ul != 0) {
-					context.state.world.try_create_province_adjacency(province::from_map_id(prov_id_ul), province::from_map_id(prov_id_ur));
+					context.state.world.try_create_province_adjacency(province::from_map_id(prov_id_ul), province::from_map_id(prov_id_ur), dcon::province_id{});
 				}
 				if(prov_id_ul != prov_id_dl && prov_id_dl != 0 && prov_id_ul != 0) {
-					context.state.world.try_create_province_adjacency(province::from_map_id(prov_id_ul), province::from_map_id(prov_id_dl));
+					context.state.world.try_create_province_adjacency(province::from_map_id(prov_id_ul), province::from_map_id(prov_id_dl), dcon::province_id{});
 				}
 				// We don't create adjacencies for diagnoal-only connections, to keep it consistent with Vic2 behavoir. Some mods rely on this (eg GFM)
 				/*if(prov_id_ul != prov_id_dr && prov_id_dr != 0 && prov_id_ul != 0) {

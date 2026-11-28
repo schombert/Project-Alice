@@ -896,16 +896,16 @@ tagged_vector<float, dcon::commodity_id> estimate_nation_construction_consumptio
 	tagged_vector<float, dcon::commodity_id> consumption(state.world.commodity_size());
 
 	nations::nation_for_each_construction(state, nation, [&](auto construction) {
+		if (!economy::construction_is_privately_owned(state, construction)) {
+			float construction_consumption = static_cast<float>(nations::get_nation_construction_consumption_setting_by_type<decltype(construction)>(state, nation)) / 100.0f;
+			float construction_days = static_cast<float>(construction_get_actual_construction_time(state, construction));
 
-		float construction_consumption = static_cast<float>(nations::get_nation_construction_consumption_setting_by_type<decltype(construction)>(state, nation)) / 100.0f;
-		float construction_days = static_cast<float>(construction_get_actual_construction_time(state, construction));
-
-		auto accumulate_func = [&](dcon::commodity_id com_id, float required_amount, float total_required) {
-			float demand_amount = std::min(total_required / construction_days * construction_consumption, required_amount); // Tie the demand amount to add to the construction consumption setting of the nation. Low consumption setting -> we won't try to purchase as much
-			consumption[com_id] += demand_amount;
-		};
-
-		accumulate_construction_daily_goods_requirements(state, construction, accumulate_func);
+			auto accumulate_func = [&](dcon::commodity_id com_id, float required_amount, float total_required) {
+				float demand_amount = std::min(total_required / construction_days * construction_consumption, required_amount); // Tie the demand amount to add to the construction consumption setting of the nation. Low consumption setting -> we won't try to purchase as much
+				consumption[com_id] += demand_amount;
+			};
+			accumulate_construction_daily_goods_requirements(state, construction, accumulate_func);
+		}
 
 	});
 	return consumption;

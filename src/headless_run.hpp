@@ -6,6 +6,9 @@
 #include <filesystem>
 #include <string>
 
+#include "commands.hpp"
+#include "economy_stats.hpp"
+
 namespace headless {
 
 inline std::string ymd_str(sys::year_month_day d) {

@@ -409,9 +409,12 @@ bool will_recieve_attrition(sys::state& state, dcon::navy_id a);
 bool will_recieve_attrition(sys::state& state, dcon::army_id a);
 float attrition_amount(sys::state& state, dcon::navy_id a);
 float attrition_amount(sys::state& state, dcon::army_id a);
-float relative_attrition_amount(sys::state& state, dcon::navy_id a, dcon::province_id prov);
-float relative_attrition_amount(sys::state& state, dcon::army_id a, dcon::province_id prov, float additional_army_weight = 0.0f);
-float relative_attrition_amount(sys::state& state, dcon::army_id a, dcon::province_id prov, const std::vector<dcon::army_id>& extra_armies);
+float relative_monthly_attrition_amount(const sys::state& state, dcon::navy_id a, dcon::province_id prov);
+float relative_monthly_attrition_amount(sys::state& state, dcon::army_id a, dcon::province_id prov, float additional_army_weight = 0.0f);
+float relative_monthly_attrition_amount(sys::state& state, dcon::army_id a, dcon::province_id prov, const std::vector<dcon::army_id>& extra_armies);
+float ship_attrition_modifiers(const sys::state& state, dcon::ship_id ship);
+float navy_attrition_modifiers(const sys::state& state, dcon::navy_id a, dcon::province_id prov);
+
 float local_army_weight(sys::state& state, dcon::province_id prov);
 float local_army_weight_max(sys::state& state, dcon::province_id prov);
 float local_enemy_army_weight_max(sys::state& state, dcon::province_id prov, dcon::nation_id nation);
@@ -483,6 +486,8 @@ void set_siege_progress(sys::state& state, dcon::province_id prov, float new_val
 void update_siege_progress(sys::state& state);
 void single_ship_start_retreat(sys::state& state, ship_in_battle& ship, dcon::naval_battle_id battle);
 
+float get_over_naval_cap_penalty_modifier(const sys::state& state, dcon::nation_id nation);
+
 unit_priority get_effective_unit_supply_priority(const sys::state& state, dcon::army_id army, dcon::nation_id owner);
 unit_priority get_effective_unit_supply_priority(const sys::state& state, dcon::navy_id navy, dcon::nation_id owner);
 
@@ -516,8 +521,9 @@ void delete_ship_safe_w_army_transport_loss(sys::state& state, dcon::ship_id shi
 // Finds the closest regiment from a position with a given max offset in the provided combat slots. Returns an invalid regiment ID if none found
 battle_regiment get_regiment_at_offset_in_combat_slots(int32_t position, uint32_t max_offset, const std::array<battle_regiment, max_combat_width>& combat_slots);
 battle_regiment get_land_combat_target(const sys::state& state, dcon::regiment_id damage_dealer, int32_t position, const std::array<battle_regiment, max_combat_width>& opposing_line);
-void apply_attrition_to_army(sys::state& state, dcon::army_id army);
-void apply_attrition(sys::state& state);
+void apply_monthly_attrition_to_army(sys::state& state, dcon::army_id army);
+void apply_monthly_attrition(sys::state& state);
+void apply_daily_attrition(sys::state& state);
 void increase_dig_in(sys::state& state);
 
 // Get the last days' required goods need for a unit. Either reinforcement need or supply need depending on template param

@@ -1618,6 +1618,12 @@ guiTypes = {
 			format = centre
 		}
 		iconType = {
+            name ="small_attrition_icon"
+            spriteType = "GFX_unit_attr"
+            position = { 20 -22 }
+            Orientation = "UPPER_LEFT"
+        }
+		iconType = {
 			name ="level1"
 			spriteType = "GFX_alice_port_levels"
 			position = { -23 -7 }
@@ -2825,6 +2831,11 @@ guiTypes = {
 			buttonText = "NO_LEADER"
 			buttonFont = "vic_18_black"
 		}
+		guiButtonType = {
+            name = "show_assigned_leaders_checkbox"
+            position = { 24 382 }
+            quadTextureSprite = "GFX_checkbox_default"
+        }
 
 		listboxType = {
 			name ="leaderlist"
@@ -5541,7 +5552,7 @@ guiTypes = {
 	}
 	OverlappingElementsBoxType = {
 		name = "alice_diplomessageicons_window"
-		position = { 435 90 }	
+		position = { 560 90 }
 		size = { 576 48 }
 		Orientation = "UPPER_LEFT"
 		format = centre

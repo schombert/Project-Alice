@@ -29,6 +29,7 @@ using std::format;
 #include <fcntl.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
+#include <netinet/tcp.h>
 #include <netdb.h>
 #include <arpa/inet.h>
 #include <stdio.h>
@@ -767,7 +768,7 @@ static socket_t socket_init_server(bool as_v6, struct sockaddr_storage& server_a
 	}
 #else
 	if(socket_fd < 0)
-		std::abort();
+		window::emit_error_message("Network socket error: " + get_last_error_msg(), true);
 #endif
 	struct timeval timeout;
 	timeout.tv_sec = 60;
@@ -813,6 +814,8 @@ static socket_t socket_init_server(bool as_v6, struct sockaddr_storage& server_a
 	if(listen(socket_fd, SOMAXCONN) < 0) {
 		window::emit_error_message("Network listen error: " + get_last_error_msg(), true);
 	}
+	int flag = 1;
+	setsockopt(socket_fd, IPPROTO_TCP, TCP_NODELAY, (char*)&flag, sizeof(flag));
 	set_socket_nonblocking(socket_fd);
 	return socket_fd;
 }
@@ -855,6 +858,8 @@ static socket_t socket_init_client(bool& as_v6, struct sockaddr_storage& client_
 	if(connect(socket_fd, (const struct sockaddr*)&client_address, as_v6 ? sizeof(sockaddr_in6) : sizeof(sockaddr_in)) < 0) {
 		window::emit_error_message("Network connect error: " + get_last_error_msg(), true);
 	}
+	int opt = 1;
+	setsockopt(socket_fd, IPPROTO_TCP, TCP_NODELAY, (char*)&opt, sizeof(opt));
 	set_socket_nonblocking(socket_fd);
 	return socket_fd;
 }

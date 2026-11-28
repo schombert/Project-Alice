@@ -91,6 +91,8 @@ total_stockpile_spendings_by_commodity estimate_total_stockpile_spendings_by_com
 
 tagged_vector<float, dcon::unit_supply_and_build_commodity_id> estimate_nation_army_consumption(const sys::state& state, dcon::nation_id nation);
 tagged_vector<float, dcon::unit_supply_and_build_commodity_id> estimate_nation_navy_consumption(const sys::state& state, dcon::nation_id nation);
+
+void estimate_nation_army_and_navy_consumption(const sys::state& state, dcon::nation_id nation, tagged_vector<float, dcon::unit_supply_and_build_commodity_id>& buf_out);
 tagged_vector<float, dcon::unit_supply_and_build_commodity_id> estimate_nation_army_and_navy_consumption(const sys::state& state, dcon::nation_id nation);
 
 bool nation_is_constructing_factories(sys::state& state, dcon::nation_id n);

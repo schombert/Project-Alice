@@ -641,7 +641,7 @@ public:
 		state.world.for_each_province([&](auto pid) {
 			auto total_weight = total_adjacency_weight.get(pid) + 0.00001f;
 			auto control_to_transfer = control_buffer_asis.get(pid) * 0.05f;
-			state.world.province_for_each_province_adjacency(pid, [&](auto adj) {
+			state.world.province_for_each_province_adjacency_as_connected_provinces(pid, [&](auto adj) {
 				auto other = state.world.province_adjacency_get_connected_provinces(adj, 0);
 				if(other == pid) {
 					other = state.world.province_adjacency_get_connected_provinces(adj, 1);

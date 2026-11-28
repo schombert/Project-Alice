@@ -2007,6 +2007,12 @@ relationship{
 		index_storage{array}
 		multiple{2}
 	}
+	link{
+        object{ province }
+        name{ blocking_prov }
+        type{ many }{optional}
+        index_storage{ array }
+    }
 	
 	composite_key{
 		name{province_pair}
@@ -2022,11 +2028,6 @@ relationship{
 		name{ distance_km }
 		type{ float }
 		
-	}
-	property{
-		name{ canal_or_blockade_province }
-		type{ dcon::province_id }
-		tag{ save }
 	}
 	property{
 		name{ used_supply_throughput }
@@ -2327,6 +2328,11 @@ object {
 		tag{ save }
 	}
 	property{
+        name{ days_low_supply }
+        type{ uint8_t }
+        tag{ save }
+    }
+	property{
 		name{ experience }
 		type{ float }
 		tag{ save }
@@ -2504,7 +2510,7 @@ object {
 		tag{ save }
 	}
 	property{
-		name{ months_outside_naval_range }
+		name{ days_outside_naval_range }
 		type{ uint8_t }
 		tag{ save }
 	}

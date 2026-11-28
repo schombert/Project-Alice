@@ -998,7 +998,9 @@ void update_modifier_effects(sys::state& state) {
 	recreate_national_modifiers(state);
 	recreate_province_modifiers(state);
 	for(auto n : state.world.in_nation) {
-		economy::bound_budget_settings(state, n);
+		if (nations::exists(state, n)) {
+			economy::bound_budget_settings(state, n);
+		}
 	}
 }
 

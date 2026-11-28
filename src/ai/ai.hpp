@@ -22,6 +22,7 @@ void take_reforms(sys::state& state);
 void remove_ai_data(sys::state& state, dcon::nation_id n);
 void update_ships(sys::state& state);
 void build_ships(sys::state& state);
+void delete_bad_ships(sys::state& state);
 void refresh_home_ports(sys::state& state);
 void daily_cleanup(sys::state& state);
 void move_idle_guards(sys::state& state);

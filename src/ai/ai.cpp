@@ -22,6 +22,14 @@
 
 namespace ai {
 
+// Amount of days in addition to define: naval_low_supply_damage_days_delay to wait to get supplies before deleting a ship. Also must be below the strength indicated by ai_ship_strength_delete_threshold to be deleted
+constexpr uint32_t ai_ship_low_supply_days_delete_threshold = 50;
+constexpr float ai_ship_strength_delete_threshold = 0.3f;
+// How many ships is the ai allowed to delete per month due to low supply?
+constexpr uint32_t ai_max_ship_delete_per_month = 10;
+
+
+
 void take_ai_decisions(sys::state& state) {
 	using decision_nation_pair = std::pair<dcon::decision_id, dcon::nation_id>;
 	concurrency::combinable<std::vector<decision_nation_pair, dcon::cache_aligned_allocator<decision_nation_pair>>> decisions_taken;
@@ -468,6 +476,35 @@ void update_ships(sys::state& state) {
 		military::cleanup_navy(state, s);
 	}
 }
+void delete_nation_bad_ships(sys::state& state, dcon::nation_id n, uint32_t max_to_delete) {
+	for (auto na : state.world.nation_get_navy_control(n)) {
+		auto navy = na.get_navy();
+		if (command::can_delete_navy(state, n, navy)) {
+			for (auto s : navy.get_navy_membership()) {
+				auto ship = s.get_ship();
+				float ship_str = ship.get_strength();
+				bool is_transport = state.military_definitions.unit_base_definitions[ship.get_type()].type == military::unit_type::transport;
+				// don't delete transports to prevent the ai from kneecapping itself. They also work just fine at low strength
+				if (!is_transport && ship.get_days_low_supply() > uint32_t(state.defines.naval_low_supply_damage_days_delay) + ai_ship_low_supply_days_delete_threshold && ship_str < ai_ship_strength_delete_threshold) {
+					military::delete_ship_safe(state, ship);
+					max_to_delete--;
+					if (max_to_delete == 0) {
+						return;
+					}
+				}
+			}
+		}
+	}
+}
+void delete_bad_ships(sys::state& state) {
+	for(auto n : state.world.in_nation) {
+		bool exists = nations::exists(state, n);
+		auto navies = n.get_navy_control();
+		if(exists && !n.get_is_player_controlled() && navies.begin() != navies.end()) {
+			delete_nation_bad_ships(state, n, ai_max_ship_delete_per_month);
+		}
+	}
+}
 
 void build_ships(sys::state& state) {
 	for(auto n : state.world.in_nation) {
@@ -574,7 +611,6 @@ void build_ships(sys::state& state) {
 				}
 			}
 
-			int32_t used_points = n.get_used_naval_supply_points();
 			auto rem_free = target_naval_supply_points - (fleet_cap_in_transports + fleet_cap_in_small + fleet_cap_in_big + constructing_fleet_cap);
 			fleet_cap_in_small = std::max(fleet_cap_in_small, 1);
 			fleet_cap_in_big = std::max(fleet_cap_in_big, 1);
@@ -980,7 +1016,7 @@ void distribute_guards(sys::state& state, dcon::nation_id n) {
 		if(c.get_province() == cap)
 			cls = province_class::border;
 
-		for(auto padj : c.get_province().get_province_adjacency()) {
+		for(auto padj : c.get_province().get_province_adjacency_as_connected_provinces()) {
 			auto other = padj.get_connected_provinces(0) == c.get_province() ? padj.get_connected_provinces(1) : padj.get_connected_provinces(0);
 			auto n_controller = other.get_nation_from_province_control();
 			auto ovr = n_controller.get_overlord_as_subject().get_ruler();
@@ -1085,7 +1121,7 @@ void distribute_guards(sys::state& state, dcon::nation_id n) {
 					for(uint32_t k = uint32_t(guards_list.size()); k-- > 0;) {
 						auto guard_loc = state.world.army_get_location_from_army_location(guards_list[k]);
 
-						if(military::relative_attrition_amount(state, guards_list[k], p) >= 2.f)
+						if(military::relative_monthly_attrition_amount(state, guards_list[k], p) >= 2.f)
 							continue; //too heavy
 
 						/*

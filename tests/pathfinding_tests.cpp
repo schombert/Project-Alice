@@ -270,7 +270,7 @@ std::vector<dcon::province_id> make_path_to_expression_tagged_vector_heap(sys::s
 		// add current to closed list immediately
 		current_node.is_in_closed_list = true;
 
-		for(auto adj : state.world.province_get_province_adjacency(current_prov)) {
+		for(auto adj : state.world.province_get_province_adjacency_as_connected_provinces(current_prov)) {
 			auto other_prov =
 				adj.get_connected_provinces(0) == current_prov ? adj.get_connected_provinces(1) : adj.get_connected_provinces(0);
 			auto bits = adj.get_type();
@@ -369,7 +369,7 @@ std::vector<dcon::province_id> make_path_to_expression_tagged_vector_thread_loca
 		// add current to closed list immediately
 		current_node.is_in_closed_list = true;
 
-		for(auto adj : state.world.province_get_province_adjacency(current_prov)) {
+		for(auto adj : state.world.province_get_province_adjacency_as_connected_provinces(current_prov)) {
 			auto other_prov =
 				adj.get_connected_provinces(0) == current_prov ? adj.get_connected_provinces(1) : adj.get_connected_provinces(0);
 			auto bits = adj.get_type();

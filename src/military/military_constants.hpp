@@ -1,4 +1,5 @@
 #pragma once
+#include "constants_state.hpp"
 
 namespace military {
 
@@ -59,6 +60,10 @@ constexpr inline int32_t river_crossing_modifier = -1;
 constexpr inline int32_t strait_crossing_modifier = -2;
 
 constexpr inline int32_t days_before_retreat = 11;
+
+constexpr inline float navy_deep_sea_base_daily_attrition = 0.01f / static_cast<float>(sys::month_approx_days);
+// for each month outside naval range, this is applied ontop
+constexpr inline float navy_months_outside_range_daily_attrition = 0.02f / static_cast<float>(sys::month_approx_days);
 
 enum class battle_result {
 	indecisive, attacker_won, defender_won

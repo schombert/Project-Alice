@@ -242,7 +242,7 @@ void display_data::update_fog_of_war(sys::state& state) {
 		for(auto p : direct_provinces) {
 			if(bool(p)) {
 				state.map_state.visible_provinces[province::to_map_id(p)] = true;
-				for(auto c : state.world.province_get_province_adjacency(p)) {
+				for(auto c : state.world.province_get_province_adjacency_as_connected_provinces(p)) {
 					auto pc = c.get_connected_provinces(0) == p ? c.get_connected_provinces(1) : c.get_connected_provinces(0);
 					if(bool(pc)) {
 						state.map_state.visible_provinces[province::to_map_id(pc)] = true;

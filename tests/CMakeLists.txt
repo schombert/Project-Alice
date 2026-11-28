@@ -59,6 +59,11 @@ include(CTest)
 include(Catch)
 catch_discover_tests(tests_project)
 
+# Stop trying to look for luajit in system directories on linux
+set_target_properties(tests_project PROPERTIES BUILD_RPATH "$ORIGIN")
+
+
+
 # add_custom_command(
 #    TARGET tests_project
 #     COMMENT "Run tests"

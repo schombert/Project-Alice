@@ -4276,6 +4276,11 @@ bool main_menu_graphics_railroad_label_t::button_action(sys::state& state) noexc
 void main_menu_graphics_fonts_label_t::on_update(sys::state& state) noexcept {
 	main_menu_graphics_t& graphics = *((main_menu_graphics_t*)(parent)); 
 // BEGIN graphics::fonts_label::update
+	// Disable classic fonts for now as they are broken
+	if (!state.user_settings.use_classic_fonts)
+	{
+		disabled = true;
+	}
 	set_active(state, state.user_settings.use_classic_fonts);
 // END
 }

@@ -13,7 +13,7 @@
 namespace ui {
 
 float selected_relative_attrition_amount(sys::state& state, dcon::nation_id n, dcon::army_id current_army, const std::vector<dcon::army_id>& list, dcon::province_id prov) {
-	return military::relative_attrition_amount(state, current_army, prov, list);
+	return military::relative_monthly_attrition_amount(state, current_army, prov, list);
 }
 
 void country_name_box(sys::state& state, text::columnar_layout& contents, dcon::province_id prov) {
@@ -934,7 +934,7 @@ void supply_route_efficiency_map_tt_box(sys::state& state, text::columnar_layout
 		bool supply_access = province::has_supply_access_to_province(state, state.local_player_nation, prov);
 		bool fow_enabled = gamerule::nation_has_fow_enabled(state, state.local_player_nation);
 		
-		for(auto adj : fat.get_province_adjacency()) {
+		for(auto adj : fat.get_province_adjacency_as_connected_provinces()) {
 			auto indx = (adj.get_connected_provinces(0).id != prov ? 0 : 1);
 			auto adj_prov = adj.get_connected_provinces(indx);
 			bool is_coastal_adj = (state.world.province_adjacency_get_type(adj) & province::border::coastal_bit) != 0;

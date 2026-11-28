@@ -925,7 +925,7 @@ void tf_sea_zone_scope(TRIGGER_DISPLAY_PARAMS) {
 
 	auto sea_zone = primary_slot != -1 ? [&ws](int32_t p_slot) {
 		auto pid = fatten(ws.world, trigger::to_prov(p_slot));
-		for(auto adj : pid.get_province_adjacency()) {
+		for(auto adj : pid.get_province_adjacency_as_connected_provinces()) {
 			if(adj.get_connected_provinces(0).id.index() >= ws.province_definitions.first_sea_province.index()) {
 				return adj.get_connected_provinces(0).id;
 			} else if(adj.get_connected_provinces(1).id.index() >= ws.province_definitions.first_sea_province.index()) {

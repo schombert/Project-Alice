@@ -269,7 +269,7 @@ uint32_t es_else_if_scope(EFFECT_DISPLAY_PARAMS) {
 uint32_t es_x_neighbor_province_scope(EFFECT_DISPLAY_PARAMS) {
 	if((tval[0] & effect::is_random_scope) != 0) {
 		if(primary_slot != -1) {
-			auto neighbor_range = ws.world.province_get_province_adjacency(trigger::to_prov(primary_slot));
+			auto neighbor_range = ws.world.province_get_province_adjacency_as_connected_provinces(trigger::to_prov(primary_slot));
 
 			std::vector<dcon::province_id> rlist;
 
@@ -543,7 +543,7 @@ uint32_t es_x_decision_country_scope(EFFECT_DISPLAY_PARAMS) {
 uint32_t es_x_empty_neighbor_province_scope(EFFECT_DISPLAY_PARAMS) {
 	if((tval[0] & effect::is_random_scope) != 0) {
 		if(primary_slot != -1) {
-			auto neighbor_range = ws.world.province_get_province_adjacency(trigger::to_prov(primary_slot));
+			auto neighbor_range = ws.world.province_get_province_adjacency_as_connected_provinces(trigger::to_prov(primary_slot));
 			std::vector<dcon::province_id> rlist;
 
 			if((tval[0] & effect::scope_has_limit) != 0) {
@@ -1262,7 +1262,7 @@ uint32_t es_sea_zone_scope(EFFECT_DISPLAY_PARAMS) {
 
 	auto sea_zone = primary_slot != -1 ? [&ws](int32_t p_slot) {
 		auto pid = fatten(ws.world, trigger::to_prov(p_slot));
-		for(auto adj : pid.get_province_adjacency()) {
+		for(auto adj : pid.get_province_adjacency_as_connected_provinces()) {
 			if(adj.get_connected_provinces(0).id.index() >= ws.province_definitions.first_sea_province.index()) {
 				return adj.get_connected_provinces(0).id;
 			} else if(adj.get_connected_provinces(1).id.index() >= ws.province_definitions.first_sea_province.index()) {
